@@ -1,7 +1,8 @@
 # Grand Exhibit — Idle Museum Tycoon
 
-Godot 4.4 · portrait 720x1280 · Android-first. See `docs/SPEC.md` (architecture contracts)
-and `docs/DESIGN_DECISIONS.md` (why things are the way they are).
+Godot 4.4+ (verified on 4.4.1 and 4.7.1) · portrait 720x1280 · Android-first.
+See `docs/SPEC.md` (architecture contracts) and `docs/DESIGN_DECISIONS.md`
+(why things are the way they are).
 
 ## Run
 ```bash
