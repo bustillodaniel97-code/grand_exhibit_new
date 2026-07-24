@@ -20,6 +20,17 @@ const DEPT_COLORS := {
 	"gallery": Color("#B08D3E"),
 }
 
+# --- Living-floor diorama palette (bold room accents, SPEC §9 floor pass) ----
+const UPGRADE_GREEN := Color("#3E9B4F")   # big buy/upgrade buttons
+const FLOOR_CREAM := Color("#F7E8C9")     # hall floorboards
+const ROOM_TICKET := Color("#E8833A")     # ticket hall accent
+const ROOM_GALLERY := Color("#F0C75E")    # grand gallery accent
+const ROOM_VAULT := Color("#6C8EBF")      # archive vault accent
+const ROOM_PROMO := Color("#B570B8")      # promotions corner accent
+const CARPET_RED := Color("#C0392B")      # entrance carpet
+const ROPE_RED := Color("#8E2F24")        # queue rope velvet
+const WALL_BROWN := Color("#6B4A2F")      # diorama outlines / wood
+
 ## Rounded panel style. border > 0 draws a border in a darkened shade of `color`;
 ## override border_color afterwards for dept zone walls (SPEC §2: radius 12, width 3).
 static func make_panel(color: Color, radius: int = 12, border: int = 0) -> StyleBoxFlat:

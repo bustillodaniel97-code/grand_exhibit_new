@@ -100,9 +100,9 @@ func _make_upgrade_row(track: String, col: Color) -> HBoxContainer:
 	var fx_l := UI.make_label("", 18)
 	fx_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(fx_l)
-	var btn := UI.make_button("$0", col)
-	btn.custom_minimum_size = Vector2(160, 48)
-	btn.add_theme_font_size_override("font_size", 20)
+	var btn := UI.make_button("$0", UI.UPGRADE_GREEN)
+	btn.custom_minimum_size = Vector2(170, 56)
+	btn.add_theme_font_size_override("font_size", 22)
 	btn.pressed.connect(_on_buy.bind(track))
 	row.add_child(btn)
 	_row_level[track] = lv_l
