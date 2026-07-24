@@ -1,0 +1,106 @@
+extends Control
+## Welcome Back popup (SPEC §9): offline earnings summary + 3 claim options.
+## Claim 1x (free) / Watch Ad x2 (RV placement "welcome_back") / 20 Gems x3.
+## Multipliers + gem cost come from balance_core.json monetization_tuning.
+
+const UI := preload("res://scripts/ui/ui_kit.gd")
+const Popups := preload("res://scripts/ui/popup_manager.gd")
+
+var _amount: BigNumber = BigNumber.zero()
+var _seconds: int = 0
+var _busy: bool = false
+
+var _amount_lbl: Label
+var _away_lbl: Label
+var _claim_btn: Button
+var _ad_btn: Button
+var _gem_btn: Button
+
+func _ready() -> void:
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 14)
+	add_child(vbox)
+
+	var title := UI.make_label("Welcome Back!", 34)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	var sub := UI.make_label("While you were away, your museum earned:", 20)
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(sub)
+
+	_amount_lbl = UI.make_label("+$0", 40)
+	_amount_lbl.add_theme_color_override("font_color", UI.SAGE.darkened(0.15))
+	_amount_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(_amount_lbl)
+
+	_away_lbl = UI.make_label("", 20)
+	_away_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(_away_lbl)
+
+	var tuning: Dictionary = DataLoader.core.get("monetization_tuning", {})
+	var ad_mult: float = float(tuning.get("welcome_back_ad_mult", 2.0))
+	var gem_mult: float = float(tuning.get("welcome_back_gem_mult", 3.0))
+	var gem_cost: int = int(tuning.get("welcome_back_gem_cost", 20))
+
+	_claim_btn = UI.make_button("Claim 1x", UI.SAGE)
+	_claim_btn.custom_minimum_size = Vector2(0, 56)
+	_claim_btn.pressed.connect(_on_claim)
+	vbox.add_child(_claim_btn)
+
+	_ad_btn = UI.make_button("Watch Ad x%d" % int(ad_mult), UI.ACCENT)
+	_ad_btn.custom_minimum_size = Vector2(0, 56)
+	_ad_btn.pressed.connect(_on_watch_ad.bind(ad_mult))
+	vbox.add_child(_ad_btn)
+
+	_gem_btn = UI.make_button("%d Gems x%d" % [gem_cost, int(gem_mult)], UI.BRASS)
+	_gem_btn.custom_minimum_size = Vector2(0, 56)
+	_gem_btn.pressed.connect(_on_gem_claim.bind(gem_mult, gem_cost))
+	vbox.add_child(_gem_btn)
+
+func setup(payload: Dictionary) -> void:
+	var raw: Variant = payload.get("amount")
+	_amount = raw if raw is BigNumber else BigNumber.from_save(raw)
+	_seconds = int(payload.get("seconds", 0))
+	_amount_lbl.text = "+$" + _amount.to_notation()
+	_away_lbl.text = "away for %dh %dm" % [_seconds / 3600, (_seconds % 3600) / 60]
+
+func _on_claim() -> void:
+	# 1x amount was already granted by SaveSystem.compute_offline_and_apply().
+	Popups.close_top()
+
+func _on_watch_ad(mult: float) -> void:
+	if _busy:
+		return
+	_busy = true
+	_ad_btn.disabled = true
+	var ctx := {"mult": mult, "amount": _amount.to_save()}
+	AdService.ad_result.connect(_on_ad_result, CONNECT_ONE_SHOT)
+	AdService.show_rewarded("welcome_back", ctx)
+
+func _on_ad_result(placement_id: String, success: bool, context: Dictionary) -> void:
+	if placement_id != "welcome_back":
+		# Not ours — re-arm the one-shot listener and keep waiting.
+		AdService.ad_result.connect(_on_ad_result, CONNECT_ONE_SHOT)
+		return
+	_busy = false
+	if success:
+		var mult: float = float(context.get("mult", 2.0))
+		var amt: BigNumber = BigNumber.from_save(context.get("amount", {}))
+		GameState.add_cash(amt.scale(mult - 1.0))  # 1x already applied; grant the extra
+		EventBus.rv_reward_granted.emit("welcome_back", context)
+		Analytics.rv_impression("welcome_back")
+		EventBus.toast_requested.emit("Bonus claimed!")
+		Popups.close_top()
+	else:
+		_ad_btn.disabled = false
+		EventBus.toast_requested.emit("Ad unavailable")
+
+func _on_gem_claim(mult: float, cost: int) -> void:
+	if GameState.spend_gems(cost):
+		GameState.add_cash(_amount.scale(mult - 1.0))  # 1x already applied; grant the extra
+		EventBus.toast_requested.emit("Bonus claimed!")
+		Popups.close_top()
+	else:
+		EventBus.toast_requested.emit("Not enough gems")
