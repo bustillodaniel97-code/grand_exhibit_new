@@ -108,11 +108,13 @@ func decor_set_multiplier() -> float:
 	return mult
 
 func venue_rates(venue_id: String) -> Dictionary:
-	# SPEC §3 SIM MODEL (binding):
+	# SPEC §3 SIM MODEL (binding, amended 2026-07-24 — all 3 tracks meaningful):
 	#   arrival_per_s   = promotions.staff * promotions.speed_stat
 	#   serve_per_s     = ticket.staff * ticket.speed_stat
-	#   transport_per_s = archive.staff * archive.speed_stat     (visitor-units/s)
-	#   value_per_visitor = venue.base_value * ticket.value_stat * (1 + gallery_bonus) * income_mult
+	#   transport_per_s = archive.staff * archive.speed_stat * archive.value_stat  (visitor-units/s)
+	#   gallery_bonus   = gallery.staff * gallery.value_stat * gallery.speed_stat
+	#   value_per_visitor = venue.base_value * ticket.value_stat * promotions.value_stat
+	#                       * (1 + gallery_bonus) * income_mult
 	#   pending_per_s = min(arrival, serve) * value; banked = min(pending, transport * value)
 	var venue: Dictionary = DataLoader.get_venue(venue_id)
 	var vs: Dictionary = GameState.venue_state(venue_id)
@@ -125,13 +127,14 @@ func venue_rates(venue_id: String) -> Dictionary:
 		match dept_id:
 			"promotions": arrival = staff * spd
 			"ticket": serve = staff * spd
-			"archive": transport = staff * spd
+			"archive": transport = staff * spd * dept_stat(venue_id, "archive", "value")
 	var gallery_staff: int = int(vs.get("depts", {}).get("gallery", {}).get("staff", 0))
-	var gallery_bonus: float = gallery_staff * dept_stat(venue_id, "gallery", "value")
+	var gallery_bonus: float = gallery_staff * dept_stat(venue_id, "gallery", "value") * dept_stat(venue_id, "gallery", "speed")
 	var base_value := BigNumber.from_parts(
 		float(venue.get("base_value_m", 2.0)), int(venue.get("base_value_e", 0)))
 	var value_per_visitor: BigNumber = base_value.scale(
-		dept_stat(venue_id, "ticket", "value") * (1.0 + gallery_bonus) * income_multiplier(venue_id))
+		dept_stat(venue_id, "ticket", "value") * dept_stat(venue_id, "promotions", "value")
+		* (1.0 + gallery_bonus) * income_multiplier(venue_id))
 	var effective_visitors: float = minf(arrival, serve)
 	var choke_id: String = "promotions" if arrival <= serve else "ticket"
 	var pending_per_s: BigNumber = value_per_visitor.scale(effective_visitors)

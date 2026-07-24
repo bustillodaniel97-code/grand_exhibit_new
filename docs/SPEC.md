@@ -234,17 +234,18 @@ func dept_stat(venue_id: String, dept_id: String, track: String) -> float  # eff
 func insight_per_second() -> BigNumber        # expedition idle insight rate (0 if expedition locked)
 func tick_insight_storage(now_unix: int) -> void
 ```
-SIM MODEL (per venue, per second):
+SIM MODEL (per venue, per second) — AMENDED 2026-07-24 (Executive Producer) so every track is meaningful:
 - arrival_per_s = promotions.staff * promotions.speed_stat
 - serve_per_s   = ticket.staff * ticket.speed_stat
-- transport_per_s = archive.staff * archive.speed_stat (in visitor-units/s)
-- value_per_visitor = venue.base_value * ticket.value_stat * (1 + gallery_bonus) * income_multiplier
+- transport_per_s = archive.staff * archive.speed_stat * archive.value_stat (in visitor-units/s)
+- gallery_bonus = gallery.staff * gallery.value_stat * gallery.speed_stat
+- value_per_visitor = venue.base_value * ticket.value_stat * promotions.value_stat * (1 + gallery_bonus) * income_multiplier
 - pending_per_s = min(arrival, serve) * value_per_visitor       (choke = argmin)
 - banked_per_s  = min(pending_rate_in_cash, transport_per_s * value_per_visitor)
 - pending_cash accumulates += pending_per_s - banked_per_s (>=0). banked goes straight to cash.
 - income_multiplier = decor_mult * boost * milestone_global_mults (managers multiply dept stats, see managers spec)
-- gallery_bonus = gallery.staff * gallery.value_stat (value_stat = fraction per staff, e.g. 0.05)
 - dept stats: base + per_level*(level-1), times step-function multipliers from tracks[].steps {level:mult}.
+Track semantics: promotions.value = audience quality; archive.value = cart capacity; gallery.speed = tour flow.
 ```
 
 ## 4. DATA SCHEMAS (all files in data/, loaded by DataLoader)
