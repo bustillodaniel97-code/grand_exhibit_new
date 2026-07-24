@@ -1,14 +1,778 @@
 {
   "quests": [
-    { "id": "q_ticket_5", "desc": "Upgrade Ticket Halls Speed to Lv.5", "type": "upgrade_count", "dept": "ticket", "track": "speed", "target_m": 5.0, "target_e": 0, "progress_reward": 0.20 },
-    { "id": "q_earn_1k", "desc": "Earn 1K total cash", "type": "earn_total", "target_m": 1.0, "target_e": 3, "progress_reward": 0.25 },
-    { "id": "q_serve_100", "desc": "Serve 100 visitors", "type": "serve_total", "target_m": 100.0, "target_e": 0, "progress_reward": 0.25 },
-    { "id": "q_decor_1", "desc": "Buy 1 decor piece", "type": "buy_decor", "target_m": 1.0, "target_e": 0, "progress_reward": 0.30 }
+    {
+      "id": "q_prom_speed_3",
+      "desc": "Upgrade Promotions Speed to Lv.3",
+      "type": "upgrade_count",
+      "target_m": 3.0,
+      "target_e": 0,
+      "progress_reward": 0.08,
+      "dept": "promotions",
+      "track": "speed"
+    },
+    {
+      "id": "q_ticket_speed_3",
+      "desc": "Upgrade Ticket Halls Speed to Lv.3",
+      "type": "upgrade_count",
+      "target_m": 3.0,
+      "target_e": 0,
+      "progress_reward": 0.08,
+      "dept": "ticket",
+      "track": "speed"
+    },
+    {
+      "id": "q_archive_speed_3",
+      "desc": "Upgrade Archive Speed to Lv.3",
+      "type": "upgrade_count",
+      "target_m": 3.0,
+      "target_e": 0,
+      "progress_reward": 0.08,
+      "dept": "archive",
+      "track": "speed"
+    },
+    {
+      "id": "q_gallery_value_3",
+      "desc": "Upgrade Gallery Value to Lv.3",
+      "type": "upgrade_count",
+      "target_m": 3.0,
+      "target_e": 0,
+      "progress_reward": 0.08,
+      "dept": "gallery",
+      "track": "value"
+    },
+    {
+      "id": "q_prom_staff_5",
+      "desc": "Hire 5 Promotions staff",
+      "type": "upgrade_count",
+      "target_m": 5.0,
+      "target_e": 0,
+      "progress_reward": 0.09,
+      "dept": "promotions",
+      "track": "staff"
+    },
+    {
+      "id": "q_ticket_staff_5",
+      "desc": "Open 5 Ticket windows",
+      "type": "upgrade_count",
+      "target_m": 5.0,
+      "target_e": 0,
+      "progress_reward": 0.09,
+      "dept": "ticket",
+      "track": "staff"
+    },
+    {
+      "id": "q_archive_staff_4",
+      "desc": "Hire 4 Archive staff",
+      "type": "upgrade_count",
+      "target_m": 4.0,
+      "target_e": 0,
+      "progress_reward": 0.09,
+      "dept": "archive",
+      "track": "staff"
+    },
+    {
+      "id": "q_gallery_staff_4",
+      "desc": "Hire 4 Gallery staff",
+      "type": "upgrade_count",
+      "target_m": 4.0,
+      "target_e": 0,
+      "progress_reward": 0.09,
+      "dept": "gallery",
+      "track": "staff"
+    },
+    {
+      "id": "q_prom_value_6",
+      "desc": "Upgrade Promotions Value to Lv.6",
+      "type": "upgrade_count",
+      "target_m": 6.0,
+      "target_e": 0,
+      "progress_reward": 0.09,
+      "dept": "promotions",
+      "track": "value"
+    },
+    {
+      "id": "q_ticket_value_6",
+      "desc": "Upgrade Ticket Halls Value to Lv.6",
+      "type": "upgrade_count",
+      "target_m": 6.0,
+      "target_e": 0,
+      "progress_reward": 0.09,
+      "dept": "ticket",
+      "track": "value"
+    },
+    {
+      "id": "q_prom_speed_10",
+      "desc": "Upgrade Promotions Speed to Lv.10",
+      "type": "upgrade_count",
+      "target_m": 10.0,
+      "target_e": 0,
+      "progress_reward": 0.1,
+      "dept": "promotions",
+      "track": "speed"
+    },
+    {
+      "id": "q_ticket_speed_10",
+      "desc": "Upgrade Ticket Halls Speed to Lv.10",
+      "type": "upgrade_count",
+      "target_m": 10.0,
+      "target_e": 0,
+      "progress_reward": 0.1,
+      "dept": "ticket",
+      "track": "speed"
+    },
+    {
+      "id": "q_archive_speed_10",
+      "desc": "Upgrade Archive Speed to Lv.10",
+      "type": "upgrade_count",
+      "target_m": 10.0,
+      "target_e": 0,
+      "progress_reward": 0.1,
+      "dept": "archive",
+      "track": "speed"
+    },
+    {
+      "id": "q_gallery_value_10",
+      "desc": "Upgrade Gallery Value to Lv.10",
+      "type": "upgrade_count",
+      "target_m": 10.0,
+      "target_e": 0,
+      "progress_reward": 0.1,
+      "dept": "gallery",
+      "track": "value"
+    },
+    {
+      "id": "q_prom_staff_12",
+      "desc": "Hire 12 Promotions staff",
+      "type": "upgrade_count",
+      "target_m": 12.0,
+      "target_e": 0,
+      "progress_reward": 0.11,
+      "dept": "promotions",
+      "track": "staff"
+    },
+    {
+      "id": "q_ticket_value_12",
+      "desc": "Upgrade Ticket Halls Value to Lv.12",
+      "type": "upgrade_count",
+      "target_m": 12.0,
+      "target_e": 0,
+      "progress_reward": 0.11,
+      "dept": "ticket",
+      "track": "value"
+    },
+    {
+      "id": "q_earn_500",
+      "desc": "Earn 500 total cash",
+      "type": "earn_total",
+      "target_m": 5.0,
+      "target_e": 2,
+      "progress_reward": 0.07
+    },
+    {
+      "id": "q_earn_5k",
+      "desc": "Earn 5K total cash",
+      "type": "earn_total",
+      "target_m": 5.0,
+      "target_e": 3,
+      "progress_reward": 0.08
+    },
+    {
+      "id": "q_earn_50k",
+      "desc": "Earn 50K total cash",
+      "type": "earn_total",
+      "target_m": 5.0,
+      "target_e": 4,
+      "progress_reward": 0.09
+    },
+    {
+      "id": "q_earn_500k",
+      "desc": "Earn 500K total cash",
+      "type": "earn_total",
+      "target_m": 5.0,
+      "target_e": 5,
+      "progress_reward": 0.1
+    },
+    {
+      "id": "q_earn_5m",
+      "desc": "Earn 5M total cash",
+      "type": "earn_total",
+      "target_m": 5.0,
+      "target_e": 6,
+      "progress_reward": 0.11
+    },
+    {
+      "id": "q_serve_150",
+      "desc": "Serve 150 visitors",
+      "type": "serve_total",
+      "target_m": 1.5,
+      "target_e": 2,
+      "progress_reward": 0.07
+    },
+    {
+      "id": "q_serve_1000",
+      "desc": "Serve 1K visitors",
+      "type": "serve_total",
+      "target_m": 1.0,
+      "target_e": 3,
+      "progress_reward": 0.08
+    },
+    {
+      "id": "q_serve_8000",
+      "desc": "Serve 8K visitors",
+      "type": "serve_total",
+      "target_m": 8.0,
+      "target_e": 3,
+      "progress_reward": 0.1
+    },
+    {
+      "id": "q_serve_60000",
+      "desc": "Serve 60K visitors",
+      "type": "serve_total",
+      "target_m": 6.0,
+      "target_e": 4,
+      "progress_reward": 0.11
+    },
+    {
+      "id": "q_decor_1",
+      "desc": "Buy 1 decor piece",
+      "type": "buy_decor",
+      "target_m": 1.0,
+      "target_e": 0,
+      "progress_reward": 0.08
+    },
+    {
+      "id": "q_decor_3",
+      "desc": "Buy 3 decor pieces",
+      "type": "buy_decor",
+      "target_m": 3.0,
+      "target_e": 0,
+      "progress_reward": 0.1
+    },
+    {
+      "id": "q_decor_6",
+      "desc": "Buy 6 decor pieces",
+      "type": "buy_decor",
+      "target_m": 6.0,
+      "target_e": 0,
+      "progress_reward": 0.12
+    },
+    {
+      "id": "q_mgr_1",
+      "desc": "Recruit 1 manager",
+      "type": "own_managers",
+      "target_m": 1.0,
+      "target_e": 0,
+      "progress_reward": 0.08
+    },
+    {
+      "id": "q_mgr_3",
+      "desc": "Recruit 3 managers",
+      "type": "own_managers",
+      "target_m": 3.0,
+      "target_e": 0,
+      "progress_reward": 0.1
+    },
+    {
+      "id": "q_mgr_6",
+      "desc": "Recruit 6 managers",
+      "type": "own_managers",
+      "target_m": 6.0,
+      "target_e": 0,
+      "progress_reward": 0.12
+    }
   ],
   "milestones": {
     "whispering_pines": [
-      { "id": "wp_m1", "venue_id": "whispering_pines", "name": "Doors Open", "reward": { "gems": 10, "box": "field_case" }, "global_income_mult": 1.05 },
-      { "id": "wp_m8", "venue_id": "whispering_pines", "name": "Regional Fame (PRESTIGE)", "reward": { "gems": 50, "box": "specialist_case" }, "global_income_mult": 1.25 }
+      {
+        "id": "wp_m1",
+        "venue_id": "whispering_pines",
+        "name": "Doors Open",
+        "reward": {
+          "gems": 10,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.05
+      },
+      {
+        "id": "wp_m2",
+        "venue_id": "whispering_pines",
+        "name": "Local Buzz",
+        "reward": {
+          "gems": 20,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.08
+      },
+      {
+        "id": "wp_m3",
+        "venue_id": "whispering_pines",
+        "name": "Town Favorite",
+        "reward": {
+          "gems": 30,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.1
+      },
+      {
+        "id": "wp_m4",
+        "venue_id": "whispering_pines",
+        "name": "Curator's Pick",
+        "reward": {
+          "gems": 40,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.13
+      },
+      {
+        "id": "wp_m5",
+        "venue_id": "whispering_pines",
+        "name": "Regional Draw",
+        "reward": {
+          "gems": 50,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.15
+      },
+      {
+        "id": "wp_m6",
+        "venue_id": "whispering_pines",
+        "name": "Star Attraction",
+        "reward": {
+          "gems": 60,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.18
+      },
+      {
+        "id": "wp_m7",
+        "venue_id": "whispering_pines",
+        "name": "Must-See Hall",
+        "reward": {
+          "gems": 70,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.2
+      },
+      {
+        "id": "wp_m8",
+        "venue_id": "whispering_pines",
+        "name": "Whispering Legend (PRESTIGE)",
+        "reward": {
+          "gems": 80,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.25
+      }
+    ],
+    "copper_kettle": [
+      {
+        "id": "ck_m1",
+        "venue_id": "copper_kettle",
+        "name": "Factory Floor",
+        "reward": {
+          "gems": 15,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.05
+      },
+      {
+        "id": "ck_m2",
+        "venue_id": "copper_kettle",
+        "name": "Brass & Steam",
+        "reward": {
+          "gems": 30,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.08
+      },
+      {
+        "id": "ck_m3",
+        "venue_id": "copper_kettle",
+        "name": "City Spotlight",
+        "reward": {
+          "gems": 45,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.1
+      },
+      {
+        "id": "ck_m4",
+        "venue_id": "copper_kettle",
+        "name": "Industrial Icon",
+        "reward": {
+          "gems": 60,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.13
+      },
+      {
+        "id": "ck_m5",
+        "venue_id": "copper_kettle",
+        "name": "Engine Room",
+        "reward": {
+          "gems": 75,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.15
+      },
+      {
+        "id": "ck_m6",
+        "venue_id": "copper_kettle",
+        "name": "Patent Wall",
+        "reward": {
+          "gems": 90,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.18
+      },
+      {
+        "id": "ck_m7",
+        "venue_id": "copper_kettle",
+        "name": "Kettle Crown",
+        "reward": {
+          "gems": 105,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.2
+      },
+      {
+        "id": "ck_m8",
+        "venue_id": "copper_kettle",
+        "name": "Copper Dynasty (PRESTIGE)",
+        "reward": {
+          "gems": 120,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.25
+      }
+    ],
+    "grand_river": [
+      {
+        "id": "gr_m1",
+        "venue_id": "grand_river",
+        "name": "Riverbank Debut",
+        "reward": {
+          "gems": 25,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.05
+      },
+      {
+        "id": "gr_m2",
+        "venue_id": "grand_river",
+        "name": "Marble Steps",
+        "reward": {
+          "gems": 50,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.08
+      },
+      {
+        "id": "gr_m3",
+        "venue_id": "grand_river",
+        "name": "Scholar's Circle",
+        "reward": {
+          "gems": 75,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.1
+      },
+      {
+        "id": "gr_m4",
+        "venue_id": "grand_river",
+        "name": "Riverfront Gala",
+        "reward": {
+          "gems": 100,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.13
+      },
+      {
+        "id": "gr_m5",
+        "venue_id": "grand_river",
+        "name": "Archive of Note",
+        "reward": {
+          "gems": 125,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.15
+      },
+      {
+        "id": "gr_m6",
+        "venue_id": "grand_river",
+        "name": "Grand Concourse",
+        "reward": {
+          "gems": 150,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.18
+      },
+      {
+        "id": "gr_m7",
+        "venue_id": "grand_river",
+        "name": "Athenaeum Elite",
+        "reward": {
+          "gems": 175,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.2
+      },
+      {
+        "id": "gr_m8",
+        "venue_id": "grand_river",
+        "name": "River Eternal (PRESTIGE)",
+        "reward": {
+          "gems": 200,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.25
+      }
+    ],
+    "sunspire": [
+      {
+        "id": "ss_m1",
+        "venue_id": "sunspire",
+        "name": "Desert Beacon",
+        "reward": {
+          "gems": 40,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.05
+      },
+      {
+        "id": "ss_m2",
+        "venue_id": "sunspire",
+        "name": "Glass Ascent",
+        "reward": {
+          "gems": 80,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.08
+      },
+      {
+        "id": "ss_m3",
+        "venue_id": "sunspire",
+        "name": "Golden Hour",
+        "reward": {
+          "gems": 120,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.1
+      },
+      {
+        "id": "ss_m4",
+        "venue_id": "sunspire",
+        "name": "Mirage No More",
+        "reward": {
+          "gems": 160,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.13
+      },
+      {
+        "id": "ss_m5",
+        "venue_id": "sunspire",
+        "name": "Spire Spectacle",
+        "reward": {
+          "gems": 200,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.15
+      },
+      {
+        "id": "ss_m6",
+        "venue_id": "sunspire",
+        "name": "Oasis of Art",
+        "reward": {
+          "gems": 240,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.18
+      },
+      {
+        "id": "ss_m7",
+        "venue_id": "sunspire",
+        "name": "Sun-Chaser's Muse",
+        "reward": {
+          "gems": 280,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.2
+      },
+      {
+        "id": "ss_m8",
+        "venue_id": "sunspire",
+        "name": "Sunspire Zenith (PRESTIGE)",
+        "reward": {
+          "gems": 320,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.25
+      }
+    ],
+    "cloudrest": [
+      {
+        "id": "cc_m1",
+        "venue_id": "cloudrest",
+        "name": "First Ascent",
+        "reward": {
+          "gems": 60,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.05
+      },
+      {
+        "id": "cc_m2",
+        "venue_id": "cloudrest",
+        "name": "Cloud Gate",
+        "reward": {
+          "gems": 120,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.08
+      },
+      {
+        "id": "cc_m3",
+        "venue_id": "cloudrest",
+        "name": "Summit Season",
+        "reward": {
+          "gems": 180,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.1
+      },
+      {
+        "id": "cc_m4",
+        "venue_id": "cloudrest",
+        "name": "Eagle's Exhibit",
+        "reward": {
+          "gems": 240,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.13
+      },
+      {
+        "id": "cc_m5",
+        "venue_id": "cloudrest",
+        "name": "Skyline Collection",
+        "reward": {
+          "gems": 300,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.15
+      },
+      {
+        "id": "cc_m6",
+        "venue_id": "cloudrest",
+        "name": "Citadel of Wonder",
+        "reward": {
+          "gems": 360,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.18
+      },
+      {
+        "id": "cc_m7",
+        "venue_id": "cloudrest",
+        "name": "Stormproof",
+        "reward": {
+          "gems": 420,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.2
+      },
+      {
+        "id": "cc_m8",
+        "venue_id": "cloudrest",
+        "name": "Above the Clouds (PRESTIGE)",
+        "reward": {
+          "gems": 480,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.25
+      }
+    ],
+    "aurora_world": [
+      {
+        "id": "aw_m1",
+        "venue_id": "aurora_world",
+        "name": "Polar Premiere",
+        "reward": {
+          "gems": 90,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.05
+      },
+      {
+        "id": "aw_m2",
+        "venue_id": "aurora_world",
+        "name": "Northern Lights Hall",
+        "reward": {
+          "gems": 180,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.08
+      },
+      {
+        "id": "aw_m3",
+        "venue_id": "aurora_world",
+        "name": "World Stage",
+        "reward": {
+          "gems": 270,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.1
+      },
+      {
+        "id": "aw_m4",
+        "venue_id": "aurora_world",
+        "name": "Borealis Ball",
+        "reward": {
+          "gems": 360,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.13
+      },
+      {
+        "id": "aw_m5",
+        "venue_id": "aurora_world",
+        "name": "Continent's Choice",
+        "reward": {
+          "gems": 450,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.15
+      },
+      {
+        "id": "aw_m6",
+        "venue_id": "aurora_world",
+        "name": "Globe's Gallery",
+        "reward": {
+          "gems": 540,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.18
+      },
+      {
+        "id": "aw_m7",
+        "venue_id": "aurora_world",
+        "name": "Eternal Exhibit",
+        "reward": {
+          "gems": 630,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.2
+      },
+      {
+        "id": "aw_m8",
+        "venue_id": "aurora_world",
+        "name": "Aurora Apex (PRESTIGE)",
+        "reward": {
+          "gems": 720,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.25
+      }
     ]
   }
 }
