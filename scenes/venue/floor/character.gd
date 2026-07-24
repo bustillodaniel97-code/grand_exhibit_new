@@ -74,7 +74,7 @@ func _draw() -> void:
 	var bob: float = -absf(sin(_bob_t)) * 2.5 if walking else 0.0
 	var step: float = sin(_bob_t) * 3.0 if walking else 0.0
 	# Shadow.
-	draw_ellipse(Rect2(-11, -3, 22, 6), Color(0, 0, 0, 0.14))
+	paint_ellipse(Rect2(-11, -3, 22, 6), Color(0, 0, 0, 0.14))
 	# Legs (scissor while walking).
 	draw_rect(Rect2(-6 + step * 0.4, -8 + bob, 5, 7), _pants)
 	draw_rect(Rect2(1 - step * 0.4, -8 + bob, 5, 7), _pants)
@@ -130,7 +130,7 @@ func _draw() -> void:
 			draw_line(crate.position + Vector2(3, 5.5), crate.position + Vector2(13, 5.5),
 				UI.WALL_BROWN, 1.2)
 
-func draw_ellipse(rect: Rect2, color: Color) -> void:
+func paint_ellipse(rect: Rect2, color: Color) -> void:
 	# Cheap filled ellipse via scaled circle fan.
 	var pts := PackedVector2Array()
 	for i in 16:
