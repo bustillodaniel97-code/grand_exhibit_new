@@ -29,7 +29,10 @@ func save_now() -> void:
 		return
 	GameState.last_seen_unix = ClockGuard.now()
 	ClockGuard.note_seen(GameState.last_seen_unix)
-	var state: Dictionary = GameState.to_save_dict()
+	# Normalize through a JSON parse round-trip first: parsing rewrites ints as
+	# floats and reorders keys, so stringify(to_save_dict()) != stringify(parsed).
+	# Checksumming the normalized form keeps load_game()'s verification stable.
+	var state: Dictionary = JSON.parse_string(JSON.stringify(GameState.to_save_dict()))
 	var payload: String = JSON.stringify(state)
 	var envelope := {
 		"version": SAVE_VERSION,
@@ -90,6 +93,7 @@ func compute_offline_and_apply() -> Dictionary:
 		var eff: float = float(cfg.get("offline_efficiency", 1.0))
 		amount = rate.scale(float(seconds) * eff)
 		GameState.add_cash(amount)
+		EventBus.offline_earnings_ready.emit(amount, seconds, capped)
 	GameState.last_seen_unix = now_unix
 	ClockGuard.note_seen(now_unix)
 	return {"amount": amount, "seconds": seconds, "capped": capped}

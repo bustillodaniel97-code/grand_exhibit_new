@@ -31,6 +31,13 @@ func normalize() -> BigNumber:
 		m = 0.0
 		e = 0
 		return self
+	if is_inf(m):
+		# Mantissa overflowed float range (e.g. scale by a huge factor).
+		# Approximate inf as 1e308 and continue in log space; without this
+		# guard the loops below would never terminate.
+		m = 1.0
+		e += 308
+		push_warning("BigNumber: mantissa overflow, approximated as 1e%d" % e)
 	while m >= 10.0:
 		m /= 10.0
 		e += 1
@@ -127,18 +134,25 @@ func to_notation() -> String:
 			return "%d" % int(floor(v + 0.0001))
 		return _trim("%.1f" % v)
 	var idx: int = int(e / 3.0) - 1  # 0=K 1=M 2=B 3=T 4=aa 5=ab ...
-	var suffix: String
-	if idx < 4:
-		suffix = ["K", "M", "B", "T"][idx]
-	else:
-		var n: int = idx - 4
-		suffix = String.chr(97 + int(n / 26)) + String.chr(97 + (n % 26))
 	var digits: float = m * pow(10.0, e % 3)
+	if digits >= 999.5:
+		# Roll into the next suffix instead of showing "999.9K"-style edges.
+		digits /= 1000.0
+		idx += 1
+	var suffix: String = _suffix(idx)
 	if digits >= 100.0:
 		return "%d%s" % [int(digits), suffix]
 	if digits >= 10.0:
 		return _trim("%.1f" % digits) + suffix
 	return _trim("%.2f" % digits) + suffix
+
+static func _suffix(idx: int) -> String:
+	if idx < 4:
+		return ["K", "M", "B", "T"][idx]
+	var n: int = idx - 4
+	if n >= 26 * 26:
+		return "zz"  # display-only clamp past "zz" (e ~ 2100); unreachable in practice
+	return String.chr(97 + int(n / 26)) + String.chr(97 + (n % 26))
 
 static func _trim(s: String) -> String:
 	if "." in s:

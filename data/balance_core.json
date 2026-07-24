@@ -21,7 +21,7 @@
       "max_staff": 25,
       "tracks": {
         "staff": { "base_cost_m": 25.0, "base_cost_e": 0, "growth": 1.15, "steps": {} },
-        "speed": { "base_stat": 0.20, "per_level": 0.02, "base_cost_m": 40.0, "base_cost_e": 0, "growth": 1.12, "steps": { "10": 2.0, "25": 2.0, "50": 2.0 } },
+        "speed": { "base_stat": 0.28, "per_level": 0.02, "base_cost_m": 40.0, "base_cost_e": 0, "growth": 1.12, "steps": { "10": 2.0, "25": 2.0, "50": 2.0 } },
         "value": { "base_stat": 1.0, "per_level": 0.06, "base_cost_m": 60.0, "base_cost_e": 0, "growth": 1.13, "steps": { "10": 2.0, "25": 2.0 } }
       }
     },
@@ -33,7 +33,7 @@
       "base_staff": 1,
       "max_staff": 10,
       "tracks": {
-        "staff": { "base_cost_m": 20.0, "base_cost_e": 0, "growth": 1.15, "steps": {} },
+        "staff": { "base_cost_m": 15.0, "base_cost_e": 0, "growth": 1.15, "steps": {} },
         "speed": { "base_stat": 0.34, "per_level": 0.04, "base_cost_m": 30.0, "base_cost_e": 0, "growth": 1.13, "steps": { "10": 2.0, "25": 2.0 } },
         "value": { "base_stat": 1.0, "per_level": 0.08, "base_cost_m": 50.0, "base_cost_e": 0, "growth": 1.13, "steps": { "10": 2.0, "25": 2.0 } }
       }

@@ -78,7 +78,8 @@ func dept_def(dept_id: String) -> Dictionary:
 	return core.get("departments", {}).get(dept_id, {})
 
 ## cost = base_cost * growth^level * venue_cost_mult * 10^venue_cost_exp
-func upgrade_cost(dept_id: String, track: String, level: int, venue_cost_mult: float, venue_cost_exp: int) -> BigNumber:
+## venue_cost_exp defaulted so the SPEC §3 4-arg call form stays valid.
+func upgrade_cost(dept_id: String, track: String, level: int, venue_cost_mult: float, venue_cost_exp: int = 0) -> BigNumber:
 	var t: Dictionary = dept_def(dept_id).get("tracks", {}).get(track, {})
 	if t.is_empty():
 		return BigNumber.zero()

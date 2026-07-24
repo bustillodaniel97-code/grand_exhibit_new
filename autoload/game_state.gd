@@ -110,7 +110,7 @@ func feature_unlocked(feature: String) -> bool:
 func day_index() -> int:
 	if first_launch_unix <= 0:
 		return 0
-	return int((ClockGuard.now() - first_launch_unix) / 86400.0)
+	return maxi(0, int((ClockGuard.now() - first_launch_unix) / 86400.0))
 
 func add_cash(b: BigNumber) -> void:
 	cash = cash.add(b)
@@ -191,7 +191,20 @@ func from_save_dict(d: Dictionary) -> void:
 	venues_unlocked = d.get("venues_unlocked", venues_unlocked)
 	var vs: Dictionary = d.get("venues_state", {})
 	for vid in vs.keys():
-		venues_state[vid] = vs[vid]  # overlay saved venues onto defaults
+		if typeof(vs[vid]) != TYPE_DICTIONARY:
+			continue
+		# Overlay saved venue onto fresh defaults so partial/migrated saves
+		# still have every key (SPEC §10: from_save_dict accepts partial dicts).
+		var merged: Dictionary = _fresh_venue_state(vid)
+		var saved: Dictionary = vs[vid]
+		for k in saved.keys():
+			merged[k] = saved[k]
+		if saved.has("depts") and typeof(saved["depts"]) == TYPE_DICTIONARY:
+			for dept_id in merged["depts"].keys():
+				var saved_dept: Dictionary = saved["depts"].get(dept_id, {})
+				for tk in saved_dept.keys():
+					merged["depts"][dept_id][tk] = saved_dept[tk]
+		venues_state[vid] = merged
 	pending_cash = {}
 	for vid in d.get("pending_cash", {}).keys():
 		pending_cash[vid] = BigNumber.from_save(d["pending_cash"][vid])

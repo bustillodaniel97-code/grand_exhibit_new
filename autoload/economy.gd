@@ -5,6 +5,8 @@ extends Node
 
 var _accum: float = 0.0
 var _signal_throttle: float = 0.0
+var _served_win: BigNumber = BigNumber.zero()
+var _banked_win: BigNumber = BigNumber.zero()
 
 func _process(delta: float) -> void:
 	if not GameState.ready_flag:
@@ -19,6 +21,12 @@ func _process(delta: float) -> void:
 	if _signal_throttle >= 0.5:
 		_signal_throttle = 0.0
 		EventBus.cash_changed.emit(GameState.cash)
+		if not _served_win.is_zero():
+			EventBus.cash_served.emit(_served_win)
+			_served_win = BigNumber.zero()
+		if not _banked_win.is_zero():
+			EventBus.cash_banked.emit(_banked_win)
+			_banked_win = BigNumber.zero()
 		tick_insight_storage(ClockGuard.now())
 
 func _tick(dt: float) -> void:
@@ -27,10 +35,12 @@ func _tick(dt: float) -> void:
 	var pending_rate: BigNumber = rates["pending_per_s"]
 	var banked_rate: BigNumber = rates["banked_per_s"]
 	var pending: BigNumber = GameState.pending_cash.get(vid, BigNumber.zero())
+	_served_win = _served_win.add(pending_rate.scale(dt))
 	pending = pending.add(pending_rate.scale(dt)).sub(banked_rate.scale(dt))
 	GameState.pending_cash[vid] = pending
 	var banked: BigNumber = banked_rate.scale(dt)
 	if not banked.is_zero():
+		_banked_win = _banked_win.add(banked)
 		GameState.cash = GameState.cash.add(banked)
 		var vs: Dictionary = GameState.venue_state(vid)
 		vs["earned_total"] = BigNumber.from_save(vs.get("earned_total", {})).add(banked).to_save()
@@ -98,6 +108,12 @@ func decor_set_multiplier() -> float:
 	return mult
 
 func venue_rates(venue_id: String) -> Dictionary:
+	# SPEC §3 SIM MODEL (binding):
+	#   arrival_per_s   = promotions.staff * promotions.speed_stat
+	#   serve_per_s     = ticket.staff * ticket.speed_stat
+	#   transport_per_s = archive.staff * archive.speed_stat     (visitor-units/s)
+	#   value_per_visitor = venue.base_value * ticket.value_stat * (1 + gallery_bonus) * income_mult
+	#   pending_per_s = min(arrival, serve) * value; banked = min(pending, transport * value)
 	var venue: Dictionary = DataLoader.get_venue(venue_id)
 	var vs: Dictionary = GameState.venue_state(venue_id)
 	var arrival: float = 0.0
@@ -109,14 +125,13 @@ func venue_rates(venue_id: String) -> Dictionary:
 		match dept_id:
 			"promotions": arrival = staff * spd
 			"ticket": serve = staff * spd
-			"archive": transport = staff * spd * dept_stat(venue_id, "archive", "value")
+			"archive": transport = staff * spd
 	var gallery_staff: int = int(vs.get("depts", {}).get("gallery", {}).get("staff", 0))
-	var gallery_bonus: float = gallery_staff * dept_stat(venue_id, "gallery", "value") * dept_stat(venue_id, "gallery", "speed")
+	var gallery_bonus: float = gallery_staff * dept_stat(venue_id, "gallery", "value")
 	var base_value := BigNumber.from_parts(
 		float(venue.get("base_value_m", 2.0)), int(venue.get("base_value_e", 0)))
 	var value_per_visitor: BigNumber = base_value.scale(
-		dept_stat(venue_id, "ticket", "value") * dept_stat(venue_id, "promotions", "value")
-		* (1.0 + gallery_bonus) * income_multiplier(venue_id))
+		dept_stat(venue_id, "ticket", "value") * (1.0 + gallery_bonus) * income_multiplier(venue_id))
 	var effective_visitors: float = minf(arrival, serve)
 	var choke_id: String = "promotions" if arrival <= serve else "ticket"
 	var pending_per_s: BigNumber = value_per_visitor.scale(effective_visitors)
