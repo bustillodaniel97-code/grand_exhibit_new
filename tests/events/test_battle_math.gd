@@ -17,6 +17,8 @@ const AUTOLOADS := {
 }
 
 var failures := 0
+var DL  # DataLoader node
+var GS  # GameState node
 
 
 func check(cond: bool, msg: String) -> void:
@@ -29,7 +31,10 @@ func check(cond: bool, msg: String) -> void:
 
 func _initialize() -> void:
 	_boot()
-	GameState.reset_to_new_game()
+	DL = root.get_node("DataLoader")
+	GS = root.get_node("GameState")
+	DL.reload_all()  # _ready is deferred past _initialize; force data now
+	GS.reset_to_new_game()
 	_test_manager_attack()
 	_test_team_power()
 	_test_stage_boss_hp_monotonic()
@@ -50,7 +55,7 @@ func _boot() -> void:
 
 
 func _test_manager_attack() -> void:
-	var def: Dictionary = DataLoader.get_manager_def("docent_poppy")
+	var def: Dictionary = DL.get_manager_def("docent_poppy")
 	check(not def.is_empty(), "docent_poppy def loaded")
 	var bp: float = float(def.get("battle_power", 10.0))
 	check(is_equal_approx(BattleMath.manager_attack(def, {"level": 1, "rank": 1}), bp),
@@ -66,8 +71,8 @@ func _test_manager_attack() -> void:
 
 
 func _test_team_power() -> void:
-	var d1: Dictionary = DataLoader.get_manager_def("docent_poppy")
-	var d2: Dictionary = DataLoader.get_manager_def("paleontologist_rex")
+	var d1: Dictionary = DL.get_manager_def("docent_poppy")
+	var d2: Dictionary = DL.get_manager_def("paleontologist_rex")
 	var tp: float = BattleMath.team_power([
 		{"def": d1, "state": {"level": 1, "rank": 1}},
 		{"def": d2, "state": {"level": 1, "rank": 1}},
@@ -78,7 +83,7 @@ func _test_team_power() -> void:
 
 
 func _test_stage_boss_hp_monotonic() -> void:
-	var ev: Dictionary = DataLoader.get_event("inspection_frenzy")
+	var ev: Dictionary = DL.get_event("inspection_frenzy")
 	var stages: Array = ev.get("stages", [])
 	check(stages.size() == 6, "inspection has 6 stages")
 	var prev := 0.0
@@ -96,7 +101,7 @@ func _test_stage_boss_hp_monotonic() -> void:
 
 
 func _test_final_stage_ratio() -> void:
-	var ev: Dictionary = DataLoader.get_event("inspection_frenzy")
+	var ev: Dictionary = DL.get_event("inspection_frenzy")
 	var stages: Array = ev.get("stages", [])
 	var need: float = float(ev.get("scaling", {}).get("final_stage_power_need", 1.5))
 	for tp in [50.0, 100.0, 1000.0]:
@@ -107,7 +112,7 @@ func _test_final_stage_ratio() -> void:
 
 
 func _test_team_power_scaling() -> void:
-	var ev: Dictionary = DataLoader.get_event("inspection_frenzy")
+	var ev: Dictionary = DL.get_event("inspection_frenzy")
 	var low: float = BattleMath.stage_boss_hp(ev, 2, 0.0)
 	var high: float = BattleMath.stage_boss_hp(ev, 2, 400.0)
 	check(high > low, "boss hp scales up with team power")
@@ -121,7 +126,7 @@ func _test_team_power_scaling() -> void:
 
 
 func _test_expedition_cycle_scaling() -> void:
-	var boss: Dictionary = DataLoader.get_event("expedition").get("boss", {})
+	var boss: Dictionary = DL.get_event("expedition").get("boss", {})
 	var c0: float = BattleMath.expedition_boss_hp(boss, 100.0, 0)
 	var c1: float = BattleMath.expedition_boss_hp(boss, 100.0, 1)
 	var c2: float = BattleMath.expedition_boss_hp(boss, 100.0, 2)
@@ -132,13 +137,13 @@ func _test_expedition_cycle_scaling() -> void:
 func _test_reward_draw() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 4242
-	for box_id in DataLoader.lootboxes.keys():
-		var box: Dictionary = DataLoader.get_lootbox(box_id)
-		var drawn: Dictionary = BattleMath.draw_cards(box, DataLoader.managers, rng)
+	for box_id in DL.lootboxes.keys():
+		var box: Dictionary = DL.get_lootbox(box_id)
+		var drawn: Dictionary = BattleMath.draw_cards(box, DL.managers, rng)
 		var total := 0
 		var valid := true
 		for mid in drawn.keys():
-			if not DataLoader.managers.has(mid):
+			if not DL.managers.has(mid):
 				valid = false
 			total += int(drawn[mid])
 		check(valid, "%s: all drawn ids are valid manager ids" % box_id)
@@ -150,7 +155,7 @@ func _test_reward_draw() -> void:
 	a.seed = 99
 	b.seed = 99
 	var d1: Dictionary = BattleMath.draw_cards(
-		DataLoader.get_lootbox("executive_case"), DataLoader.managers, a)
+		DL.get_lootbox("executive_case"), DL.managers, a)
 	var d2: Dictionary = BattleMath.draw_cards(
-		DataLoader.get_lootbox("executive_case"), DataLoader.managers, b)
+		DL.get_lootbox("executive_case"), DL.managers, b)
 	check(d1 == d2, "seeded draws are deterministic")

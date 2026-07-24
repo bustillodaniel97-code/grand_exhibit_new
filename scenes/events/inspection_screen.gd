@@ -342,7 +342,6 @@ func _show_outcome(text: String) -> void:
 	add_child(_outcome)
 	var card := Panel.new()
 	card.custom_minimum_size = Vector2(560, 320)
-	card.set_anchors_preset(Control.PRESET_CENTER)
 	card.position = Vector2(80, 480)
 	card.add_theme_stylebox_override("panel", _style(PANEL, 12, BRASS))
 	_outcome.add_child(card)

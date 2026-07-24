@@ -40,7 +40,7 @@ func _ready() -> void:
 	_timer = Timer.new()
 	_timer.wait_time = 1.0
 	_timer.autostart = true
-	_timer.timeout.connect(_refresh_storage)
+	_timer.timeout.connect(_on_tick)
 	add_child(_timer)
 	if not AdService.ad_result.is_connected(_on_ad_result):
 		AdService.ad_result.connect(_on_ad_result)
@@ -201,11 +201,15 @@ func _on_storage_changed(_stored, _cap) -> void:
 	_refresh_storage()
 
 
+func _on_tick() -> void:
+	# Economy also ticks this globally; nudging here keeps the panel live.
+	Economy.tick_insight_storage(ClockGuard.now())
+	_refresh_storage()
+
+
 func _refresh_storage() -> void:
 	if _storage_bar == null or not is_instance_valid(_storage_bar):
 		return
-	# Economy ticks this globally; nudge here too so the panel is fresh on open.
-	Economy.tick_insight_storage(ClockGuard.now())
 	var stored: BigNumber = BigNumber.from_save(_es().get("insight_stored", {}))
 	var cap: BigNumber = Economy.insight_cap()
 	var cap_f: float = maxf(cap.to_float_approx(), 1.0)

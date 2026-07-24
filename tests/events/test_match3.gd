@@ -27,13 +27,13 @@ func _initialize() -> void:
 	quit(1 if failures > 0 else 0)
 
 
-func _has_match(e: RefCounted) -> bool:
+func _has_match(e) -> bool:
 	return not e._find_matches().is_empty()
 
 
 ## Returns the result of the first adjacent swap that produces a match
 ## (non-matching probes revert harmlessly), or {} if none exists.
-func _first_winning_swap(e: RefCounted) -> Dictionary:
+func _first_winning_swap(e) -> Dictionary:
 	for y in 8:
 		for x in 8:
 			for d in [Vector2i(1, 0), Vector2i(0, 1)]:

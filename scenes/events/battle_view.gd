@@ -23,7 +23,7 @@ const ACCENT := Color("#C4703F")
 const TILE := 72
 const GAP := 6
 
-var _engine: RefCounted
+var _engine  # Match3 instance (untyped: duck-typed calls)
 var _team: Array = []        # [{"def":Dictionary, "state":Dictionary}]
 var _boss_hp := 1.0
 var _boss_hp_max := 1.0
