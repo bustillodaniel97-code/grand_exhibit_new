@@ -116,7 +116,7 @@ func _on_any_change(_a: Variant = null, _b: Variant = null) -> void:
 	refresh()
 
 func refresh() -> void:
-	UI.set_chip_value(_cash_chip, "$" + GameState.cash.to_notation())
+	UI.set_chip_value(_cash_chip, GameState.cash.to_notation())  # coin icon = cash
 	UI.set_chip_value(_gems_chip, "%d" % GameState.gems)
 	UI.set_chip_value(_insight_chip, GameState.insight.to_notation())
 	_rep_lbl.text = "REP %d" % GameState.rep_level()

@@ -116,7 +116,7 @@ func _circle(color: Color, letter: String, diameter: int = 64) -> Control:
 	c.add_child(disc)
 	var l := Label.new()
 	l.text = letter
-	l.add_theme_font_override("font", UI.font())
+	UI.apply_display_font(l, letter)
 	l.add_theme_font_size_override("font_size", int(diameter * 0.45))
 	l.add_theme_color_override("font_color", Color.WHITE)
 	l.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -245,7 +245,7 @@ func _rebuild_detail(id: String) -> void:
 	box.add_child(top)
 	var title := Label.new()
 	title.text = str(def.get("name", id)) if not locked else "Undiscovered"
-	title.add_theme_font_override("font", UI.font())
+	UI.apply_display_font(title, title.text)
 	title.add_theme_font_size_override("font_size", 30)
 	title.add_theme_color_override("font_color", INK)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL

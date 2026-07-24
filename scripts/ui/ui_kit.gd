@@ -100,6 +100,21 @@ static func _res(path: String) -> Resource:
 static func font() -> Font:
 	return _res(_FONT_MAIN) as Font
 
+## Kenney Future is all-caps display type whose "X" glyph reads as "H" — fatal
+## for "Grand eXhibit" — and whose "$" reads as a plain "S". Apply it only to
+## text without those glyphs; other text keeps the default font. Single
+## "X"/"✕" button labels become a real cross icon instead.
+static func _needs_font_fallback(text: String) -> bool:
+	return text.to_lower().contains("x") or text.contains("$")
+
+static func _apply_display_font(c: Control, text: String) -> void:
+	if not _needs_font_fallback(text):
+		c.add_theme_font_override("font", font())
+
+## Public wrapper for screens that restyle their own labels.
+static func apply_display_font(c: Control, text: String) -> void:
+	_apply_display_font(c, text)
+
 ## Prescaled icon texture (game-icons ship at 100px; scale once, cache).
 static func icon_texture(name: String, size: int = 24) -> Texture2D:
 	var key := "%s@%d" % [name, size]
@@ -201,7 +216,12 @@ static func make_button(text: String, bg: Color) -> Button:
 
 ## Apply the full v2 button treatment to an existing Button.
 static func skin_button(b: Button, bg: Color) -> Button:
-	b.add_theme_font_override("font", font())
+	# Lone "X"/"✕" close buttons get a real cross icon (Kenney Future's X reads as H).
+	if b.text.strip_edges() in ["X", "✕", "x"]:
+		b.text = ""
+		b.icon = icon_texture("cross", 22)
+	else:
+		_apply_display_font(b, b.text)
 	b.add_theme_font_size_override("font_size", 22)
 	b.add_theme_color_override("font_color", Color.WHITE)
 	b.add_theme_color_override("font_hover_color", Color.WHITE)
@@ -269,7 +289,7 @@ static func make_badge(letter: String, color: Color) -> Control:
 	l.text = letter
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	l.add_theme_font_override("font", font())
+	_apply_display_font(l, letter)
 	l.add_theme_font_size_override("font_size", 26)
 	l.add_theme_color_override("font_color", Color.WHITE)
 	p.add_child(l)
@@ -285,7 +305,7 @@ static func make_label(text: String, size: int) -> Label:
 ## Display-font label (headers / numbers that should feel "designed").
 static func make_display_label(text: String, size: int, color: Color = INK) -> Label:
 	var l := make_label(text, size)
-	l.add_theme_font_override("font", font())
+	_apply_display_font(l, text)
 	l.add_theme_color_override("font_color", color)
 	return l
 
