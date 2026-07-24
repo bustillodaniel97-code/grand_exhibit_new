@@ -20,5 +20,8 @@ godot --headless --path . -s tests/core/test_big_number.gd
 ## Notes
 - Ads and IAP are behind `AdService` / `IAPService` interfaces with debug stubs
   (ads always succeed, purchases always succeed). Wire AdMob / billing plugins there.
+  Release flip: set `AdService.debug_ads = false` and `IAPService.debug_iap = false`
+  (both default `true` in debug builds; with `false` the stubs fail gracefully until
+  the real SDK is wired).
 - All balance lives in `data/*.json` — retune without touching code.
 - Art is procedural placeholder (drawn in code, CC0 by us) pending a Kenney/CC0 pass.
