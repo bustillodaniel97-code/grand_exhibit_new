@@ -135,16 +135,17 @@ func refresh() -> void:
 		if _is_maxed(track):
 			btn.text = "MAX"
 			btn.disabled = true
-			btn.remove_theme_color_override("font_disabled_color")
+			btn.modulate = Color(1, 1, 1, 0.65)
 		else:
 			var cost: BigNumber = _cost_for(track)
 			btn.text = "$" + cost.to_notation()
 			var affordable: bool = GameState.cash.gte(cost)
-			btn.disabled = not affordable
-			if affordable:
-				btn.remove_theme_color_override("font_disabled_color")
-			else:
-				btn.add_theme_color_override("font_disabled_color", UI.DANGER)
+			# Never disable for cost: a disabled button swallows the tap
+			# silently (player bug: "upgrade buttons don't buy"). Stay
+			# tappable so _on_buy can explain the shortfall via toast;
+			# dim the button as the can't-afford visual affordance.
+			btn.disabled = false
+			btn.modulate = Color(1, 1, 1, 1) if affordable else Color(1, 1, 1, 0.55)
 	_update_staff_dots()
 
 func _effect_text(track: String, def: Dictionary, level: int) -> String:
@@ -161,9 +162,37 @@ func _effect_text(track: String, def: Dictionary, level: int) -> String:
 	return "%.2f → %.2f" % [cur, nxt]
 
 func _on_buy(track: String) -> void:
-	Economy.purchase_upgrade(venue_id, dept_id, track)
+	if _is_maxed(track):
+		return
+	var cost: BigNumber = _cost_for(track)
+	if not GameState.cash.gte(cost):
+		var short: BigNumber = cost.sub(GameState.cash)
+		EventBus.toast_requested.emit("Need $" + short.to_notation() + " more")
+		_flash_button(track, false)
+		return
+	if Economy.purchase_upgrade(venue_id, dept_id, track):
+		_flash_button(track, true)
 	# Signals (cash_changed / department_upgraded) trigger refresh; call directly too.
 	refresh()
+
+## Button-press feedback: punchy scale+green flash on a successful buy,
+## small red shake when the tap only produced a "need more" toast.
+func _flash_button(track: String, success: bool) -> void:
+	var btn: Button = _row_btn.get(track)
+	if btn == null:
+		return
+	btn.pivot_offset = btn.size * 0.5
+	var tw := btn.create_tween()
+	if success:
+		tw.tween_property(btn, "scale", Vector2(1.12, 1.12), 0.08)
+		tw.parallel().tween_property(btn, "modulate", UI.UPGRADE_GREEN.lightened(0.35), 0.08)
+		tw.tween_property(btn, "scale", Vector2.ONE, 0.16)
+		tw.parallel().tween_property(btn, "modulate", Color.WHITE, 0.16)
+		tw.tween_callback(refresh)  # restore affordability modulate
+	else:
+		tw.tween_property(btn, "modulate", UI.DANGER.lightened(0.2), 0.07)
+		tw.tween_property(btn, "modulate", Color.WHITE, 0.22)
+		tw.tween_callback(refresh)
 
 func _on_econ_change(_v: Variant = null) -> void:
 	refresh()
