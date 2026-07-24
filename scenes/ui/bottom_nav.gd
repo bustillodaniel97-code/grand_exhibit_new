@@ -34,11 +34,11 @@ func _ready() -> void:
 	row.add_theme_constant_override("separation", 8)
 	margin.add_child(row)
 
-	_add_nav_button(row, "museum", "Museum")
-	_add_nav_button(row, "managers", "Managers")
-	_add_nav_button(row, "expedition", "Expedition")
-	_add_nav_button(row, "event", "Event")
-	_add_nav_button(row, "store", "Store")
+	_add_nav_button(row, "museum", "Museum", "home")
+	_add_nav_button(row, "managers", "Managers", "medal")
+	_add_nav_button(row, "expedition", "Expedition", "arrow_right")
+	_add_nav_button(row, "event", "Event", "exclamation")
+	_add_nav_button(row, "store", "Store", "cart")
 
 	EventBus.reputation_changed.connect(_on_unlock_signal)
 	EventBus.unlock_changed.connect(_on_unlock_signal)
@@ -51,11 +51,16 @@ func _ready() -> void:
 
 	refresh_locks()
 
-func _add_nav_button(row: HBoxContainer, id: String, label_text: String) -> void:
+func _add_nav_button(row: HBoxContainer, id: String, label_text: String, icon_name: String) -> void:
 	var b := UI.make_button(label_text, UI.ACCENT)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	b.add_theme_font_size_override("font_size", 19)
+	b.add_theme_font_size_override("font_size", 18)
+	b.icon = UI.icon_texture(icon_name, 26)
+	b.expand_icon = false
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	b.set_meta("icon_name", icon_name)
 	b.pressed.connect(_on_nav_pressed.bind(id))
 	row.add_child(b)
 	_buttons[id] = b
@@ -78,9 +83,15 @@ func _set_lock(id: String, unlocked: bool, req_text: String) -> void:
 	var base: String = id.capitalize()
 	if unlocked:
 		b.text = base
+		b.icon = UI.icon_texture(str(b.get_meta("icon_name")), 26)
+		b.tooltip_text = ""
 		b.modulate = Color(1, 1, 1, 1)
 	else:
-		b.text = "%s\n%s" % [base, req_text]
+		# Accessible label stays; the lock glyph replaces the requirement text
+		# (the exact requirement lives on the tooltip and in the tap toast).
+		b.text = base
+		b.icon = UI.icon_texture("lock", 24)
+		b.tooltip_text = "Unlocks at %s" % req_text
 		b.modulate = Color(0.6, 0.6, 0.6, 1)
 
 func _on_nav_pressed(id: String) -> void:

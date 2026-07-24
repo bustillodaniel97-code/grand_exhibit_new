@@ -30,8 +30,13 @@ func _ready() -> void:
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(sub)
 
-	_amount_lbl = UI.make_label("+$0", 40)
-	_amount_lbl.add_theme_color_override("font_color", UI.SAGE.darkened(0.15))
+	var coin_row := HBoxContainer.new()
+	coin_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	coin_row.add_theme_constant_override("separation", 10)
+	vbox.add_child(coin_row)
+	coin_row.add_child(UI.make_icon("cash", 56))
+
+	_amount_lbl = UI.make_display_label("+$0", 40, UI.SAGE.darkened(0.15))
 	_amount_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(_amount_lbl)
 
@@ -46,6 +51,7 @@ func _ready() -> void:
 
 	_claim_btn = UI.make_button("Claim 1x", UI.SAGE)
 	_claim_btn.custom_minimum_size = Vector2(0, 56)
+	_claim_btn.icon = UI.icon_texture("check", 22)
 	_claim_btn.pressed.connect(_on_claim)
 	vbox.add_child(_claim_btn)
 
@@ -56,6 +62,7 @@ func _ready() -> void:
 
 	_gem_btn = UI.make_button("%d Gems x%d" % [gem_cost, int(gem_mult)], UI.BRASS)
 	_gem_btn.custom_minimum_size = Vector2(0, 56)
+	_gem_btn.icon = UI.icon_texture("gems", 22)
 	_gem_btn.pressed.connect(_on_gem_claim.bind(gem_mult, gem_cost))
 	vbox.add_child(_gem_btn)
 
@@ -92,6 +99,7 @@ func _on_ad_result(placement_id: String, success: bool, context: Dictionary) -> 
 		EventBus.rv_reward_granted.emit("welcome_back", context)
 		Analytics.rv_impression("welcome_back")
 		EventBus.toast_requested.emit("Bonus claimed!")
+		UI.play_sfx(self, "buy")
 		Popups.close_top()
 	else:
 		_ad_btn.disabled = false
@@ -101,6 +109,7 @@ func _on_gem_claim(mult: float, cost: int) -> void:
 	if GameState.spend_gems(cost):
 		GameState.add_cash(_amount.scale(mult - 1.0))  # 1x already applied; grant the extra
 		EventBus.toast_requested.emit("Bonus claimed!")
+		UI.play_sfx(self, "buy")
 		Popups.close_top()
 	else:
 		EventBus.toast_requested.emit("Not enough gems")

@@ -4,15 +4,16 @@ extends Control
 
 const PrestigeSystem = preload("res://scripts/meta/prestige_system.gd")
 const MilestoneSystem = preload("res://scripts/meta/milestone_system.gd")
+const UI = preload("res://scripts/ui/ui_kit.gd")
 
-# Palette (SPEC §2).
-const BG := Color("#F5EFE0")
-const INK := Color("#33312E")
-const PANEL := Color("#FFFDF6")
-const ACCENT := Color("#C4703F")
-const BRASS := Color("#B08D3E")
-const SAGE := Color("#7A9B76")
-const SLATE := Color("#5B7B8C")
+# Palette aliases (ui_kit is the single source — SPEC §2).
+const BG := UI.BG
+const INK := UI.INK
+const PANEL := UI.PANEL
+const ACCENT := UI.ACCENT
+const BRASS := UI.BRASS
+const SAGE := UI.SAGE
+const SLATE := UI.SLATE
 const DIM := Color("#D8CFC0")
 
 var _list: VBoxContainer
@@ -64,16 +65,7 @@ func _label(text: String, size: int = 15, color: Color = INK) -> Label:
 
 func _panel() -> PanelContainer:
 	var p := PanelContainer.new()
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = PANEL
-	sb.border_color = DIM
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(12)
-	sb.content_margin_left = 10
-	sb.content_margin_right = 10
-	sb.content_margin_top = 8
-	sb.content_margin_bottom = 8
-	p.add_theme_stylebox_override("panel", sb)
+	p.add_theme_stylebox_override("panel", UI.make_card(PANEL))
 	return p
 
 func refresh() -> void:
@@ -83,10 +75,10 @@ func refresh() -> void:
 		c.queue_free()
 	var vid: String = GameState.current_venue
 	var venue: Dictionary = DataLoader.get_venue(vid)
-	_list.add_child(_label("Prestige — %s" % str(venue.get("name", vid)), 26, INK))
+	_list.add_child(UI.make_display_label("Prestige — %s" % str(venue.get("name", vid)), 26, INK))
 
 	# Milestone chain (8 nodes with states).
-	_list.add_child(_label("Milestones", 20, ACCENT))
+	_list.add_child(UI.make_display_label("Milestones", 20, ACCENT))
 	var defs: Array = DataLoader.milestones.get(vid, [])
 	var done: Array = GameState.venue_state(vid).get("milestones", [])
 	for i in range(defs.size()):
@@ -96,15 +88,20 @@ func refresh() -> void:
 		row.add_child(hb)
 		var state: String
 		var state_color: Color
+		var state_icon: String
 		if i < done.size():
 			state = "DONE"
 			state_color = SAGE
+			state_icon = "check"
 		elif i == done.size():
 			state = "NEXT"
 			state_color = ACCENT
+			state_icon = "star"
 		else:
 			state = "LOCKED"
 			state_color = DIM
+			state_icon = "lock"
+		hb.add_child(UI.make_icon(state_icon, 20, state_color))
 		var name_l := _label("%d. %s" % [i + 1, str(ms.get("name", "?"))], 16,
 			INK if i <= done.size() else DIM)
 		name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -120,11 +117,12 @@ func refresh() -> void:
 		_list.add_child(row)
 
 	# Next venue card.
-	_list.add_child(_label("Next Venue", 20, ACCENT))
+	_list.add_child(UI.make_display_label("Next Venue", 20, ACCENT))
 	var next_id: String = PrestigeSystem.next_venue_id()
 	if next_id != "":
 		var nv: Dictionary = DataLoader.get_venue(next_id)
-		var card := _panel()
+		var card := PanelContainer.new()
+		card.add_theme_stylebox_override("panel", UI.make_frame(Color(1, 1, 1).lerp(BRASS, 0.15)))
 		var cv := VBoxContainer.new()
 		card.add_child(cv)
 		cv.add_child(_label(str(nv.get("name", next_id)), 18, INK))
@@ -136,8 +134,8 @@ func refresh() -> void:
 
 	# Prestige button (+ reason when blocked).
 	var reason: String = PrestigeSystem.block_reason()
-	var btn := Button.new()
-	btn.text = "PRESTIGE"
+	var btn := UI.make_button("PRESTIGE", BRASS)
+	btn.icon = UI.icon_texture("trophy", 22)
 	btn.custom_minimum_size = Vector2(0, 56)
 	btn.disabled = reason != ""
 	btn.pressed.connect(func(): _confirm.popup_centered())
@@ -158,6 +156,7 @@ func _on_prestige_confirmed() -> void:
 	if PrestigeSystem.do_prestige():
 		var nv: Dictionary = DataLoader.get_venue(GameState.current_venue)
 		EventBus.toast_requested.emit("Welcome to %s!" % str(nv.get("name", GameState.current_venue)))
+		UI.play_sfx(self, "buy")
 	else:
 		EventBus.toast_requested.emit(PrestigeSystem.block_reason())
 	refresh()

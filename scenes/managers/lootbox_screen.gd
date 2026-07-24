@@ -1,18 +1,19 @@
 extends Control
 ## LootboxScreen — 3 lootbox tiers with published drop rates (SPEC §4, §11).
 ## Owns the "free_lootbox" RV charge logic (5 charges, +1 every 2h) per SPEC §8.
-## UI built fully in code (SPEC §2); palette hardcoded here.
+## UI built fully in code; visuals via ui_kit v2 (Kenney CC0 skin). Logic unchanged.
 
 const LootboxSystem := preload("res://scripts/managers/lootbox_system.gd")
+const UI := preload("res://scripts/ui/ui_kit.gd")
 
-const BG := Color("#F5EFE0")
-const INK := Color("#33312E")
-const PANEL := Color("#FFFDF6")
-const ACCENT := Color("#C4703F")
-const BRASS := Color("#B08D3E")
-const SAGE := Color("#7A9B76")
-const SLATE := Color("#5B7B8C")
-const PLUM := Color("#8E6C8A")
+const BG := UI.BG
+const INK := UI.INK
+const PANEL := UI.PANEL
+const ACCENT := UI.ACCENT
+const BRASS := UI.BRASS
+const SAGE := UI.SAGE
+const SLATE := UI.SLATE
+const PLUM := UI.PLUM
 const RARITY_COLORS := {
 	"common": Color("#8C8C88"), "rare": Color("#5B7B8C"),
 	"epic": Color("#8E6C8A"), "legendary": Color("#B08D3E")}
@@ -21,7 +22,7 @@ const FIELD_BOX := "field_case"
 
 var _payload: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
-var _gems_label: Label
+var _gems_chip: PanelContainer
 var _box_list: VBoxContainer
 var _refresh_timer: Timer
 
@@ -47,18 +48,13 @@ func _ready() -> void:
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override("separation", 12)
 	root_box.add_child(bar)
-	var title := Label.new()
-	title.text = "Lootboxes"
-	title.add_theme_font_size_override("font_size", 36)
-	title.add_theme_color_override("font_color", INK)
+	var title := UI.make_display_label("Lootboxes", 36, INK)
 	bar.add_child(title)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(spacer)
-	_gems_label = Label.new()
-	_gems_label.add_theme_font_size_override("font_size", 26)
-	_gems_label.add_theme_color_override("font_color", BRASS)
-	bar.add_child(_gems_label)
+	_gems_chip = UI.make_currency_chip("gems", "0", Color(1, 1, 1), 26)
+	bar.add_child(_gems_chip)
 	# tier list
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -78,18 +74,9 @@ func _ready() -> void:
 	_refresh_timer.start()
 	_refresh_boxes()
 
-func _style(bg_color: Color, border_color: Color, radius: int = 12, border_w: int = 3) -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.bg_color = bg_color
-	s.border_color = border_color
-	if border_w > 0:
-		s.set_border_width_all(border_w)
-	s.set_corner_radius_all(radius)
-	s.content_margin_left = 14
-	s.content_margin_right = 14
-	s.content_margin_top = 12
-	s.content_margin_bottom = 12
-	return s
+## Ornate framed parchment panel (rpg-expansion), tinted toward the accent.
+func _style(bg_color: Color, border_color: Color, radius: int = 12, border_w: int = 3) -> StyleBox:
+	return UI.make_frame(Color(1, 1, 1).lerp(border_color, 0.16 + 0.04 * clampi(border_w - 3, 0, 2)))
 
 ## --- free_lootbox charge logic (owned here per SPEC §8) ------------------------
 
@@ -157,8 +144,8 @@ func _sorted_boxes() -> Array[String]:
 	return ids
 
 func _refresh_boxes() -> void:
-	if is_instance_valid(_gems_label):
-		_gems_label.text = "Gems: %d" % GameState.gems
+	if is_instance_valid(_gems_chip):
+		UI.set_chip_value(_gems_chip, "%d" % GameState.gems)
 	if not is_instance_valid(_box_list):
 		return
 	for c in _box_list.get_children():
@@ -175,6 +162,7 @@ func _build_tier_card(box_id: String) -> Control:
 	card.add_child(box)
 	var name_l := Label.new()
 	name_l.text = str(def.get("name", box_id))
+	name_l.add_theme_font_override("font", UI.font())
 	name_l.add_theme_font_size_override("font_size", 28)
 	name_l.add_theme_color_override("font_color", INK)
 	box.add_child(name_l)
@@ -203,11 +191,12 @@ func _build_tier_card(box_id: String) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	box.add_child(row)
-	var rates_btn := Button.new()
-	rates_btn.text = "Drop rates"
+	var rates_btn := UI.make_button("Drop rates", SLATE)
+	rates_btn.icon = UI.icon_texture("question", 18)
+	rates_btn.add_theme_font_size_override("font_size", 18)
 	rates_btn.pressed.connect(func() -> void: _show_rates(box_id))
 	row.add_child(rates_btn)
-	var open_btn := Button.new()
+	var open_btn := UI.make_button("", SAGE if box_id == FIELD_BOX else BRASS)
 	open_btn.add_theme_font_size_override("font_size", 20)
 	if box_id == FIELD_BOX:
 		open_btn.text = "Open (watch ad)"
@@ -215,6 +204,7 @@ func _build_tier_card(box_id: String) -> Control:
 		open_btn.pressed.connect(_open_field_free)
 	else:
 		open_btn.text = "Buy & Open"
+		open_btn.icon = UI.icon_texture("gems", 20)
 		open_btn.disabled = GameState.gems < int(def.get("price_gems", 0))
 		open_btn.pressed.connect(func() -> void: _open_with_gems(box_id))
 	row.add_child(open_btn)
@@ -289,8 +279,7 @@ func _show_rates(box_id: String) -> void:
 	rates.add_theme_color_override("font_color", INK)
 	rates.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(rates)
-	var close := Button.new()
-	close.text = "Close"
+	var close := UI.make_button("Close", SLATE)
 	close.pressed.connect(func() -> void: (p["dlg"] as Control).queue_free())
 	box.add_child(close)
 
@@ -298,8 +287,10 @@ func _show_reveal(box_id: String, results: Dictionary) -> void:
 	var p: Dictionary = _popup_panel(BRASS)
 	var dlg: Control = p["dlg"]
 	var box: VBoxContainer = p["box"]
+	UI.play_sfx(self, "buy")
 	var title := Label.new()
 	title.text = "%s opened!" % str(DataLoader.get_lootbox(box_id).get("name", box_id))
+	title.add_theme_font_override("font", UI.font())
 	title.add_theme_font_size_override("font_size", 26)
 	title.add_theme_color_override("font_color", INK)
 	box.add_child(title)
@@ -322,8 +313,7 @@ func _show_reveal(box_id: String, results: Dictionary) -> void:
 	bonus.add_theme_color_override("font_color", BRASS)
 	bonus.visible = false
 	box.add_child(bonus)
-	var close := Button.new()
-	close.text = "..."
+	var close := UI.make_button("...", BRASS)
 	close.disabled = true
 	close.pressed.connect(func() -> void: dlg.queue_free())
 	box.add_child(close)

@@ -3,15 +3,16 @@ extends Control
 ## setup(payload): {"venue_id": String?} — defaults to GameState.current_venue.
 
 const DecorSystem = preload("res://scripts/meta/decor_system.gd")
+const UI = preload("res://scripts/ui/ui_kit.gd")
 
-# Palette (SPEC §2).
-const BG := Color("#F5EFE0")
-const INK := Color("#33312E")
-const PANEL := Color("#FFFDF6")
-const ACCENT := Color("#C4703F")
-const BRASS := Color("#B08D3E")
-const SAGE := Color("#7A9B76")
-const SLATE := Color("#5B7B8C")
+# Palette aliases (ui_kit is the single source — SPEC §2).
+const BG := UI.BG
+const INK := UI.INK
+const PANEL := UI.PANEL
+const ACCENT := UI.ACCENT
+const BRASS := UI.BRASS
+const SAGE := UI.SAGE
+const SLATE := UI.SLATE
 const DIM := Color("#D8CFC0")
 
 const THEME_ORDER: Array = ["entrance", "hall", "garden"]
@@ -48,9 +49,7 @@ func _build_shell() -> void:
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 10)
 	margin.add_child(vbox)
-	var title := Label.new()
-	title.add_theme_color_override("font_color", INK)
-	title.add_theme_font_size_override("font_size", 26)
+	var title := UI.make_display_label("", 26, INK)
 	title.name = "Title"
 	vbox.add_child(title)
 	var scroll := ScrollContainer.new()
@@ -75,24 +74,17 @@ func refresh() -> void:
 	_build_shop()
 
 func _header(text: String) -> Label:
-	var l := Label.new()
-	l.text = text
-	l.add_theme_color_override("font_color", ACCENT)
-	l.add_theme_font_size_override("font_size", 20)
-	return l
+	return UI.make_display_label(text, 20, ACCENT)
 
 func _panel() -> PanelContainer:
 	var p := PanelContainer.new()
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = PANEL
-	sb.border_color = DIM
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(12)
-	sb.content_margin_left = 10
-	sb.content_margin_right = 10
-	sb.content_margin_top = 8
-	sb.content_margin_bottom = 8
-	p.add_theme_stylebox_override("panel", sb)
+	p.add_theme_stylebox_override("panel", UI.make_card(PANEL))
+	return p
+
+## Recessed well for empty decor slots.
+func _inset_panel() -> PanelContainer:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UI.make_inset())
 	return p
 
 func _label(text: String, size: int = 15, color: Color = INK) -> Label:
@@ -113,13 +105,14 @@ func _build_slots() -> void:
 	_list.add_child(grid)
 	var placed: Dictionary = GameState.venue_state(_venue_id).get("decor", {})
 	for i in range(DecorSystem.slots_total(_venue_id)):
-		var cell := _panel()
+		var did: String = str(placed.get(str(i), ""))
+		var occupied: bool = did != "" and DataLoader.decor.has(did)
+		var cell := _panel() if occupied else _inset_panel()
 		cell.custom_minimum_size = Vector2(200, 92)
 		cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var cv := VBoxContainer.new()
 		cell.add_child(cv)
-		var did: String = str(placed.get(str(i), ""))
-		if did != "" and DataLoader.decor.has(did):
+		if occupied:
 			var def: Dictionary = DataLoader.decor[did]
 			cv.add_child(_label(str(def.get("name", did)), 15, INK))
 			cv.add_child(_label("%s • +%d%% income" % [
@@ -188,8 +181,8 @@ func _shop_row(decor_id: String, slots_full: bool) -> PanelContainer:
 	elif DecorSystem.owned(_venue_id, decor_id):
 		info.add_child(_label("Placed in this venue", 14, SAGE))
 	else:
-		var btn := Button.new()
-		btn.text = "Buy — %s" % DecorSystem.cost_text(decor_id)
+		var btn := UI.make_button("Buy — %s" % DecorSystem.cost_text(decor_id), SAGE)
+		btn.add_theme_font_size_override("font_size", 18)
 		btn.disabled = slots_full or not DecorSystem.can_afford(decor_id)
 		btn.pressed.connect(func(): _on_buy(decor_id))
 		hb.add_child(btn)
@@ -198,6 +191,7 @@ func _shop_row(decor_id: String, slots_full: bool) -> PanelContainer:
 func _on_buy(decor_id: String) -> void:
 	if DecorSystem.buy_decor(_venue_id, decor_id):
 		EventBus.toast_requested.emit("Placed %s!" % str(DataLoader.get_decor(decor_id).get("name", decor_id)))
+		UI.play_sfx(self, "buy")
 	else:
 		EventBus.toast_requested.emit("Can't buy that right now.")
 	refresh()

@@ -1,17 +1,18 @@
 extends Control
 ## ManagersScreen — collection grid + detail panel (SPEC §11).
-## UI built fully in code (SPEC §2); palette hardcoded here (ui_kit is venue-ui's file).
+## UI built fully in code; visuals via ui_kit v2 (Kenney CC0 skin). Logic unchanged.
 
 const ManagerSystem := preload("res://scripts/managers/manager_system.gd")
+const UI := preload("res://scripts/ui/ui_kit.gd")
 
-const BG := Color("#F5EFE0")
-const INK := Color("#33312E")
-const PANEL := Color("#FFFDF6")
-const ACCENT := Color("#C4703F")
-const BRASS := Color("#B08D3E")
-const SAGE := Color("#7A9B76")
-const SLATE := Color("#5B7B8C")
-const PLUM := Color("#8E6C8A")
+const BG := UI.BG
+const INK := UI.INK
+const PANEL := UI.PANEL
+const ACCENT := UI.ACCENT
+const BRASS := UI.BRASS
+const SAGE := UI.SAGE
+const SLATE := UI.SLATE
+const PLUM := UI.PLUM
 const LOCKED := Color("#B9B2A4")
 const DEPT_COLORS := {
 	"promotions": Color("#8E6C8A"), "ticket": Color("#C4703F"),
@@ -22,7 +23,7 @@ const RARITY_COLORS := {
 const RARITY_ORDER := {"common": 0, "rare": 1, "epic": 2, "legendary": 3}
 
 var _payload: Dictionary = {}
-var _insight_label: Label
+var _insight_chip: PanelContainer
 var _grid: VBoxContainer
 var _overlay: Control
 var _viewed: Dictionary = {}        # manager_id -> true (NEW badge cleared this session)
@@ -67,24 +68,19 @@ func _ready() -> void:
 func _build_header() -> Control:
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override("separation", 12)
-	var title := Label.new()
-	title.text = "Managers"
-	title.add_theme_font_size_override("font_size", 36)
-	title.add_theme_color_override("font_color", INK)
+	var title := UI.make_display_label("Managers", 36, INK)
 	bar.add_child(title)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(spacer)
-	_insight_label = Label.new()
-	_insight_label.add_theme_font_size_override("font_size", 26)
-	_insight_label.add_theme_color_override("font_color", SLATE)
-	bar.add_child(_insight_label)
+	_insight_chip = UI.make_currency_chip("insight", "0", SLATE, 26)
+	bar.add_child(_insight_chip)
 	_refresh_header()
 	return bar
 
 func _refresh_header() -> void:
-	if is_instance_valid(_insight_label):
-		_insight_label.text = "Insight: " + GameState.insight.to_notation()
+	if is_instance_valid(_insight_chip):
+		UI.set_chip_value(_insight_chip, GameState.insight.to_notation())
 
 func refresh() -> void:
 	_refresh_header()
@@ -106,50 +102,37 @@ func _sorted_ids() -> Array[String]:
 		return str(da.get("name", a)) < str(db.get("name", b)))
 	return ids
 
-func _style(bg_color: Color, border_color: Color, radius: int = 12, border_w: int = 3) -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.bg_color = bg_color
-	s.border_color = border_color
-	if border_w > 0:
-		s.set_border_width_all(border_w)
-	s.set_corner_radius_all(radius)
-	s.content_margin_left = 12
-	s.content_margin_right = 12
-	s.content_margin_top = 10
-	s.content_margin_bottom = 10
-	return s
+## Rarity-framed parchment card (rpg-expansion frame tinted toward rarity).
+func _style(bg_color: Color, border_color: Color, radius: int = 12, border_w: int = 3) -> StyleBox:
+	var tint := Color(1, 1, 1).lerp(border_color, 0.18 + 0.05 * clampi(border_w - 3, 0, 2))
+	return UI.make_frame(tint)
 
+## Manager avatar: tinted disc (Kenney) + display-font letter.
 func _circle(color: Color, letter: String, diameter: int = 64) -> Control:
-	var p := Panel.new()
-	p.custom_minimum_size = Vector2(diameter, diameter)
-	var s := StyleBoxFlat.new()
-	s.bg_color = color
-	s.set_corner_radius_all(diameter / 2)
-	p.add_theme_stylebox_override("panel", s)
+	var c := Control.new()
+	c.custom_minimum_size = Vector2(diameter, diameter)
+	var disc := UI.make_icon("disc", diameter, color)
+	disc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	c.add_child(disc)
 	var l := Label.new()
 	l.text = letter
+	l.add_theme_font_override("font", UI.font())
 	l.add_theme_font_size_override("font_size", int(diameter * 0.45))
-	l.add_theme_color_override("font_color", PANEL)
+	l.add_theme_color_override("font_color", Color.WHITE)
 	l.set_anchors_preset(Control.PRESET_FULL_RECT)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	p.add_child(l)
-	return p
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	c.add_child(l)
+	return c
 
+## Rank pips: star icons (brass earned / dim empty).
 func _pips(rank: int) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
 	for i in range(4):
-		var pip := Panel.new()
-		pip.custom_minimum_size = Vector2(16, 16)
-		var s := StyleBoxFlat.new()
-		s.set_corner_radius_all(8)
-		if i < rank:
-			s.bg_color = BRASS
-		else:
-			s.bg_color = Color(BG.darkened(0.15))
-		pip.add_theme_stylebox_override("panel", s)
-		row.add_child(pip)
+		var tint: Color = BRASS if i < rank else Color(BG.darkened(0.18))
+		row.add_child(UI.make_icon("star", 18, tint))
 	return row
 
 func _dept_badge(dept_id: String) -> Control:
@@ -214,6 +197,7 @@ func _build_card(id: String) -> Control:
 		row.add_child(new_l)
 	card.gui_input.connect(func(ev: InputEvent) -> void:
 		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+			UI.play_sfx(card, "tap")
 			_open_detail(id))
 	return card
 
@@ -261,12 +245,12 @@ func _rebuild_detail(id: String) -> void:
 	box.add_child(top)
 	var title := Label.new()
 	title.text = str(def.get("name", id)) if not locked else "Undiscovered"
+	title.add_theme_font_override("font", UI.font())
 	title.add_theme_font_size_override("font_size", 30)
 	title.add_theme_color_override("font_color", INK)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(title)
-	var close := Button.new()
-	close.text = "X"
+	var close := UI.make_icon_button("cross", ACCENT, 52)
 	close.pressed.connect(_close_detail)
 	top.add_child(close)
 	# identity row
@@ -313,7 +297,8 @@ func _rebuild_detail(id: String) -> void:
 		box.add_child(lock_l)
 		return
 	# level up button
-	var lvl_btn := Button.new()
+	var lvl_btn := UI.make_button("", SLATE)
+	lvl_btn.icon = UI.icon_texture("insight", 20)
 	var capped: bool = ManagerSystem.level(id) >= int(def.get("level_cap", 50))
 	if capped:
 		lvl_btn.text = "Level Up — MAX LEVEL"
@@ -326,7 +311,8 @@ func _rebuild_detail(id: String) -> void:
 			_rebuild_detail(id))
 	box.add_child(lvl_btn)
 	# rank up button
-	var rank_btn := Button.new()
+	var rank_btn := UI.make_button("", PLUM)
+	rank_btn.icon = UI.icon_texture("star", 20)
 	var dup_cost: int = ManagerSystem.rank_up_cost(id)
 	if dup_cost <= 0:
 		rank_btn.text = "Rank Up — MAX RANK"
@@ -347,7 +333,8 @@ func _rebuild_detail(id: String) -> void:
 	assign_row.add_theme_constant_override("separation", 6)
 	box.add_child(assign_row)
 	for dept_id in ManagerSystem.DEPTS:
-		var b := Button.new()
+		var b := UI.make_button("", DEPT_COLORS.get(dept_id, LOCKED))
+		b.add_theme_font_size_override("font_size", 17)
 		var is_specialty: bool = dept_id == specialty
 		var is_current: bool = ManagerSystem.assigned_to(id) == dept_id
 		b.text = str(dept_id).capitalize().substr(0, 4) + (" [ON]" if is_current else "")
@@ -406,8 +393,8 @@ func _open_exchange(from_id: String) -> void:
 		var td: Dictionary = DataLoader.get_manager_def(tid)
 		if str(td.get("rarity", "")) != rarity:
 			continue
-		var b := Button.new()
-		b.text = "%s  (%d cards owned)" % [str(td.get("name", tid)), ManagerSystem.cards(tid)]
+		var b := UI.make_button("%s  (%d cards owned)" % [str(td.get("name", tid)), ManagerSystem.cards(tid)], SLATE)
+		b.add_theme_font_size_override("font_size", 18)
 		b.disabled = not ManagerSystem.can_exchange(from_id, tid)
 		var target: String = tid
 		b.pressed.connect(func() -> void:
@@ -415,7 +402,6 @@ func _open_exchange(from_id: String) -> void:
 				dlg.queue_free()
 				_rebuild_detail(from_id))
 		box.add_child(b)
-	var cancel := Button.new()
-	cancel.text = "Cancel"
+	var cancel := UI.make_button("Cancel", LOCKED)
 	cancel.pressed.connect(func() -> void: dlg.queue_free())
 	box.add_child(cancel)

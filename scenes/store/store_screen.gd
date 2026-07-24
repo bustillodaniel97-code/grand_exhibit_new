@@ -1,6 +1,7 @@
 extends Control
-## store_screen.gd — Store screen (SPEC §11 registry path). Built entirely in code
-## per SPEC §2 (StyleBoxFlat, no theme, palette hardcoded — do NOT import ui_kit).
+## store_screen.gd — Store screen (SPEC §11 registry path). Built entirely in code.
+## Visuals: ui_kit v2 (Kenney CC0 nine-patch cards/buttons + icons); palette from
+## ui_kit constants (single source). Logic unchanged.
 ## PopupManager calls setup(payload) after instantiation.
 ##
 ## Sections: Offers banner row / Daily Deals shelf / Gem Packs / Cash & Insight /
@@ -11,16 +12,17 @@ const RV := preload("res://scripts/monetization/rv_placements.gd")
 const IAPCat := preload("res://scripts/monetization/iap_catalog.gd")
 const Deals := preload("res://scripts/monetization/daily_deals.gd")
 const Offers := preload("res://scripts/monetization/offer_system.gd")
+const UI := preload("res://scripts/ui/ui_kit.gd")
 
-# Palette (SPEC §2 hex values, hardcoded on purpose)
-const BG := Color("#F5EFE0")
-const INK := Color("#33312E")
-const PANEL := Color("#FFFDF6")
-const ACCENT := Color("#C4703F")
-const BRASS := Color("#B08D3E")
-const SAGE := Color("#7A9B76")
-const SLATE := Color("#5B7B8C")
-const PLUM := Color("#8E6C8A")
+# Palette aliases (ui_kit is the single source — SPEC §2).
+const BG := UI.BG
+const INK := UI.INK
+const PANEL := UI.PANEL
+const ACCENT := UI.ACCENT
+const BRASS := UI.BRASS
+const SAGE := UI.SAGE
+const SLATE := UI.SLATE
+const PLUM := UI.PLUM
 
 var _sections: VBoxContainer
 var _tick_labels: Array = []  # Array of {label:Label, kind:String, data:Variant}
@@ -207,13 +209,31 @@ func _build_rv_corner() -> void:
 
 # ------------------------------------------------------------------ widgets
 
+func _kind_icon(def: Dictionary) -> Array:  # [icon_name, tint]
+	match str(def.get("kind", "")):
+		"gems":
+			return ["gems", Color(1, 1, 1)]
+		"cash_pack":
+			return ["cash", Color(1, 1, 1)]
+		"insight_pack":
+			return ["insight", SLATE]
+		_:
+			return ["cart", Color(1, 1, 1)]
+
 func _product_card(pid: String) -> Control:
 	var def: Dictionary = DataLoader.get_iap(pid)
 	var card := _panel(PANEL, ACCENT)
 	card.custom_minimum_size = Vector2(300, 0)
 	var vbox := VBoxContainer.new()
 	card.add_child(vbox)
-	vbox.add_child(_label(str(def.get("title", pid)), 18, INK))
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 8)
+	var ki: Array = _kind_icon(def)
+	head.add_child(UI.make_icon(str(ki[0]), 26, ki[1]))
+	var title_l := _label(str(def.get("title", pid)), 18, INK)
+	title_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(title_l)
+	vbox.add_child(head)
 	if str(def.get("kind", "")) == "cash_pack":
 		var worth := _label(_cash_worth_text(def), 14, SLATE)
 		vbox.add_child(worth)
@@ -232,6 +252,7 @@ func _product_card(pid: String) -> Control:
 func _on_iap_completed(product_id: String) -> void:
 	var def: Dictionary = DataLoader.get_iap(product_id)
 	EventBus.toast_requested.emit("Purchased: " + str(def.get("title", product_id)))
+	UI.play_sfx(self, "buy")
 	_rebuild()
 
 # ------------------------------------------------------------------- helpers
@@ -284,49 +305,26 @@ func _fmt_duration(seconds: int) -> String:
 	return "%ds" % s
 
 func _title(text: String) -> Label:
-	return _label(text, 28, INK)
+	return UI.make_display_label(text, 28, INK)
 
 func _section_header(text: String) -> Label:
-	return _label(text, 22, ACCENT)
+	return UI.make_display_label(text, 22, ACCENT)
 
 func _label(text: String, size: int, color: Color) -> Label:
-	var l := Label.new()
-	l.text = text
-	l.add_theme_font_size_override("font_size", size)
+	var l := UI.make_label(text, size)
 	l.add_theme_color_override("font_color", color)
 	return l
 
+## Cards: soft parchment card; when `border` is set, an rpg-expansion framed
+## parchment tinted toward that accent (daily-deals shelf, rarity, offers).
 func _panel(fill: Color, border: Color = Color(0, 0, 0, 0)) -> PanelContainer:
 	var p := PanelContainer.new()
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = fill
-	sb.set_corner_radius_all(12)
-	sb.content_margin_left = 12
-	sb.content_margin_right = 12
-	sb.content_margin_top = 10
-	sb.content_margin_bottom = 10
 	if border.a > 0.0:
-		sb.border_color = border
-		sb.set_border_width_all(3)
-	p.add_theme_stylebox_override("panel", sb)
+		p.add_theme_stylebox_override("panel", UI.make_frame(Color(1, 1, 1).lerp(border, 0.22)))
+	else:
+		# Saturated fills are softened toward PANEL so INK text stays readable.
+		p.add_theme_stylebox_override("panel", UI.make_card(fill.lerp(PANEL, 0.45)))
 	return p
 
 func _button(text: String, color: Color) -> Button:
-	var b := Button.new()
-	b.text = text
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = color
-	sb.set_corner_radius_all(12)
-	sb.content_margin_left = 14
-	sb.content_margin_right = 14
-	sb.content_margin_top = 8
-	sb.content_margin_bottom = 8
-	b.add_theme_stylebox_override("normal", sb)
-	var hover := sb.duplicate() as StyleBoxFlat
-	hover.bg_color = color.lightened(0.12)
-	b.add_theme_stylebox_override("hover", hover)
-	var disabled := sb.duplicate() as StyleBoxFlat
-	disabled.bg_color = color.darkened(0.3)
-	b.add_theme_stylebox_override("disabled", disabled)
-	b.add_theme_color_override("font_color", PANEL)
-	return b
+	return UI.make_button(text, color)

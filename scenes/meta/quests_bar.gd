@@ -5,14 +5,15 @@ extends Control
 
 const QuestSystem = preload("res://scripts/meta/quest_system.gd")
 const MilestoneSystem = preload("res://scripts/meta/milestone_system.gd")
+const UI = preload("res://scripts/ui/ui_kit.gd")
 
-# Palette (SPEC §2 — hardcoded here; do NOT import ui_kit).
-const BG := Color("#F5EFE0")
-const INK := Color("#33312E")
-const PANEL := Color("#FFFDF6")
-const ACCENT := Color("#C4703F")
-const BRASS := Color("#B08D3E")
-const SAGE := Color("#7A9B76")
+# Palette aliases (ui_kit is the single source — SPEC §2).
+const BG := UI.BG
+const INK := UI.INK
+const PANEL := UI.PANEL
+const ACCENT := UI.ACCENT
+const BRASS := UI.BRASS
+const SAGE := UI.SAGE
 const DIM := Color("#D8CFC0")
 
 const MILESTONE_COUNT := 8
@@ -45,10 +46,7 @@ func _build_ui() -> void:
 	# Row 1: title + percent.
 	var top := HBoxContainer.new()
 	vbox.add_child(top)
-	var title := Label.new()
-	title.text = "Venue Progress"
-	title.add_theme_color_override("font_color", INK)
-	title.add_theme_font_size_override("font_size", 16)
+	var title := UI.make_display_label("Venue Progress", 16, INK)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(title)
 	_pct_label = Label.new()
@@ -63,25 +61,17 @@ func _build_ui() -> void:
 	_bar.step = 0.001
 	_bar.show_percentage = false
 	_bar.custom_minimum_size = Vector2(0, 18)
-	var bar_bg := StyleBoxFlat.new()
-	bar_bg.bg_color = DIM
-	bar_bg.set_corner_radius_all(9)
-	_bar.add_theme_stylebox_override("background", bar_bg)
-	var bar_fill := StyleBoxFlat.new()
-	bar_fill.bg_color = SAGE
-	bar_fill.set_corner_radius_all(9)
-	_bar.add_theme_stylebox_override("fill", bar_fill)
+	_bar.add_theme_stylebox_override("background", UI.make_bar_bg())
+	_bar.add_theme_stylebox_override("fill", UI.make_bar_fill("green"))
 	vbox.add_child(_bar)
 
-	# Row 3: milestone pips.
+	# Row 3: milestone pips (star icons: brass earned / dim empty).
 	var pip_row := HBoxContainer.new()
 	pip_row.add_theme_constant_override("separation", 6)
 	pip_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(pip_row)
 	for i in range(MILESTONE_COUNT):
-		var pip := ColorRect.new()
-		pip.custom_minimum_size = Vector2(16, 16)
-		pip.color = DIM
+		var pip := UI.make_icon("star", 18, DIM)
 		pip.tooltip_text = "Milestone %d" % (i + 1)
 		pip_row.add_child(pip)
 		_pips.append(pip)
@@ -94,16 +84,8 @@ func _build_ui() -> void:
 	for i in range(3):
 		var chip := PanelContainer.new()
 		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = PANEL
-		sb.border_color = BRASS
-		sb.set_border_width_all(2)
-		sb.set_corner_radius_all(12)
-		sb.content_margin_left = 8
-		sb.content_margin_right = 8
-		sb.content_margin_top = 6
-		sb.content_margin_bottom = 6
-		chip.add_theme_stylebox_override("panel", sb)
+		chip.add_theme_stylebox_override("panel",
+			UI.make_frame(Color(1, 1, 1).lerp(BRASS, 0.12)))
 		var cv := VBoxContainer.new()
 		cv.add_theme_constant_override("separation", 2)
 		chip.add_child(cv)
@@ -149,7 +131,7 @@ func refresh() -> void:
 	_pct_label.text = "%d%%" % int(round(progress * 100.0))
 	var done_count: int = vs.get("milestones", []).size()
 	for i in range(_pips.size()):
-		_pips[i].color = BRASS if i < done_count else DIM
+		_pips[i].modulate = BRASS if i < done_count else DIM
 	var active: Array = vs.get("active_quests", [])
 	for i in range(_chips.size()):
 		var desc: Label = _chips[i]["desc"]
