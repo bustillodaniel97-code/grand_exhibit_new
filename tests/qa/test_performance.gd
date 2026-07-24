@@ -69,7 +69,7 @@ func run() -> void:
 				continue
 			if eng.can_swap(a, bp):
 				var res: Dictionary = eng.try_swap(a, bp)
-				clears += int(res.get("cleared", 0))
+				clears += int(res.get("tiles_cleared", 0))
 		# Force one raw resolve pass too (covers cascade/refill path on every board).
 		eng._resolve()
 	var match3_ms: int = Time.get_ticks_msec() - t1
