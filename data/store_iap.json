@@ -9,12 +9,217 @@
       "tag": "regular"
     },
     {
+      "id": "gems_sack",
+      "kind": "gems",
+      "title": "Sack of Gems",
+      "price_usd": "$4.99",
+      "grants": { "gems": 500, "cash_seconds": 0, "insight_m": 0.0 },
+      "tag": "regular"
+    },
+    {
+      "id": "gems_crate",
+      "kind": "gems",
+      "title": "Crate of Gems",
+      "price_usd": "$9.99",
+      "grants": { "gems": 1200, "cash_seconds": 0, "insight_m": 0.0 },
+      "tag": "regular"
+    },
+    {
+      "id": "gems_vault",
+      "kind": "gems",
+      "title": "Vault of Gems",
+      "price_usd": "$19.99",
+      "grants": { "gems": 2800, "cash_seconds": 0, "insight_m": 0.0 },
+      "tag": "regular"
+    },
+    {
+      "id": "gems_hoard",
+      "kind": "gems",
+      "title": "Hoard of Gems",
+      "price_usd": "$49.99",
+      "grants": { "gems": 7500, "cash_seconds": 0, "insight_m": 0.0 },
+      "tag": "regular"
+    },
+    {
+      "id": "gems_empire",
+      "kind": "gems",
+      "title": "Empire of Gems",
+      "price_usd": "$99.99",
+      "grants": { "gems": 18000, "cash_seconds": 0, "insight_m": 0.0 },
+      "tag": "regular"
+    },
+    {
+      "id": "cash_hour",
+      "kind": "cash_pack",
+      "title": "One Hour of Takings",
+      "price_usd": "$1.99",
+      "grants": { "gems": 0, "cash_seconds": 3600, "insight_m": 0.0 },
+      "tag": "regular"
+    },
+    {
+      "id": "cash_quarter",
+      "kind": "cash_pack",
+      "title": "Four Hours of Takings",
+      "price_usd": "$4.99",
+      "grants": { "gems": 0, "cash_seconds": 14400, "insight_m": 0.0 },
+      "tag": "regular"
+    },
+    {
+      "id": "cash_day",
+      "kind": "cash_pack",
+      "title": "Sixteen Hours of Takings",
+      "price_usd": "$9.99",
+      "grants": { "gems": 0, "cash_seconds": 57600, "insight_m": 0.0 },
+      "tag": "regular"
+    },
+    {
+      "id": "insight_scholar",
+      "kind": "insight_pack",
+      "title": "Scholar's Notes",
+      "price_usd": "$1.99",
+      "grants": { "gems": 0, "cash_seconds": 0, "insight_m": 150.0 },
+      "tag": "regular"
+    },
+    {
+      "id": "insight_curator",
+      "kind": "insight_pack",
+      "title": "Curator's Archive",
+      "price_usd": "$4.99",
+      "grants": { "gems": 0, "cash_seconds": 0, "insight_m": 600.0 },
+      "tag": "regular"
+    },
+    {
+      "id": "insight_sage",
+      "kind": "insight_pack",
+      "title": "Sage's Compendium",
+      "price_usd": "$9.99",
+      "grants": { "gems": 0, "cash_seconds": 0, "insight_m": 2.5, "insight_e": 3 },
+      "tag": "regular"
+    },
+    {
       "id": "starter_bundle",
       "kind": "bundle",
       "title": "New Director Bundle",
       "price_usd": "$4.99",
       "grants": { "gems": 300, "cash_seconds": 3600, "insight_m": 50.0, "box": "specialist_case" },
       "tag": "starter",
+      "limit_per_day": 1
+    },
+    {
+      "id": "daily_gem_snack",
+      "kind": "bundle",
+      "title": "Morning Gem Snack",
+      "price_usd": "$0.99",
+      "grants": { "gems": 100, "cash_seconds": 900, "insight_m": 0.0 },
+      "tag": "daily",
+      "limit_per_day": 1
+    },
+    {
+      "id": "daily_gem_trove",
+      "kind": "gems",
+      "title": "Daily Gem Trove",
+      "price_usd": "$2.99",
+      "grants": { "gems": 260, "cash_seconds": 0, "insight_m": 0.0 },
+      "tag": "daily",
+      "limit_per_day": 1
+    },
+    {
+      "id": "daily_cash_boost",
+      "kind": "cash_pack",
+      "title": "Daily Cash Boost",
+      "price_usd": "$1.99",
+      "grants": { "gems": 0, "cash_seconds": 5400, "insight_m": 0.0 },
+      "tag": "daily",
+      "limit_per_day": 1
+    },
+    {
+      "id": "daily_cash_surge",
+      "kind": "bundle",
+      "title": "Daily Cash Surge",
+      "price_usd": "$4.99",
+      "grants": { "gems": 50, "cash_seconds": 18000, "insight_m": 0.0 },
+      "tag": "daily",
+      "limit_per_day": 1
+    },
+    {
+      "id": "daily_insight_drop",
+      "kind": "insight_pack",
+      "title": "Daily Insight Drop",
+      "price_usd": "$0.99",
+      "grants": { "gems": 0, "cash_seconds": 0, "insight_m": 60.0 },
+      "tag": "daily",
+      "limit_per_day": 1
+    },
+    {
+      "id": "daily_insight_cache",
+      "kind": "insight_pack",
+      "title": "Daily Insight Cache",
+      "price_usd": "$2.99",
+      "grants": { "gems": 0, "cash_seconds": 0, "insight_m": 220.0 },
+      "tag": "daily",
+      "limit_per_day": 1
+    },
+    {
+      "id": "daily_director_combo",
+      "kind": "bundle",
+      "title": "Director's Daily Combo",
+      "price_usd": "$9.99",
+      "grants": { "gems": 400, "cash_seconds": 10800, "insight_m": 150.0 },
+      "tag": "daily",
+      "limit_per_day": 1
+    },
+    {
+      "id": "venue3_bundle",
+      "kind": "bundle",
+      "title": "Copper Kettle Kickstart",
+      "price_usd": "$9.99",
+      "grants": { "gems": 800, "cash_seconds": 14400, "insight_m": 300.0, "box": "specialist_case" },
+      "tag": "offer",
+      "limit_per_day": 1
+    },
+    {
+      "id": "venue4_bundle",
+      "kind": "bundle",
+      "title": "Grand River Kickstart",
+      "price_usd": "$19.99",
+      "grants": { "gems": 1600, "cash_seconds": 28800, "insight_m": 1.2, "insight_e": 3, "box": "specialist_case" },
+      "tag": "offer",
+      "limit_per_day": 1
+    },
+    {
+      "id": "venue5_bundle",
+      "kind": "bundle",
+      "title": "Sunspire Kickstart",
+      "price_usd": "$29.99",
+      "grants": { "gems": 2600, "cash_seconds": 43200, "insight_m": 3.0, "insight_e": 3, "box": "executive_case" },
+      "tag": "offer",
+      "limit_per_day": 1
+    },
+    {
+      "id": "venue6_bundle",
+      "kind": "bundle",
+      "title": "Aurora World Kickstart",
+      "price_usd": "$49.99",
+      "grants": { "gems": 5000, "cash_seconds": 86400, "insight_m": 8.0, "insight_e": 3, "box": "executive_case" },
+      "tag": "offer",
+      "limit_per_day": 1
+    },
+    {
+      "id": "veteran_director_pack",
+      "kind": "bundle",
+      "title": "Veteran Director Pack",
+      "price_usd": "$14.99",
+      "grants": { "gems": 1200, "cash_seconds": 0, "insight_m": 2.0, "insight_e": 3, "box": "executive_case" },
+      "tag": "offer",
+      "limit_per_day": 1
+    },
+    {
+      "id": "inspection_prep_bundle",
+      "kind": "bundle",
+      "title": "Inspection Prep Bundle",
+      "price_usd": "$4.99",
+      "grants": { "gems": 350, "cash_seconds": 10800, "insight_m": 400.0 },
+      "tag": "offer",
       "limit_per_day": 1
     }
   ]
