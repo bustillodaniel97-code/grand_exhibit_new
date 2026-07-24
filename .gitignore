@@ -1,7 +1,1 @@
 .godot/
-.import/
-*.tmp
-*.translation
-export_presets.cfg
-builds/
-.DS_Store
