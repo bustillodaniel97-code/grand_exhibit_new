@@ -1,0 +1,50 @@
+{
+  "exchange_ratio": 5,
+  "managers": [
+    {
+      "id": "docent_poppy",
+      "name": "Docent Poppy Vale",
+      "rarity": "common",
+      "specialty": "ticket",
+      "base_mult": 0.03,
+      "rank_mults": [1.0, 1.5, 2.25, 3.5],
+      "level_cap": 50,
+      "level_cap_hook": 50,
+      "insight_cost_base": 10.0,
+      "insight_cost_growth": 1.12,
+      "dup_costs": [2, 4, 8],
+      "battle_power": 10.0,
+      "flavor": "Knows every exhibit by heart and every regular by name."
+    },
+    {
+      "id": "paleontologist_rex",
+      "name": "Paleontologist Rex Marlowe",
+      "rarity": "rare",
+      "specialty": "gallery",
+      "base_mult": 0.05,
+      "rank_mults": [1.0, 1.5, 2.25, 3.5],
+      "level_cap": 75,
+      "level_cap_hook": 75,
+      "insight_cost_base": 25.0,
+      "insight_cost_growth": 1.12,
+      "dup_costs": [2, 4, 8],
+      "battle_power": 25.0,
+      "flavor": "Dug up half the dinosaur wing himself."
+    },
+    {
+      "id": "night_curator",
+      "name": "The Night Curator",
+      "rarity": "legendary",
+      "specialty": "gallery",
+      "base_mult": 0.10,
+      "rank_mults": [1.0, 1.5, 2.25, 3.5],
+      "level_cap": 100,
+      "level_cap_hook": 200,
+      "insight_cost_base": 100.0,
+      "insight_cost_growth": 1.12,
+      "dup_costs": [2, 4, 8],
+      "battle_power": 150.0,
+      "flavor": "Only seen after closing time. The exhibits behave when she's around."
+    }
+  ]
+}

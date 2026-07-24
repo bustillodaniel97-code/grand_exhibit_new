@@ -1,0 +1,11 @@
+{
+  "offers": [
+    {
+      "id": "offer_venue2",
+      "trigger": "venue_2_start",
+      "iap_id": "starter_bundle",
+      "discount_pct": 50,
+      "expires_hours": 24
+    }
+  ]
+}

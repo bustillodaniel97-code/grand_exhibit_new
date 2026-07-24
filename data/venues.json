@@ -1,0 +1,58 @@
+{
+  "venues": [
+    {
+      "id": "whispering_pines",
+      "name": "Whispering Pines Hall",
+      "order": 1,
+      "base_value_m": 2.0, "base_value_e": 0,
+      "cost_mult": 1.0, "cost_exp": 0,
+      "decor_slots": 6,
+      "desc": "A dusty small-town exhibit hall. Every empire starts somewhere."
+    },
+    {
+      "id": "copper_kettle",
+      "name": "Copper Kettle Museum",
+      "order": 2,
+      "base_value_m": 1.5, "base_value_e": 3,
+      "cost_mult": 1.0, "cost_exp": 3,
+      "decor_slots": 6,
+      "desc": "A bustling city museum of industry and invention."
+    },
+    {
+      "id": "grand_river",
+      "name": "Grand River Athenaeum",
+      "order": 3,
+      "base_value_m": 2.0, "base_value_e": 6,
+      "cost_mult": 1.0, "cost_exp": 6,
+      "decor_slots": 8,
+      "desc": "A marble landmark drawing crowds from across the region."
+    },
+    {
+      "id": "sunspire",
+      "name": "Sunspire Gallery",
+      "order": 4,
+      "base_value_m": 3.0, "base_value_e": 9,
+      "cost_mult": 1.0, "cost_exp": 9,
+      "decor_slots": 8,
+      "desc": "A desert icon of glass and gold, famous worldwide."
+    },
+    {
+      "id": "cloudrest",
+      "name": "Cloudrest Citadel",
+      "order": 5,
+      "base_value_m": 5.0, "base_value_e": 12,
+      "cost_mult": 1.0, "cost_exp": 12,
+      "decor_slots": 10,
+      "desc": "A mountain-top fortress of wonders above the clouds."
+    },
+    {
+      "id": "aurora_world",
+      "name": "Aurora World Museum",
+      "order": 6,
+      "base_value_m": 8.0, "base_value_e": 15,
+      "cost_mult": 1.0, "cost_exp": 15,
+      "decor_slots": 12,
+      "desc": "The definitive world-class institution. Legends queue here."
+    }
+  ]
+}

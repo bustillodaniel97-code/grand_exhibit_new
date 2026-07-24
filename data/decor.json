@@ -1,0 +1,48 @@
+{
+  "decor": [
+    {
+      "id": "oak_bench",
+      "name": "Oak Bench",
+      "slot_theme": "hall",
+      "cost_cash_m": 500.0, "cost_cash_e": 0,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "set_id": "heritage",
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Sturdy seating for weary visitors."
+    },
+    {
+      "id": "brass_fountain",
+      "name": "Brass Fountain",
+      "slot_theme": "entrance",
+      "cost_cash_m": 0.0, "cost_cash_e": 0,
+      "cost_gems": 120,
+      "income_mult": 1.08,
+      "set_id": "heritage",
+      "premium": true,
+      "event_exclusive": false,
+      "desc": "A gleaming centerpiece. Coins tossed in are pure profit."
+    },
+    {
+      "id": "ancient_obelisk",
+      "name": "Ancient Obelisk",
+      "slot_theme": "garden",
+      "cost_cash_m": 0.0, "cost_cash_e": 0,
+      "cost_gems": 0,
+      "income_mult": 1.10,
+      "set_id": "antiquity",
+      "premium": false,
+      "event_exclusive": true,
+      "desc": "Recovered on expedition. Not for sale."
+    }
+  ],
+  "sets": [
+    {
+      "set_id": "heritage",
+      "name": "Heritage Set",
+      "pieces": ["oak_bench", "brass_fountain"],
+      "bonus_mult": 1.15
+    }
+  ]
+}

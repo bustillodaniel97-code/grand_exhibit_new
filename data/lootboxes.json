@@ -1,0 +1,38 @@
+{
+  "lootboxes": [
+    {
+      "id": "field_case",
+      "name": "Field Case",
+      "tier": 1,
+      "price_gems": 0,
+      "rv_free": { "max": 5, "recharge_hours": 2 },
+      "cards_total": 4,
+      "rarity_weights": { "common": 0.78, "rare": 0.18, "epic": 0.038, "legendary": 0.002 },
+      "insight_bonus_m": 5.0,
+      "gems_bonus": 0,
+      "published": true
+    },
+    {
+      "id": "specialist_case",
+      "name": "Specialist Case",
+      "tier": 2,
+      "price_gems": 150,
+      "cards_total": 8,
+      "rarity_weights": { "common": 0.55, "rare": 0.35, "epic": 0.09, "legendary": 0.01 },
+      "insight_bonus_m": 25.0,
+      "gems_bonus": 5,
+      "published": true
+    },
+    {
+      "id": "executive_case",
+      "name": "Executive Case",
+      "tier": 3,
+      "price_gems": 600,
+      "cards_total": 16,
+      "rarity_weights": { "common": 0.30, "rare": 0.45, "epic": 0.20, "legendary": 0.05 },
+      "insight_bonus_m": 100.0,
+      "gems_bonus": 20,
+      "published": true
+    }
+  ]
+}

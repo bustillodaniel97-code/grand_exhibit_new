@@ -1,0 +1,14 @@
+{
+  "quests": [
+    { "id": "q_ticket_5", "desc": "Upgrade Ticket Halls Speed to Lv.5", "type": "upgrade_count", "dept": "ticket", "track": "speed", "target_m": 5.0, "target_e": 0, "progress_reward": 0.20 },
+    { "id": "q_earn_1k", "desc": "Earn 1K total cash", "type": "earn_total", "target_m": 1.0, "target_e": 3, "progress_reward": 0.25 },
+    { "id": "q_serve_100", "desc": "Serve 100 visitors", "type": "serve_total", "target_m": 100.0, "target_e": 0, "progress_reward": 0.25 },
+    { "id": "q_decor_1", "desc": "Buy 1 decor piece", "type": "buy_decor", "target_m": 1.0, "target_e": 0, "progress_reward": 0.30 }
+  ],
+  "milestones": {
+    "whispering_pines": [
+      { "id": "wp_m1", "venue_id": "whispering_pines", "name": "Doors Open", "reward": { "gems": 10, "box": "field_case" }, "global_income_mult": 1.05 },
+      { "id": "wp_m8", "venue_id": "whispering_pines", "name": "Regional Fame (PRESTIGE)", "reward": { "gems": 50, "box": "specialist_case" }, "global_income_mult": 1.25 }
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "products": [
+    {
+      "id": "gems_pouch",
+      "kind": "gems",
+      "title": "Pouch of Gems",
+      "price_usd": "$0.99",
+      "grants": { "gems": 80, "cash_seconds": 0, "insight_m": 0.0 },
+      "tag": "regular"
+    },
+    {
+      "id": "starter_bundle",
+      "kind": "bundle",
+      "title": "New Director Bundle",
+      "price_usd": "$4.99",
+      "grants": { "gems": 300, "cash_seconds": 3600, "insight_m": 50.0, "box": "specialist_case" },
+      "tag": "starter",
+      "limit_per_day": 1
+    }
+  ]
+}

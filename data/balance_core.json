@@ -1,0 +1,88 @@
+{
+  "economy": {
+    "offline_cap_hours": 4,
+    "offline_efficiency": 1.0,
+    "tip_bonus_pct": 0.05,
+    "manual_collect_fraction": 1.0,
+    "tick_hz": 10
+  },
+  "reputation": {
+    "thresholds_mantissa": [0, 20, 60, 140, 300, 620, 1250, 2500, 5000, 10000, 20000, 40000, 80000, 160000, 320000],
+    "xp_per_upgrade": { "base": 2.0, "per_level": 0.25 },
+    "level_rewards": { "gems_every_level": 5, "visitor_burst_levels": [3, 5, 8], "burst_visitors": 50 }
+  },
+  "departments": {
+    "promotions": {
+      "name": "Promotions Office",
+      "icon": "P",
+      "color": "#8E6C8A",
+      "desc": "Brings visitors to the museum. Staff = marketers, Speed = campaign reach, Value = audience quality (richer visitors pay more).",
+      "base_staff": 1,
+      "max_staff": 25,
+      "tracks": {
+        "staff": { "base_cost_m": 25.0, "base_cost_e": 0, "growth": 1.15, "steps": {} },
+        "speed": { "base_stat": 0.20, "per_level": 0.02, "base_cost_m": 40.0, "base_cost_e": 0, "growth": 1.12, "steps": { "10": 2.0, "25": 2.0, "50": 2.0 } },
+        "value": { "base_stat": 1.0, "per_level": 0.06, "base_cost_m": 60.0, "base_cost_e": 0, "growth": 1.13, "steps": { "10": 2.0, "25": 2.0 } }
+      }
+    },
+    "ticket": {
+      "name": "Ticket Halls",
+      "icon": "T",
+      "color": "#C4703F",
+      "desc": "Visitors queue and pay here. Staff = windows, Speed = serve rate, Value = admission price.",
+      "base_staff": 1,
+      "max_staff": 10,
+      "tracks": {
+        "staff": { "base_cost_m": 20.0, "base_cost_e": 0, "growth": 1.15, "steps": {} },
+        "speed": { "base_stat": 0.34, "per_level": 0.04, "base_cost_m": 30.0, "base_cost_e": 0, "growth": 1.13, "steps": { "10": 2.0, "25": 2.0 } },
+        "value": { "base_stat": 1.0, "per_level": 0.08, "base_cost_m": 50.0, "base_cost_e": 0, "growth": 1.13, "steps": { "10": 2.0, "25": 2.0 } }
+      }
+    },
+    "archive": {
+      "name": "The Archive",
+      "icon": "A",
+      "color": "#5B7B8C",
+      "desc": "Staff cart earnings from ticket halls to the vault. Staff = porters, Speed = cart rate, Value = cart capacity.",
+      "base_staff": 1,
+      "max_staff": 12,
+      "tracks": {
+        "staff": { "base_cost_m": 35.0, "base_cost_e": 0, "growth": 1.14, "steps": {} },
+        "speed": { "base_stat": 0.25, "per_level": 0.03, "base_cost_m": 55.0, "base_cost_e": 0, "growth": 1.13, "steps": { "10": 2.0, "25": 2.0 } },
+        "value": { "base_stat": 1.0, "per_level": 0.10, "base_cost_m": 80.0, "base_cost_e": 0, "growth": 1.14, "steps": { "10": 2.0, "25": 2.0 } }
+      }
+    },
+    "gallery": {
+      "name": "Grand Gallery",
+      "icon": "G",
+      "color": "#B08D3E",
+      "desc": "Bonus revenue per visitor. Staff = docents, Speed = tour flow, Value = bonus per visitor.",
+      "base_staff": 0,
+      "max_staff": 12,
+      "tracks": {
+        "staff": { "base_cost_m": 100.0, "base_cost_e": 0, "growth": 1.14, "steps": {} },
+        "speed": { "base_stat": 1.0, "per_level": 0.05, "base_cost_m": 150.0, "base_cost_e": 0, "growth": 1.13, "steps": { "10": 2.0 } },
+        "value": { "base_stat": 0.05, "per_level": 0.01, "base_cost_m": 220.0, "base_cost_e": 0, "growth": 1.14, "steps": { "10": 2.0, "25": 2.0 } }
+      }
+    }
+  },
+  "unlocks": { "managers_rep": 6, "expedition_rep": 7, "inspection_day": 1, "decor_rep": 2 },
+  "monetization_tuning": {
+    "instant_cash_minutes": 15,
+    "free_gems_amount": 5,
+    "free_gems_per_day": 3,
+    "boost_hours_per_view": 2,
+    "boost_cap_hours": 8,
+    "welcome_back_ad_mult": 2.0,
+    "welcome_back_gem_mult": 3.0,
+    "welcome_back_gem_cost": 20,
+    "insight_rush_ad_mult": 2.0,
+    "insight_rush_gem_mult": 3.0,
+    "insight_rush_gem_cost": 10,
+    "free_lootbox_max": 5,
+    "free_lootbox_recharge_hours": 2,
+    "daily_deal_slots": 3,
+    "daily_deal_refresh_hours": 4,
+    "daily_deal_force_max": 3,
+    "daily_deal_force_cost": 10
+  }
+}

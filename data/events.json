@@ -1,0 +1,32 @@
+{
+  "inspection_frenzy": {
+    "id": "inspection_frenzy",
+    "name": "Inspection Frenzy",
+    "unlock_day": 1,
+    "duration_hours": 48,
+    "cooldown_hours": 72,
+    "scaling": { "base_hp": 500.0, "hp_vs_power": 0.9, "final_stage_power_need": 1.5 },
+    "stages": [
+      { "boss_hp": 400.0, "moves": 20, "rewards": { "cards_box": "field_case", "gems": 0, "insight_m": 20.0 } },
+      { "boss_hp": 700.0, "moves": 20, "rewards": { "cards_box": "field_case", "gems": 5, "insight_m": 30.0 } },
+      { "boss_hp": 1200.0, "moves": 22, "rewards": { "cards_box": "field_case", "gems": 10, "insight_m": 50.0 } },
+      { "boss_hp": 2100.0, "moves": 22, "rewards": { "cards_box": "specialist_case", "gems": 15, "insight_m": 80.0 } },
+      { "boss_hp": 3800.0, "moves": 24, "rewards": { "cards_box": "specialist_case", "gems": 25, "insight_m": 120.0 } },
+      { "boss_hp": 7000.0, "moves": 25, "rewards": { "cards_box": "executive_case", "gems": 50, "insight_m": 200.0 } }
+    ]
+  },
+  "expedition": {
+    "id": "expedition",
+    "name": "Expedition Mode",
+    "unlock_rep": 7,
+    "stages": [
+      { "invest_cost_m": 1.0, "invest_cost_e": 3, "insight_reward": 20.0, "name": "Local Dig Site" },
+      { "invest_cost_m": 5.0, "invest_cost_e": 3, "insight_reward": 35.0, "name": "Riverbank Ruins" },
+      { "invest_cost_m": 2.0, "invest_cost_e": 4, "insight_reward": 60.0, "name": "Old Quarry" },
+      { "invest_cost_m": 1.0, "invest_cost_e": 5, "insight_reward": 100.0, "name": "Sunken Cave" },
+      { "invest_cost_m": 5.0, "invest_cost_e": 5, "insight_reward": 180.0, "name": "Lost Temple Gate" }
+    ],
+    "boss": { "boss_hp": 5000.0, "moves": 24, "rewards": { "cards_box": "specialist_case", "gems": 40, "insight_m": 250.0 }, "name": "The Temple Guardian" },
+    "insight_idle": { "per_minute": 2.0, "cap_base": 60.0, "cap_per_rep_level": 5.0 }
+  }
+}
