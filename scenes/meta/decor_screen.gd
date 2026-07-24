@@ -140,8 +140,10 @@ func _build_sets_summary() -> void:
 		name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hb.add_child(name_l)
 		var bonus_text: String = "Bonus +%d%% income" % int(round((float(sp["bonus_mult"]) - 1.0) * 100.0))
-		hb.add_child(_label(bonus_text + (" — ACTIVE" if bool(sp["complete"]) else ""), 15,
-			SAGE if bool(sp["complete"]) else SLATE))
+		var bonus_l := _label(bonus_text + (" — ACTIVE" if bool(sp["complete"]) else ""), 15,
+			SAGE if bool(sp["complete"]) else SLATE)
+		bonus_l.autowrap_mode = TextServer.AUTOWRAP_OFF  # squeezed by expand-fill name otherwise
+		hb.add_child(bonus_l)
 		_list.add_child(row)
 
 func _build_shop() -> void:

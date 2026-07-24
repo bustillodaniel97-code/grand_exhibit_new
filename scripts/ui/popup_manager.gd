@@ -58,8 +58,11 @@ func _open(path: String, payload: Dictionary) -> void:
 	holder.add_child(center)
 
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(648, 0)  # 90% of the 720-wide portrait viewport
+	# 90% width x 70% height of the 720x1280 portrait viewport: screens always get room
+	# regardless of how their root Control is configured (integration fix — collapsed-card bug).
+	card.custom_minimum_size = Vector2(648, 896)
 	card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	card.add_theme_stylebox_override("panel", UI.make_panel(UI.PANEL, 12, 0))
 	center.add_child(card)
 
@@ -80,6 +83,7 @@ func _open(path: String, payload: Dictionary) -> void:
 
 	var content: Node = packed.instantiate()
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(content)
 
 	add_child(holder)

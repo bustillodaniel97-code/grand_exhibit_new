@@ -110,9 +110,13 @@ func refresh() -> void:
 		name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hb.add_child(name_l)
 		var reward: Dictionary = ms.get("reward", {})
-		hb.add_child(_label("+%d gems, %s" % [int(reward.get("gems", 0)),
-			str(DataLoader.get_lootbox(str(reward.get("box", ""))).get("name", reward.get("box", "")))], 13, SLATE))
-		hb.add_child(_label(state, 14, state_color))
+		var reward_l := _label("+%d gems, %s" % [int(reward.get("gems", 0)),
+			str(DataLoader.get_lootbox(str(reward.get("box", ""))).get("name", reward.get("box", "")))], 13, SLATE)
+		reward_l.autowrap_mode = TextServer.AUTOWRAP_OFF  # squeezed by expand-fill name otherwise
+		hb.add_child(reward_l)
+		var state_l := _label(state, 14, state_color)
+		state_l.autowrap_mode = TextServer.AUTOWRAP_OFF
+		hb.add_child(state_l)
 		_list.add_child(row)
 
 	# Next venue card.
