@@ -37,3 +37,32 @@ Corrupt/tampered saves rename to .bak and start fresh rather than crash — QA m
 AdMob/billing SDKs are platform exports; this build ships interfaces + debug stubs (ads succeed,
 purchases succeed) so all six RV placements and the full IAP catalog are playable and testable
 today. Release flip: debug_ads/debug_iap = false + SDK plugin.
+
+## 2026-07-24 · Executive Producer · SPEC SIM MODEL amended (all tracks meaningful)
+Lead Engineer flagged that the literal SPEC §3 formula left promotions.value, archive.value and
+gallery.speed as no-ops while UI sells them. Amended SPEC + economy.gd: promotions.value =
+audience quality (multiplies cash per visitor), archive.value = cart capacity (multiplies
+transport), gallery.speed = tour flow (multiplies gallery bonus). Neutral at level-1 base stats
+(all 1.0), so existing test identities hold. No-op upgrades would violate the spirit of the
+handoff's "increase value per unit" mandate; shipping them was not an option.
+
+## 2026-07-24 · Lead Engineer (integration) · Headless test bootstrap pattern settled
+Under `godot -s`, autoload singletons come up as live root children AFTER the entry script
+compiles. Suites therefore run from `_initialize()`/deferred `run()`, fetch singletons via
+`root.get_node("GameState")` etc., and `load()` (never const-preload) system scripts. Manual
+double-instantiation of autoloads is forbidden — it shadows real singletons. All branch suites
+follow this; QA keeps it.
+
+## 2026-07-24 · Meta Engineer · Decor sets carry "id" mirror of "set_id"
+DataLoader._index_by_id keys dicts by "id"; SPEC's set schema named it "set_id". Resolved
+data-side (sets carry both keys) so the shared autoload stays untouched.
+
+## 2026-07-24 · Executive Producer · Bundle-first delivery over this filesystem
+The /mnt mount silently truncates files >100 MiB and eats push object transfers (refs arrive,
+objects don't). Team protocol: agents deliver branches via git bundle files (atomic, verified)
+in addition to push; integration fetches from bundles when refs dangle. Godot itself ships to
+agents as a zip on the mount.
+
+## 2026-07-24 · Managers Engineer · "NEW" badge = owned-but-unviewed this session
+Card-collection UX reading: owned (>=1 card) managers show NEW until first tap in the screen
+session; 0-card managers render as locked silhouettes ("?", "Undiscovered").
