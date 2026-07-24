@@ -5,17 +5,25 @@ and `docs/DESIGN_DECISIONS.md` (why things are the way they are).
 
 ## Run
 ```bash
-godot --path .                      # editor
+godot --headless --path . --import   # once on a fresh clone (builds class cache)
+godot --path .                       # editor
 godot --headless --path . --quit-after 3   # sanity check
 ```
 Open the project in Godot 4.4+ and press Play.
 
 ## Tests
-Every suite is a standalone SceneTree script:
+19 standalone SceneTree suites (core, venue, managers, events, meta, monetization, qa):
 ```bash
-godot --headless --path . -s tests/core/test_big_number.gd
+godot --headless --path . -s tests/core/test_big_number.gd   # one suite
+for t in tests/*/test_*.gd; do godot --headless --path . -s "$t" || echo "FAIL $t"; done
 # exit code 0 = pass, 1 = fail
 ```
+
+## Export
+Android APK/AAB: install Godot 4.4 export templates, add an Android preset (portrait,
+package e.g. `dev.grandexhibit.game`), export. Not produced in the build environment
+(templates not installed) — the project is export-ready; flip the debug flags below
+and wire the real ad/billing SDKs in `autoload/ad_service.gd` / `autoload/iap_service.gd`.
 
 ## Notes
 - Ads and IAP are behind `AdService` / `IAPService` interfaces with debug stubs

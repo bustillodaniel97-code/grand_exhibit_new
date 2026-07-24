@@ -66,3 +66,23 @@ agents as a zip on the mount.
 ## 2026-07-24 · Managers Engineer · "NEW" badge = owned-but-unviewed this session
 Card-collection UX reading: owned (>=1 card) managers show NEW until first tap in the screen
 session; 0-card managers render as locked silhouettes ("?", "Undiscovered").
+
+## 2026-07-24 · QA Lead · M5 hardening verdicts (full report in tests/qa)
+Clock-cheating clamped (rollback→0, far-future→cap), v1→v2 migration + checksum-corruption
+recovery verified, aa+/1e45 overflow stable (m∈[1,10) invariant), ad/IAP failure paths grant
+nothing, venue_rates 10k calls = 1.34s / match-3 1k boards = 0.5s, policy audit clean
+(rates published, prices end in 9, CREDITS has no NC/ND). Headless teardown memory spike
+documented as engine-level, non-gameplay. One fix shipped: README documents debug flag flip.
+
+## 2026-07-24 · Executive Producer · Visual audit via xvfb + viewport capture
+Headless tests prove logic, not pixels. Every screen was rendered under Xvfb and audited as
+PNG: venue shell, store, prestige, managers, lootboxes, decor, both event gates, and the
+match-3 battle board. Two layout defects found and fixed: popup card had no height floor
+(collapsed to a strip) and word-wrapped labels in HBox rows with expand-fill siblings
+squeezed to 1-char columns (prestige milestones, decor set rows). PopupManager now grants
+648x896 to every screen; squeezed labels set AUTOWRAP_OFF.
+
+## 2026-07-24 · Executive Producer · Milestone M1-M5 closed
+All five milestones delivered as data-driven systems with 19 headless suites green.
+Android export not produced in this environment (export templates not installed; /mnt mount
+truncates files >100MiB) — documented in README as the on-device next step.
