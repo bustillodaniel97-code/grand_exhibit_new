@@ -86,3 +86,12 @@ squeezed to 1-char columns (prestige milestones, decor set rows). PopupManager n
 All five milestones delivered as data-driven systems with 19 headless suites green.
 Android export not produced in this environment (export templates not installed; /mnt mount
 truncates files >100MiB) — documented in README as the on-device next step.
+
+## 2026-07-24 · Game-Feel Engineer · Living floor replaces menu-panels as the Museum tab
+Player verdict on M1-M5: "it's only menus." Phase 2 renders the existing (correct) economy sim
+live: procedural chibi cast (original designs — IP guardrail: IBT is mechanics-inspiration only,
+zero copied expression), visitor FSM door->queue->served->gallery->exit, porter loops window->
+vault, choke made visible (full ropes / overflowing stacks / sparse floor), tap-zone bottom-sheet
+upgrade cards with IBT-style bold buttons. Palette brightened per user call (overrides muted
+default). Economy autoload untouched; floor reads venue_rates at 0.5Hz. 20/20 suites green,
+motion verified via xvfb frame deltas.
