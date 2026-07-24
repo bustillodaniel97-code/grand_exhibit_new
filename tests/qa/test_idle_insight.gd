@@ -67,13 +67,13 @@ func run() -> void:
 	check(g1.eq(cap), "collect 1x grants stored amount (%s)" % g1.to_notation())
 	check(GS.insight.eq(insight0.add(cap)), "collect 1x lands in insight wallet")
 	check(stored(ECON, GS).is_zero(), "collect drains storage")
-	# Accrue a partial amount below cap: 1h at per_minute rate.
+	# Accrue a partial amount below cap: 20 minutes at per_minute rate.
 	now = CG.now()
-	GS.expedition_state["last_tick"] = now - 3600
+	GS.expedition_state["last_tick"] = now - 1200
 	ECON.tick_insight_storage(now)
 	var partial: BigNumber = stored(ECON, GS)
-	var expect_partial: BigNumber = BigNumber.from_float(float(cfg.get("per_minute", 2.0)) * 60.0)
-	check(partial.eq(expect_partial), "1h accrual == per_minute x 60 (%s == %s)"
+	var expect_partial: BigNumber = BigNumber.from_float(float(cfg.get("per_minute", 2.0)) * 20.0)
+	check(partial.eq(expect_partial), "20min accrual == per_minute x 20 (%s == %s)"
 		% [partial.to_notation(), expect_partial.to_notation()])
 	check(partial.lt(cap), "partial accrual below cap")
 	var insight1: BigNumber = GS.insight.copy()
