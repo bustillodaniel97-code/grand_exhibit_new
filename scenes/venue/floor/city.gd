@@ -49,6 +49,12 @@ const DROP := 13.0
 ## given to the pavement is a tile of road the player never sees. An earlier
 ## pass ran the kerb out at gy = 19.7 and the whole street ended up as a 40px
 ## sliver in the bottom corner under a 120px band of empty grey.
+## The building footprint every position in this file was authored against — the
+## constants below and the whole STYLES table alike. A venue whose plan is a
+## different size or shape gets remapped onto it by _g(), so a surround style
+## stays ONE fixed table instead of needing a variant per venue.
+const NOMINAL := Rect2(0.0, 0.0, 15.0, 17.0)
+
 const APRON_A := Vector2(-1.1, -1.1)   # paved apron, NW corner
 const APRON_B := Vector2(16.3, 18.05)  # paved apron, SE corner
 const SIDEWALK_B := 18.72              # pavement runs from APRON_B.y to here
@@ -224,6 +230,74 @@ var style: String = "parkland":
 var _pal: Dictionary = {}
 var _def: Dictionary = {}
 var _band := Rect2()          # visible area in canvas space; see set_visible_band
+var _fp := NOMINAL            # the building this surround is framing; see set_footprint
+
+
+## Tell the surround how big the building actually is, as the union of the
+## theme's room rects. Everything outside the walls is authored against NOMINAL,
+## so without this a 16x18 plan gets the 15x17 plan's scenery: the east hedge
+## runs THROUGH the east wing and a neighbouring block is drawn under the floor,
+## which is exactly what "overlaid on a different plane" looks like.
+##
+## WHY A REMAP AND NOT A KEEP-OUT TEST. Skipping any piece that lands inside the
+## footprint would leave a big venue bald on whichever side it grew. Moving the
+## piece keeps the scenery and simply re-frames it around the real building.
+##
+## The map is the IDENTITY when the plan is the nominal 15x17, so every venue
+## authored before this existed renders pixel-for-pixel unchanged.
+func set_footprint(bounds: Rect2) -> void:
+	if bounds.size.x < 1.0 or bounds.size.y < 1.0 or bounds.is_equal_approx(_fp):
+		return
+	_fp = bounds
+	queue_redraw()
+
+
+func footprint() -> Rect2:
+	return _fp
+
+
+## Piecewise map on one axis. OUTSIDE the nominal edges a coordinate keeps its
+## DISTANCE from the edge, so the kerb stays exactly as far from the facade as it
+## was authored and the road never gets stretched into a motorway. INSIDE, it
+## scales, so the entrance runner still meets the doors.
+static func _remap(c: float, n0: float, n1: float, b0: float, b1: float) -> float:
+	if c <= n0:
+		return b0 + (c - n0)
+	if c >= n1:
+		return b1 + (c - n1)
+	return b0 + (c - n0) / (n1 - n0) * (b1 - b0)
+
+
+## Nominal grid point -> this venue's grid point. Public because it is the whole
+## contract between an authored surround and a plan that is not 15x17: tests use
+## it to prove no scenery lands inside a venue's rooms.
+func map_point(g: Vector2) -> Vector2:
+	return _g(g)
+
+
+func _g(g: Vector2) -> Vector2:
+	if _fp.is_equal_approx(NOMINAL):
+		return g
+	return Vector2(
+		_remap(g.x, NOMINAL.position.x, NOMINAL.end.x, _fp.position.x, _fp.end.x),
+		_remap(g.y, NOMINAL.position.y, NOMINAL.end.y, _fp.position.y, _fp.end.y))
+
+
+## Where an arrival steps onto the forecourt, and where the canopy hangs, both
+## carried onto the actual footprint. VenueFloor reads these instead of the
+## consts so the approach still meets the doors when the plan is a different size.
+func street_point() -> Vector2:
+	return _g(STREET_G)
+
+
+func canopy_point() -> Vector2:
+	return _g(CANOPY_G)
+
+
+## Grid-space offset from the authored canopy to this venue's, for the static
+## painter (which has no instance to ask).
+func canopy_offset() -> Vector2:
+	return _g(CANOPY_G) - CANOPY_G
 var _traffic: Node2D
 var _cars: Array[Dictionary] = []
 
@@ -500,15 +574,20 @@ func _draw_edge_fade() -> void:
 ## The awning over the doors. It stands in front of the facade, so it cannot live
 ## on this node — VenueFloor hands it to _add_prop() at CANOPY_G and Y-sort puts
 ## it where it belongs. Static so it needs no City instance.
-static func draw_canopy(ci: CanvasItem, style_name: String = "parkland") -> void:
+## `shift` is the grid-space offset from the authored doors to this venue's,
+## which the caller gets from canopy_offset() — without it the awning stays put
+## while the entrance it covers moves with the footprint.
+static func draw_canopy(ci: CanvasItem, style_name: String = "parkland",
+		shift: Vector2 = Vector2.ZERO) -> void:
 	var pal: Dictionary = palette_for(style_name)
 	var post_h := 36.0
-	var back := CANOPY_A + Vector2(0.0, CANOPY_SIZE.y)
-	Iso.rug(ci, CANOPY_A + Vector2(0.14, 0.18), CANOPY_SIZE, Color(0.06, 0.03, 0.14, 0.15))
-	for gx in [CANOPY_A.x + 0.04, CANOPY_A.x + CANOPY_SIZE.x - 0.14]:
+	var origin: Vector2 = CANOPY_A + shift
+	var back := origin + Vector2(0.0, CANOPY_SIZE.y)
+	Iso.rug(ci, origin + Vector2(0.14, 0.18), CANOPY_SIZE, Color(0.06, 0.03, 0.14, 0.15))
+	for gx in [origin.x + 0.04, origin.x + CANOPY_SIZE.x - 0.14]:
 		Iso.box(ci, Vector2(gx, back.y - 0.1), Vector2(0.1, 0.1), post_h,
 			(pal["paving"] as Color).darkened(0.26), Color(0, 0, 0, 0.24))
-	var q := Iso.quad(CANOPY_A, CANOPY_SIZE)
+	var q := Iso.quad(origin, CANOPY_SIZE)
 	var up := Vector2(0.0, -post_h - 5.0)
 	var lo := Vector2(0.0, -post_h)
 	# Warmed off pure white. At UI.PANEL the awning was the brightest thing on the
@@ -637,9 +716,11 @@ func _panes(a: Vector2, b: Vector2, y: float, hgt: float, col: Color, n: int) ->
 
 # --- Batched primitives -------------------------------------------------------
 
-## Project a grid point, dropped to the outside-world ground plane.
+## Project a grid point, dropped to the outside-world ground plane. This is the
+## ONLY grid->screen conversion in the file, which is what lets set_footprint()
+## re-frame the entire surround — consts, style table and all — from one place.
 func _p(g: Vector2, drop: float = 0.0) -> Vector2:
-	return Iso.to_screen(g) + Vector2(0.0, drop)
+	return Iso.to_screen(_g(g)) + Vector2(0.0, drop)
 
 ## Convex polygon into the batch, fanned from its first vertex.
 func _fill(poly: PackedVector2Array, col: Color) -> void:
@@ -680,7 +761,10 @@ func _prism(g: Vector2, size: Vector2, h: float, col: Color, drop: float = 0.0) 
 ## Floating slab — a box lifted clear of the ground, for roofs and parapets.
 func _slab(g: Vector2, size: Vector2, h: float, thick: float, col: Color,
 		drop: float = 0.0) -> void:
-	var q: PackedVector2Array = Iso.quad(g, size)
+	# Built from _p rather than Iso.quad so it goes through the footprint remap
+	# like every other primitive; Iso.quad would project the raw nominal point.
+	var q := PackedVector2Array([
+		_p(g), _p(g + Vector2(size.x, 0.0)), _p(g + size), _p(g + Vector2(0.0, size.y))])
 	var off := Vector2(0.0, drop)
 	var up := Vector2(0.0, -h - thick)
 	var lo := Vector2(0.0, -h)

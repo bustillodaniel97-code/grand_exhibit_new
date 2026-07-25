@@ -35,7 +35,107 @@ func check(cond: bool, msg: String) -> void:
 
 func _initialize() -> void:
 	_check_layout()
+	_check_footprint_remap()
 	_boot_floor()
+
+# --- the surround follows the plan --------------------------------------------
+##
+## Every scenery position in city.gd — the apron, the kerb, the hedges, the
+## neighbouring blocks — is authored against ONE nominal 15x17 footprint. The
+## first venue with a different plan (a 16x18 L) put a hedge through its east
+## wing and a neighbouring block under its floor, which on screen reads as the
+## museum being pasted onto a different picture.
+##
+## set_footprint() remaps the surround onto the plan the venue actually has. Two
+## properties have to hold, and neither is visible in a still:
+##   · identity at nominal, so the venues authored before it are untouched
+##   · no scenery inside any room, for every venue in the data file
+func _check_footprint_remap() -> void:
+	var city: Node2D = City.new()
+
+	# Identity when the plan is the one everything was authored against.
+	city.set_footprint(City.NOMINAL)
+	var same := true
+	for g in [Vector2(-4.3, 0.4), Vector2(16.6, 2.0), City.STREET_G, City.CANOPY_G]:
+		same = same and city.map_point(g).is_equal_approx(g)
+	check(same, "a nominal 15x17 plan maps every scenery point to itself")
+	check(city.canopy_offset().is_equal_approx(Vector2.ZERO),
+		"and moves the entrance canopy not at all")
+
+	# A bigger plan pushes the surround OUT, keeping its clearance rather than
+	# scaling it — a stretched road would read as a motorway.
+	city.set_footprint(Rect2(0.0, 0.0, 18.0, 20.0))
+	var east: Vector2 = city.map_point(Vector2(16.6, 2.0))
+	check(is_equal_approx(east.x, 19.6),
+		"a hedge 1.6 tiles east of a 15-wide plan sits 1.6 east of an 18-wide one "
+			+ "(got %.2f, want 19.60)" % east.x)
+	check(city.map_point(Vector2(7.5, 8.5)).is_equal_approx(Vector2(9.0, 10.0)),
+		"a point on the entrance axis stays on it as the plan grows")
+
+	# The real claim: sweep every authored venue.
+	for entry in _authored_venues():
+		var rooms: Array = entry["rooms"]
+		city.set_footprint(entry["bounds"])
+		var intruders: Array = []
+		for g in _scenery_points(String(entry["surround"])):
+			var q: Vector2 = city.map_point(g)
+			for r in rooms:
+				# A quarter tile of slack: the forecourt planters deliberately
+				# stand ~0.35 outside the lobby's front wall, flanking the doors.
+				if (r as Rect2).grow(-0.25).has_point(q):
+					intruders.append("%.1f,%.1f" % [q.x, q.y])
+					break
+		check(intruders.is_empty(),
+			"%s: no surround scenery lands inside a room%s"
+				% [entry["id"], "" if intruders.is_empty()
+					else " (%d: %s)" % [intruders.size(), str(intruders.slice(0, 3))]])
+	city.free()
+
+## Venues with a plan of their own, as {id, surround, rooms, bounds}. Read from
+## the data file rather than through DataLoader so this runs before autoloads.
+func _authored_venues() -> Array:
+	var out: Array = []
+	var f: FileAccess = FileAccess.open("res://data/venues.json", FileAccess.READ)
+	if f == null:
+		return out
+	var doc: Variant = JSON.parse_string(f.get_as_text())
+	if not (doc is Dictionary):
+		return out
+	for v in (doc as Dictionary).get("venues", []):
+		var theme: Dictionary = (v as Dictionary).get("theme", {})
+		if theme.has("extends") or not theme.has("rooms"):
+			continue
+		var rooms: Array = []
+		var bounds := Rect2()
+		for r in theme["rooms"]:
+			var a: Array = (r as Dictionary)["rect"]
+			var rr := Rect2(float(a[0]), float(a[1]), float(a[2]), float(a[3]))
+			rooms.append(rr)
+			bounds = rr if bounds.size == Vector2.ZERO else bounds.merge(rr)
+		out.append({
+			"id": str((v as Dictionary).get("id", "?")),
+			"surround": str(theme.get("surround", "parkland")),
+			"rooms": rooms, "bounds": bounds,
+		})
+	return out
+
+## Every ground contact point a style plants, in nominal grid space. Hedges are
+## SAMPLED along their run: an endpoint test misses one that crosses a wing.
+func _scenery_points(style_name: String) -> Array:
+	var def: Dictionary = City.style_def(style_name)
+	var pts: Array = []
+	for b in def.get("blocks", []):
+		pts.append(Vector2(float(b[0]), float(b[1])))
+		pts.append(Vector2(float(b[0]) + float(b[2]), float(b[1]) + float(b[3])))
+	for key in ["trees", "pines", "near_trees", "planters", "lamps"]:
+		for t in def.get(key, []):
+			pts.append(Vector2(float(t[0]), float(t[1])))
+	for h in def.get("hedges", []):
+		var a := Vector2(float(h[0]), float(h[1]))
+		var b := Vector2(float(h[2]), float(h[3]))
+		for i in 9:
+			pts.append(a.lerp(b, float(i) / 8.0))
+	return pts
 
 # --- static layout, no scene needed -------------------------------------------
 

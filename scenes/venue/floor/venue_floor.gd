@@ -359,11 +359,19 @@ func _ready() -> void:
 
 	# The city surround goes in FIRST and sits a pixel above the canvas origin,
 	# so Y-sort puts the whole block behind Ground and therefore behind every
-	# room, prop and actor. It draws nothing inside the footprint and takes no
-	# input, so it can never occlude gameplay or eat a tap.
+	# room, prop and actor. It takes no input, so it can never eat a tap.
+	#
+	# It DOES paint inside the footprint — the lawn fills the whole visible band —
+	# which is harmless only because Ground covers the plan on top of it. Scenery
+	# is a different matter: hedges, trees and neighbouring blocks are authored
+	# against a nominal 15x17 plan, so a bigger or differently-shaped venue got a
+	# hedge running through its east wing and a neighbour's roof under its floor.
+	# set_footprint re-frames the whole surround around the plan this venue has.
 	_city = City.new()
 	_city.style = _theme.surround
+	_city.set_footprint(_theme.bounds)
 	_canvas.add_child(_city)
+	_street_g = _city.street_point()
 
 	# Ground sits at the canvas origin, which projects above every prop and
 	# actor, so Y-sorting alone keeps it behind. Do NOT force it with a negative
@@ -564,6 +572,10 @@ func retheme(venue_id: String) -> void:
 
 	_load_theme(venue_id)
 	_city.style = _theme.surround
+	# The new venue's plan is almost certainly a different shape, so the surround
+	# has to be re-framed before it redraws or it keeps the old venue's setting.
+	_city.set_footprint(_theme.bounds)
+	_street_g = _city.street_point()
 	_city.queue_redraw()
 
 	_queues.clear()
@@ -1404,7 +1416,9 @@ func _rebuild_props() -> void:
 		# and the surround draws behind the whole museum — so it comes across as
 		# a Y-sorted prop and City only supplies the painter.
 		var surround: String = _theme.surround
-		_add_prop(City.CANOPY_G, func(ci: CanvasItem) -> void: City.draw_canopy(ci, surround))
+		var shift: Vector2 = _city.canopy_offset()
+		_add_prop(_city.canopy_point(),
+			func(ci: CanvasItem) -> void: City.draw_canopy(ci, surround, shift))
 
 ## Counters and rope lanes for the queue room, built from the same numbers the
 ## FSM walks. One counter per STAFFED window, so upgrading the department opens a
