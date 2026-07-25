@@ -32,6 +32,17 @@ const DEPT_COLORS := {
 	"gallery": Color("#FFC53D"),
 }
 
+## Rarity tiers. Manager collection is a core hook in this genre, so the tiers
+## have to be unmistakable at thumb size — these are separated by hue, not just
+## by lightness, which is what the previous grey/slate/plum/brass set failed at.
+const RARITY_COLORS := {
+	"common": Color("#8FA3B8"),      # cool grey-blue
+	"rare": Color("#3BA9F5"),        # azure
+	"epic": Color("#B45CF0"),        # violet
+	"legendary": Color("#FFC53D"),   # gold
+}
+const LOCKED := Color("#5A4E86")     # undiscovered slot on the deep shell
+
 # --- Type scale (design px at 720x1280; ~1.5x on a 1080p phone) --------------
 const TYPE_HERO := 40      # cash readout, welcome-back amount
 const TYPE_DISPLAY := 32   # screen titles

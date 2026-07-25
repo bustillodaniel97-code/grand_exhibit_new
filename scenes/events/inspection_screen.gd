@@ -7,15 +7,16 @@ extends Control
 const BattleView = preload("res://scenes/events/battle_view.gd")
 const BattleMath = preload("res://scripts/events/battle_math.gd")
 
-const BG := Color("#F5EFE0")
-const INK := Color("#33312E")
-const PANEL := Color("#FFFDF6")
-const ACCENT := Color("#C4703F")
-const BRASS := Color("#B08D3E")
-const SAGE := Color("#7A9B76")
+# Palette from ui_kit; these were private copies of the retired muted scheme.
+const UI := preload("res://scripts/ui/ui_kit.gd")
+const BG := UI.BG
+const INK := UI.INK
+const PANEL := UI.PANEL
+const ACCENT := UI.ACCENT
+const BRASS := UI.BRASS
+const SAGE := UI.SAGE
 const SPEC_GLYPH := {"promotions": "P", "ticket": "T", "archive": "A", "gallery": "G"}
-const SPEC_COLOR := {"promotions": Color("#8E6C8A"), "ticket": Color("#C4703F"),
-	"archive": Color("#5B7B8C"), "gallery": Color("#B08D3E")}
+const SPEC_COLOR := UI.DEPT_COLORS
 
 var _payload := {}
 var _event: Dictionary = {}

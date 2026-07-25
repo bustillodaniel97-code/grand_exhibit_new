@@ -14,9 +14,8 @@ const BRASS := UI.BRASS
 const SAGE := UI.SAGE
 const SLATE := UI.SLATE
 const PLUM := UI.PLUM
-const RARITY_COLORS := {
-	"common": Color("#8C8C88"), "rare": Color("#5B7B8C"),
-	"epic": Color("#8E6C8A"), "legendary": Color("#B08D3E")}
+# Was a private copy of the retired muted palette; ui_kit is the source now.
+const RARITY_COLORS := UI.RARITY_COLORS
 const RV_PLACEMENT := "free_lootbox"
 const FIELD_BOX := "field_case"
 

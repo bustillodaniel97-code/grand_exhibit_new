@@ -42,7 +42,7 @@ const TAP_ZONES := {  # checked in order (first hit wins)
 }
 
 # --- Waypoints, in grid space -------------------------------------------------
-const DOOR_G := Vector2(13.2, 16.4)
+const DOOR_G := Vector2(12.9, 16.3)  # just inside the entrance facade
 const COUNTER_GY := 10.1
 const WINDOW_GX: Array[float] = [1.5, 4.2, 6.9, 9.6, 12.3]
 const SLOT_GY: Array[float] = [11.4, 12.2, 13.0, 13.8]
@@ -54,7 +54,7 @@ const MAX_STACK_VIS := 10
 const PORTER_HOME := Vector2(10.6, 4.2)
 const VAULT_DROP := Vector2(12.4, 1.4)
 const PILE_G := Vector2(13.4, 1.2)
-const MARKETER_G := Vector2(11.4, 15.4)
+const MARKETER_G := Vector2(11.3, 16.2)  # touting beside the entrance
 const BROWSE_SPOTS := {
 	"dino": [Vector2(2.2, 4.2), Vector2(4.4, 4.4), Vector2(3.2, 5.0)],
 	"painting": [Vector2(5.4, 1.4), Vector2(6.6, 1.6)],
@@ -624,8 +624,8 @@ func _draw_ground() -> void:
 			_ground.draw_polyline(ring, UI.DANGER, 3.0)
 
 	# Red carpet runner from the doors up through the lobby.
-	Iso.floor_patch(_ground, Vector2(11.6, 9.4), Vector2(1.6, 7.4), UI.CARPET_RED)
-	Iso.floor_patch(_ground, Vector2(11.75, 9.4), Vector2(1.3, 7.4), UI.CARPET_RED.lightened(0.14))
+	Iso.floor_patch(_ground, Vector2(12.1, 10.2), Vector2(1.6, 6.8), UI.CARPET_RED)
+	Iso.floor_patch(_ground, Vector2(12.25, 10.2), Vector2(1.3, 6.8), UI.CARPET_RED.lightened(0.14))
 
 	# Back walls along the two far edges, per room.
 	Iso.wall(_ground, Vector2(0, 0), 9.0, "x", UI.ROOM_GALLERY.darkened(0.10))
@@ -790,20 +790,33 @@ func _build_promo_props() -> void:
 	_add_prop(Vector2(14.3, 8.4), _planter_painter(Vector2(14.3, 8.4)))
 
 func _build_lobby_props() -> void:
-	_add_prop(Vector2(13.2, 16.9), func(ci: CanvasItem) -> void:
-		var base: Vector2 = Iso.to_screen(Vector2(13.2, 16.9))
-		Iso.shadow(ci, Vector2(12.5, 16.6), Vector2(1.5, 0.5), 0.20)
-		ci.draw_colored_polygon(PackedVector2Array([
-			base + Vector2(-30, -4), base + Vector2(30, -4),
-			base + Vector2(30, -56), base + Vector2(-30, -56)]), UI.WALL_BROWN)
-		ci.draw_colored_polygon(PackedVector2Array([
-			base + Vector2(-26, -7), base + Vector2(-2, -7),
-			base + Vector2(-2, -52), base + Vector2(-26, -52)]), Color("#9A7350"))
-		ci.draw_colored_polygon(PackedVector2Array([
-			base + Vector2(2, -7), base + Vector2(26, -7),
-			base + Vector2(26, -52), base + Vector2(2, -52)]), Color("#8A6543"))
-		ci.draw_circle(base + Vector2(-5, -28), 2.6, UI.BRASS)
-		ci.draw_circle(base + Vector2(5, -28), 2.6, UI.BRASS))
+	# Entrance facade. Two earlier attempts were wrong in instructive ways: the
+	# original drew the doors as an axis-aligned screen-space rectangle standing
+	# on open floor, so it floated at an angle that disagreed with every other
+	# surface; moving it into the west wall then pushed it off the clipped left
+	# edge, because at high gy that wall projects far to the left. It belongs in
+	# a short facade on the lobby's NEAR edge (gy = 17), which is the only wall
+	# plane by the entrance that stays inside the visible canvas.
+	var fac := Vector2(11.4, 17.0)      # facade runs +x along the near edge
+	var fac_len := 3.0
+	var leaf := 0.62                    # each door leaf, in tiles
+	_add_prop(Vector2(12.9, 17.0), func(ci: CanvasItem) -> void:
+		Iso.wall(ci, fac, fac_len, "x", UI.ROOM_TICKET.darkened(0.34), 46.0)
+		var d0: Vector2 = fac + Vector2(0.88, 0.0)
+		# Reveal cut into the facade, then the two leaves, all in the wall plane.
+		Iso.panel(ci, d0 - Vector2(0.14, 0.0), leaf * 2.0 + 0.28, "x", 0.0, 42.0,
+			UI.WALL_BROWN.darkened(0.30))
+		Iso.panel(ci, d0, leaf, "x", 2.0, 37.0, Color("#9A7350"))
+		Iso.panel(ci, d0 + Vector2(leaf, 0.0), leaf, "x", 2.0, 37.0, Color("#8A6543"))
+		# Fanlight over the lintel.
+		Iso.panel(ci, d0 + Vector2(0.16, 0.0), leaf * 2.0 - 0.32, "x", 42.0, 52.0,
+			UI.BRASS.darkened(0.18))
+		var mid: Vector2 = Iso.to_screen(d0 + Vector2(leaf, 0.0))
+		ci.draw_circle(mid + Vector2(-4, -18), 2.6, UI.BRASS)
+		ci.draw_circle(mid + Vector2(4, -16), 2.6, UI.BRASS)
+		# Daylight spilling across the threshold.
+		Iso.floor_patch(ci, d0 - Vector2(0.0, 0.85), Vector2(leaf * 2.0, 0.85),
+			Color(1.0, 0.95, 0.75, 0.14)))
 	_add_prop(Vector2(4.6, 15.4), func(ci: CanvasItem) -> void:
 		var g := Vector2(3.6, 15.1)
 		Iso.shadow(ci, g + Vector2(0.06, 0.10), Vector2(2.1, 0.7), 0.20)

@@ -8,18 +8,22 @@ signal battle_finished(result: String)  # "win" | "lose"
 const Match3 = preload("res://scripts/events/match3_engine.gd")
 const BattleMath = preload("res://scripts/events/battle_math.gd")
 
+const UI := preload("res://scripts/ui/ui_kit.gd")
+## Tile colours ARE the department colours — a player has to read a board tile as
+## "that's my archive specialist" instantly, so they must not drift from the
+## floor's palette. These were a private copy of the retired muted scheme.
 const TILE_COLORS := [
-	Color("#8E6C8A"),  # promotions (plum)
-	Color("#C4703F"),  # ticket (terracotta)
-	Color("#5B7B8C"),  # archive (slate)
-	Color("#B08D3E"),  # gallery (brass)
-	Color("#C9BC9C"),  # neutral brass
+	UI.DEPT_COLORS["promotions"],
+	UI.DEPT_COLORS["ticket"],
+	UI.DEPT_COLORS["archive"],
+	UI.DEPT_COLORS["gallery"],
+	UI.PANEL_SOFT,                 # neutral
 ]
 const GLYPHS := ["P", "T", "A", "G", "•"]
 const SPEC_TO_TILE := {"promotions": 0, "ticket": 1, "archive": 2, "gallery": 3}
-const INK := Color("#33312E")
-const PANEL := Color("#FFFDF6")
-const ACCENT := Color("#C4703F")
+const INK := UI.INK
+const PANEL := UI.PANEL
+const ACCENT := UI.ACCENT
 const TILE := 72
 const GAP := 6
 
@@ -256,7 +260,7 @@ func _finish(result: String) -> void:
 		return
 	_over = true
 	_float_text("STAGE CLEAR!" if result == "win" else "Out of moves…",
-		Color("#7A9B76") if result == "win" else ACCENT)
+		UI.SAGE if result == "win" else UI.DANGER)
 	battle_finished.emit(result)
 
 

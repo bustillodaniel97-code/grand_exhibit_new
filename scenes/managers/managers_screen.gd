@@ -13,13 +13,11 @@ const BRASS := UI.BRASS
 const SAGE := UI.SAGE
 const SLATE := UI.SLATE
 const PLUM := UI.PLUM
-const LOCKED := Color("#B9B2A4")
-const DEPT_COLORS := {
-	"promotions": Color("#8E6C8A"), "ticket": Color("#C4703F"),
-	"archive": Color("#5B7B8C"), "gallery": Color("#B08D3E")}
-const RARITY_COLORS := {
-	"common": Color("#8C8C88"), "rare": Color("#5B7B8C"),
-	"epic": Color("#8E6C8A"), "legendary": Color("#B08D3E")}
+# Palette comes from ui_kit — these were private copies of the retired muted
+# scheme, so this screen kept rendering in the old colours after the repaint.
+const LOCKED := UI.LOCKED
+const DEPT_COLORS := UI.DEPT_COLORS
+const RARITY_COLORS := UI.RARITY_COLORS
 const RARITY_ORDER := {"common": 0, "rare": 1, "epic": 2, "legendary": 3}
 
 var _payload: Dictionary = {}
