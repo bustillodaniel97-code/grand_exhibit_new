@@ -97,6 +97,20 @@ func _test_data_integrity() -> void:
 		if bool(DL.decor[did].get("event_exclusive", false)):
 			event_count += 1
 	check(event_count >= 3, "3 event_exclusive pieces (%d)" % event_count)
+	# Rest areas: seating is the third venue-rating input, so the shop has to
+	# carry a buyable seat ladder, not one bench.
+	var seat_pieces: int = 0
+	var seat_ladder: Array = []
+	for did in DL.decor.keys():
+		var seats: int = int(DL.decor[did].get("rest_seats", 0))
+		if seats > 0:
+			seat_pieces += 1
+			if not bool(DL.decor[did].get("event_exclusive", false)):
+				seat_ladder.append(seats)
+	check(seat_pieces >= 5, "5+ rest-area pieces (%d)" % seat_pieces)
+	seat_ladder.sort()
+	check(seat_ladder.size() >= 5 and int(seat_ladder[-1]) >= 10 * int(seat_ladder[0]),
+		"seat ladder spans an order of magnitude (%s)" % str(seat_ladder))
 
 # ---------------------------------------------------------------- decor
 func _test_decor() -> void:
@@ -138,6 +152,19 @@ func _test_decor() -> void:
 	var spa: Dictionary = DS.set_progress("antiquity")
 	check(int(spa["have"]) == 1 and int(spa["total"]) == 6, "antiquity set progress 1/6 cross-venue")
 	check(decor_events.size() >= 7, "decor_purchased signals emitted (%d)" % decor_events.size())
+	# Decor also feeds the venue rating (Economy.venue_satisfaction): every placed
+	# piece contributes decor points, and seating pieces contribute seats.
+	check(absf(DS.piece_decor_points("oak_bench") - 3.0) < 0.001,
+		"oak_bench scores 3 decor points from its +3% income default")
+	check(DS.piece_rest_seats("oak_bench") == 3, "oak_bench seats 3")
+	check(DS.piece_rest_seats("heritage_arch") == 0, "an arch seats nobody")
+	var expect_points: float = 0.0
+	for slot in GS.venue_state(vid).get("decor", {}).values():
+		expect_points += DS.piece_decor_points(str(slot))
+	check(absf(DS.venue_decor_points(vid) - expect_points) < 0.001,
+		"venue_decor_points sums the placed pieces (%.1f)" % expect_points)
+	check(DS.venue_rest_seats(vid) == 3, "venue_rest_seats counts only the bench (3)")
+	check(DS.venue_rest_seats("copper_kettle") == 0, "obelisk-only venue has no seating")
 
 # -------------------------------------------------- quests -> milestones -> prestige
 func _test_quest_milestone_prestige() -> void:
@@ -172,38 +199,45 @@ func _test_quest_milestone_prestige() -> void:
 	check(vid in prestige_available_events, "prestige_available emitted after 8th")
 	check(PS.can_prestige(), "can_prestige() true")
 	check(GS.feature_unlocked("prestige"), "feature_unlocked('prestige') true")
-	# Retention snapshot + prestige.
+	# Retention snapshot + the one-way move.
 	GS.add_cash(BigNumber.from_parts(7.0, 5))
 	GS.add_gems(77)
 	GS.add_insight(BigNumber.from_float(4242.0))
 	GS.pending_cash[vid] = BigNumber.from_float(999.0)
 	GS.venue_state(vid)["decor"]["0"] = "oak_bench"
+	GS.set_dept_level(vid, "promotions", "speed", 9)
 	var cash_pre: BigNumber = GS.cash.copy()
 	var gems_pre: int = GS.gems
 	var insight_pre: BigNumber = GS.insight.copy()
 	var cards_pre: int = _total_cards()
-	check(PS.do_prestige(), "do_prestige() succeeded")
+	check(PS.graduate(), "graduate() succeeded")
 	check(GS.current_venue == "copper_kettle", "current venue advanced to copper_kettle")
 	check("copper_kettle" in GS.venues_unlocked and vid in GS.venues_unlocked, "both venues unlocked")
 	check(prestige_performed_events.size() == 1, "prestige_performed emitted")
-	# Retained (SPEC §6.1):
-	check(GS.cash.eq(cash_pre), "CASH retained across prestige")
-	check(GS.gems == gems_pre, "GEMS retained across prestige")
-	check(GS.insight.eq(insight_pre), "INSIGHT retained across prestige")
-	check(_total_cards() == cards_pre, "MANAGERS retained across prestige")
-	check(str(GS.venue_state(vid)["decor"].get("0", "")) == "oak_bench", "DECOR retained across prestige")
-	# Reset:
+	# Carried over (see PrestigeSystem header):
+	check(GS.cash.eq(cash_pre.add(BigNumber.from_float(999.0))),
+		"CASH carried in full AND the floor's 999 pending swept into the vault")
+	check(GS.gems == gems_pre, "GEMS carried over")
+	check(GS.insight.eq(insight_pre), "INSIGHT carried over")
+	check(_total_cards() == cards_pre, "MANAGERS carried over")
+	# The old museum is FROZEN, not wiped — it is a record, never revisited.
 	var old_vs: Dictionary = GS.venue_state(vid)
-	check(GS.dept_level(vid, "promotions", "speed") == 1, "old venue dept levels reset")
-	check(int(old_vs["depts"]["promotions"]["staff"]) == 1, "old venue staff reset to base")
-	check(float(old_vs["progress"]) == 0.0, "old venue progress reset to 0")
-	check(old_vs["active_quests"].is_empty(), "old venue active_quests cleared")
-	check(old_vs["milestones"].size() == 8, "old venue milestones KEPT as history")
-	check(not GS.pending_cash.has(vid), "pending cash cleared on switch")
-	# New venue ready:
-	check(GS.venue_state("copper_kettle")["active_quests"].size() == 3, "new venue has 3 active quests")
-	check(not PS.can_prestige(), "can_prestige false in new venue")
-	check(PS.block_reason() != "", "block_reason explains why")
+	check(GS.dept_level(vid, "promotions", "speed") == 9, "old venue dept levels frozen as built")
+	check(old_vs["milestones"].size() == 8, "old venue milestones kept")
+	check(str(old_vs["decor"].get("0", "")) == "oak_bench", "old venue keeps its installed decor")
+	check(not GS.pending_cash.has(vid), "old venue pending cash cleared after the sweep")
+	# One-way: the venue left behind is recorded closed and never comes back.
+	check(GS.venue_is_closed(vid), "old venue recorded in venues_closed")
+	check(not GS.venue_is_closed("copper_kettle"), "the new venue is open")
+	# The new museum starts BARE — that is the difficulty step.
+	var new_vs: Dictionary = GS.venue_state("copper_kettle")
+	check(new_vs["decor"].is_empty(), "new venue starts with no decor placed")
+	check(GS.dept_level("copper_kettle", "promotions", "speed") == 1,
+		"new venue departments start at level 1")
+	check(new_vs["active_quests"].size() == 3, "new venue has 3 active quests")
+	check(not PS.can_graduate(), "can_graduate false in new venue")
+	check(PS.block_reason() == "0 of 8 milestones done",
+		"block_reason counts the gate (got '%s')" % PS.block_reason())
 
 func _total_cards() -> int:
 	var n: int = 0

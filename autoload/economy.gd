@@ -3,6 +3,8 @@ extends Node
 ## pending cash = generated at ticket windows, capped by min(arrival, serve);
 ## banked cash = min(pending rate, archive transport rate). Banked goes straight to vault.
 
+const DecorSystem := preload("res://scripts/meta/decor_system.gd")
+
 var _accum: float = 0.0
 var _signal_throttle: float = 0.0
 var _served_win: BigNumber = BigNumber.zero()
@@ -107,16 +109,10 @@ func decor_set_multiplier() -> float:
 				mult *= float(DataLoader.decor_sets[set_id].get("bonus_mult", 1.0))
 	return mult
 
-func venue_rates(venue_id: String) -> Dictionary:
-	# SPEC §3 SIM MODEL (binding, amended 2026-07-24 — all 3 tracks meaningful):
-	#   arrival_per_s   = promotions.staff * promotions.speed_stat
-	#   serve_per_s     = ticket.staff * ticket.speed_stat
-	#   transport_per_s = archive.staff * archive.speed_stat * archive.value_stat  (visitor-units/s)
-	#   gallery_bonus   = gallery.staff * gallery.value_stat * gallery.speed_stat
-	#   value_per_visitor = venue.base_value * ticket.value_stat * promotions.value_stat
-	#                       * (1 + gallery_bonus) * income_mult
-	#   pending_per_s = min(arrival, serve) * value; banked = min(pending, transport * value)
-	var venue: Dictionary = DataLoader.get_venue(venue_id)
+## Visitor flow only — the half of the sim that satisfaction is measured FROM, so
+## it must not depend on satisfaction. Split out of venue_rates to keep that
+## one-way: flows -> rating -> value. Everything here is visitors/s.
+func venue_flows(venue_id: String) -> Dictionary:
 	var vs: Dictionary = GameState.venue_state(venue_id)
 	var arrival: float = 0.0
 	var serve: float = 0.0
@@ -130,12 +126,46 @@ func venue_rates(venue_id: String) -> Dictionary:
 			"archive": transport = staff * spd * dept_stat(venue_id, "archive", "value")
 	var gallery_staff: int = int(vs.get("depts", {}).get("gallery", {}).get("staff", 0))
 	var gallery_bonus: float = gallery_staff * dept_stat(venue_id, "gallery", "value") * dept_stat(venue_id, "gallery", "speed")
+	return {
+		"arrival_per_s": arrival, "serve_per_s": serve, "transport_per_s": transport,
+		"effective_visitors_per_s": minf(arrival, serve), "gallery_bonus": gallery_bonus,
+	}
+
+func venue_rates(venue_id: String) -> Dictionary:
+	# SPEC §3 SIM MODEL (binding, amended 2026-07-25 — satisfaction folded in):
+	#   arrival_per_s   = promotions.staff * promotions.speed_stat
+	#   serve_per_s     = ticket.staff * ticket.speed_stat
+	#   transport_per_s = archive.staff * archive.speed_stat * archive.value_stat  (visitor-units/s)
+	#   gallery_bonus   = gallery.staff * gallery.value_stat * gallery.speed_stat
+	#   value_per_visitor = venue.base_value * ticket.value_stat * promotions.value_stat
+	#                       * (1 + gallery_bonus) * income_mult * SATISFACTION_MULT
+	#   pending_per_s = min(arrival, serve) * value; banked = min(pending, transport * value)
+	#
+	# WHY satisfaction multiplies VALUE and not frequency (owner's brief: "visitors
+	# rate the venue, and that rating drives how much currency they drop"):
+	#   1. It is the literal reading of the pitch — the rating changes the drop, not
+	#      how often someone walks in.
+	#   2. Frequency would double-count SPEED. Speed is already a rating input, so a
+	#      speed upgrade would raise throughput AND the rating-driven arrival rate,
+	#      a compounding loop that runs away from the cost curve.
+	#   3. It keeps choke_id honest. The bottleneck the dept sheet points at stays a
+	#      pure function of the three department tracks, with no second scalar
+	#      quietly re-ordering which leg is smallest.
+	#   4. One number is legible: the HUD badge reads "x1.42" and the decor screen
+	#      names the input costing the player the other 0.58.
+	var venue: Dictionary = DataLoader.get_venue(venue_id)
+	var flows: Dictionary = venue_flows(venue_id)
+	var arrival: float = flows["arrival_per_s"]
+	var serve: float = flows["serve_per_s"]
+	var transport: float = flows["transport_per_s"]
+	var gallery_bonus: float = flows["gallery_bonus"]
+	var sat: Dictionary = venue_satisfaction(venue_id, flows)
 	var base_value := BigNumber.from_parts(
 		float(venue.get("base_value_m", 2.0)), int(venue.get("base_value_e", 0)))
 	var value_per_visitor: BigNumber = base_value.scale(
 		dept_stat(venue_id, "ticket", "value") * dept_stat(venue_id, "promotions", "value")
-		* (1.0 + gallery_bonus) * income_multiplier(venue_id))
-	var effective_visitors: float = minf(arrival, serve)
+		* (1.0 + gallery_bonus) * income_multiplier(venue_id) * float(sat["income_mult"]))
+	var effective_visitors: float = flows["effective_visitors_per_s"]
 	var choke_id: String = "promotions" if arrival <= serve else "ticket"
 	var pending_per_s: BigNumber = value_per_visitor.scale(effective_visitors)
 	var transport_cash: BigNumber = value_per_visitor.scale(transport)
@@ -147,10 +177,192 @@ func venue_rates(venue_id: String) -> Dictionary:
 		"value_per_visitor": value_per_visitor, "effective_visitors_per_s": effective_visitors,
 		"pending_per_s": pending_per_s, "banked_per_s": banked_per_s, "choke_id": choke_id,
 		"gallery_bonus": gallery_bonus,
+		"satisfaction": sat, "satisfaction_mult": float(sat["income_mult"]),
+		"stars": float(sat["stars"]),
 	}
 
 func current_cash_per_second() -> BigNumber:
 	return venue_rates(GameState.current_venue)["banked_per_s"]
+
+# ------------------------------------------------------------------ satisfaction
+## VENUE RATING (SPEC §3.1, added 2026-07-25). Visitors rate the venue out of 5
+## and the rating scales what each one drops. Three inputs, all read from live
+## state so every star has a cause the player can act on:
+##   DECOR — decor points of the pieces actually placed, against a per-venue
+##           target that scales with slot count and how far into the run it is.
+##   SPEED — the real service numbers: M/M/1 queue wait built from the same
+##           arrival/serve rates the sim banks cash with, plus throughput
+##           against the venue's target. Never a proxy for upgrade level.
+##   REST  — seats from rest-area decor against the crowd in the building.
+## Nothing here is persisted. The rating is a pure function of venue state, so it
+## needs no save field, cannot drift from what the player sees, and a new venue
+## starts low for free: empty decor slots, level-1 departments, a higher target.
+
+const SAT_INPUTS: Array = ["decor", "speed", "rest"]
+const SAT_LABELS := {"decor": "Decor", "speed": "Queues", "rest": "Rest Areas"}
+const STARS_MAX := 5.0
+
+func satisfaction_config() -> Dictionary:
+	return DataLoader.core.get("satisfaction", {})
+
+## Decor points a venue must reach for a full DECOR score.
+func satisfaction_decor_target(venue_id: String) -> float:
+	var cfg: Dictionary = satisfaction_config().get("decor", {})
+	var order: int = maxi(1, int(DataLoader.get_venue(venue_id).get("order", 1)))
+	var slots: int = maxi(1, DecorSystem.slots_total(venue_id))
+	return maxf(1.0, float(slots) * float(cfg.get("points_per_slot", 5.0))
+		* pow(float(cfg.get("target_growth_per_venue", 1.08)), float(order - 1)))
+
+## Visitors/s a venue must serve for a full THROUGHPUT score. This growing target
+## is a large part of the difficulty step the owner described: the floor that ran
+## a 5-star operation at the last site is a 2-star operation at the next one.
+func satisfaction_throughput_target(venue_id: String) -> float:
+	var cfg: Dictionary = satisfaction_config().get("speed", {})
+	var order: int = maxi(1, int(DataLoader.get_venue(venue_id).get("order", 1)))
+	return maxf(0.0001, float(cfg.get("throughput_target_base", 1.0))
+		* pow(float(cfg.get("throughput_target_growth", 1.6)), float(order - 1)))
+
+## Mean seconds a visitor spends in the ticket queue, from the live rates.
+## M/M/1 waiting-time-in-queue Wq = rho / (mu - lambda), rho = lambda / mu.
+## At arrival >= serve the queue never clears, so the wait pins at wait_stall_s.
+func queue_wait_seconds(arrival: float, serve: float) -> float:
+	var stall: float = float(satisfaction_config().get("speed", {}).get("wait_stall_s", 120.0))
+	if arrival <= 0.0:
+		return 0.0
+	if serve <= 0.0 or arrival >= serve:
+		return stall
+	return minf(stall, (arrival / serve) / (serve - arrival))
+
+## Full rating + per-input breakdown. Pass `flows` (from venue_flows) when the
+## caller already has them; venue_rates does, and passing them keeps the
+## flows -> rating -> value order one-way with no recursion.
+func venue_satisfaction(venue_id: String, flows: Dictionary = {}) -> Dictionary:
+	if flows.is_empty():
+		flows = venue_flows(venue_id)
+	var cfg: Dictionary = satisfaction_config()
+	var wcfg: Dictionary = cfg.get("weights", {})
+	var weights := {
+		"decor": float(wcfg.get("decor", 0.40)),
+		"speed": float(wcfg.get("speed", 0.35)),
+		"rest": float(wcfg.get("rest", 0.25)),
+	}
+	var w_sum: float = maxf(0.0001, float(weights["decor"]) + float(weights["speed"]) + float(weights["rest"]))
+
+	var points: float = DecorSystem.venue_decor_points(venue_id)
+	var decor_target: float = satisfaction_decor_target(venue_id)
+	var decor_score: float = clampf(points / decor_target, 0.0, 1.0)
+
+	var scfg: Dictionary = cfg.get("speed", {})
+	var arrival: float = float(flows.get("arrival_per_s", 0.0))
+	var serve: float = float(flows.get("serve_per_s", 0.0))
+	var wait_s: float = queue_wait_seconds(arrival, serve)
+	var wait_good: float = float(scfg.get("wait_good_s", 3.0))
+	var wait_bad: float = maxf(wait_good + 0.001, float(scfg.get("wait_bad_s", 30.0)))
+	var wait_score: float = clampf(1.0 - (wait_s - wait_good) / (wait_bad - wait_good), 0.0, 1.0)
+	var throughput: float = float(flows.get("effective_visitors_per_s", 0.0))
+	var tp_target: float = satisfaction_throughput_target(venue_id)
+	var tp_score: float = clampf(throughput / tp_target, 0.0, 1.0)
+	var queue_weight: float = clampf(float(scfg.get("queue_weight", 0.6)), 0.0, 1.0)
+	var speed_score: float = queue_weight * wait_score + (1.0 - queue_weight) * tp_score
+	# An empty venue has an empty queue, and an empty queue is not fast service.
+	# Without this a floor with no staff would bank a full wait score for having
+	# nobody standing in it.
+	if throughput <= 0.0:
+		speed_score = 0.0
+
+	var rcfg: Dictionary = cfg.get("rest", {})
+	var seats: int = int(rcfg.get("base_seats", 2)) + DecorSystem.venue_rest_seats(venue_id)
+	var crowd: float = throughput * float(rcfg.get("dwell_seconds", 30.0))
+	var seats_needed: int = maxi(1, int(ceil(crowd * float(rcfg.get("seats_per_visitor", 0.25)))))
+	var rest_score: float = clampf(float(seats) / float(seats_needed), 0.0, 1.0)
+
+	var scores := {"decor": decor_score, "speed": speed_score, "rest": rest_score}
+	var score: float = 0.0
+	for key in SAT_INPUTS:
+		score += float(weights[key]) * float(scores[key])
+	score = clampf(score / w_sum, 0.0, 1.0)
+
+	# The input holding the player back is the biggest WEIGHTED shortfall, not the
+	# lowest raw score: a 0.5 on the 40%-weight input costs more stars than a 0.3
+	# on the 25% one, and pointing at the cheaper fix would be a lie.
+	var limiting: String = "decor"
+	var worst_loss: float = -1.0
+	for key in SAT_INPUTS:
+		var loss: float = float(weights[key]) * (1.0 - float(scores[key]))
+		if loss > worst_loss:
+			worst_loss = loss
+			limiting = key
+
+	var mult_min: float = float(cfg.get("income_mult_min", 0.5))
+	var mult_max: float = float(cfg.get("income_mult_max", 2.0))
+	var details := {
+		"decor": "%d of %d decor points" % [int(round(points)), int(round(decor_target))],
+		"speed": ("queue never clears" if wait_s >= float(scfg.get("wait_stall_s", 120.0))
+			else "%.0fs wait · %s of %s/s" % [wait_s,
+				_sat_rate(throughput), _sat_rate(tp_target)]),
+		"rest": "%d of %d seats" % [seats, seats_needed],
+	}
+	var inputs: Dictionary = {}
+	for key in SAT_INPUTS:
+		inputs[key] = {
+			"label": str(SAT_LABELS[key]),
+			"score": float(scores[key]),
+			"weight": float(weights[key]) / w_sum,
+			"detail": str(details[key]),
+		}
+
+	return {
+		"score": score,
+		"stars": score * STARS_MAX,
+		"stars_rounded": roundf(score * STARS_MAX * 2.0) / 2.0,
+		"income_mult": mult_min + (mult_max - mult_min) * score,
+		"inputs": inputs,
+		"limiting": limiting,
+		"limiting_label": str(SAT_LABELS[limiting]),
+		"reason": _sat_reason(limiting, scores, details),
+		"mood": _sat_mood(score),
+		"queue_wait_s": wait_s,
+		"throughput_per_s": throughput,
+		"throughput_target": tp_target,
+		"decor_points": points,
+		"decor_target": decor_target,
+		"seats": seats,
+		"seats_needed": seats_needed,
+		"crowd": crowd,
+	}
+
+## Cash multiplier the rating applies to value-per-visitor. See venue_rates for
+## why the rating moves the drop and not the drop rate.
+func satisfaction_multiplier(venue_id: String) -> float:
+	return float(venue_satisfaction(venue_id)["income_mult"])
+
+## Crowd mood bucket for anything that draws visitors. See api notes: a floor
+## renderer picks a face/emote from this without re-deriving the rating.
+func satisfaction_mood(venue_id: String) -> String:
+	return str(venue_satisfaction(venue_id)["mood"])
+
+func _sat_mood(score: float) -> String:
+	if score >= 0.8:
+		return "delighted"
+	if score >= 0.55:
+		return "content"
+	if score >= 0.3:
+		return "restless"
+	return "unhappy"
+
+func _sat_rate(v: float) -> String:
+	return ("%.1f" % v) if v < 10.0 else ("%d" % int(round(v)))
+
+func _sat_reason(limiting: String, scores: Dictionary, details: Dictionary) -> String:
+	if float(scores[limiting]) >= 0.999:
+		return "The crowd loves this place."
+	match limiting:
+		"decor":
+			return "The halls look bare — %s." % str(details["decor"])
+		"speed":
+			return "Queues are slow — %s." % str(details["speed"])
+		_:
+			return "Nowhere to sit — %s." % str(details["rest"])
 
 func purchase_upgrade(venue_id: String, dept_id: String, track: String) -> bool:
 	var def: Dictionary = DataLoader.dept_def(dept_id)

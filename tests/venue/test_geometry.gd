@@ -151,8 +151,9 @@ func _check_on_canvas() -> void:
 	check(soff == 0, "every waypoint the cast walks to is on canvas (%d off, worst %s -> %s)"
 		% [soff, sworst, Iso.to_screen(sworst)])
 
-	for dept in VF.PLAQUE_G.keys():
-		var at: Vector2 = Iso.to_screen(VF.PLAQUE_G[dept])
+	var plaques: Dictionary = _floor.plaque_points()
+	for dept in plaques.keys():
+		var at: Vector2 = Iso.to_screen(plaques[dept])
 		check(at.x > 70.0 and at.x < Iso.VIEW.x - 70.0,
 			"%s plaque leaves room for its chip at x=%.0f" % [dept, at.x])
 
@@ -160,13 +161,13 @@ func _check_density() -> void:
 	var props: Array[Vector2] = _floor.prop_anchors()
 	var per := {"gallery": 0, "archive": 0, "promotions": 0, "ticket": 0, "lobby": 0}
 	for g in props:
-		if VF.R_GALLERY.has_point(g) or VF.R_CORRIDOR.has_point(g):
+		if _floor.room_rect("gallery").has_point(g) or _floor.room_rect("corridor").has_point(g):
 			per["gallery"] += 1
-		elif VF.R_VAULT.has_point(g):
+		elif _floor.room_rect("archive").has_point(g):
 			per["archive"] += 1
-		elif VF.R_PROMO.has_point(g):
+		elif _floor.room_rect("promotions").has_point(g):
 			per["promotions"] += 1
-		elif VF.R_TICKET.has_point(g):
+		elif _floor.room_rect("ticket").has_point(g):
 			per["ticket"] += 1
 		else:
 			per["lobby"] += 1

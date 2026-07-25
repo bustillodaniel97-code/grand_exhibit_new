@@ -50,6 +50,7 @@ func run() -> void:
 	GameState.venue_state(V)["depts"]["archive"]["staff"] = 3
 	GameState.pending_cash[V] = BigNumber.from_parts(9.9, 2)
 	GameState.venues_unlocked = ["whispering_pines", "copper_kettle"]
+	GameState.close_venue("whispering_pines")  # the ladder is one-way; it must persist
 	GameState.boosts["income_x2_until"] = 123456
 	var snap: Dictionary = GameState.to_save_dict()
 	GameState.reset_to_new_game()
@@ -63,6 +64,8 @@ func run() -> void:
 	check(int(GameState.venue_state(V)["depts"]["archive"]["staff"]) == 3, "staff round-trip")
 	check(GameState.pending_cash[V].eq(BigNumber.from_parts(9.9, 2)), "pending_cash round-trip")
 	check(GameState.venues_unlocked == ["whispering_pines", "copper_kettle"], "venues_unlocked round-trip")
+	check(GameState.venue_is_closed("whispering_pines"), "venues_closed round-trip")
+	check(not GameState.venue_is_closed("copper_kettle"), "open venue stays open across a round-trip")
 	check(int(GameState.boosts["income_x2_until"]) == 123456, "boosts round-trip")
 
 	print("-- from_save_dict tolerates partial/migrated dicts --")

@@ -156,6 +156,10 @@ var _frame: int = 0
 var _frames: Array = []
 
 func _ready() -> void:
+	# Trilinear on the node, mipmaps on the texture: both halves are needed, and
+	# the project sets no default texture_filter at all, so canvas items were
+	# minifying the baked sprites with nearest-neighbour on the mip level.
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	if not _is_painter:
 		_try_bake()
 	queue_redraw()

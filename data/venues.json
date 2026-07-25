@@ -1,4 +1,37 @@
 {
+  "_theme_schema": [
+    "A venue's `theme` block is everything about how that venue LOOKS. It is read",
+    "by VenueFloor.Theme (scenes/venue/floor/venue_floor.gd) and drawn through the",
+    "kind registry in scenes/venue/floor/exhibits.gd.",
+    "",
+    "  surround   name of a City style (scenes/venue/floor/city.gd): 'parkland' for",
+    "             the natural-history hall, 'harbour' for the aquarium.",
+    "  palette    key -> colour. Anything else in the theme can reference a key with",
+    "             a token: '@trim', '@room.gallery|d10' (darkened 0.10),",
+    "             '@floor|l14' (lightened 0.14). '@roomfloor.<room>' is the computed",
+    "             floor colour of a room. Plain '#RRGGBB' is always allowed.",
+    "  rooms      the floor plan. `rect` is [gx, gy, w, h] in TILES and is the only",
+    "             thing that fixes where anything stands: every waypoint listed",
+    "             inside a room def is RELATIVE to its rect origin, so moving a",
+    "             rect moves the counters, the queue, the porters and the plaque",
+    "             with it. `role` tells VenueFloor what fixtures the room needs:",
+    "             queue | store | promo | exhibit | lobby | link.",
+    "  walls      [{at, len, axis: x|y, col, h}] - back walls and low dividers.",
+    "  shell      {inset, col} - the slab the whole building stands on.",
+    "  exhibits   the things visitors come to look at. Each is a `kind` from the",
+    "             registry plus its spec, an `anchor` (grid point it Y-sorts at),",
+    "             and `views` - standing spots as OFFSETS from that anchor, which",
+    "             is what stops browse spots drifting away from the exhibit they",
+    "             belong to. `layer: wall` draws into the shared ground item.",
+    "  props      furniture. Same shape, no views. `anchor` defaults to the centre",
+    "             of the footprint; state it when a piece was tuned by eye.",
+    "  dressing   floor / wall / ceiling decals, drawn into the ground canvas item",
+    "             so a hundred of them cost a handful of draw calls.",
+    "",
+    "  extends    inherit another venue's theme and override whole top-level keys.",
+    "             Venues 3-6 do this until their own themes are authored; venues 1",
+    "             and 2 are authored in full and share nothing."
+  ],
   "venues": [
     {
       "id": "whispering_pines",
@@ -9,18 +42,492 @@
       "cost_mult": 1.0,
       "cost_exp": 0,
       "decor_slots": 6,
-      "desc": "A dusty small-town exhibit hall. Every empire starts somewhere."
+      "desc": "A dusty small-town exhibit hall. Every empire starts somewhere.",
+      "theme": {
+        "surround": "parkland",
+        "palette": {
+          "floor": "#FFF0D2",
+          "shell": "#5A3E2B",
+          "carpet": "#FF4757",
+          "rope": "#D62F44",
+          "trim": "#FFC53D",
+          "panel": "#FFF9F0",
+          "panel_soft": "#F3ECFF",
+          "stone": "#C9B896",
+          "room.gallery": "#FFD23F",
+          "room.archive": "#4FB8F7",
+          "room.promotions": "#C86DF0",
+          "room.ticket": "#FF9A3D"
+        },
+        "rooms": [
+          {
+            "id": "gallery", "dept": "gallery", "name": "GRAND GALLERY", "role": "exhibit",
+            "rect": [0, 0, 9, 8], "floor_mix": 0.40, "plaque": [6.1, 7.1],
+            "stations": [[1.0, 3.5], [8.2, 3.9]]
+          },
+          {
+            "id": "archive", "dept": "archive", "name": "THE ARCHIVE", "role": "store",
+            "rect": [9, 0, 6, 5], "floor_mix": 0.44, "plaque": [1.6, 3.8],
+            "store": {"home": [1.4, 4.4], "home_step": 0.7, "drop": [3.2, 4.2], "pile": [3.7, 4.3]}
+          },
+          {
+            "id": "promotions", "dept": "promotions", "name": "PROMOTIONS", "role": "promo",
+            "rect": [9, 5, 6, 4], "floor_mix": 0.44, "plaque": [1.5, 1.7],
+            "stations": [[1.5, 1.15], [4.2, 1.65]]
+          },
+          {
+            "id": "ticket", "dept": "ticket", "name": "TICKET HALL", "role": "queue",
+            "rect": [0, 9, 15, 5], "floor_mix": 0.42, "plaque": [1.1, 0.6],
+            "queue": {
+              "windows": 5, "first_gx": 2.3, "gx_step": 2.5, "counter_gy": 1.1,
+              "slots": 6, "slot_lead": 1.0, "slot_gap": 0.55, "lane_offset": 0.62,
+              "counter_size": [1.7, 0.6], "counter_h": 21.0
+            }
+          },
+          {
+            "id": "lobby", "role": "lobby", "rect": [0, 14, 15, 3],
+            "door": [12.9, 2.3], "marketer": [11.3, 2.2],
+            "linger": [
+              [8.0, 1.2], [9.3, 1.7], [10.6, 2.1], [8.6, 2.4], [7.6, 1.8],
+              [11.5, 1.4], [9.9, 0.8], [11.0, 2.8], [7.2, 2.9]
+            ],
+            "crowd": {"origin": [8.2, 1.1], "cols": 5, "col_step": 0.95, "row_step": 0.8, "row_shear": 0.5}
+          },
+          {"id": "corridor", "role": "link", "rect": [0, 8, 9, 1], "merge_into": "gallery"}
+        ],
+        "shell": {"inset": 0.35, "col": "@shell|d15"},
+        "walls": [
+          {"at": [0, 0], "len": 9, "axis": "x", "col": "@room.gallery|d10"},
+          {"at": [9, 0], "len": 6, "axis": "x", "col": "@room.archive|d10"},
+          {"at": [0, 0], "len": 8, "axis": "y", "col": "@room.gallery|d22"},
+          {"at": [0, 8], "len": 6, "axis": "y", "col": "@room.ticket|d22"},
+          {"at": [0, 14], "len": 3, "axis": "y", "col": "@room.ticket|d30"},
+          {"at": [0, 9], "len": 15, "axis": "x", "col": "@room.ticket|d5", "h": 16.0},
+          {"at": [9, 5], "len": 6, "axis": "x", "col": "@room.promotions|d5", "h": 16.0},
+          {"at": [9, 0], "len": 5, "axis": "y", "col": "@room.archive|d18", "h": 44.0}
+        ],
+        "exhibits": [
+          {
+            "id": "dino", "kind": "skeleton", "anchor": [3.2, 3.4],
+            "at": [1.6, 2.6], "size": [3.2, 1.2], "plinth_h": 14.0,
+            "plinth": "@stone", "lip": "#B3A281", "bone": "#F3EAD6", "edge": "#6E5C3C",
+            "barrier": {
+              "from": [1.4, 3.98], "to": [5.0, 3.98], "posts": 4,
+              "rope": "@rope", "post": "@shell", "knob": "@trim"
+            },
+            "views": [[-1.2, 1.0], [0.2, 1.2], [1.6, 0.9], [-1.9, 0.3]]
+          },
+          {
+            "id": "painting", "kind": "mural", "layer": "wall", "anchor": [5.0, 0.0],
+            "at": [4.6, 0.0], "len": 2.2, "axis": "x", "y0": 16.0, "y1": 44.0,
+            "frame": "@trim|d28", "sky": "#BFDCF2", "land": "#7E9E78", "horizon": 27.0,
+            "motif": "#F7DE93", "motif_at": [1.5, 0.0], "motif_dy": 35.0, "motif_r": 5.0,
+            "views": [[-2.4, 0.9], [0.0, 0.9], [2.4, 1.0]]
+          },
+          {
+            "id": "sarcophagus", "kind": "casket", "anchor": [7.0, 5.6],
+            "at": [6.5, 5.1], "size": [1.0, 1.0], "plinth_h": 12.0, "plinth": "@stone",
+            "body": "#D2A047", "trim": "#3E7E8C", "edge": "#8A6524",
+            "barrier": {
+              "from": [6.3, 6.25], "to": [7.7, 6.25], "posts": 3,
+              "rope": "@rope", "post": "@shell", "knob": "@trim"
+            },
+            "views": [[-1.0, 0.8], [0.5, 0.4], [-1.7, 0.1]]
+          },
+          {
+            "id": "statue", "kind": "statue", "anchor": [5.5, 2.1],
+            "at": [5.0, 1.6], "size": [1.0, 1.0], "plinth": "@stone",
+            "stone": "#E6DCC4", "edge": "#9C8C6E",
+            "views": [[-0.5, 0.6], [0.8, 0.8]]
+          },
+          {
+            "id": "vitrine", "kind": "vitrine", "anchor": [7.75, 2.75],
+            "at": [7.0, 2.4], "size": [1.5, 0.7], "base": "#7E6C52", "art": "#7FD4E8",
+            "views": [[-1.15, 0.65], [0.25, 0.45]]
+          },
+          {
+            "id": "minerals", "kind": "case", "anchor": [1.45, 1.75],
+            "at": [0.7, 1.4], "size": [1.5, 0.7], "base": "#7E6C52",
+            "specimens": ["#7ED8F0", "#F08CC4", "#9CE8A8"],
+            "views": [[-0.35, 0.45], [0.85, 0.25]]
+          }
+        ],
+        "props": [
+          {"kind": "bin", "at": [14.2, 10.4]},
+          {"kind": "planter", "at": [3.55, 13.95]},
+          {"kind": "planter", "at": [14.6, 13.4]},
+
+          {"kind": "kiosk", "at": [4.3, 5.6], "anchor": [4.55, 5.85]},
+          {"kind": "bench", "at": [1.4, 6.6], "len": 1.8},
+          {"kind": "bench", "at": [5.2, 6.9], "len": 1.8},
+          {"kind": "bench", "at": [7.3, 6.4], "len": 1.4},
+          {"kind": "bin", "at": [8.5, 4.6]},
+          {"kind": "planter", "at": [0.5, 7.4]},
+          {"kind": "planter", "at": [8.3, 0.6]},
+          {"kind": "planter", "at": [8.4, 7.5]},
+          {"kind": "planter", "at": [0.4, 4.9]},
+          {"kind": "planter", "at": [4.6, 0.5]},
+
+          {"kind": "vault_door", "at": [9.0, 0.1], "len": 1.4, "axis": "y",
+            "anchor": [9.0, 0.8], "col": "@room.archive|d42"},
+          {"kind": "shelf", "at": [9.6, 1.6], "size": [1.6, 0.5], "bays": 3, "anchor": [10.4, 2.1]},
+          {"kind": "shelf", "at": [9.4, 2.6], "size": [3.0, 0.5], "bays": 6, "anchor": [10.9, 3.1]},
+          {"kind": "shelf", "at": [9.4, 3.6], "size": [4.0, 0.5], "bays": 8, "anchor": [11.4, 4.1]},
+          {"kind": "shelf", "at": [13.2, 4.6], "size": [1.2, 0.5], "bays": 2, "anchor": [13.8, 5.1]},
+          {"kind": "crate", "at": [11.2, 1.5], "anchor": [11.6, 2.1]},
+          {"kind": "trolley", "at": [10.2, 2.15]},
+          {"kind": "cabinet", "at": [9.4, 4.6], "size": [0.7, 0.5], "anchor": [9.75, 5.1]},
+          {"kind": "planter", "at": [14.0, 4.7]},
+
+          {"kind": "desk", "at": [9.6, 6.4], "size": [1.9, 0.6]},
+          {"kind": "desk", "at": [12.4, 6.9], "size": [1.6, 0.6]},
+          {"kind": "banner", "at": [13.9, 5.5], "col": "@room.promotions"},
+          {"kind": "bench", "at": [10.0, 8.3], "len": 1.3, "anchor": [10.65, 8.8]},
+          {"kind": "rack", "at": [12.4, 8.4], "size": [1.2, 0.5], "anchor": [13.0, 8.9]},
+          {"kind": "balloons", "at": [14.4, 6.4],
+            "cols": ["@room.promotions", "@room.ticket", "#3BA9F5"]},
+          {"kind": "planter", "at": [14.5, 8.7]},
+
+          {"kind": "facade", "at": [11.4, 17.0], "len": 3.0, "anchor": [12.9, 17.0],
+            "col": "@room.ticket|d34"},
+          {"kind": "info_desk", "at": [4.4, 15.0], "size": [2.2, 0.7], "anchor": [5.5, 15.7],
+            "col": "@room.ticket|d18", "label": "INFO"},
+          {"kind": "rack", "at": [5.4, 16.2], "size": [1.7, 0.6], "anchor": [6.25, 16.8]},
+          {"kind": "machine", "at": [6.7, 14.3], "size": [0.7, 0.55], "anchor": [7.0, 14.75]},
+          {"kind": "machine", "at": [7.6, 14.3], "size": [0.7, 0.55], "anchor": [7.9, 14.75]},
+          {"kind": "cabinet", "at": [3.6, 14.6], "size": [1.6, 0.6]},
+          {"kind": "bench", "at": [6.0, 16.4], "len": 1.2},
+          {"kind": "banner", "at": [12.6, 14.6], "col": "@room.promotions"},
+          {"kind": "bench", "at": [14.0, 15.6], "len": 1.0},
+          {"kind": "planter", "at": [6.2, 14.3]},
+          {"kind": "planter", "at": [14.6, 14.5]},
+          {"kind": "planter", "at": [5.1, 16.3]},
+          {"kind": "planter", "at": [11.6, 16.9]},
+          {"kind": "planter", "at": [4.2, 15.3]}
+        ],
+        "dressing": {
+          "carpet": [
+            {"kind": "patch", "at": [12.1, 10.2], "size": [1.6, 6.8], "col": "@carpet"},
+            {"kind": "patch", "at": [12.25, 10.2], "size": [1.3, 6.8], "col": "@carpet|l14"}
+          ],
+          "floor": [
+            {"kind": "rug", "at": [1.1, 2.1], "size": [4.3, 2.6],
+              "col": "@roomfloor.gallery|d12", "border": "@trim|d20"},
+            {"kind": "rug", "at": [6.0, 4.7], "size": [2.0, 1.9],
+              "col": "@roomfloor.gallery|d12", "border": "@trim|d20"},
+            {"kind": "rug", "at": [0.2, 0.2], "size": [8.6, 0.55], "col": "@roomfloor.gallery|d6"},
+            {"kind": "rug", "at": [0.4, 9.3], "size": [14.2, 0.5], "col": "@roomfloor.ticket|d13"},
+            {"kind": "rug", "at": [0.3, 8.15], "size": [8.4, 0.7], "col": "@floor|d8",
+              "border": "@shell|l35"},
+            {"kind": "rug", "at": [11.9, 16.1], "size": [2.0, 0.8], "col": "@shell|d5"},
+            {"kind": "rug", "at": [3.4, 14.9], "size": [4.2, 1.9], "col": "@floor|d7"}
+          ],
+          "wall": [
+            {"kind": "picture", "at": [1.2, 0.0], "axis": "x", "len": 0.9, "y0": 22.0, "y1": 38.0, "col": "#8E6BB0"},
+            {"kind": "picture", "at": [2.4, 0.0], "axis": "x", "len": 0.7, "y0": 26.0, "y1": 36.0, "col": "#3E7E8C"},
+            {"kind": "picture", "at": [3.4, 0.0], "axis": "x", "len": 0.8, "y0": 21.0, "y1": 34.0, "col": "#B4653C"},
+            {"kind": "picture", "at": [7.1, 0.0], "axis": "x", "len": 1.0, "y0": 22.0, "y1": 40.0, "col": "#4E7FB5"},
+            {"kind": "picture", "at": [8.2, 0.0], "axis": "x", "len": 0.6, "y0": 25.0, "y1": 35.0, "col": "#C85A5A"},
+            {"kind": "picture", "at": [0.0, 0.9], "axis": "y", "len": 0.9, "y0": 21.0, "y1": 37.0, "col": "#5FA86E"},
+            {"kind": "picture", "at": [0.0, 2.2], "axis": "y", "len": 0.7, "y0": 24.0, "y1": 35.0, "col": "#D19A3E"},
+            {"kind": "picture", "at": [0.0, 3.6], "axis": "y", "len": 0.9, "y0": 20.0, "y1": 36.0, "col": "#7A6BB5"},
+            {"kind": "picture", "at": [0.0, 5.2], "axis": "y", "len": 0.8, "y0": 23.0, "y1": 38.0, "col": "#4FA3A5"},
+            {"kind": "picture", "at": [0.0, 6.6], "axis": "y", "len": 0.7, "y0": 25.0, "y1": 35.0, "col": "#C77BA6"},
+            {"kind": "notice", "at": [0.7, 9.0], "axis": "x", "len": 0.8, "frame": "@panel", "col": "@room.ticket|d10"},
+            {"kind": "notice", "at": [3.3, 9.0], "axis": "x", "len": 0.8, "frame": "@panel", "col": "@room.ticket|d10"},
+            {"kind": "notice", "at": [5.9, 9.0], "axis": "x", "len": 0.8, "frame": "@panel", "col": "@room.ticket|d10"},
+            {"kind": "notice", "at": [8.5, 9.0], "axis": "x", "len": 0.8, "frame": "@panel", "col": "@room.ticket|d10"},
+            {"kind": "notice", "at": [11.1, 9.0], "axis": "x", "len": 0.8, "frame": "@panel", "col": "@room.ticket|d10"},
+            {"kind": "poster", "at": [9.4, 5.0], "axis": "x", "len": 1.8, "y0": 4.0, "y1": 24.0,
+              "col": "@panel", "motif": "@room.promotions", "motif_at": [0.5, 0.0],
+              "motif_dy": 16.0, "motif_r": 4.0},
+            {"kind": "poster", "at": [11.6, 5.0], "axis": "x", "len": 1.4, "y0": 4.0, "y1": 20.0,
+              "col": "@panel_soft", "motif": "@trim", "motif_at": [0.7, 0.0],
+              "motif_dy": 13.0, "motif_r": 3.4}
+          ],
+          "ceiling": [
+            {"kind": "bunting", "from": [2.4, 0.0], "to": [0.0, 2.4], "height": 46.0, "sag": 9.0, "flags": 5,
+              "cols": ["@room.ticket", "@room.gallery", "#2ED573", "#3BA9F5", "#B45CF0"]},
+            {"kind": "bunting", "from": [5.8, 0.0], "to": [0.0, 5.4], "height": 45.0, "sag": 15.0, "flags": 8,
+              "cols": ["@room.ticket", "@room.gallery", "#2ED573", "#3BA9F5", "#B45CF0"]},
+            {"kind": "bunting", "from": [8.7, 0.0], "to": [0.0, 7.8], "height": 43.0, "sag": 22.0, "flags": 11,
+              "cols": ["@room.ticket", "@room.gallery", "#2ED573", "#3BA9F5", "#B45CF0"]},
+            {"kind": "bunting", "from": [11.4, 17.0], "to": [14.4, 17.0], "height": 50.0, "sag": 7.0, "flags": 5,
+              "cols": ["@room.ticket", "@room.gallery", "#2ED573", "#3BA9F5", "#B45CF0"]}
+          ]
+        }
+      }
     },
     {
       "id": "copper_kettle",
-      "name": "Copper Kettle Museum",
+      "name": "Tidewater Aquarium",
       "order": 2,
       "base_value_m": 1.5,
       "base_value_e": 3,
       "cost_mult": 1.0,
       "cost_exp": 3,
       "decor_slots": 6,
-      "desc": "A bustling city museum of industry and invention, 750x richer than the Pines."
+      "desc": "A working harbour aquarium: cold water, warm crowds, 750x the takings of the Pines.",
+      "theme": {
+        "surround": "harbour",
+        "palette": {
+          "floor": "#DFF0F2",
+          "shell": "#173A4C",
+          "carpet": "#12B0C4",
+          "rope": "#0B7E96",
+          "trim": "#7FE3D4",
+          "panel": "#F2FBFC",
+          "panel_soft": "#DCEEFF",
+          "stone": "#8FA9B4",
+          "sand": "#E8D9A8",
+          "kelp": "#1F7A4D",
+          "coral": "#FF7A6B",
+          "room.gallery": "#19C7CE",
+          "room.archive": "#2F5BC4",
+          "room.promotions": "#37C07A",
+          "room.ticket": "#1E9AD8"
+        },
+        "rooms": [
+          {
+            "id": "archive", "dept": "archive", "name": "THE HOLD", "role": "store",
+            "rect": [0, 0, 6, 5], "floor_mix": 0.46, "plaque": [2.0, 4.4],
+            "store": {"home": [1.2, 3.6], "home_step": 0.7, "drop": [3.0, 3.3], "pile": [3.6, 3.5]}
+          },
+          {
+            "id": "gallery", "dept": "gallery", "name": "TIDAL HALL", "role": "exhibit",
+            "rect": [6, 0, 9, 8], "floor_mix": 0.42, "plaque": [1.4, 6.6],
+            "stations": [[1.0, 4.4], [5.4, 4.9]]
+          },
+          {
+            "id": "promotions", "dept": "promotions", "name": "SPLASH DECK", "role": "promo",
+            "rect": [0, 5, 6, 4], "floor_mix": 0.46, "plaque": [1.6, 1.6],
+            "stations": [[1.4, 1.2], [4.0, 1.7]]
+          },
+          {"id": "kelpwalk", "role": "link", "rect": [6, 8, 9, 1], "merge_into": "gallery"},
+          {
+            "id": "ticket", "dept": "ticket", "name": "TIDE GATE", "role": "queue",
+            "rect": [0, 9, 15, 4], "floor_mix": 0.44, "plaque": [1.1, 0.6],
+            "queue": {
+              "windows": 5, "first_gx": 2.4, "gx_step": 2.5, "counter_gy": 0.85,
+              "slots": 6, "slot_lead": 0.8, "slot_gap": 0.45, "lane_offset": 0.6,
+              "counter_size": [1.7, 0.6], "counter_h": 21.0
+            }
+          },
+          {
+            "id": "lobby", "role": "lobby", "rect": [0, 13, 15, 4],
+            "door": [12.9, 3.3], "marketer": [11.2, 3.2],
+            "linger": [
+              [8.0, 1.4], [9.4, 1.9], [10.6, 2.4], [8.8, 2.6], [7.6, 2.0],
+              [11.6, 1.6], [9.9, 1.0], [11.0, 3.0], [7.2, 3.1]
+            ],
+            "crowd": {"origin": [8.0, 1.3], "cols": 5, "col_step": 0.95, "row_step": 0.8, "row_shear": 0.5}
+          }
+        ],
+        "shell": {"inset": 0.35, "col": "@shell|d15"},
+        "walls": [
+          {"at": [0, 0], "len": 6, "axis": "x", "col": "@room.archive|d10"},
+          {"at": [6, 0], "len": 9, "axis": "x", "col": "@room.gallery|l4"},
+          {"at": [0, 0], "len": 5, "axis": "y", "col": "@room.archive|d22"},
+          {"at": [0, 5], "len": 4, "axis": "y", "col": "@room.promotions|d22"},
+          {"at": [0, 9], "len": 4, "axis": "y", "col": "@room.ticket|d22"},
+          {"at": [0, 13], "len": 4, "axis": "y", "col": "@room.ticket|d30"},
+          {"at": [6, 0], "len": 5, "axis": "y", "col": "@room.gallery|d12", "h": 42.0},
+          {"at": [6, 5], "len": 3, "axis": "y", "col": "@room.gallery|d8", "h": 16.0},
+          {"at": [0, 5], "len": 6, "axis": "x", "col": "@room.promotions|d5", "h": 16.0},
+          {"at": [0, 9], "len": 15, "axis": "x", "col": "@room.ticket|d5", "h": 16.0}
+        ],
+        "exhibits": [
+          {
+            "id": "reef", "kind": "tank", "anchor": [8.1, 2.05],
+            "at": [6.9, 1.5], "size": [2.4, 1.1], "plinth_h": 14.0, "height": 42.0,
+            "frame": "@stone", "water": "#2FC5DC", "weed": "@kelp|l10",
+            "fauna": ["#FFC53D", "#FF8F5A", "@coral"], "fauna_count": 7,
+            "barrier": {
+              "from": [6.7, 2.75], "to": [9.5, 2.75], "posts": 4,
+              "rope": "@rope", "post": "@shell", "knob": "@trim"
+            },
+            "views": [[-1.1, 1.0], [0.4, 1.2], [1.7, 1.0], [-1.8, 0.6]]
+          },
+          {
+            "id": "jellies", "kind": "tank", "anchor": [10.2, 1.0],
+            "at": [9.6, 0.5], "size": [1.2, 1.0], "plinth_h": 14.0, "height": 60.0,
+            "frame": "@stone", "water": "#4E93E8", "weed": "@kelp|l4",
+            "fauna": ["#F0E6FF", "#BFD8FF"], "fauna_count": 5,
+            "views": [[-1.0, 1.5], [0.5, 1.5], [1.3, 1.0]]
+          },
+          {
+            "id": "whale", "kind": "hung_skeleton", "anchor": [10.6, 4.2],
+            "at": [10.6, 4.2], "ceiling": 54.0, "drop": 14.0, "span": 62.0,
+            "bone": "#F1EDE0", "edge": "#4C5F6B", "ribs": 8, "rib_len": 16.0,
+            "views": [[-1.6, 1.0], [0.0, 1.3], [1.4, 0.9], [-2.4, 0.4]]
+          },
+          {
+            "id": "kelpcolumn", "kind": "kelp", "anchor": [12.3, 5.6],
+            "at": [12.3, 5.6], "r": 0.3, "height": 66.0, "blades": 7,
+            "col": "@kelp", "tip": "#5FD08C", "rock": "@stone|d34", "sway": 14.0,
+            "views": [[-1.2, 0.7], [0.5, 0.9], [-1.9, -0.2]]
+          },
+          {
+            "id": "touchpool", "kind": "touch_pool", "anchor": [8.3, 6.2],
+            "at": [7.2, 5.4], "size": [2.2, 1.6], "rim_h": 15.0,
+            "rim": "@stone", "water": "#2FC0D2", "sand": "@sand",
+            "life": ["@coral", "#FFC53D", "#B45CF0"], "life_count": 6,
+            "views": [[-1.4, 0.2], [0.0, 1.1], [1.5, 0.3], [-0.2, -1.0]]
+          },
+          {
+            "id": "coldwater", "kind": "tank", "anchor": [13.4, 6.8],
+            "at": [12.4, 6.3], "size": [1.9, 1.1], "plinth_h": 16.0, "height": 44.0,
+            "frame": "@stone", "water": "#3AA8CE", "weed": "@kelp",
+            "fauna": ["#DCEEFF", "#7FE3D4"], "fauna_count": 5,
+            "barrier": {
+              "from": [12.2, 7.5], "to": [14.6, 7.5], "posts": 3,
+              "rope": "@rope", "post": "@shell", "knob": "@trim"
+            },
+            "views": [[-1.5, 0.6], [0.0, 0.9], [1.2, 0.5]]
+          },
+          {
+            "id": "ammonites", "kind": "case", "anchor": [7.05, 4.95],
+            "at": [6.3, 4.6], "size": [1.5, 0.7], "base": "@shell|l14",
+            "specimens": ["#7FE3D4", "@coral", "#FFC53D"],
+            "views": [[-0.35, 0.5], [0.95, 0.4]]
+          },
+          {
+            "id": "abyss", "kind": "mural", "layer": "wall", "anchor": [6.0, 3.4],
+            "at": [6.0, 2.4], "len": 2.0, "axis": "y", "y0": 14.0, "y1": 42.0,
+            "frame": "@shell|l10", "sky": "#0F5C7E", "land": "#0A3350", "horizon": 26.0,
+            "motif": "@trim", "motif_at": [0.0, 1.2], "motif_dy": 32.0, "motif_r": 5.0,
+            "views": [[1.2, 0.2], [1.6, 1.2], [0.9, -0.9]]
+          }
+        ],
+        "props": [
+          {"kind": "vault_door", "at": [6.0, 1.2], "len": 1.4, "axis": "y",
+            "anchor": [6.0, 1.9], "col": "@room.archive|d42"},
+          {"kind": "shelf", "at": [0.5, 1.4], "size": [2.4, 0.5], "bays": 5, "anchor": [1.7, 1.9]},
+          {"kind": "shelf", "at": [0.5, 2.6], "size": [3.2, 0.5], "bays": 6, "anchor": [2.1, 3.1]},
+          {"kind": "crate", "at": [3.6, 0.6], "anchor": [4.0, 1.2], "col": "@stone|d12", "top": "@stone|l10"},
+          {"kind": "crate", "at": [4.4, 1.8], "anchor": [4.8, 2.4], "col": "@stone|d20", "top": "@stone"},
+          {"kind": "trolley", "at": [2.6, 1.2]},
+          {"kind": "cabinet", "at": [4.6, 3.2], "size": [0.7, 0.5], "anchor": [4.95, 3.7]},
+          {"kind": "machine", "at": [5.0, 4.2], "size": [0.7, 0.55], "anchor": [5.35, 4.75]},
+          {"kind": "kelp", "at": [0.4, 4.4], "height": 40.0, "blades": 4},
+
+          {"kind": "kelp", "at": [6.4, 0.4], "height": 46.0},
+          {"kind": "kelp", "at": [11.5, 2.7], "height": 54.0, "blades": 6},
+          {"kind": "kelp", "at": [11.2, 3.4], "height": 44.0},
+          {"kind": "rack", "at": [6.2, 3.0], "size": [1.0, 0.5], "anchor": [6.7, 3.5]},
+          {"kind": "cabinet", "at": [9.9, 3.2], "size": [0.8, 0.5], "anchor": [10.3, 3.7]},
+          {"kind": "bench", "col": "@shell|l26", "rail": "@stone|d8", "at": [8.6, 4.4], "len": 1.6, "anchor": [9.4, 4.7]},
+          {"kind": "bench", "col": "@shell|l26", "rail": "@stone|d8", "at": [10.2, 6.6], "len": 1.6, "anchor": [11.0, 6.9]},
+          {"kind": "bin", "at": [6.4, 7.5]},
+          {"kind": "planter", "at": [7.6, 7.6], "leaf": "@kelp", "tip": "#5FD08C"},
+          {"kind": "kelp", "at": [9.8, 7.5], "height": 44.0},
+          {"kind": "planter", "at": [14.2, 7.6], "leaf": "@kelp", "tip": "#5FD08C"},
+          {"kind": "kiosk", "at": [12.9, 3.9], "anchor": [13.15, 4.15], "col": "@room.gallery|d34", "screen": "@trim"},
+          {"kind": "banner", "at": [9.4, 0.5], "col": "@room.gallery"},
+
+          {"kind": "kelp", "at": [6.6, 8.5], "height": 42.0},
+          {"kind": "kelp", "at": [9.4, 8.4], "height": 48.0, "blades": 6},
+          {"kind": "kelp", "at": [12.2, 8.5], "height": 40.0},
+          {"kind": "bench", "col": "@shell|l26", "rail": "@stone|d8", "at": [10.4, 8.3], "len": 1.4, "anchor": [11.1, 8.6]},
+
+          {"kind": "desk", "at": [0.7, 6.3], "size": [1.9, 0.6], "col": "@shell|l28", "screen": "@trim"},
+          {"kind": "desk", "at": [3.4, 6.9], "size": [1.6, 0.6], "col": "@shell|l28", "screen": "@trim"},
+          {"kind": "banner", "at": [5.2, 5.6], "col": "@room.promotions"},
+          {"kind": "rack", "at": [3.4, 8.3], "size": [1.2, 0.5], "anchor": [4.0, 8.8]},
+          {"kind": "bench", "col": "@shell|l26", "rail": "@stone|d8", "at": [1.0, 8.2], "len": 1.3, "anchor": [1.65, 8.5]},
+          {"kind": "balloons", "at": [5.4, 7.4],
+            "cols": ["@room.promotions", "@room.ticket", "@trim"]},
+          {"kind": "kelp", "at": [0.5, 7.4], "height": 38.0, "blades": 4},
+
+          {"kind": "bin", "at": [13.6, 10.0]},
+          {"kind": "kelp", "at": [14.2, 11.4], "height": 44.0},
+          {"kind": "kelp", "at": [0.6, 9.6], "height": 40.0},
+          {"kind": "machine", "at": [13.4, 12.2], "size": [0.7, 0.55], "anchor": [13.75, 12.75]},
+
+          {"kind": "facade", "at": [11.4, 17.0], "len": 3.0, "anchor": [12.9, 17.0],
+            "col": "@room.ticket|d34"},
+          {"kind": "info_desk", "at": [4.6, 14.6], "size": [2.2, 0.7], "anchor": [5.7, 15.3],
+            "col": "@room.ticket|d18", "trim": "@trim", "board": "@panel", "label": "INFO"},
+          {"kind": "rack", "at": [5.6, 15.9], "size": [1.7, 0.6], "anchor": [6.45, 16.5]},
+          {"kind": "machine", "at": [6.2, 13.7], "size": [0.7, 0.55], "anchor": [6.55, 14.25]},
+          {"kind": "machine", "at": [7.1, 13.7], "size": [0.7, 0.55], "anchor": [7.45, 14.25]},
+          {"kind": "cabinet", "at": [3.8, 14.2], "size": [1.6, 0.6]},
+          {"kind": "bench", "col": "@shell|l26", "rail": "@stone|d8", "at": [6.0, 16.0], "len": 1.2, "anchor": [6.6, 16.2]},
+          {"kind": "banner", "at": [12.4, 14.2], "col": "@room.promotions"},
+          {"kind": "bench", "col": "@shell|l26", "rail": "@stone|d8", "at": [13.8, 15.2], "len": 1.0, "anchor": [14.3, 15.4]},
+          {"kind": "kelp", "at": [5.4, 13.6], "height": 42.0},
+          {"kind": "kelp", "at": [14.6, 13.9], "height": 46.0},
+          {"kind": "kelp", "at": [5.2, 15.9], "height": 38.0, "blades": 4},
+          {"kind": "kelp", "at": [11.5, 16.6], "height": 44.0}
+        ],
+        "dressing": {
+          "carpet": [
+            {"kind": "patch", "at": [12.1, 9.6], "size": [1.6, 7.4], "col": "@carpet"},
+            {"kind": "patch", "at": [12.25, 9.6], "size": [1.3, 7.4], "col": "@carpet|l14"}
+          ],
+          "floor": [
+            {"kind": "rug", "at": [6.3, 0.25], "size": [8.4, 0.5], "col": "@roomfloor.gallery|d6"},
+            {"kind": "rug", "at": [7.0, 2.9], "size": [3.6, 2.4],
+              "col": "@roomfloor.gallery|d12", "border": "@trim|d20"},
+            {"kind": "rug", "at": [11.2, 5.0], "size": [3.4, 2.6],
+              "col": "@roomfloor.gallery|d10", "border": "@trim|d28"},
+            {"kind": "rug", "at": [6.2, 8.15], "size": [8.6, 0.7], "col": "@floor|d8",
+              "border": "@shell|l35"},
+            {"kind": "rug", "at": [0.3, 0.25], "size": [5.4, 0.5], "col": "@roomfloor.archive|d8"},
+            {"kind": "rug", "at": [0.3, 5.25], "size": [5.4, 0.5], "col": "@roomfloor.promotions|d8"},
+            {"kind": "rug", "at": [0.3, 9.3], "size": [14.4, 0.5], "col": "@roomfloor.ticket|d13"},
+            {"kind": "rug", "at": [3.6, 14.3], "size": [4.4, 2.0], "col": "@floor|d7"},
+            {"kind": "rug", "at": [11.9, 16.1], "size": [2.0, 0.8], "col": "@shell|d5"}
+          ],
+          "wall": [
+            {"kind": "porthole", "at": [6.4, 0.0], "axis": "x", "len": 0.95, "dy": 30.0, "ry": 13.0,
+              "rim": "@stone|d18", "water": "#1B7FA8", "fauna": "#FFC53D"},
+            {"kind": "porthole", "at": [7.6, 0.0], "axis": "x", "len": 0.95, "dy": 34.0, "ry": 13.0,
+              "rim": "@stone|d18", "water": "#2A6FB8", "fauna": "@coral"},
+            {"kind": "porthole", "at": [8.8, 0.0], "axis": "x", "len": 0.95, "dy": 28.0, "ry": 13.0,
+              "rim": "@stone|d18", "water": "#12708C", "fauna": "@trim"},
+            {"kind": "porthole", "at": [6.0, 0.9], "axis": "y", "len": 0.95, "dy": 30.0, "ry": 13.0,
+              "rim": "@stone|d18", "water": "#1B7FA8", "fauna": "@trim"},
+            {"kind": "porthole", "at": [6.0, 5.6], "axis": "y", "len": 0.95, "dy": 26.0, "ry": 13.0,
+              "rim": "@stone|d18", "water": "#2A6FB8", "fauna": "#FFC53D"},
+            {"kind": "porthole", "at": [0.9, 0.0], "axis": "x", "len": 0.85, "dy": 28.0, "ry": 12.0,
+              "rim": "@stone|d24", "water": "#24548F", "fauna": "@trim"},
+            {"kind": "porthole", "at": [2.2, 0.0], "axis": "x", "len": 0.85, "dy": 32.0, "ry": 12.0,
+              "rim": "@stone|d24", "water": "#1B7FA8", "fauna": "@coral"},
+            {"kind": "porthole", "at": [0.0, 1.4], "axis": "y", "len": 0.7, "dy": 30.0,
+              "rim": "@stone|d24", "water": "#24548F", "fauna": "#FFC53D"},
+            {"kind": "picture", "at": [0.0, 3.0], "axis": "y", "len": 0.8, "y0": 20.0, "y1": 36.0,
+              "col": "#3FBF8E"},
+            {"kind": "poster", "at": [0.0, 5.6], "axis": "y", "len": 1.4, "y0": 6.0, "y1": 26.0,
+              "col": "@panel", "motif": "@room.promotions", "motif_at": [0.0, 0.5],
+              "motif_dy": 17.0, "motif_r": 4.0},
+            {"kind": "poster", "at": [0.0, 7.3], "axis": "y", "len": 1.2, "y0": 6.0, "y1": 22.0,
+              "col": "@panel_soft", "motif": "@trim", "motif_at": [0.0, 0.6],
+              "motif_dy": 13.0, "motif_r": 3.4},
+            {"kind": "poster", "at": [0.7, 5.0], "axis": "x", "len": 1.8, "y0": 4.0, "y1": 24.0,
+              "col": "@panel", "motif": "@room.promotions", "motif_at": [0.5, 0.0],
+              "motif_dy": 16.0, "motif_r": 4.0},
+            {"kind": "poster", "at": [3.1, 5.0], "axis": "x", "len": 1.4, "y0": 4.0, "y1": 20.0,
+              "col": "@panel_soft", "motif": "@coral", "motif_at": [0.7, 0.0],
+              "motif_dy": 13.0, "motif_r": 3.4},
+            {"kind": "notice", "at": [0.7, 9.0], "axis": "x", "len": 0.8, "frame": "@panel", "col": "@room.ticket|d10"},
+            {"kind": "notice", "at": [3.3, 9.0], "axis": "x", "len": 0.8, "frame": "@panel", "col": "@room.ticket|d10"},
+            {"kind": "notice", "at": [5.9, 9.0], "axis": "x", "len": 0.8, "frame": "@panel", "col": "@room.ticket|d10"},
+            {"kind": "notice", "at": [8.5, 9.0], "axis": "x", "len": 0.8, "frame": "@panel", "col": "@room.ticket|d10"},
+            {"kind": "notice", "at": [11.1, 9.0], "axis": "x", "len": 0.8, "frame": "@panel", "col": "@room.ticket|d10"}
+          ],
+          "ceiling": [
+            {"kind": "bunting", "from": [8.8, 0.0], "to": [6.0, 2.8], "height": 46.0, "sag": 8.0, "flags": 5,
+              "cols": ["@room.ticket", "@room.gallery", "@trim", "#FFC53D", "@coral"]},
+            {"kind": "bunting", "from": [9.8, 0.0], "to": [6.0, 3.8], "height": 45.0, "sag": 13.0, "flags": 7,
+              "cols": ["@room.ticket", "@room.gallery", "@trim", "#FFC53D", "@coral"]},
+            {"kind": "bunting", "from": [0.6, 9.0], "to": [4.2, 9.0], "height": 44.0, "sag": 9.0, "flags": 6,
+              "cols": ["@room.ticket", "@room.promotions", "@trim", "#FFC53D"]},
+            {"kind": "bunting", "from": [11.4, 17.0], "to": [14.4, 17.0], "height": 50.0, "sag": 7.0, "flags": 5,
+              "cols": ["@room.ticket", "@room.gallery", "@trim", "#FFC53D", "@coral"]}
+          ]
+        }
+      }
     },
     {
       "id": "grand_river",
@@ -31,7 +538,8 @@
       "cost_mult": 1.05,
       "cost_exp": 6,
       "decor_slots": 8,
-      "desc": "A marble landmark drawing crowds from across the region."
+      "desc": "A marble landmark drawing crowds from across the region.",
+      "theme": {"extends": "whispering_pines"}
     },
     {
       "id": "sunspire",
@@ -42,7 +550,8 @@
       "cost_mult": 1.1,
       "cost_exp": 9,
       "decor_slots": 8,
-      "desc": "A desert icon of glass and gold, famous worldwide."
+      "desc": "A desert icon of glass and gold, famous worldwide.",
+      "theme": {"extends": "whispering_pines"}
     },
     {
       "id": "cloudrest",
@@ -53,7 +562,8 @@
       "cost_mult": 1.15,
       "cost_exp": 12,
       "decor_slots": 10,
-      "desc": "A mountain-top fortress of wonders above the clouds."
+      "desc": "A mountain-top fortress of wonders above the clouds.",
+      "theme": {"extends": "whispering_pines"}
     },
     {
       "id": "aurora_world",
@@ -64,7 +574,8 @@
       "cost_mult": 1.2,
       "cost_exp": 15,
       "decor_slots": 12,
-      "desc": "The definitive world-class institution. Legends queue here."
+      "desc": "The definitive world-class institution. Legends queue here.",
+      "theme": {"extends": "whispering_pines"}
     }
   ]
 }

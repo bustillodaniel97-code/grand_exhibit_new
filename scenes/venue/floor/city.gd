@@ -72,31 +72,158 @@ const CANOPY_SIZE := Vector2(1.62, 0.88)
 
 const CAR_COUNT := 4
 
+# --- Surround styles -----------------------------------------------------------
+##
+## A venue theme says one thing about the world outside its walls: which STYLE
+## the surround is. Everything a style controls — its palette and the grid
+## positions of its scenery — lives in this table, so authoring "harbour" for the
+## aquarium or "cliffside" for a mountain venue is an entry here and NOTHING
+## else. In particular no caller changes: VenueFloor sets `style` from
+## theme.surround and never learns what a style contains.
+##
+## A style's scenery entries are plain arrays because they are read once at
+## build time: [gx, gy, ...] for a piece, [ax, ay, bx, by, ...] for a run.
+const STYLES := {
+	"parkland": {
+		# Fragments at the frame edge, never whole — a complete building out
+		# there competes with the one the player is running.
+		"blocks": [
+			[-7.0, 3.2, 2.6, 2.8, 46.0, 0],
+			[0.9, -4.9, 3.2, 2.0, 50.0, 1],
+			[18.2, 9.4, 2.8, 3.0, 52.0, 2],
+		],
+		"fences": [[-2.0, -1.8, 11.0, -1.8, 12], [-2.0, -1.8, -2.0, 7.0, 9]],
+		"trees": [
+			[-4.3, 0.4, 1.05], [-3.5, 3.1, 0.92], [-4.6, 5.4, 1.12], [-3.2, 7.6, 0.86],
+			[1.4, -3.0, 0.98], [4.3, -2.8, 1.10], [6.9, -3.6, 0.88], [9.2, -2.9, 1.02],
+			[17.6, 12.2, 1.06], [17.4, 14.4, 0.90],
+		],
+		"pines": [[-5.6, 2.0, 1.0], [7.9, -5.0, 1.1], [18.2, 6.6, 0.95]],
+		"hedges": [[16.6, 2.0, 16.6, 16.2, 0.44], [-1.45, 9.2, -1.45, 15.2, 0.40]],
+		"near_trees": [[9.2, 18.3, 0.84], [6.4, 18.3, 0.78]],
+		"planters": [[11.55, 17.35], [14.15, 17.35]],
+		"lamps": [[12.1, 18.36], [10.0, 18.36]],
+		"bench": [7.7, 18.16],
+		"bollards": [10.9, 17.84, 0.62, 3],
+		"mown_stripes": true,
+	},
+	# The aquarium's block: open water where parkland puts lawn, so the apron
+	# reads as a quay with the harbour behind it. Nothing here is a new drawing
+	# routine — every piece keeps its job and changes its material. The boundary
+	# fence becomes the quay railing, the neighbouring blocks become low warehouse
+	# sheds, the bollards become mooring posts.
+	"harbour": {
+		# Colours are hex STRINGS rather than Colors because this table is a
+		# const: Color("#...") is not a constant expression. palette_for parses
+		# them over the derived scheme, key by key, so anything left unnamed
+		# keeps its parkland value.
+		"palette": {
+			"lawn": "#17607A", "lawn_lit": "#1D7692", "lawn_dim": "#0E4459",
+			"paving": "#7C8B96", "paving_lit": "#94A2AC", "kerb": "#57646F",
+			"tree_dark": "#1B5F4A", "tree_mid": "#27795D", "tree_lit": "#369672",
+			"hedge": "#2F6B57", "trunk": "#33424D",
+			"neighbour": ["#2B4E6B", "#3C5A70", "#8A4F3C"],
+			"runner": "#12B0C4",
+		},
+		# Sheds, not offices: kept low so the skyline stays flat and the museum is
+		# still the only tall thing on the block.
+		"blocks": [
+			[-7.2, 3.0, 3.0, 3.0, 38.0, 0],
+			[0.6, -5.1, 3.6, 2.2, 34.0, 1],
+			[18.2, 9.0, 2.8, 3.2, 42.0, 2],
+		],
+		# Railings, all the way round the water edge — the one thing a quay must
+		# have and a lawn does not.
+		"fences": [
+			[-2.0, -1.8, 11.0, -1.8, 13], [-2.0, -1.8, -2.0, 7.0, 9],
+			[16.9, 1.6, 16.9, 16.4, 14],
+		],
+		"trees": [
+			[-4.1, 1.2, 0.86], [-3.6, 6.4, 0.94], [3.2, -3.0, 0.90],
+			[8.6, -3.2, 0.84], [17.7, 13.2, 0.88],
+		],
+		"pines": [],
+		"hedges": [[15.9, 3.0, 15.9, 15.4, 0.38], [-1.45, 9.4, -1.45, 15.0, 0.36]],
+		"near_trees": [[9.0, 18.3, 0.80], [6.2, 18.3, 0.74]],
+		"planters": [[11.55, 17.35], [14.15, 17.35]],
+		"lamps": [[12.1, 18.36], [10.0, 18.36]],
+		"bench": [7.7, 18.16],
+		"bollards": [10.5, 17.84, 0.58, 5],
+		# Left on: the constant-gx bands that read as mowing on grass read as
+		# swell catching the light on water.
+		"mown_stripes": true,
+	},
+}
+
+static func style_def(style_name: String) -> Dictionary:
+	if STYLES.has(style_name):
+		return STYLES[style_name]
+	push_warning("City: unknown surround style '%s', falling back to parkland" % style_name)
+	return STYLES["parkland"]
+
 # --- Palette ------------------------------------------------------------------
 ## Derived from ui_kit rather than picked by eye: the surround has to recede
 ## behind a floor that is already high-chroma, so every colour here is a ui_kit
-## hue pulled down in value. Static because draw_canopy() is called from
-## VenueFloor's prop painter, which has no instance to reach through.
-static var LAWN: Color = UI.SAGE.darkened(0.24).lerp(UI.BRASS, 0.16)
-static var LAWN_LIT: Color = LAWN.lightened(0.07)
-static var LAWN_DIM: Color = LAWN.darkened(0.18)
-## Warmed off pure lilac: PANEL_SOFT has a violet cast that read as a dead
-## lavender field once the apron got large.
-static var PAVING: Color = UI.PANEL_SOFT.darkened(0.36).lerp(UI.WALL_BROWN, 0.09)
-static var PAVING_LIT: Color = PAVING.lightened(0.13)
-static var KERB: Color = PAVING.darkened(0.24)
-static var ROAD: Color = UI.BG.lightened(0.13)
-static var MARKING: Color = UI.PANEL.darkened(0.10)
-static var TREE_DARK: Color = UI.SAGE.darkened(0.62)
-static var TREE_MID: Color = UI.SAGE.darkened(0.46)
-static var TREE_LIT: Color = UI.SAGE.darkened(0.26)
-static var HEDGE: Color = UI.SAGE.darkened(0.54)
-static var TRUNK: Color = UI.WALL_BROWN.darkened(0.10)
-static var NEIGHBOUR := [
-	UI.PLUM.darkened(0.56), UI.SLATE.darkened(0.58), UI.ACCENT.darkened(0.54)]
-static var CAR_COLS := [UI.ACCENT, UI.BRASS.darkened(0.10), UI.PANEL_SOFT, UI.SLATE]
-static var SHADOW := Color(0.06, 0.03, 0.14, 0.22)
+## hue pulled down in value. Built per style through a static factory because
+## draw_canopy() is called from VenueFloor's prop painter, which has no instance
+## to reach through.
+static func palette_for(style_name: String) -> Dictionary:
+	# Warmed off pure lilac: PANEL_SOFT has a violet cast that read as a dead
+	# lavender field once the apron got large.
+	var lawn: Color = UI.SAGE.darkened(0.24).lerp(UI.BRASS, 0.16)
+	var paving: Color = UI.PANEL_SOFT.darkened(0.36).lerp(UI.WALL_BROWN, 0.09)
+	var pal := {
+		"lawn": lawn, "lawn_lit": lawn.lightened(0.07), "lawn_dim": lawn.darkened(0.18),
+		"paving": paving, "paving_lit": paving.lightened(0.13),
+		"kerb": paving.darkened(0.24),
+		"road": UI.BG.lightened(0.13), "marking": UI.PANEL.darkened(0.10),
+		"tree_dark": UI.SAGE.darkened(0.62), "tree_mid": UI.SAGE.darkened(0.46),
+		"tree_lit": UI.SAGE.darkened(0.26), "hedge": UI.SAGE.darkened(0.54),
+		"trunk": UI.WALL_BROWN.darkened(0.10),
+		"neighbour": [UI.PLUM.darkened(0.56), UI.SLATE.darkened(0.58),
+			UI.ACCENT.darkened(0.54)],
+		"cars": [UI.ACCENT, UI.BRASS.darkened(0.10), UI.PANEL_SOFT, UI.SLATE],
+		"shadow": Color(0.06, 0.03, 0.14, 0.22),
+		# The strip of entrance carpet that runs out of the doors to the kerb. A
+		# style owns it because it lands on the style's paving, not on the floor.
+		"runner": UI.CARPET_RED,
+	}
+	if style_name != "parkland" and not STYLES.has(style_name):
+		push_warning("City: no palette for style '%s', using parkland" % style_name)
+		return pal
+	# A style repaints the derived scheme key by key. Arrays (the neighbouring
+	# blocks, the traffic) are lists of colours; everything else is one colour.
+	for key in (STYLES.get(style_name, {}) as Dictionary).get("palette", {}):
+		var value: Variant = (STYLES[style_name]["palette"] as Dictionary)[key]
+		if value is Array:
+			var list: Array = []
+			for entry in value:
+				list.append(Color(str(entry)))
+			pal[str(key)] = list
+		else:
+			pal[str(key)] = Color(str(value))
+	return pal
 
+## The surround this block draws. Set by VenueFloor from theme.surround, either
+## before the node enters the tree or on a prestige, when the museum moves to a
+## venue whose world outside the walls is a different one. The scenery table and
+## the palette are both cached, so assigning the style has to refresh them —
+## a bare field left a re-themed floor drawing the previous venue's block.
+var style: String = "parkland":
+	set(value):
+		style = value
+		_pal = palette_for(style)
+		_def = style_def(style)
+		if not _cars.is_empty():
+			var cars: Array = _pal["cars"]
+			for i in _cars.size():
+				_cars[i]["col"] = cars[i % cars.size()] as Color
+		if is_inside_tree():
+			queue_redraw()
+
+var _pal: Dictionary = {}
+var _def: Dictionary = {}
+var _band := Rect2()          # visible area in canvas space; see set_visible_band
 var _traffic: Node2D
 var _cars: Array[Dictionary] = []
 
@@ -108,6 +235,8 @@ var _idx := PackedInt32Array()
 func _ready() -> void:
 	name = "City"
 	position = Vector2(0.0, -Y_LIFT)
+	_pal = palette_for(style)
+	_def = style_def(style)
 	_build_cars()
 	_traffic = Node2D.new()
 	_traffic.name = "Traffic"
@@ -133,7 +262,7 @@ func _build_cars() -> void:
 		_cars.append({
 			"gx": float(s["gx"]), "gy": float(s["gy"]),
 			"dir": float(s["dir"]), "speed": float(s["speed"]),
-			"col": CAR_COLS[i % CAR_COLS.size()] as Color,
+			"col": _pal["cars"][i % _pal["cars"].size()] as Color,
 		})
 
 ## Visible gx span of a lane, plus a car length of run-off at each end. Wrapping
@@ -168,7 +297,7 @@ func _draw_traffic() -> void:
 		var col: Color = car["col"]
 		var g := Vector2(float(car["gx"]) - 0.62, float(car["gy"]) - 0.27)
 		var mid: Vector2 = _p(g + Vector2(0.62, 0.27), DROP + 3.0)
-		_disc(mid + Vector2(0.0, 2.0), 18.0, 7.0, SHADOW)
+		_disc(mid + Vector2(0.0, 2.0), 18.0, 7.0, _pal["shadow"])
 		_prism(g, Vector2(1.24, 0.54), 12.0, col, DROP + 3.0)
 		# Greenhouse: a slab SITTING ON the body, not a second prism off the road.
 		# Drawn as a prism it grew its own full-height side faces and every car
@@ -201,68 +330,87 @@ func _draw() -> void:
 ## museum is what removes the "floating island" read; the top and bottom edges
 ## are dissolved back into the app background by _draw_edge_fade().
 func _draw_ground_plane() -> void:
+	# Fill the VISIBLE band, not the nominal 720x760 canvas. VenueFloor letterboxes
+	# the canvas inside a taller Control (_fit_canvas fits by min), so there is bare
+	# app background above and below it. The lawn used to stop at the canvas edge
+	# while the mown stripes were authored out to gy = -9, which projects past that
+	# edge — so the stripes painted bright green diagonals directly onto the indigo
+	# shell with no grass under them. Covering the real band fixes both the missing
+	# ground and the stripes-on-nothing.
+	var vb: Rect2 = _visible_band()
 	_fill(PackedVector2Array([
-		Vector2(-4.0, -4.0), Vector2(Iso.VIEW.x + 4.0, -4.0),
-		Vector2(Iso.VIEW.x + 4.0, Iso.VIEW.y + 4.0), Vector2(-4.0, Iso.VIEW.y + 4.0)]),
-		LAWN)
+		vb.position, Vector2(vb.end.x, vb.position.y), vb.end, Vector2(vb.position.x, vb.end.y)]),
+		_pal["lawn"])
 	# Mown stripes on the two lawns that carry real screen area. Constant-gx
 	# bands so they run with the projection instead of across it. Kept to a 7%
 	# lift — at 10% they read as ramps cut into the grass, not as mowing.
+	if not bool(_def.get("mown_stripes", false)):
+		return
 	for i in 5:
 		var gx: float = -8.0 + float(i) * 1.9
-		_patch(Vector2(gx, -9.0), Vector2(0.95, 8.4), LAWN_LIT, DROP)
+		_patch(Vector2(gx, -9.0), Vector2(0.95, 8.4), _pal["lawn_lit"], DROP)
 	for i in 4:
 		var gy: float = -8.4 + float(i) * 2.1
-		_patch(Vector2(16.4, gy), Vector2(7.0, 1.0), LAWN_LIT, DROP)
+		_patch(Vector2(16.4, gy), Vector2(7.0, 1.0), _pal["lawn_lit"], DROP)
+
+## Visible band in this node's own space. Defaults to a generous overscan around
+## the nominal canvas so the fill is still correct before VenueFloor reports the
+## real one (and in tests, which never resize).
+func _visible_band() -> Rect2:
+	if _band.size.x > 1.0 and _band.size.y > 1.0:
+		return _band.grow(24.0)
+	return Rect2(-120.0, -120.0, Iso.VIEW.x + 240.0, Iso.VIEW.y + 240.0)
+
+
+## Called by VenueFloor._fit_canvas with the Control's rect expressed in canvas
+## coordinates, so the surround always reaches the actual screen edges.
+func set_visible_band(band: Rect2) -> void:
+	if band.is_equal_approx(_band):
+		return
+	_band = band
+	queue_redraw()
+
 
 func _draw_street() -> void:
 	var gx0: float = -4.0
 	var span: float = 24.0
-	_patch(Vector2(gx0, APRON_B.y), Vector2(span, SIDEWALK_B - APRON_B.y), PAVING, DROP)
-	_patch(Vector2(gx0, SIDEWALK_B), Vector2(span, KERB_B - SIDEWALK_B), KERB, DROP)
-	_skirt(Vector2(gx0, KERB_B), Vector2(gx0 + span, KERB_B), 5.0, KERB.darkened(0.30), DROP)
-	_patch(Vector2(gx0, KERB_B), Vector2(span, ROAD_B - KERB_B), ROAD, DROP + 5.0)
+	_patch(Vector2(gx0, APRON_B.y), Vector2(span, SIDEWALK_B - APRON_B.y), _pal["paving"], DROP)
+	_patch(Vector2(gx0, SIDEWALK_B), Vector2(span, KERB_B - SIDEWALK_B), _pal["kerb"], DROP)
+	_skirt(Vector2(gx0, KERB_B), Vector2(gx0 + span, KERB_B), 5.0, _pal["kerb"].darkened(0.30), DROP)
+	_patch(Vector2(gx0, KERB_B), Vector2(span, ROAD_B - KERB_B), _pal["road"], DROP + 5.0)
 	# Far kerb and verge, mostly off the bottom edge but it closes the road.
-	_patch(Vector2(gx0, ROAD_B), Vector2(span, 0.3), KERB, DROP)
-	_patch(Vector2(gx0, ROAD_B + 0.3), Vector2(span, 3.0), LAWN_DIM, DROP)
+	_patch(Vector2(gx0, ROAD_B), Vector2(span, 0.3), _pal["kerb"], DROP)
+	_patch(Vector2(gx0, ROAD_B + 0.3), Vector2(span, 3.0), _pal["lawn_dim"], DROP)
 	# Crossing, aimed at the forecourt so the approach has somewhere to come from.
 	for i in 5:
 		var gx: float = 10.4 + float(i) * 0.46
 		_patch(Vector2(gx, KERB_B + 0.16), Vector2(0.26, ROAD_B - KERB_B - 0.32),
-			MARKING.darkened(0.06), DROP + 5.0)
+			_pal["marking"].darkened(0.06), DROP + 5.0)
 
 ## Everything on the far side of the building: neighbouring blocks, the boundary
 ## fence, the north and west treelines. Drawn back to front by depth.
 func _draw_far_scenery() -> void:
-	# Neighbouring buildings. Fragments at the frame edge, never whole — a
-	# complete building out there competes with the one the player is running.
-	_block(Vector2(-7.0, 3.2), Vector2(2.6, 2.8), 46.0, NEIGHBOUR[0])
-	_block(Vector2(0.9, -4.9), Vector2(3.2, 2.0), 50.0, NEIGHBOUR[1])
-	_block(Vector2(18.2, 9.4), Vector2(2.8, 3.0), 52.0, NEIGHBOUR[2])
-	# Boundary fence along the north and west verges.
-	_fence(Vector2(-2.0, -1.8), Vector2(11.0, -1.8), 12)
-	_fence(Vector2(-2.0, -1.8), Vector2(-2.0, 7.0), 9)
-	for spec in [
-			[Vector2(-4.3, 0.4), 1.05], [Vector2(-3.5, 3.1), 0.92],
-			[Vector2(-4.6, 5.4), 1.12], [Vector2(-3.2, 7.6), 0.86],
-			[Vector2(1.4, -3.0), 0.98], [Vector2(4.3, -2.8), 1.10],
-			[Vector2(6.9, -3.6), 0.88], [Vector2(9.2, -2.9), 1.02],
-			[Vector2(17.6, 12.2), 1.06], [Vector2(17.4, 14.4), 0.90]]:
-		_tree(spec[0], float(spec[1]))
-	for spec in [[Vector2(-5.6, 2.0), 1.0], [Vector2(7.9, -5.0), 1.1],
-			[Vector2(18.2, 6.6), 0.95]]:
-		_pine(spec[0], float(spec[1]))
-	# Hedge along the east boundary, between the apron and the neighbour's plot.
-	_hedge(Vector2(16.6, 2.0), Vector2(16.6, 16.2), 0.44)
-	_hedge(Vector2(-1.45, 9.2), Vector2(-1.45, 15.2), 0.40)
+	var hues: Array = _pal["neighbour"]
+	for b in _def.get("blocks", []):
+		_block(Vector2(float(b[0]), float(b[1])), Vector2(float(b[2]), float(b[3])),
+			float(b[4]), hues[int(b[5]) % hues.size()])
+	for f in _def.get("fences", []):
+		_fence(Vector2(float(f[0]), float(f[1])), Vector2(float(f[2]), float(f[3])), int(f[4]))
+	for t in _def.get("trees", []):
+		_tree(Vector2(float(t[0]), float(t[1])), float(t[2]))
+	for t in _def.get("pines", []):
+		_pine(Vector2(float(t[0]), float(t[1])), float(t[2]))
+	for h in _def.get("hedges", []):
+		_hedge(Vector2(float(h[0]), float(h[1])), Vector2(float(h[2]), float(h[3])),
+			float(h[4]))
 
 ## The paved plinth the museum stands on, plus its shadow and its skirt.
 func _draw_apron() -> void:
 	var size: Vector2 = APRON_B - APRON_A
-	_patch(APRON_A + Vector2(0.3, 0.4), size, SHADOW, DROP)
-	_skirt(Vector2(APRON_A.x, APRON_B.y), APRON_B, DROP + 2.0, PAVING.darkened(0.42), 0.0)
-	_skirt(APRON_B, Vector2(APRON_B.x, APRON_A.y), DROP + 2.0, PAVING.darkened(0.30), 0.0)
-	_patch(APRON_A, size, PAVING)
+	_patch(APRON_A + Vector2(0.3, 0.4), size, _pal["shadow"], DROP)
+	_skirt(Vector2(APRON_A.x, APRON_B.y), APRON_B, DROP + 2.0, _pal["paving"].darkened(0.42), 0.0)
+	_skirt(APRON_B, Vector2(APRON_B.x, APRON_A.y), DROP + 2.0, _pal["paving"].darkened(0.30), 0.0)
+	_patch(APRON_A, size, _pal["paving"])
 	# Paving joints. A slab this size with no grain reads as a hole in the world,
 	# and thin quads inside the batch cost nothing where strokes would not batch
 	# with the fills around them.
@@ -270,46 +418,54 @@ func _draw_apron() -> void:
 		var gy: float = APRON_A.y + float(i) * 1.55
 		if gy > APRON_B.y:
 			break
-		_patch(Vector2(APRON_A.x, gy), Vector2(size.x, 0.045), PAVING.darkened(0.09))
+		_patch(Vector2(APRON_A.x, gy), Vector2(size.x, 0.045), _pal["paving"].darkened(0.09))
 	for i in 12:
 		var gx: float = APRON_A.x + float(i) * 1.55
 		if gx > APRON_B.x:
 			break
-		_patch(Vector2(gx, APRON_A.y), Vector2(0.045, size.y), PAVING.darkened(0.09))
+		_patch(Vector2(gx, APRON_A.y), Vector2(0.045, size.y), _pal["paving"].darkened(0.09))
 	# Darker edging strip and its highlight, along the two faces that show. This
 	# is what makes the apron read as a step up from the pavement.
-	_patch(Vector2(APRON_A.x, APRON_B.y - 0.34), Vector2(size.x, 0.34), KERB)
-	_patch(Vector2(APRON_B.x - 0.34, APRON_A.y), Vector2(0.34, size.y), KERB)
-	_patch(Vector2(APRON_A.x, APRON_B.y - 0.07), Vector2(size.x, 0.07), PAVING_LIT)
-	_patch(Vector2(APRON_B.x - 0.07, APRON_A.y), Vector2(0.07, size.y), PAVING_LIT)
+	_patch(Vector2(APRON_A.x, APRON_B.y - 0.34), Vector2(size.x, 0.34), _pal["kerb"])
+	_patch(Vector2(APRON_B.x - 0.34, APRON_A.y), Vector2(0.34, size.y), _pal["kerb"])
+	_patch(Vector2(APRON_A.x, APRON_B.y - 0.07), Vector2(size.x, 0.07), _pal["paving_lit"])
+	_patch(Vector2(APRON_B.x - 0.07, APRON_A.y), Vector2(0.07, size.y), _pal["paving_lit"])
 	# Forecourt: the interior red runner continues out of the doors to the kerb,
 	# which is the whole reason an arrival reads as walking IN off the street.
-	_patch(Vector2(12.1, 17.35), Vector2(1.6, APRON_B.y - 17.35), UI.CARPET_RED.darkened(0.06))
-	_patch(Vector2(12.25, 17.35), Vector2(1.3, APRON_B.y - 17.35),
-		UI.CARPET_RED.lightened(0.10))
+	var runner: Color = _pal["runner"]
+	_patch(Vector2(12.1, 17.35), Vector2(1.6, APRON_B.y - 17.35), runner.darkened(0.06))
+	_patch(Vector2(12.25, 17.35), Vector2(1.3, APRON_B.y - 17.35), runner.lightened(0.10))
 
 ## Anything between the facade and the kerb. Drawn after the apron so it sits on
 ## it, and kept under ~46px tall so it cannot reach up into the museum silhouette.
 func _draw_near_scenery() -> void:
-	for gx in [11.55, 14.15]:
-		_planter(Vector2(gx, 17.35))
-	for spec in [[Vector2(9.2, 18.3), 0.84], [Vector2(6.4, 18.3), 0.78]]:
-		_tree(spec[0], float(spec[1]), DROP)
-	for gx in [12.1, 10.0]:
-		_lamp(Vector2(gx, 18.36))
+	for p in _def.get("planters", []):
+		_planter(Vector2(float(p[0]), float(p[1])))
+	for t in _def.get("near_trees", []):
+		_tree(Vector2(float(t[0]), float(t[1])), float(t[2]), DROP)
+	for l in _def.get("lamps", []):
+		_lamp(Vector2(float(l[0]), float(l[1])))
 	# Bench and litter bin on the pavement, facing the crossing.
-	_prism(Vector2(7.7, 18.16), Vector2(1.1, 0.22), 9.0, TRUNK.lightened(0.16), DROP)
-	_prism(Vector2(7.7, 18.24), Vector2(1.1, 0.06), 17.0, TRUNK.lightened(0.06), DROP)
-	_prism(Vector2(7.25, 18.14), Vector2(0.16, 0.16), 15.0, KERB.darkened(0.20), DROP)
+	var bench: Array = _def.get("bench", [])
+	if bench.size() >= 2:
+		var bx: float = float(bench[0])
+		var by: float = float(bench[1])
+		_prism(Vector2(bx, by), Vector2(1.1, 0.22), 9.0, _pal["trunk"].lightened(0.16), DROP)
+		_prism(Vector2(bx, by + 0.08), Vector2(1.1, 0.06), 17.0,
+			_pal["trunk"].lightened(0.06), DROP)
+		_prism(Vector2(bx - 0.45, by - 0.02), Vector2(0.16, 0.16), 15.0,
+			_pal["kerb"].darkened(0.20), DROP)
 	# Bollards guarding the forecourt lip.
-	for i in 3:
-		var gx: float = 10.9 + float(i) * 0.62
-		_prism(Vector2(gx, 17.84), Vector2(0.12, 0.12), 9.0, KERB.darkened(0.30))
+	var posts: Array = _def.get("bollards", [])
+	if posts.size() >= 4:
+		for i in int(posts[3]):
+			_prism(Vector2(float(posts[0]) + float(i) * float(posts[2]), float(posts[1])),
+				Vector2(0.12, 0.12), 9.0, _pal["kerb"].darkened(0.30))
 
 ## Outlines and road markings. Lines batch where polygons do not, so every stroke
 ## on the surround is deferred to here and lands in one draw call.
 func _draw_lines() -> void:
-	var mark := Color(MARKING.r, MARKING.g, MARKING.b, 0.85)
+	var mark := Color(_pal["marking"].r, _pal["marking"].g, _pal["marking"].b, 0.85)
 	for i in 9:
 		var gx: float = 4.4 + float(i) * 1.35
 		Iso.stroke(self, PackedVector2Array([
@@ -318,21 +474,25 @@ func _draw_lines() -> void:
 	for gy in [KERB_B + 0.16, ROAD_B - 0.16]:
 		Iso.stroke(self, PackedVector2Array([
 			_p(Vector2(2.0, gy), DROP + 5.0), _p(Vector2(17.0, gy), DROP + 5.0)]),
-			Color(MARKING.r, MARKING.g, MARKING.b, 0.45), 1.8)
+			Color(_pal["marking"].r, _pal["marking"].g, _pal["marking"].b, 0.45), 1.8)
 
 ## The floor Control is a band inside a taller screen, so a hard horizontal edge
 ## where the lawn stops reads as a pasted-in picture. Ramp it back to the app
 ## background instead. Rects batch, so the whole ramp is one draw call.
 func _draw_edge_fade() -> void:
+	# Ramp from the REAL top and bottom of the visible band. Ramping the nominal
+	# canvas edge instead left a hard bright line partway down the screen, because
+	# the canvas is letterboxed and its edge is not where the picture ends.
+	var vb: Rect2 = _visible_band()
 	var steps: int = 12
 	for i in steps:
 		var t: float = float(i) / float(steps)
 		var a: float = (1.0 - t) * (1.0 - t)
-		draw_rect(Rect2(0.0, float(i) * 6.0, Iso.VIEW.x, 6.5),
+		draw_rect(Rect2(vb.position.x, vb.position.y + float(i) * 6.0, vb.size.x, 6.5),
 			Color(UI.BG.r, UI.BG.g, UI.BG.b, a))
 		# The bottom ramp is half the height of the top one: it lands on the road,
 		# and a deep wash there took the traffic with it.
-		draw_rect(Rect2(0.0, Iso.VIEW.y - float(i + 1) * 3.0, Iso.VIEW.x, 3.5),
+		draw_rect(Rect2(vb.position.x, vb.end.y - float(i + 1) * 3.0, vb.size.x, 3.5),
 			Color(UI.BG.r, UI.BG.g, UI.BG.b, a * 0.9))
 
 # --- Entrance canopy (drawn by VenueFloor, on a Y-sorted prop) -----------------
@@ -340,13 +500,14 @@ func _draw_edge_fade() -> void:
 ## The awning over the doors. It stands in front of the facade, so it cannot live
 ## on this node — VenueFloor hands it to _add_prop() at CANOPY_G and Y-sort puts
 ## it where it belongs. Static so it needs no City instance.
-static func draw_canopy(ci: CanvasItem) -> void:
+static func draw_canopy(ci: CanvasItem, style_name: String = "parkland") -> void:
+	var pal: Dictionary = palette_for(style_name)
 	var post_h := 36.0
 	var back := CANOPY_A + Vector2(0.0, CANOPY_SIZE.y)
 	Iso.rug(ci, CANOPY_A + Vector2(0.14, 0.18), CANOPY_SIZE, Color(0.06, 0.03, 0.14, 0.15))
 	for gx in [CANOPY_A.x + 0.04, CANOPY_A.x + CANOPY_SIZE.x - 0.14]:
 		Iso.box(ci, Vector2(gx, back.y - 0.1), Vector2(0.1, 0.1), post_h,
-			PAVING.darkened(0.26), Color(0, 0, 0, 0.24))
+			(pal["paving"] as Color).darkened(0.26), Color(0, 0, 0, 0.24))
 	var q := Iso.quad(CANOPY_A, CANOPY_SIZE)
 	var up := Vector2(0.0, -post_h - 5.0)
 	var lo := Vector2(0.0, -post_h)
@@ -380,22 +541,22 @@ static func draw_canopy(ci: CanvasItem) -> void:
 
 func _tree(g: Vector2, s: float, drop: float = DROP) -> void:
 	var base: Vector2 = _p(g, drop)
-	_disc(base + Vector2(2.0, 1.0), 16.0 * s, 7.0 * s, SHADOW)
-	_prism(g - Vector2(0.07, 0.07) * s, Vector2(0.14, 0.14) * s, 13.0 * s, TRUNK, drop)
+	_disc(base + Vector2(2.0, 1.0), 16.0 * s, 7.0 * s, _pal["shadow"])
+	_prism(g - Vector2(0.07, 0.07) * s, Vector2(0.14, 0.14) * s, 13.0 * s, _pal["trunk"], drop)
 	var r: float = 17.0 * s
-	_disc(base + Vector2(0.0, -20.0 * s), r, r * 0.92, TREE_DARK)
-	_disc(base + Vector2(-4.0 * s, -30.0 * s), r * 0.86, r * 0.80, TREE_MID)
-	_disc(base + Vector2(4.5 * s, -34.0 * s), r * 0.62, r * 0.58, TREE_LIT)
+	_disc(base + Vector2(0.0, -20.0 * s), r, r * 0.92, _pal["tree_dark"])
+	_disc(base + Vector2(-4.0 * s, -30.0 * s), r * 0.86, r * 0.80, _pal["tree_mid"])
+	_disc(base + Vector2(4.5 * s, -34.0 * s), r * 0.62, r * 0.58, _pal["tree_lit"])
 
 func _pine(g: Vector2, s: float, drop: float = DROP) -> void:
 	var base: Vector2 = _p(g, drop)
-	_disc(base + Vector2(2.0, 1.0), 13.0 * s, 6.0 * s, SHADOW)
-	_prism(g - Vector2(0.06, 0.06) * s, Vector2(0.12, 0.12) * s, 10.0 * s, TRUNK, drop)
+	_disc(base + Vector2(2.0, 1.0), 13.0 * s, 6.0 * s, _pal["shadow"])
+	_prism(g - Vector2(0.06, 0.06) * s, Vector2(0.12, 0.12) * s, 10.0 * s, _pal["trunk"], drop)
 	for i in 3:
 		var w: float = (16.0 - float(i) * 4.2) * s
 		var y: float = base.y - (10.0 + float(i) * 13.0) * s
 		var tip: float = y - 19.0 * s
-		var col: Color = TREE_DARK if i == 0 else (TREE_MID if i == 1 else TREE_LIT)
+		var col: Color = _pal["tree_dark"] if i == 0 else (_pal["tree_mid"] if i == 1 else _pal["tree_lit"])
 		_fill(PackedVector2Array([
 			Vector2(base.x, tip), Vector2(base.x + w, y), Vector2(base.x - w, y)]), col)
 
@@ -408,31 +569,31 @@ func _hedge(a: Vector2, b: Vector2, w: float) -> void:
 		var g: Vector2 = a + step * float(i)
 		var size := Vector2(w, step.y * 0.94) if absf(d.x) < absf(d.y) \
 			else Vector2(step.x * 0.94, w)
-		_prism(g, size, 17.0, HEDGE, DROP)
+		_prism(g, size, 17.0, _pal["hedge"], DROP)
 		_prism(g + Vector2(0.03, 0.03), size - Vector2(0.06, 0.06), 19.0,
-			HEDGE.lightened(0.14), DROP)
+			_pal["hedge"].lightened(0.14), DROP)
 
 func _fence(a: Vector2, b: Vector2, posts: int) -> void:
 	var rail_h := 15.0
 	for i in posts + 1:
 		var g: Vector2 = a.lerp(b, float(i) / float(posts))
-		_prism(g, Vector2(0.09, 0.09), 20.0, TRUNK.darkened(0.20), DROP)
+		_prism(g, Vector2(0.09, 0.09), 20.0, _pal["trunk"].darkened(0.20), DROP)
 	for h in [8.0, rail_h]:
-		_skirt(a, b, 2.4, TRUNK.darkened(0.10), DROP - h)
+		_skirt(a, b, 2.4, _pal["trunk"].darkened(0.10), DROP - h)
 
 func _planter(g: Vector2) -> void:
 	# Cast stone, not the kerb grey it started as — at that value the tub read as
 	# a dropped block rather than as planting.
-	_prism(g, Vector2(0.62, 0.62), 15.0, PAVING.lightened(0.08))
+	_prism(g, Vector2(0.62, 0.62), 15.0, _pal["paving"].lightened(0.08))
 	var top: Vector2 = _p(g + Vector2(0.31, 0.31)) + Vector2(0.0, -15.0)
-	_disc(top, 17.0, 9.0, HEDGE)
-	_disc(top + Vector2(-3.5, -8.0), 13.0, 10.0, HEDGE.lightened(0.18))
+	_disc(top, 17.0, 9.0, _pal["hedge"])
+	_disc(top + Vector2(-3.5, -8.0), 13.0, 10.0, _pal["hedge"].lightened(0.18))
 	_disc(top + Vector2(4.5, -5.0), 9.0, 8.0, UI.ROOM_PROMO.darkened(0.16))
 
 func _lamp(g: Vector2) -> void:
 	var base: Vector2 = _p(g, DROP)
-	_disc(base + Vector2(2.0, 1.0), 9.0, 4.0, SHADOW)
-	_prism(g, Vector2(0.1, 0.1), 42.0, KERB.darkened(0.34), DROP)
+	_disc(base + Vector2(2.0, 1.0), 9.0, 4.0, _pal["shadow"])
+	_prism(g, Vector2(0.1, 0.1), 42.0, _pal["kerb"].darkened(0.34), DROP)
 	var head: Vector2 = base + Vector2(0.0, -44.0)
 	_fill(PackedVector2Array([
 		head + Vector2(-6.0, 0.0), head + Vector2(6.0, 0.0),
@@ -441,8 +602,8 @@ func _lamp(g: Vector2) -> void:
 ## Neighbouring block: a plinth of its own, walls, and a flat roof, so it reads
 ## as a building rather than a coloured slab.
 func _block(g: Vector2, size: Vector2, h: float, col: Color) -> void:
-	_patch(g + Vector2(-0.45, -0.45), size + Vector2(0.9, 0.9), PAVING.darkened(0.18), DROP)
-	_patch(g + Vector2(0.22, 0.32), size, SHADOW, DROP)
+	_patch(g + Vector2(-0.45, -0.45), size + Vector2(0.9, 0.9), _pal["paving"].darkened(0.18), DROP)
+	_patch(g + Vector2(0.22, 0.32), size, _pal["shadow"], DROP)
 	_prism(g, size, h, col, DROP)
 	# Parapet, so the roof has a lip instead of ending in a flat plane.
 	_slab(g + Vector2(-0.12, -0.12), size + Vector2(0.24, 0.24), h, 5.0,

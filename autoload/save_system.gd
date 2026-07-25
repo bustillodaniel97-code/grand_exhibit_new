@@ -2,7 +2,7 @@ extends Node
 ## SaveSystem — versioned JSON save with checksum + offline earnings. See SPEC §3/§10.
 
 const SAVE_PATH := "user://grand_exhibit_save.json"
-const SAVE_VERSION := 2
+const SAVE_VERSION := 3
 const _SALT := "grand-exhibit-v1"
 
 var autosave_interval_sec := 20
@@ -76,7 +76,29 @@ func _recover_corrupt(reason: String) -> bool:
 func migrate(state: Dictionary, from_version: int) -> Dictionary:
 	# v1 -> v2: expedition/event state keys added; from_save_dict already tolerates
 	# missing keys by overlaying onto defaults, so a pass-through is sufficient.
+	if from_version < 3:
+		state = _migrate_v2_to_v3(state)
 	Analytics.log_event("save_migrated", {"from": from_version, "to": SAVE_VERSION})
+	return state
+
+## v2 -> v3: the museum ladder became explicitly one-way, recorded in
+## GameState.venues_closed. A v2 save has no such list, but it does have the
+## facts to rebuild it exactly: every unlocked venue sitting BEFORE the current
+## one in venue order is a building the player already graduated out of. Derived
+## once here rather than left derived forever, so a later reorder of venues.json
+## cannot re-open a closed museum.
+func _migrate_v2_to_v3(state: Dictionary) -> Dictionary:
+	if state.has("venues_closed"):
+		return state
+	var order: Array = DataLoader.venue_order()
+	var current_idx: int = order.find(str(state.get("current_venue", "")))
+	var closed: Array = []
+	if current_idx > 0:
+		for vid in state.get("venues_unlocked", []):
+			var idx: int = order.find(str(vid))
+			if idx >= 0 and idx < current_idx:
+				closed.append(str(vid))
+	state["venues_closed"] = closed
 	return state
 
 ## Called once after load (or new game). Returns {amount: BigNumber, seconds: int, capped: bool}.

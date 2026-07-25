@@ -1,7 +1,9 @@
 extends SceneTree
-## QA M5-3: save migration (v1 -> v2 envelope) + corruption recovery (SPEC §10).
+## QA M5-3: save migration (v1 and v2 envelopes) + corruption recovery (SPEC §10).
 ## - Craft a version:1 envelope with a VALID checksum whose state lacks
 ##   expedition_state/event_state -> load_game() true, defaults present after load.
+## - Craft a version:2 envelope with no venues_closed -> load_game() true and the
+##   one-way ladder rebuilt from venue order (SaveSystem._migrate_v2_to_v3).
 ## - Tamper state without fixing checksum -> load_game() false, save renamed to
 ##   .bak, and a fresh boot (reset_to_new_game) survives.
 ## Checksum salt is read from SaveSystem._SALT (no duplication of the constant).
@@ -44,12 +46,13 @@ func run() -> void:
 	GS.cash = BigNumber.from_parts(1.5, 4)  # 15K marker
 	GS.gems = 77
 	SS.save_now()
-	check(SS.has_save(), "baseline v2 save written")
+	check(SS.has_save(), "baseline v3 save written")
 	var env: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAVE_FILE))
-	check(int(env.get("version", 0)) == 2, "baseline envelope is version 2")
+	check(int(env.get("version", 0)) == 3, "baseline envelope is version 3")
 	var v1_state: Dictionary = env["state"].duplicate(true)
 	v1_state.erase("expedition_state")
 	v1_state.erase("event_state")
+	v1_state.erase("venues_closed")
 	check(not v1_state.has("expedition_state") and not v1_state.has("event_state"),
 		"v1 state crafted without expedition/event keys")
 	var payload: String = JSON.stringify(v1_state)
@@ -69,13 +72,61 @@ func run() -> void:
 	check(typeof(GS.event_state) == TYPE_DICTIONARY, "migrated event_state is a Dictionary")
 	check(GS.cash.eq(BigNumber.from_parts(1.5, 4)), "v1 cash preserved through migration")
 	check(GS.gems == 77, "v1 gems preserved through migration")
-	# Migrated state must survive a v2 round-trip (save + load again).
+	check(typeof(GS.venues_closed) == TYPE_ARRAY, "migrated venues_closed is an Array")
+	# Migrated state must survive a v3 round-trip (save + load again).
 	SS.save_now()
 	var env2: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAVE_FILE))
-	check(int(env2.get("version", 0)) == 2, "re-save upgrades envelope to version 2")
+	check(int(env2.get("version", 0)) == 3, "re-save upgrades envelope to version 3")
 	GS.reset_to_new_game()
 	check(SS.load_game() == true and GS.cash.eq(BigNumber.from_parts(1.5, 4)),
-		"migrated save round-trips as v2")
+		"migrated save round-trips as v3")
+
+	print("-- v2 -> v3: the one-way ladder is rebuilt from venue order --")
+	# A real v2 player: three venues unlocked, standing in the third. v2 had no
+	# venues_closed, so the migration has to infer that the first two are shut.
+	cleanup()
+	GS.reset_to_new_game()
+	GS.ready_flag = true
+	GS.venues_unlocked = ["whispering_pines", "copper_kettle", "grand_river"]
+	GS.current_venue = "grand_river"
+	GS.cash = BigNumber.from_parts(6.6, 7)
+	SS.save_now()
+	var v3_env: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAVE_FILE))
+	var v2_state: Dictionary = v3_env["state"].duplicate(true)
+	v2_state.erase("venues_closed")
+	var v2_payload: String = JSON.stringify(v2_state)
+	write_envelope({
+		"version": 2,
+		"saved_at": int(v3_env.get("saved_at", 0)),
+		"checksum": (v2_payload + SS._SALT).sha256_text(),
+		"state": v2_state,
+	})
+	GS.reset_to_new_game()
+	check(SS.load_game() == true, "load_game() true on valid v2 envelope")
+	check(GS.venue_is_closed("whispering_pines") and GS.venue_is_closed("copper_kettle"),
+		"v2 migration closes every venue before the current one")
+	check(not GS.venue_is_closed("grand_river"), "the venue the player is standing in stays open")
+	check(GS.venues_closed.size() == 2, "no extra venues invented (got %d)" % GS.venues_closed.size())
+	check(GS.current_venue == "grand_river" and GS.cash.eq(BigNumber.from_parts(6.6, 7)),
+		"v2 venue and cash preserved through migration")
+	# A v2 save still on the FIRST venue has nothing closed yet.
+	cleanup()
+	GS.reset_to_new_game()
+	GS.ready_flag = true
+	SS.save_now()
+	var first_env: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAVE_FILE))
+	var first_state: Dictionary = first_env["state"].duplicate(true)
+	first_state.erase("venues_closed")
+	var first_payload: String = JSON.stringify(first_state)
+	write_envelope({
+		"version": 2,
+		"saved_at": int(first_env.get("saved_at", 0)),
+		"checksum": (first_payload + SS._SALT).sha256_text(),
+		"state": first_state,
+	})
+	GS.reset_to_new_game()
+	check(SS.load_game() == true, "load_game() true on a first-venue v2 envelope")
+	check(GS.venues_closed.is_empty(), "a player who never moved has closed nothing")
 
 	print("-- checksum tamper -> .bak + false + fresh boot survives --")
 	cleanup()

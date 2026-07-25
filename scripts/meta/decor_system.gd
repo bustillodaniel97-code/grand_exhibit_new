@@ -76,6 +76,41 @@ static func set_progress(set_id: String) -> Dictionary:
 		"bonus_mult": float(set_def.get("bonus_mult", 1.0)),
 		"name": str(set_def.get("name", set_id))}
 
+## --------------------------------------------------------------- satisfaction
+## Decor feeds two of the three venue-rating inputs (Economy.venue_satisfaction):
+## DECOR POINTS (how impressive the venue looks) and REST SEATS (whether the
+## crowd has anywhere to sit). They are separate fields on purpose — a bench run
+## is real decor but it is not a showpiece, and a chandelier seats nobody, so the
+## player is trading slots between "looks good" and "holds the crowd".
+
+## Decor points for one piece. Defaults to its income bonus in percent so the 18
+## pre-satisfaction pieces score sensibly without a data edit; rest-area pieces
+## override it because their income bonus is deliberately small.
+static func piece_decor_points(decor_id: String) -> float:
+	var def: Dictionary = DataLoader.get_decor(decor_id)
+	if def.has("decor_score"):
+		return float(def["decor_score"])
+	var per_mult: float = float(DataLoader.core.get("satisfaction", {}).get("decor", {})
+		.get("score_from_income_mult", 100.0))
+	return maxf(0.0, (float(def.get("income_mult", 1.0)) - 1.0) * per_mult)
+
+static func piece_rest_seats(decor_id: String) -> int:
+	return int(DataLoader.get_decor(decor_id).get("rest_seats", 0))
+
+static func venue_decor_points(venue_id: String) -> float:
+	var total: float = 0.0
+	for did in GameState.venue_state(venue_id).get("decor", {}).values():
+		total += piece_decor_points(str(did))
+	return total
+
+## Seats provided by placed decor. The venue's own free floor seating is added by
+## Economy (satisfaction.rest.base_seats) — it is a rating constant, not a piece.
+static func venue_rest_seats(venue_id: String) -> int:
+	var total: int = 0
+	for did in GameState.venue_state(venue_id).get("decor", {}).values():
+		total += piece_rest_seats(str(did))
+	return total
+
 static func first_free_slot(venue_id: String) -> int:
 	var total: int = int(DataLoader.get_venue(venue_id).get("decor_slots", 0))
 	var placed: Dictionary = GameState.venue_state(venue_id).get("decor", {})

@@ -21,6 +21,7 @@ const THEME_ORDER: Array = ["entrance", "hall", "garden"]
 
 var _venue_id: String = ""
 var _list: VBoxContainer
+var _rating_box: VBoxContainer
 
 func setup(payload: Dictionary) -> void:
 	_venue_id = str(payload.get("venue_id", GameState.current_venue))
@@ -54,6 +55,14 @@ func _build_shell() -> void:
 	var title := UI.make_display_label("", 26, INK)
 	title.name = "Title"
 	vbox.add_child(title)
+	# The rating panel is PINNED above the scroll, not the first row inside it.
+	# It is the reason the player opened this screen — "why am I on 3 stars" —
+	# and it has to stay legible while they scroll the shop looking for the fix.
+	var rating_card := _panel()
+	_rating_box = VBoxContainer.new()
+	_rating_box.add_theme_constant_override("separation", 6)
+	rating_card.add_child(_rating_box)
+	vbox.add_child(rating_card)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(scroll)
@@ -71,6 +80,7 @@ func refresh() -> void:
 		title.text = "Decor — %s" % str(venue.get("name", _venue_id))
 	for c in _list.get_children():
 		c.queue_free()
+	_build_rating()
 	_build_slots()
 	_build_sets_summary()
 	_build_shop()
@@ -97,6 +107,80 @@ func _label(text: String, size: int = 15, color: Color = INK) -> Label:
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	return l
 
+## Venue rating breakdown. Three bars, one per input, with the input costing the
+## most stars called out by name — "you are at 3 stars because your queues are
+## slow" is the whole point, so the sentence comes before the numbers.
+func _build_rating() -> void:
+	if _rating_box == null:
+		return
+	for c in _rating_box.get_children():
+		c.queue_free()
+	var sat: Dictionary = Economy.venue_satisfaction(_venue_id)
+
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 6)
+	_rating_box.add_child(head)
+	var stars: float = float(sat["stars_rounded"])
+	for i in range(5):
+		var tint: Color = UI.LOCKED
+		if stars >= float(i) + 1.0:
+			tint = BRASS
+		elif stars >= float(i) + 0.5:
+			tint = BRASS.lerp(UI.LOCKED, 0.5)
+		head.add_child(UI.make_icon("star", 22, tint))
+	var score_l := UI.make_display_label("%.1f / 5" % float(sat["stars"]), 20, INK)
+	score_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	score_l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	head.add_child(score_l)
+	var mult: float = float(sat["income_mult"])
+	var mult_l := UI.make_display_label("Visitors pay x%.2f" % mult, 18, SAGE if mult >= 1.0 else UI.DANGER)
+	mult_l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	head.add_child(mult_l)
+
+	var reason := _label(str(sat["reason"]), 14, ACCENT)
+	_rating_box.add_child(reason)
+
+	var inputs: Dictionary = sat["inputs"]
+	for key in ["decor", "speed", "rest"]:
+		var d: Dictionary = inputs[key]
+		var limiting: bool = str(sat["limiting"]) == key and float(d["score"]) < 0.999
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		_rating_box.add_child(row)
+		var name_l := _label(str(d["label"]), 14, ACCENT if limiting else INK)
+		name_l.custom_minimum_size = Vector2(84, 0)
+		name_l.autowrap_mode = TextServer.AUTOWRAP_OFF
+		row.add_child(name_l)
+		var bar := ProgressBar.new()
+		bar.custom_minimum_size = Vector2(100, 14)
+		bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		bar.max_value = 100.0
+		bar.value = float(d["score"]) * 100.0
+		bar.show_percentage = false
+		bar.add_theme_stylebox_override("background", UI.make_channel())
+		bar.add_theme_stylebox_override("fill", UI.make_bar_fill(_bar_kind(float(d["score"]))))
+		row.add_child(bar)
+		var detail := _label(str(d["detail"]), 13, SLATE if not limiting else ACCENT)
+		detail.autowrap_mode = TextServer.AUTOWRAP_OFF
+		detail.clip_text = true
+		detail.custom_minimum_size = Vector2(212, 0)  # right-aligned + clipped eats the LEFT end
+		detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		row.add_child(detail)
+
+func _bar_kind(score: float) -> String:
+	if score >= 0.85:
+		return "green"
+	if score >= 0.5:
+		return "yellow"
+	return "red"
+
+## "+6 seats" tag — the second thing a piece is worth, and the only reason to
+## give a slot to a bench instead of a chandelier.
+func _seats_note(decor_id: String) -> String:
+	var seats: int = DecorSystem.piece_rest_seats(decor_id)
+	return " • +%d seats" % seats if seats > 0 else ""
+
 func _build_slots() -> void:
 	_list.add_child(_header("Exhibit Slots (%d/%d)" % [
 		DecorSystem.slots_used(_venue_id), DecorSystem.slots_total(_venue_id)]))
@@ -117,9 +201,11 @@ func _build_slots() -> void:
 		if occupied:
 			var def: Dictionary = DataLoader.decor[did]
 			cv.add_child(_label(str(def.get("name", did)), 15, INK))
-			cv.add_child(_label("%s • +%d%% income" % [
+			cv.add_child(_label("%s • +%d%% income%s" % [
 				str(def.get("slot_theme", "")).capitalize(),
-				int(round((float(def.get("income_mult", 1.0)) - 1.0) * 100.0))], 13, SAGE))
+				int(round((float(def.get("income_mult", 1.0)) - 1.0) * 100.0)),
+				_seats_note(did)], 13, SAGE))
+			cv.add_child(_label("%d decor pts" % int(round(DecorSystem.piece_decor_points(did))), 12, SLATE))
 		else:
 			cv.add_child(_label("Empty Slot", 15, DIM))
 		grid.add_child(cell)
@@ -151,10 +237,19 @@ func _build_shop() -> void:
 	for set_id in DataLoader.decor_sets.keys():
 		groups.append({"name": str(DataLoader.decor_sets[set_id].get("name", set_id)),
 			"pieces": DataLoader.decor_sets[set_id].get("pieces", [])})
+	# Rest areas get their own group: they are bought for a different reason than
+	# every other piece (seats, not spectacle) and burying them under
+	# "Curiosities" hides the only fix for a low rest-area rating.
 	var loose: Array = []
+	var rest_pieces: Array = []
 	for did in DataLoader.decor.keys():
-		if str(DataLoader.decor[did].get("set_id", "")) == "":
+		if str(DataLoader.decor[did].get("set_id", "")) != "":
+			continue
+		if DecorSystem.piece_rest_seats(str(did)) > 0:
+			rest_pieces.append(str(did))
+		else:
 			loose.append(str(did))
+	groups.append({"name": "Rest Areas", "pieces": rest_pieces})
 	groups.append({"name": "Curiosities", "pieces": loose})
 	for g in groups:
 		_list.add_child(_label(str(g["name"]), 17, BRASS))
@@ -171,9 +266,11 @@ func _shop_row(decor_id: String, slots_full: bool) -> PanelContainer:
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hb.add_child(info)
 	info.add_child(_label(str(def.get("name", decor_id)), 16, INK))
-	var sub: String = "%s • +%d%% income" % [
+	var sub: String = "%s • +%d%% income • %d pts%s" % [
 		str(def.get("slot_theme", "")).capitalize(),
-		int(round((float(def.get("income_mult", 1.0)) - 1.0) * 100.0))]
+		int(round((float(def.get("income_mult", 1.0)) - 1.0) * 100.0)),
+		int(round(DecorSystem.piece_decor_points(decor_id))),
+		_seats_note(decor_id)]
 	if str(def.get("set_id", "")) != "":
 		var set_def: Dictionary = DataLoader.decor_sets.get(str(def["set_id"]), {})
 		sub += " • %s" % str(set_def.get("name", ""))

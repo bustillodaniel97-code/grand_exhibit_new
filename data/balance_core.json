@@ -65,6 +65,33 @@
       }
     }
   },
+  "satisfaction": {
+    "weights": { "decor": 0.40, "speed": 0.35, "rest": 0.25 },
+    "income_mult_min": 0.5,
+    "income_mult_max": 2.0,
+    "decor": {
+      "points_per_slot": 5.0,
+      "target_growth_per_venue": 1.08,
+      "score_from_income_mult": 100.0
+    },
+    "speed": {
+      "queue_weight": 0.6,
+      "wait_good_s": 3.0,
+      "wait_bad_s": 30.0,
+      "wait_stall_s": 120.0,
+      "throughput_target_base": 1.0,
+      "throughput_target_growth": 1.6
+    },
+    "rest": {
+      "base_seats": 2,
+      "dwell_seconds": 30.0,
+      "seats_per_visitor": 0.25
+    }
+  },
+  "venue_progression": {
+    "milestones_required": 8,
+    "bank_pending_cash_on_move": true
+  },
   "unlocks": { "managers_rep": 6, "expedition_rep": 7, "inspection_day": 1, "decor_rep": 2 },
   "monetization_tuning": {
     "instant_cash_minutes": 15,

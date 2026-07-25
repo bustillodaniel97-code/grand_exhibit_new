@@ -97,6 +97,12 @@ static func _bake_async(look_key: String, look: Dictionary, host: Node) -> void:
 		if _is_blank(img):
 			break
 		img.resize(SPRITE.x, SPRITE.y, Image.INTERPOLATE_LANCZOS)
+		# Mipmaps matter here specifically because the sprite is MINIFIED on the
+		# way out: a 96x128 texture is blitted into a 48x64 design rect, and
+		# without a mip chain that 2x reduction point-samples every other texel.
+		# On a walking figure that is exactly the crawling, pixelated edge the
+		# owner reported — it is a sampling artefact, not the art.
+		img.generate_mipmaps()
 		out.append(ImageTexture.create_from_image(img))
 
 	vp.queue_free()

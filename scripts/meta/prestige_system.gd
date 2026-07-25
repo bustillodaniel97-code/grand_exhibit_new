@@ -1,24 +1,99 @@
 extends RefCounted
-## PrestigeSystem — static venue-prestige logic (SPEC §6.1/§7). No class_name; preload.
-## Requires all 8 milestones of the current venue + a next venue in venue_order().
-## One-way move: the OLD venue keeps milestones/decor/lifetime totals as history,
-## but its dept levels, quest progress and pending cash reset to fresh defaults
-## (it is never revisited — documented decision, SPEC §7 "keep simple").
-## CASH / GEMS / INSIGHT / MANAGERS / DECOR are NEVER touched here (SPEC §6.1).
+## VenueProgression — the ONE-WAY museum ladder (SPEC §6.1/§7). No class_name; preload.
+##
+## The file keeps its prestige_system.gd name and its can_prestige/do_prestige/
+## block_reason/next_venue_id symbols because the EventBus signals, the HUD entry
+## point, the offer triggers and the analytics schema all live in files this track
+## does not own. The PLAYER-FACING word is "open the next museum": this is a
+## graduation to a bigger building, not a prestige reset.
+##
+## THE GATE. Every milestone in the current venue's chain (8 in data today;
+## venue_progression.milestones_required can lower it for tuning). One ladder,
+## one gate — a second cash or currency threshold would only obscure it.
+##
+## THE MOVE IS ONE-WAY. The venue you leave is recorded in GameState.venues_closed
+## and can never be current again. Nothing in the game offers a way back.
+##
+## WHAT CROSSES THE THRESHOLD (the screen renders this list from carry_over() and
+## left_behind() below, so the copy the player reads cannot drift from what the
+## code does):
+##   CASH — in FULL, including the old floor's uncollected pending cash, which is
+##          swept into the vault on the way out instead of being deleted. Money
+##          carrying over is the whole point of the step.
+##   GEMS — in full. Premium currency, some of it bought with real money;
+##          confiscating it at a progression step would be indefensible.
+##   INSIGHT — in full. It levels managers, and managers carry, so stranding it
+##          would strand the collection it exists to serve.
+##   MANAGERS — cards, levels, ranks and assignments. A collection the player
+##          paid for, in gems or in time. Never touched here.
+##   REPUTATION — in full. It is the account-wide unlock ladder (managers at rep
+##          6, expeditions at rep 7); resetting it would re-lock earned features.
+##   DECOR SET BONUSES — DecorSystem.owned_anywhere() is cross-venue, so pieces
+##          bought at a closed museum keep paying into their set multiplier.
+##          Money spent on decor is never destroyed, only its placement is.
+##
+## WHAT STAYS WITH THE BUILDING:
+##   PLACED DECOR — pieces are fixed to the hall they were installed in. This is
+##          what gives the visitor rating teeth again: a new museum opens bare,
+##          rates near zero on decor and rest areas, and re-dressing it is what
+##          the carried-over cash is for.
+##   DEPARTMENT LEVELS — new building, new staff, level 1 everywhere.
+##   QUESTS AND MILESTONES — the new venue runs its own chain.
+##
+## DIFFICULTY at the new venue is data that already exists. venues.json carries
+## cost_mult / cost_exp, which Economy._cost applies to every upgrade price, and
+## Economy's satisfaction decor + throughput targets grow with venue order. No
+## parallel scaling system was invented.
+##
+## THE OLD VENUE IS FROZEN, NOT WIPED. Its departments, decor, milestones and
+## lifetime totals are left exactly as the player built them, as a record of the
+## museum they ran. The previous code reset them to level 1, which only made
+## sense while the step was called a prestige; nothing reads a closed venue's
+## rates, so the reset destroyed history and bought nothing.
+##
+## WITHIN-VENUE PRESTIGE: none exists in this game, and none was added. Stacking
+## a second reset loop on a one-way ladder would give the player two competing
+## "should I reset now?" decisions and blur the single clear gate above.
 
 const QuestSystem = preload("res://scripts/meta/quest_system.gd")
-const MilestoneSystem = preload("res://scripts/meta/milestone_system.gd")
+const DecorSystem = preload("res://scripts/meta/decor_system.gd")
 
-static func can_prestige() -> bool:
-	return block_reason() == ""
+static func config() -> Dictionary:
+	return DataLoader.core.get("venue_progression", {})
 
+# ------------------------------------------------------------------- the gate
+
+## Milestones needed to open the next museum. Clamped to the chain the venue
+## actually has, so a tuning value larger than the data can never lock the ladder.
+static func milestones_required(venue_id: String) -> int:
+	var want: int = int(config().get("milestones_required", 8))
+	var defs: Array = DataLoader.milestones.get(venue_id, [])
+	if defs.is_empty():
+		return want
+	return mini(want, defs.size())
+
+static func milestones_done(venue_id: String) -> int:
+	return GameState.venue_state(venue_id).get("milestones", []).size()
+
+static func gate_met(venue_id: String) -> bool:
+	var need: int = milestones_required(venue_id)
+	return need > 0 and milestones_done(venue_id) >= need
+
+## "" when the player may move on, otherwise the player-facing reason.
 static func block_reason() -> String:
 	var vid: String = GameState.current_venue
-	if not MilestoneSystem.all_complete(vid):
-		return "Complete all 8 milestones"
+	if not gate_met(vid):
+		return "%d of %d milestones done" % [milestones_done(vid), milestones_required(vid)]
 	if next_venue_id() == "":
-		return "Final venue reached"
+		return "This is the final museum"
 	return ""
+
+static func can_graduate() -> bool:
+	return block_reason() == ""
+
+## Legacy name, kept for callers outside this track.
+static func can_prestige() -> bool:
+	return can_graduate()
 
 static func next_venue_id() -> String:
 	var order: Array = DataLoader.venue_order()
@@ -27,38 +102,135 @@ static func next_venue_id() -> String:
 		return ""
 	return str(order[idx + 1])
 
-static func do_prestige() -> bool:
-	if not can_prestige():
+# -------------------------------------------------------------------- the move
+
+## Open the next museum. One-way; see the header for what carries.
+static func graduate() -> bool:
+	if not can_graduate():
 		return false
 	var from_vid: String = GameState.current_venue
 	var to_vid: String = next_venue_id()
-	# 1) Reset old venue to fresh depts/progress; KEEP milestones + decor as history.
-	var old_vs: Dictionary = GameState.venue_state(from_vid)
-	old_vs["depts"] = _fresh_depts()
-	old_vs["progress"] = 0.0
-	old_vs["active_quests"] = []
-	old_vs["quests_done"] = []
-	# old_vs["milestones"], old_vs["decor"], earned/served totals: retained (history)
-	# 2) Pending cash cleared on venue switch (SPEC §7).
+	# Cash carries in FULL, so sweep the floor before the doors are locked. The
+	# old code erased pending_cash, which silently confiscated whatever had
+	# accrued since the player's last tap.
+	var swept: BigNumber = pending_sweep(from_vid)
+	if bool(config().get("bank_pending_cash_on_move", true)) and not swept.is_zero():
+		GameState.add_cash(swept)
 	GameState.pending_cash.erase(from_vid)
 	GameState.pending_cash.erase(to_vid)
-	# 3) Unlock + switch venue.
+	# The venue is left exactly as built (see header) and marked shut for good.
+	GameState.close_venue(from_vid)
 	if to_vid not in GameState.venues_unlocked:
 		GameState.venues_unlocked.append(to_vid)
 	GameState.current_venue = to_vid
-	GameState.venue_state(to_vid)  # ensure state exists
+	GameState.venue_state(to_vid)  # ensure fresh state exists
 	QuestSystem.ensure_active_quests(to_vid)
-	# 4) Announce. Currencies/managers/decor untouched (see header).
 	EventBus.prestige_performed.emit(from_vid, to_vid)
-	Analytics.log_event("prestige", {"from": from_vid, "to": to_vid,
-		"milestones_kept": old_vs.get("milestones", []).size()})
+	Analytics.log_event("venue_opened", {"from": from_vid, "to": to_vid,
+		"swept_cash": swept.to_notation(),
+		"decor_left": DecorSystem.slots_used(from_vid),
+		"milestones": milestones_done(from_vid)})
 	return true
 
-## Mirrors GameState._fresh_venue_state dept defaults (core-owned; replicated here
-## so meta never edits autoloads). staff = dept base_staff, speed/value = 1.
-static func _fresh_depts() -> Dictionary:
-	var depts: Dictionary = {}
-	for dept_id in DataLoader.core.get("departments", {}).keys():
-		var d: Dictionary = DataLoader.dept_def(str(dept_id))
-		depts[dept_id] = {"staff": int(d.get("base_staff", 1)), "speed": 1, "value": 1}
-	return depts
+## Legacy name, kept for callers outside this track.
+static func do_prestige() -> bool:
+	return graduate()
+
+## Uncollected floor cash that graduate() would sweep into the vault.
+static func pending_sweep(venue_id: String) -> BigNumber:
+	var pending: Variant = GameState.pending_cash.get(venue_id, null)
+	if pending == null:
+		return BigNumber.zero()
+	return pending as BigNumber
+
+# ---------------------------------------------------------- selling the move
+
+## How much richer a visitor is at `to` than at `from`, as a plain ratio.
+static func value_ratio(from_vid: String, to_vid: String) -> float:
+	var a: Dictionary = DataLoader.get_venue(from_vid)
+	var b: Dictionary = DataLoader.get_venue(to_vid)
+	var m: float = float(b.get("base_value_m", 1.0)) / maxf(float(a.get("base_value_m", 1.0)), 0.0001)
+	return m * pow(10.0, int(b.get("base_value_e", 0)) - int(a.get("base_value_e", 0)))
+
+## How much steeper the upgrade curve is at `to`. This IS the difficulty step,
+## and it is read straight off venues.json cost_mult/cost_exp — the same numbers
+## Economy._cost already charges — so the screen cannot promise a different game
+## from the one the player is about to play.
+static func cost_ratio(from_vid: String, to_vid: String) -> float:
+	var a: Dictionary = DataLoader.get_venue(from_vid)
+	var b: Dictionary = DataLoader.get_venue(to_vid)
+	var m: float = float(b.get("cost_mult", 1.0)) / maxf(float(a.get("cost_mult", 1.0)), 0.0001)
+	return m * pow(10.0, int(b.get("cost_exp", 0)) - int(a.get("cost_exp", 0)))
+
+## Compact multiplier text: "1.5x", "750x", then "1.5e6x" past human range.
+## Built by hand because GDScript's String % has no %e conversion.
+static func ratio_text(ratio: float) -> String:
+	if ratio >= 100000.0:
+		var exp10: int = int(floor(log(ratio) / log(10.0)))
+		return "%.1fe%dx" % [ratio / pow(10.0, exp10), exp10]
+	if ratio >= 100.0:
+		return "%dx" % int(round(ratio))
+	if ratio >= 10.0:
+		return "%.0fx" % ratio
+	return "%.1fx" % ratio
+
+## Rows for the "you take this with you" panel: {icon, label, detail}.
+static func carry_over() -> Array:
+	var vid: String = GameState.current_venue
+	var swept: BigNumber = pending_sweep(vid)
+	var cash_detail: String = GameState.cash.to_notation()
+	if not swept.is_zero():
+		cash_detail += " + %s still on the floor" % swept.to_notation()
+	var owned: int = 0
+	var cards: int = 0
+	for mid in GameState.managers_state.keys():
+		var n: int = int(GameState.managers_state[mid].get("cards", 0))
+		cards += n
+		if n > 0:
+			owned += 1
+	return [
+		{"icon": "cash", "label": "Every coin you own", "detail": cash_detail},
+		{"icon": "gems", "label": "Gems", "detail": "%d" % GameState.gems},
+		{"icon": "insight", "label": "Insight", "detail": GameState.insight.to_notation()},
+		{"icon": "medal", "label": "Your managers", "detail":
+			"%d hired, %d cards — levels and posts intact" % [owned, cards]},
+		{"icon": "trophy", "label": "Reputation", "detail":
+			"Level %d, and everything it unlocked" % GameState.rep_level()},
+		{"icon": "star", "label": "Decor set bonuses", "detail":
+			"Pieces you bought keep counting, wherever they stand"},
+	]
+
+## Rows for the "this stays here" panel: {icon, label, detail}.
+static func left_behind() -> Array:
+	var vid: String = GameState.current_venue
+	var venue: Dictionary = DataLoader.get_venue(vid)
+	var used: int = DecorSystem.slots_used(vid)
+	var total: int = DecorSystem.slots_total(vid)
+	return [
+		{"icon": "home", "label": "The decor you installed", "detail":
+			"%d of %d pieces stay bolted to %s" % [used, total, str(venue.get("name", vid))]},
+		{"icon": "arrow_up", "label": "Department levels", "detail":
+			"New building, new staff — every track restarts at 1"},
+		{"icon": "star_outline", "label": "Your visitor rating", "detail":
+			"Bare halls and no seating rate low. Earn the stars back"},
+	]
+
+## What the next museum offers. {} at the end of the ladder.
+static func next_venue_preview() -> Dictionary:
+	var to_vid: String = next_venue_id()
+	if to_vid == "":
+		return {}
+	var from_vid: String = GameState.current_venue
+	var a: Dictionary = DataLoader.get_venue(from_vid)
+	var b: Dictionary = DataLoader.get_venue(to_vid)
+	return {
+		"id": to_vid,
+		"name": str(b.get("name", to_vid)),
+		"desc": str(b.get("desc", "")),
+		"value_ratio": value_ratio(from_vid, to_vid),
+		"cost_ratio": cost_ratio(from_vid, to_vid),
+		"decor_slots": int(b.get("decor_slots", 0)),
+		"decor_slots_delta": int(b.get("decor_slots", 0)) - int(a.get("decor_slots", 0)),
+		"order": int(b.get("order", 0)),
+		"total": DataLoader.venue_order().size(),
+	}

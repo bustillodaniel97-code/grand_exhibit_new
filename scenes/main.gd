@@ -8,6 +8,7 @@ const Popups := preload("res://scripts/ui/popup_manager.gd")
 const HudScene := preload("res://scenes/ui/hud.tscn")
 const NavScene := preload("res://scenes/ui/bottom_nav.tscn")
 const BoostDockScene := preload("res://scenes/ui/boost_dock.tscn")
+const SideRailScene := preload("res://scenes/ui/side_rail.tscn")
 const VenueScene := preload("res://scenes/venue/venue_view.tscn")
 const PopupLayerScene := preload("res://scenes/ui/popup_layer.tscn")
 
@@ -61,11 +62,35 @@ func _build_shell() -> void:
 
 	layout.add_child(NavScene.instantiate())
 
+	# Vertical meta rail. NOT a row in `layout`: the whole point is that it costs
+	# no vertical space, so it floats over the world as a sibling of the layout
+	# and positions itself against the right edge under the venue strip. Added
+	# after the layout so it draws over the world, before the popup layer
+	# (CanvasLayer 10) so every screen still covers it.
+	add_child(SideRailScene.instantiate())
+
 	add_child(PopupLayerScene.instantiate())
 	_build_toast()
+	_build_grade()
 
 	EventBus.toast_requested.connect(show_toast)
 	EventBus.reputation_level_up.connect(_on_reputation_level_up)
+
+## Full-screen finishing pass. Sits above the world, the popups and the toast so
+## the whole frame is graded as one image — grading only the world would make the
+## UI look like it was composited in from somewhere else.
+func _build_grade() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 90          # above popups (10) and toasts (30), below nothing
+	add_child(layer)
+	var rect := ColorRect.new()
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE   # must never eat a tap
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://scenes/ui/grade.gdshader")
+	rect.material = mat
+	layer.add_child(rect)
+
 
 # --- Toasts (SPEC §9: bottom-center, 2s) --------------------------------------
 

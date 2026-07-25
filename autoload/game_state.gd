@@ -10,6 +10,11 @@ var insight: BigNumber = BigNumber.zero()
 var reputation_xp: BigNumber = BigNumber.zero()
 var current_venue: String = "whispering_pines"
 var venues_unlocked: Array = ["whispering_pines"]
+## Venues the player has graduated out of. The museum ladder is ONE-WAY and this
+## is the durable record of it. Stored rather than derived from venue order,
+## because order lives in venues.json: reordering or inserting a venue there
+## would otherwise silently re-open a building the player already left behind.
+var venues_closed: Array = []
 var venues_state: Dictionary = {}
 var pending_cash: Dictionary = {}          # venue_id -> BigNumber
 var managers_state: Dictionary = {}
@@ -30,6 +35,7 @@ func reset_to_new_game() -> void:
 	reputation_xp = BigNumber.zero()
 	venues_unlocked = [DataLoader.venue_order()[0] if DataLoader.venue_order().size() > 0 else "whispering_pines"]
 	current_venue = venues_unlocked[0]
+	venues_closed = []
 	venues_state = {}
 	for vid in DataLoader.venue_order():
 		venues_state[vid] = _fresh_venue_state(vid)
@@ -65,6 +71,16 @@ func venue_state(venue_id: String) -> Dictionary:
 	if not venues_state.has(venue_id):
 		venues_state[venue_id] = _fresh_venue_state(venue_id)
 	return venues_state[venue_id]
+
+## Shut a venue for good. Its state is left exactly as the player built it — a
+## closed museum is a record, not a resource, and nothing reads a closed venue's
+## rates. PrestigeSystem is the only caller.
+func close_venue(venue_id: String) -> void:
+	if venue_id != "" and venue_id not in venues_closed:
+		venues_closed.append(venue_id)
+
+func venue_is_closed(venue_id: String) -> bool:
+	return venue_id in venues_closed
 
 func dept_level(venue_id: String, dept_id: String, track: String) -> int:
 	return int(venue_state(venue_id).get("depts", {}).get(dept_id, {}).get(track, 1))
@@ -103,8 +119,13 @@ func feature_unlocked(feature: String) -> bool:
 			return day_index() >= int(u.get("inspection_day", 1))
 		"decor":
 			return rep_level() >= int(u.get("decor_rep", 2))
-		"prestige":
-			return venue_state(current_venue).get("milestones", []).size() >= 8
+		# The milestone chain is the one gate on opening the next museum. Kept in
+		# sync with PrestigeSystem.milestones_required by reading the same key;
+		# an autoload must not preload a meta script (SPEC §1 branch isolation).
+		"prestige", "graduation":
+			var need: int = int(DataLoader.core.get("venue_progression", {})
+				.get("milestones_required", 8))
+			return venue_state(current_venue).get("milestones", []).size() >= need
 	return false
 
 func day_index() -> int:
@@ -173,7 +194,8 @@ func to_save_dict() -> Dictionary:
 	return {
 		"cash": cash.to_save(), "gems": gems, "insight": insight.to_save(),
 		"reputation_xp": reputation_xp.to_save(), "current_venue": current_venue,
-		"venues_unlocked": venues_unlocked, "venues_state": venues_state,
+		"venues_unlocked": venues_unlocked, "venues_closed": venues_closed,
+		"venues_state": venues_state,
 		"pending_cash": pending_save, "managers_state": managers_state,
 		"boosts": boosts, "rv_state": rv_state, "daily_deals": daily_deals,
 		"expedition_state": expedition_state, "event_state": event_state,
@@ -189,6 +211,9 @@ func from_save_dict(d: Dictionary) -> void:
 	reputation_xp = BigNumber.from_save(d.get("reputation_xp", {}))
 	current_venue = str(d.get("current_venue", current_venue))
 	venues_unlocked = d.get("venues_unlocked", venues_unlocked)
+	# A pre-v3 save has no venues_closed; SaveSystem.migrate derives one. Falling
+	# back to [] here as well keeps a hand-edited or partial dict loadable.
+	venues_closed = d.get("venues_closed", [])
 	var vs: Dictionary = d.get("venues_state", {})
 	for vid in vs.keys():
 		if typeof(vs[vid]) != TYPE_DICTIONARY:

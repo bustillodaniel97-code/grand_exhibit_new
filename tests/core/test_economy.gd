@@ -63,12 +63,21 @@ func run() -> void:
 	print("-- value & gallery bonus --")
 	GameState.reset_to_new_game()
 	var base_rates: Dictionary = Economy.venue_rates(V)
-	# base value 2.0 * ticket value 1.0 * (1 + 0) * 1.0
-	check(is_equal_approx(base_rates["value_per_visitor"].to_float_approx(), 2.0), "base value_per_visitor == 2")
+	# base value 2.0 * ticket value 1.0 * (1 + 0) * 1.0 * venue-rating multiplier.
+	# The rating is a live factor now (see test_satisfaction.gd), so the expected
+	# value is stated against it rather than a frozen literal.
+	var sat_mult: float = Economy.satisfaction_multiplier(V)
+	check(is_equal_approx(base_rates["value_per_visitor"].to_float_approx(), 2.0 * sat_mult),
+		"base value_per_visitor == 2 * rating mult (%.4f)" % sat_mult)
+	check(is_equal_approx(float(base_rates["satisfaction_mult"]), sat_mult),
+		"venue_rates exposes satisfaction_mult")
 	var vs: Dictionary = GameState.venue_state(V)
 	vs["depts"]["gallery"]["staff"] = 2  # 2 * 0.05 = +10%
 	var gal_rates: Dictionary = Economy.venue_rates(V)
-	check(is_equal_approx(gal_rates["value_per_visitor"].to_float_approx(), 2.2), "gallery bonus +10% -> 2.2")
+	check(is_equal_approx(gal_rates["value_per_visitor"].to_float_approx(), 2.2 * sat_mult),
+		"gallery bonus +10% -> 2.2 * rating mult")
+	check(is_equal_approx(float(gal_rates["satisfaction_mult"]), sat_mult),
+		"gallery staff does not move the rating (it is not a rating input)")
 
 	print("-- step multiplier doubles at level 10 --")
 	check(is_equal_approx(DataLoader.track_step_multiplier("ticket", "speed", 9), 1.0), "step mult lvl 9 == 1.0")
