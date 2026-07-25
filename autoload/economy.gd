@@ -31,6 +31,10 @@ func _process(delta: float) -> void:
 			_banked_win = BigNumber.zero()
 		tick_insight_storage(ClockGuard.now())
 
+var _alloc_gained: BigNumber = BigNumber.zero()
+var _alloc_drained: BigNumber = BigNumber.zero()
+var _alloc_accum: float = 0.0
+
 func _tick(dt: float) -> void:
 	var vid: String = GameState.current_venue
 	var rates: Dictionary = venue_rates(vid)
@@ -38,8 +42,21 @@ func _tick(dt: float) -> void:
 	var banked_rate: BigNumber = rates["banked_per_s"]
 	var pending: BigNumber = GameState.pending_cash.get(vid, BigNumber.zero())
 	_served_win = _served_win.add(pending_rate.scale(dt))
-	pending = pending.add(pending_rate.scale(dt)).sub(banked_rate.scale(dt))
+	var gained: BigNumber = pending_rate.scale(dt)
+	var drained: BigNumber = banked_rate.scale(dt)
+	pending = pending.add(gained).sub(drained)
 	GameState.pending_cash[vid] = pending
+	_alloc_gained = _alloc_gained.add(gained)
+	_alloc_drained = _alloc_drained.add(drained)
+	_alloc_accum += dt
+	# The station-pile ledger is presentation-rate data. Allocating every frame
+	# churned BigNumber save dicts per item per tick and measurably taxed the
+	# main loop; 4Hz is indistinguishable on a chip that updates twice a second.
+	if _alloc_accum >= 0.25:
+		_allocate_item_pending(vid, _alloc_gained, _alloc_drained)
+		_alloc_gained = BigNumber.zero()
+		_alloc_drained = BigNumber.zero()
+		_alloc_accum = 0.0
 	var banked: BigNumber = banked_rate.scale(dt)
 	if not banked.is_zero():
 		_banked_win = _banked_win.add(banked)
@@ -59,6 +76,131 @@ func dept_stat(venue_id: String, dept_id: String, track: String) -> float:
 	if track in ["speed", "value"]:
 		stat *= manager_multiplier_for(dept_id)
 	return stat
+
+# --- Items: the upgrade atom -------------------------------------------------
+## The unit of progression is an individual object on the floor — this counter,
+## that cart — each with its own level and its own accumulating cash. A level-L
+## item contributes (1 + (L-1)*step) staff-units, so N level-1 items are exactly
+## the old integer staff count and every historical balance identity holds.
+
+var _item_step_cache: float = -1.0
+
+func _items_cfg() -> Dictionary:
+	return DataLoader.core.get("items", {})
+
+## Hot-path copy of the step constant. Balance data is immutable at runtime, so
+## one read amortises across the 40k dict lookups a perf pass would otherwise do.
+func _item_step() -> float:
+	if _item_step_cache < 0.0:
+		_item_step_cache = float(_items_cfg().get("step_per_level", 0.25))
+	return _item_step_cache
+
+## Units from a department's raw dict — the inner loop venue_flows runs four
+## times per call under a 10k-calls-in-2s budget. No helper round trips.
+func _units_of(d: Dictionary) -> float:
+	var items: Variant = d.get("items")
+	if items is Array and int(d.get("staff", -1)) == (items as Array).size():
+		var step: float = _item_step()
+		var total := 0.0
+		for it in items:
+			total += 1.0 + float(maxi(int(it.get("lv", 1)), 1) - 1) * step
+		return total
+	return -1.0
+
+func item_mult(level: int) -> float:
+	return 1.0 + float(maxi(level, 1) - 1) * float(_items_cfg().get("step_per_level", 0.25))
+
+func item_max_level() -> int:
+	return int(_items_cfg().get("max_level", 25))
+
+## Summed contribution of a department's items, in staff-units.
+## venue_rates calls this four times and sits on a 10k-calls-in-2s perf budget,
+## so the common case (container present, mirror in sync) reads the raw dict
+## with the step hoisted and no helper round trips. Only a desynced mirror — a
+## legacy raw "staff" write — pays for GameState.dept_items' reconciliation.
+func dept_units(venue_id: String, dept_id: String) -> float:
+	var fast: float = _units_of(GameState.venue_state(venue_id).get("depts", {}).get(dept_id, {}))
+	if fast >= 0.0:
+		return fast
+	var total := 0.0
+	for it in GameState.dept_items(venue_id, dept_id):
+		total += item_mult(int(it.get("lv", 1)))
+	return total
+
+## Cost of taking one item from its current level to the next: the department's
+## staff-track curve sampled at the item's level, scaled down — an object costs
+## less to improve than to duplicate.
+func item_upgrade_cost(venue_id: String, dept_id: String, index: int) -> BigNumber:
+	var lv: int = GameState.item_level(venue_id, dept_id, index)
+	return _cost(venue_id, dept_id, "staff", lv).scale(float(_items_cfg().get("cost_mult", 0.5)))
+
+func purchase_item_upgrade(venue_id: String, dept_id: String, index: int) -> bool:
+	var lv: int = GameState.item_level(venue_id, dept_id, index)
+	if lv <= 0 or lv >= item_max_level():
+		return false
+	if not GameState.spend_cash(item_upgrade_cost(venue_id, dept_id, index)):
+		return false
+	GameState.set_item_level(venue_id, dept_id, index, lv + 1)
+	_grant_rep(lv)
+	EventBus.item_upgraded.emit(venue_id, dept_id, index, lv + 1)
+	return true
+
+## An item's share of the venue's pending cash (the pile at its window).
+func item_pending(venue_id: String, dept_id: String, index: int) -> BigNumber:
+	var items: Array = GameState.dept_items(venue_id, dept_id)
+	if index < 0 or index >= items.size():
+		return BigNumber.zero()
+	return BigNumber.from_save(items[index].get("pending", {}))
+
+## Tap-to-collect on ONE station: banks that item's pile immediately, bypassing
+## the porters — that is the whole point of tapping. Clamped to the venue's
+## actual pending so the ledger can never mint cash the sim has not produced.
+func collect_item(venue_id: String, dept_id: String, index: int) -> BigNumber:
+	var items: Array = GameState.dept_items(venue_id, dept_id)
+	if index < 0 or index >= items.size():
+		return BigNumber.zero()
+	var amount: BigNumber = BigNumber.from_save(items[index].get("pending", {}))
+	var venue_pending: BigNumber = GameState.pending_cash.get(venue_id, BigNumber.zero())
+	if amount.gt(venue_pending):
+		amount = venue_pending
+	if amount.is_zero():
+		return BigNumber.zero()
+	items[index]["pending"] = BigNumber.zero().to_save()
+	GameState.pending_cash[venue_id] = venue_pending.sub(amount)
+	GameState.cash = GameState.cash.add(amount)
+	var vs: Dictionary = GameState.venue_state(venue_id)
+	vs["earned_total"] = BigNumber.from_save(vs.get("earned_total", {})).add(amount).to_save()
+	EventBus.item_collected.emit(venue_id, dept_id, index, amount)
+	EventBus.cash_changed.emit(GameState.cash)
+	return amount
+
+## Allocate this tick's pending movement across the serving items' piles, in
+## proportion to each item's throughput contribution. The venue-level pending
+## stays the single source of truth for the sim; the per-item ledger is its
+## visible decomposition, renormalised here so drift can never accumulate.
+func _allocate_item_pending(venue_id: String, gained: BigNumber, drained: BigNumber) -> void:
+	var items: Array = GameState.dept_items(venue_id, "ticket")
+	if items.is_empty():
+		return
+	var total_units := 0.0
+	for it in items:
+		total_units += item_mult(int(it.get("lv", 1)))
+	if total_units <= 0.0:
+		return
+	var ledger_total := BigNumber.zero()
+	for it in items:
+		ledger_total = ledger_total.add(BigNumber.from_save(it.get("pending", {})))
+	for it in items:
+		var share: float = item_mult(int(it.get("lv", 1))) / total_units
+		var p: BigNumber = BigNumber.from_save(it.get("pending", {}))
+		p = p.add(gained.scale(share))
+		if not drained.is_zero() and not ledger_total.is_zero():
+			# Porters take from the piles they find, so the drain follows the
+			# ledger's own distribution, not the throughput split.
+			var lshare: float = p.to_float_approx() / ledger_total.add(gained).to_float_approx() 				if ledger_total.add(gained).to_float_approx() > 0.0 else share
+			# BigNumber.sub clamps at zero, so an over-drain cannot go negative.
+			p = p.sub(drained.scale(lshare))
+		it["pending"] = p.to_save()
 
 ## Product of assigned managers' multipliers for a department.
 func manager_multiplier_for(dept_id: String) -> float:
@@ -113,19 +255,25 @@ func decor_set_multiplier() -> float:
 ## it must not depend on satisfaction. Split out of venue_rates to keep that
 ## one-way: flows -> rating -> value. Everything here is visitors/s.
 func venue_flows(venue_id: String) -> Dictionary:
-	var vs: Dictionary = GameState.venue_state(venue_id)
 	var arrival: float = 0.0
 	var serve: float = 0.0
 	var transport: float = 0.0
+	# One depts fetch for the whole pass; dept_units per dept would re-walk the
+	# venue_state chain four times inside the perf budget.
+	var depts: Dictionary = GameState.venue_state(venue_id).get("depts", {})
 	for dept_id in ["promotions", "ticket", "archive"]:
-		var staff: int = int(vs.get("depts", {}).get(dept_id, {}).get("staff", 1))
+		var units: float = _units_of(depts.get(dept_id, {}))
+		if units < 0.0:
+			units = dept_units(venue_id, dept_id)
 		var spd: float = dept_stat(venue_id, dept_id, "speed")
 		match dept_id:
-			"promotions": arrival = staff * spd
-			"ticket": serve = staff * spd
-			"archive": transport = staff * spd * dept_stat(venue_id, "archive", "value")
-	var gallery_staff: int = int(vs.get("depts", {}).get("gallery", {}).get("staff", 0))
-	var gallery_bonus: float = gallery_staff * dept_stat(venue_id, "gallery", "value") * dept_stat(venue_id, "gallery", "speed")
+			"promotions": arrival = units * spd
+			"ticket": serve = units * spd
+			"archive": transport = units * spd * dept_stat(venue_id, "archive", "value")
+	var gallery_units: float = _units_of(depts.get("gallery", {}))
+	if gallery_units < 0.0:
+		gallery_units = dept_units(venue_id, "gallery")
+	var gallery_bonus: float = gallery_units * dept_stat(venue_id, "gallery", "value") * dept_stat(venue_id, "gallery", "speed")
 	return {
 		"arrival_per_s": arrival, "serve_per_s": serve, "transport_per_s": transport,
 		"effective_visitors_per_s": minf(arrival, serve), "gallery_bonus": gallery_bonus,
@@ -368,13 +516,14 @@ func purchase_upgrade(venue_id: String, dept_id: String, track: String) -> bool:
 	var def: Dictionary = DataLoader.dept_def(dept_id)
 	var level: int = GameState.dept_level(venue_id, dept_id, track)
 	if track == "staff":
-		var staff: int = int(GameState.venue_state(venue_id)["depts"][dept_id]["staff"])
+		# Buying "staff" places a new item on the floor at level 1.
+		var staff: int = GameState.dept_items(venue_id, dept_id).size()
 		if staff >= int(def.get("max_staff", 99)):
 			return false
 		var cost_s: BigNumber = _cost(venue_id, dept_id, track, staff)
 		if not GameState.spend_cash(cost_s):
 			return false
-		GameState.venue_state(venue_id)["depts"][dept_id]["staff"] = staff + 1
+		GameState.add_dept_item(venue_id, dept_id)
 		_grant_rep(staff)
 		EventBus.department_upgraded.emit(venue_id, dept_id, track, staff + 1)
 		return true
@@ -406,6 +555,11 @@ func manual_collect(venue_id: String) -> BigNumber:
 	var tip: float = float(cfg.get("tip_bonus_pct", 0.05))
 	var amount: BigNumber = pending.scale(frac * (1.0 + tip))
 	GameState.pending_cash[venue_id] = pending.sub(pending.scale(frac))
+	# The station piles are a decomposition of the venue pending; a venue-wide
+	# sweep empties them by the same fraction or the chips would show cash that
+	# is no longer there.
+	for it in GameState.dept_items(venue_id, "ticket"):
+		it["pending"] = BigNumber.from_save(it.get("pending", {})).scale(1.0 - frac).to_save()
 	GameState.cash = GameState.cash.add(amount)
 	EventBus.manual_collect.emit(amount)
 	EventBus.cash_changed.emit(GameState.cash)

@@ -63,7 +63,12 @@ func _fresh_venue_state(venue_id: String) -> Dictionary:
 	var depts: Dictionary = {}
 	for dept_id in DataLoader.core.get("departments", {}).keys():
 		var d: Dictionary = DataLoader.dept_def(dept_id)
-		depts[dept_id] = {"staff": int(d.get("base_staff", 1)), "speed": 1, "value": 1}
+		var items: Array = []
+		for _i in int(d.get("base_staff", 1)):
+			items.append({"lv": 1, "pending": BigNumber.zero().to_save()})
+		# "staff" stays as a mirror of items.size(): plenty of code and tests read
+		# the raw dict, and a stale count is worse than a redundant one.
+		depts[dept_id] = {"staff": items.size(), "items": items, "speed": 1, "value": 1}
 	return {"depts": depts, "decor": {}, "milestones": [], "progress": 0.0, "active_quests": [],
 		"served_total": BigNumber.zero().to_save(), "earned_total": BigNumber.zero().to_save()}
 
@@ -82,13 +87,69 @@ func close_venue(venue_id: String) -> void:
 func venue_is_closed(venue_id: String) -> bool:
 	return venue_id in venues_closed
 
+## The upgrade atom is the ITEM — an individual counter, cart or desk with its
+## own level and its own accumulating cash. Departments are containers of items.
+## "staff" survives as a derived track: reading it counts items, writing it
+## resizes the container. That keeps every caller and test that thinks in
+## staff-counts working while the game moves to per-object progression.
+func dept_items(venue_id: String, dept_id: String) -> Array:
+	var d: Dictionary = venue_state(venue_id).get("depts", {}).get(dept_id, {})
+	if not d.has("items"):
+		# Legacy in-memory state (old save loaded directly in a test): synthesize
+		# the container from the staff count once.
+		var items: Array = []
+		for _i in int(d.get("staff", 1)):
+			items.append({"lv": 1, "pending": BigNumber.zero().to_save()})
+		d["items"] = items
+	# The raw "staff" key was the old API's storage, and plenty of tests and old
+	# code still write it directly. Honour it: if the mirror disagrees with the
+	# container, the mirror wins and the container is resized to match,
+	# preserving the levels of items that remain. Internal paths always keep the
+	# two in sync, so this only fires on legacy writes.
+	var want: int = int(d.get("staff", (d["items"] as Array).size()))
+	var have: Array = d["items"]
+	while have.size() < want:
+		have.append({"lv": 1, "pending": BigNumber.zero().to_save()})
+	while have.size() > want:
+		have.pop_back()
+	return have
+
+func item_level(venue_id: String, dept_id: String, index: int) -> int:
+	var items: Array = dept_items(venue_id, dept_id)
+	if index < 0 or index >= items.size():
+		return 0
+	return int(items[index].get("lv", 1))
+
+func set_item_level(venue_id: String, dept_id: String, index: int, level: int) -> void:
+	var items: Array = dept_items(venue_id, dept_id)
+	if index >= 0 and index < items.size():
+		items[index]["lv"] = maxi(level, 1)
+
+func add_dept_item(venue_id: String, dept_id: String) -> void:
+	var d: Dictionary = venue_state(venue_id)["depts"][dept_id]
+	dept_items(venue_id, dept_id).append({"lv": 1, "pending": BigNumber.zero().to_save()})
+	d["staff"] = d["items"].size()
+
 func dept_level(venue_id: String, dept_id: String, track: String) -> int:
+	if track == "staff":
+		return dept_items(venue_id, dept_id).size()
 	return int(venue_state(venue_id).get("depts", {}).get(dept_id, {}).get(track, 1))
 
 func set_dept_level(venue_id: String, dept_id: String, track: String, level: int) -> void:
 	var vs: Dictionary = venue_state(venue_id)
-	if vs.has("depts") and vs["depts"].has(dept_id):
-		vs["depts"][dept_id][track] = level
+	if not (vs.has("depts") and vs["depts"].has(dept_id)):
+		return
+	if track == "staff":
+		# Resize the item container, preserving the levels of items that remain —
+		# shrinking a department must not launder its per-object progress.
+		var items: Array = dept_items(venue_id, dept_id)
+		while items.size() < level:
+			items.append({"lv": 1, "pending": BigNumber.zero().to_save()})
+		while items.size() > level:
+			items.pop_back()
+		vs["depts"][dept_id]["staff"] = items.size()
+		return
+	vs["depts"][dept_id][track] = level
 
 func rep_level() -> int:
 	var thresholds: Array = DataLoader.core.get("reputation", {}).get("thresholds_mantissa", [])

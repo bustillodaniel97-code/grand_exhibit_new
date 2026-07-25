@@ -2,7 +2,7 @@ extends Node
 ## SaveSystem — versioned JSON save with checksum + offline earnings. See SPEC §3/§10.
 
 const SAVE_PATH := "user://grand_exhibit_save.json"
-const SAVE_VERSION := 3
+const SAVE_VERSION := 4
 const _SALT := "grand-exhibit-v1"
 
 var autosave_interval_sec := 20
@@ -78,7 +78,28 @@ func migrate(state: Dictionary, from_version: int) -> Dictionary:
 	# missing keys by overlaying onto defaults, so a pass-through is sufficient.
 	if from_version < 3:
 		state = _migrate_v2_to_v3(state)
+	if from_version < 4:
+		state = _migrate_v3_to_v4(state)
 	Analytics.log_event("save_migrated", {"from": from_version, "to": SAVE_VERSION})
+	return state
+
+## v3 -> v4: the upgrade atom became the ITEM. Each department's integer staff
+## count becomes a container of that many level-1 items, each with an empty
+## pending pile. Progress is preserved exactly — N staff were N interchangeable
+## units, and N level-1 items produce identical throughput by construction.
+func _migrate_v3_to_v4(state: Dictionary) -> Dictionary:
+	var venues: Dictionary = state.get("venues_state", {})
+	for vid in venues.keys():
+		var depts: Dictionary = venues[vid].get("depts", {})
+		for dept_id in depts.keys():
+			var d: Dictionary = depts[dept_id]
+			if d.has("items"):
+				continue
+			var items: Array = []
+			for _i in int(d.get("staff", 1)):
+				items.append({"lv": 1, "pending": {"m": 0.0, "e": 0}})
+			d["items"] = items
+			d["staff"] = items.size()
 	return state
 
 ## v2 -> v3: the museum ladder became explicitly one-way, recorded in

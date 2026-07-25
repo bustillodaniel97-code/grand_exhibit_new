@@ -48,7 +48,7 @@ func run() -> void:
 	SS.save_now()
 	check(SS.has_save(), "baseline v3 save written")
 	var env: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAVE_FILE))
-	check(int(env.get("version", 0)) == 3, "baseline envelope is version 3")
+	check(int(env.get("version", 0)) == SS.SAVE_VERSION, "baseline envelope is current SAVE_VERSION")
 	var v1_state: Dictionary = env["state"].duplicate(true)
 	v1_state.erase("expedition_state")
 	v1_state.erase("event_state")
@@ -76,7 +76,7 @@ func run() -> void:
 	# Migrated state must survive a v3 round-trip (save + load again).
 	SS.save_now()
 	var env2: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAVE_FILE))
-	check(int(env2.get("version", 0)) == 3, "re-save upgrades envelope to version 3")
+	check(int(env2.get("version", 0)) == SS.SAVE_VERSION, "re-save upgrades envelope to current SAVE_VERSION")
 	GS.reset_to_new_game()
 	check(SS.load_game() == true and GS.cash.eq(BigNumber.from_parts(1.5, 4)),
 		"migrated save round-trips as v3")

@@ -85,6 +85,35 @@ the decision is not silently revisited.
 
 ---
 
+## Upgrade atom — status (2026-07-25)
+
+The mechanics audit's headline finding — our unit of progression was a department
+with three sliders where the reference's is an individual object on the floor —
+is now HALF closed. The FOUNDATION is in:
+
+  · Departments are containers of per-level ITEMS (`venue_state.depts[x].items`);
+    the "staff" track survives as a derived count, so every legacy caller and
+    test still works, and raw `staff` writes reconcile the container on read.
+  · A level-L item contributes `1 + (L-1) * items.step_per_level` staff-units;
+    N level-1 items are exactly the old integer staff, so every balance identity
+    holds by construction. `venue_flows` sums units; the choke model is untouched.
+  · Each ticket item carries its own accumulating `pending` pile — the venue
+    pending decomposed by throughput share, drained by porters by pile share,
+    renormalised every allocation so drift cannot accumulate.
+  · `Economy.purchase_item_upgrade` / `item_upgrade_cost` / `item_pending` /
+    `collect_item` (exactly-once, clamped to venue pending), with
+    `EventBus.item_upgraded` / `item_collected` signals.
+  · Save v3 -> v4 migration; `tests/core/test_items.gd` (34 checks) covers the
+    identities, allocation, collect-once and migration.
+
+STILL OPEN (the presentation half): floating per-station cash chips + Collect
+buttons on the floor reading `Economy.item_pending` and calling `collect_item`;
+a per-item upgrade list in the department sheet driving `purchase_item_upgrade`;
+quests that point at items. The signals and accessors above are the contract to
+build against. Perf note: `venue_rates` walks the item arrays (budget test sits
+at ~1.95s of a 2s cap for 10k calls) — per-item UI must read the published rates
+and `item_pending`, never re-derive flows per chip per frame.
+
 ## Priority order
 
 1. **Tap-to-collect chips + per-station value labels** — the missing core loop.
