@@ -260,6 +260,7 @@ var _ground: Node2D            # floors + walls, always behind everything
 var _stacks_layer: Node2D      # window ticket-stub stacks
 var _pile_layer: Node2D        # vault pile
 var _labels_layer: Node2D      # room plaques, always above the cast
+var _bags: Array = []          # live money bags: {node, value, born, pos}
 var _props: Array = []         # Y-sorted static furniture nodes
 var _prop_g: Array[Vector2] = []   # their grid anchors, for the geometry suite
 var _ground_paint: Array = []      # cached dressing painters, banded by draw order
@@ -712,6 +713,15 @@ func dead_zone_point() -> Vector2:
 	var r: Rect2 = _theme.role("lobby").get("rect", Rect2()) as Rect2
 	return Iso.to_screen(r.position + r.size * 0.5)
 
+## Canvas point -> grid coords. Public because anything that has to place or hit
+## something from a screen position needs it, not just the floor itself.
+func canvas_to_grid(canvas_pos: Vector2) -> Vector2:
+	return Iso.to_grid(canvas_pos)
+
+## Live tip bags on the floor.
+func bag_count() -> int:
+	return _bags.size()
+
 ## Same code path as a real click (tests call this directly).
 func simulate_tap(canvas_pos: Vector2) -> void:
 	var dept: String = tap_zone_at(canvas_pos)
@@ -720,7 +730,10 @@ func simulate_tap(canvas_pos: Vector2) -> void:
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		simulate_tap(_to_canvas(event.position))
+		var p: Vector2 = _to_canvas(event.position)
+		if _try_tap_bag(p):
+			return
+		simulate_tap(p)
 
 func _to_canvas(p: Vector2) -> Vector2:
 	var s: float = maxf(_canvas.scale.x, 0.0001)
@@ -846,19 +859,37 @@ func _update_pile_height() -> void:
 
 # --- Simulation ---------------------------------------------------------------
 
+## Largest simulation step taken in one go. A dropped frame, a hitch, or an app
+## resuming from background can hand _process a delta of a second or more; feeding
+## that to the movers straight through makes visitors and porters advance in
+## teleports and skips the states in between. Sub-stepping keeps the sim's
+## behaviour independent of how smoothly it is being drawn.
+const MAX_SIM_STEP := 0.05
+
 func _process(delta: float) -> void:
 	if not GameState.ready_flag:
 		return
-	var dt: float = delta * time_scale
-	_city.advance(dt)
-	_spawn_t += dt
-	_try_spawn()
-	_update_serve(dt)
-	_update_visitors(dt)
-	_update_porters(dt)
-	if _pile_flash > 0.0:
-		_pile_flash = maxf(_pile_flash - dt * 2.0, 0.0)
-		_pile_layer.queue_redraw()
+	advance_sim(delta * time_scale)
+
+## Advance the visual sim by `seconds`, in fixed sub-steps. Public because the
+## suites drive it directly: pacing a test on wall-clock made its assertions a
+## function of machine load, which is how the porter-loop check ended up failing
+## about half the time on a busy box.
+func advance_sim(seconds: float) -> void:
+	var remaining: float = maxf(seconds, 0.0)
+	while remaining > 0.0:
+		var dt: float = minf(remaining, MAX_SIM_STEP)
+		remaining -= dt
+		_city.advance(dt)
+		_spawn_t += dt
+		_try_spawn()
+		_update_serve(dt)
+		_update_visitors(dt)
+		_update_porters(dt)
+		_update_bags(dt)
+		if _pile_flash > 0.0:
+			_pile_flash = maxf(_pile_flash - dt * 2.0, 0.0)
+			_pile_layer.queue_redraw()
 	if _stacks_dirty:
 		_stacks_dirty = false
 		_stacks_layer.queue_redraw()
@@ -983,6 +1014,11 @@ func _serve_visitor(w: int) -> void:
 		tw.tween_property(teller, "scale", base * 1.16, 0.09)
 		tw.tween_property(teller, "scale", base, 0.16)
 	_spawn_float("+$" + _value_text, Vector2(_window_gx[w], _counter_gy - 1.0))
+	# A happy visitor tips. Both the odds and the size come from the venue's
+	# satisfaction, so fast service and good decor are what make the floor worth
+	# looking at — see Economy.roll_bag.
+	if _bags.size() < Economy.bag_max_alive() and Economy.roll_bag(GameState.current_venue):
+		_drop_bag(v.pos + Vector2(randf_range(-0.35, 0.35), randf_range(0.25, 0.7)))
 	for i in _queues[w].size():
 		(_queues[w][i] as Visitor).target = _slot_pos(w, i)
 	var keys: Array = _exhibit_keys.duplicate()
@@ -1121,6 +1157,99 @@ func _porter_move(p: Porter, dt: float) -> bool:
 	p.node.facing = 1 if p.node.position.x >= before else -1
 	p.node.walking = true
 	return false
+
+# --- Money bags ---------------------------------------------------------------
+##
+## Drawn, not a Control: a Control would need its own input plumbing and would sit
+## outside the Y-sort, so a bag would float over a visitor standing in front of it.
+## As a Node2D in the cast's own band it occludes and is occluded correctly, and
+## the floor routes taps to it before the room underneath.
+
+## Radius, in canvas px, of the tap disc around a bag's anchor. Generous on
+## purpose: the sprite is ~18px and a thumb is not, and this is the one thing on
+## the floor a player is meant to hit reliably while it is ticking away.
+const BAG_TAP_R := 34.0
+
+func _drop_bag(g: Vector2) -> void:
+	var value: BigNumber = Economy.bag_value(GameState.current_venue)
+	if value.is_zero():
+		return
+	var node := Node2D.new()
+	node.z_index = 1                      # above the cast, below the room plaques
+	_canvas.add_child(node)
+	_place(node, g)
+	var bag := {"node": node, "value": value, "pos": g, "t": 0.0}
+	_bags.append(bag)
+	node.draw.connect(func() -> void: _draw_bag(node))
+	# Land with a hop, then breathe, so the eye catches it arriving.
+	node.scale = Vector2(0.4, 0.4)
+	var tw := node.create_tween()
+	tw.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(node, "scale", node.scale / 0.4 * 1.0, 0.26)
+	EventBus.money_bag_dropped.emit(GameState.current_venue)
+
+func _draw_bag(ci: CanvasItem) -> void:
+	var body := PackedVector2Array([
+		Vector2(-9, -2), Vector2(-6, -13), Vector2(6, -13), Vector2(9, -2),
+		Vector2(6, 4), Vector2(-6, 4)])
+	var shadow := PackedVector2Array()
+	for i in 14:
+		var a: float = TAU * float(i) / 14.0
+		shadow.append(Vector2(cos(a) * 11.0, 5.0 + sin(a) * 4.0))
+	ci.draw_colored_polygon(shadow, Color(0.10, 0.06, 0.18, 0.28))
+	ci.draw_colored_polygon(body, UI.SAGE.darkened(0.10))
+	var ring := body.duplicate()
+	ring.append(body[0])
+	ci.draw_polyline(ring, Color("#14532D"), 2.0)
+	# Neck tie and a coin spilling out, so it reads as money and not a sack of post.
+	ci.draw_line(Vector2(-6, -12), Vector2(6, -12), Color("#14532D"), 3.0)
+	ci.draw_circle(Vector2(0, -2), 4.2, UI.BRASS)
+	ci.draw_circle(Vector2(-1, -3), 2.0, UI.BRASS.lightened(0.35))
+
+func _update_bags(dt: float) -> void:
+	var life: float = Economy.bag_lifetime()
+	var dead: Array = []
+	for bag in _bags:
+		bag["t"] = float(bag["t"]) + dt
+		var node: Node2D = bag["node"]
+		if not is_instance_valid(node):
+			dead.append(bag)
+			continue
+		var t: float = float(bag["t"])
+		if t >= life:
+			dead.append(bag)
+			node.queue_free()
+			continue
+		# Fade the last two seconds so expiry is legible rather than a vanish.
+		node.modulate.a = clampf((life - t) / 2.0, 0.0, 1.0)
+	for b in dead:
+		_bags.erase(b)
+
+## Tap a bag if one is under the point. Returns true when it consumed the tap, so
+## the room beneath does NOT also open its upgrade sheet — a bag sitting inside a
+## room would otherwise fire both.
+func _try_tap_bag(canvas_pos: Vector2) -> bool:
+	var best: Dictionary = {}
+	var best_d: float = BAG_TAP_R
+	for bag in _bags:
+		var node: Node2D = bag["node"]
+		if not is_instance_valid(node):
+			continue
+		var d: float = node.position.distance_to(canvas_pos)
+		if d <= best_d:
+			best_d = d
+			best = bag
+	if best.is_empty():
+		return false
+	var amount: BigNumber = best["value"]
+	Economy.collect_bag(GameState.current_venue, amount)
+	_spawn_float("+$" + amount.to_notation(), best["pos"] + Vector2(0.0, -0.4))
+	_spawn_coin_burst(best["pos"], 6)
+	var node2: Node2D = best["node"]
+	_bags.erase(best)
+	if is_instance_valid(node2):
+		node2.queue_free()
+	return true
 
 # --- Feedback -----------------------------------------------------------------
 

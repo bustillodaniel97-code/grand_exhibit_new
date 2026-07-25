@@ -565,6 +565,67 @@ func manual_collect(venue_id: String) -> BigNumber:
 	EventBus.cash_changed.emit(GameState.cash)
 	return amount
 
+# --- Money bags ----------------------------------------------------------------
+## A served visitor may leave a tip bag on the floor for the player to tap.
+##
+## WHY BOTH THE ODDS AND THE SIZE SCALE WITH SATISFACTION. The owner's brief was
+## that visitors "drop money bags depending on how quick the service and the decor
+## was". Satisfaction already composes exactly those inputs — decor, real service
+## speed, rest areas — so the bag reads the star score rather than re-deriving
+## them, and the decor screen's existing breakdown doubles as the explanation for
+## why bags are rare. Scaling BOTH means a poor venue drops the occasional small
+## bag rather than nothing at all: zero drops would read as a broken feature, and
+## a player cannot learn a system that never fires.
+##
+## Value is denominated in VISITORS' worth of income, not currency, so it tracks
+## the whole progression curve without a per-venue table to maintain.
+
+func _bag_cfg() -> Dictionary:
+	return DataLoader.core.get("money_bags", {})
+
+## 0..1 star fraction for the current venue.
+func _bag_t(venue_id: String) -> float:
+	var stars: float = float(venue_satisfaction(venue_id).get("stars", 0.0))
+	return clampf(stars / 5.0, 0.0, 1.0)
+
+func bag_drop_chance(venue_id: String) -> float:
+	var c: Dictionary = _bag_cfg()
+	return lerpf(float(c.get("chance_min", 0.10)), float(c.get("chance_max", 0.55)),
+		_bag_t(venue_id))
+
+## What one bag is worth right now.
+func bag_value(venue_id: String) -> BigNumber:
+	var c: Dictionary = _bag_cfg()
+	var visitors: float = lerpf(float(c.get("value_visitors_min", 6.0)),
+		float(c.get("value_visitors_max", 26.0)), _bag_t(venue_id))
+	var rates: Dictionary = venue_rates(venue_id)
+	return (rates["value_per_visitor"] as BigNumber).scale(visitors)
+
+func bag_lifetime() -> float:
+	return float(_bag_cfg().get("lifetime_s", 14.0))
+
+func bag_max_alive() -> int:
+	return int(_bag_cfg().get("max_alive", 6))
+
+## Should this served visitor leave a bag? Called once per serve by the floor.
+func roll_bag(venue_id: String) -> bool:
+	return randf() < bag_drop_chance(venue_id)
+
+## Bank a tapped bag. A tip is FRESH cash, not a draw against pending: the pending
+## pile is the sim's own ledger and taking from it would make tapping a bag
+## cannibalise the porters' banking rather than reward the player for a well-run
+## venue.
+func collect_bag(venue_id: String, amount: BigNumber) -> BigNumber:
+	if amount == null or amount.is_zero():
+		return BigNumber.zero()
+	GameState.cash = GameState.cash.add(amount)
+	var vs: Dictionary = GameState.venue_state(venue_id)
+	vs["earned_total"] = BigNumber.from_save(vs.get("earned_total", {})).add(amount).to_save()
+	Analytics.log_event("money_bag_collected", {"venue": venue_id})
+	EventBus.money_bag_collected.emit(venue_id, amount)
+	EventBus.cash_changed.emit(GameState.cash)
+	return amount
+
 ## Expedition idle insight (SPEC §6.2): accrues into capped storage; must be collected.
 func insight_idle_config() -> Dictionary:
 	return DataLoader.get_event("expedition").get("insight_idle",

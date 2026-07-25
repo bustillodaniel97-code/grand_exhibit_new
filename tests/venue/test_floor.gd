@@ -48,19 +48,29 @@ func _initialize() -> void:
 	_floor.set_size(Vector2(720, 760))
 	_floor.dept_selected.connect(func(dept_id: String) -> void: _taps.append(dept_id))
 	root.add_child(_floor)
-	_floor.time_scale = 6.0  # 1 real second ~= 6 sim seconds
+	# The sim is driven explicitly below, so time_scale stays at 1: the suite
+	# advances SIM seconds rather than waiting real ones.
+	_floor.time_scale = 0.0
 
 func _process(delta: float) -> bool:
 	_frames += 1
 	if _frames < 3:
 		return false
-	_t += delta
-	# Feed live rates (venue_view does this via its 0.5s timer in-game).
+	# Advance a fixed slice of SIM time per frame and feed live rates, exactly as
+	# venue_view does via its 0.5s timer in game. Pacing on `delta` instead made
+	# every assertion below a function of how loaded the machine was.
+	const SIM_SLICE := 0.5
+	_t += SIM_SLICE
 	_floor.set_rates(root.get_node("Economy").venue_rates(root.get_node("GameState").current_venue))
+	_floor.advance_sim(SIM_SLICE)
 	match _phase:
 		0:
-			# ~5 real seconds (~30 sim s) of steady-state play.
-			if _t >= 5.0:
+			# 45 sim seconds of steady-state play. Measured: at new-game staffing
+			# the first porter window->vault loop completes at ~31s, so a 30s
+			# window sat right on the boundary — which is why this assertion used
+			# to pass only when a loaded machine handed the sim coarse enough
+			# timesteps to teleport the porter across the gap.
+			if _t >= 45.0:
 				_phase = 1
 				_check_alive()
 				_occupancy_calm = _floor.get_queue_occupancy()
@@ -71,8 +81,8 @@ func _process(delta: float) -> bool:
 				vs["depts"]["archive"]["staff"] = 10
 				_t = 0.0
 		1:
-			# ~4 more real seconds with ticket as the choke point.
-			if _t >= 4.0:
+			# 24 more sim seconds with ticket as the choke point.
+			if _t >= 24.0:
 				_phase = 2
 				_check_choke_response()
 				_check_tap_zones()

@@ -253,5 +253,14 @@
     "max_level": 25,
     "cost_mult": 0.5,
     "_doc": "Per-item upgrades: an item at level L contributes (1 + (L-1)*step_per_level) staff-units. Cost of L->L+1 is the department's staff-track cost at level L times cost_mult."
+  },
+  "money_bags": {
+    "chance_min": 0.1,
+    "chance_max": 0.55,
+    "value_visitors_min": 6.0,
+    "value_visitors_max": 26.0,
+    "lifetime_s": 14.0,
+    "max_alive": 6,
+    "_doc": "A served visitor may leave a tip bag. Both the odds and the size scale with the venue's satisfaction stars, so fast service and good decor are what make the floor worth tapping. Value is expressed in VISITORS' worth of income so it tracks progression automatically instead of needing a per-venue table."
   }
 }
