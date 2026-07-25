@@ -86,10 +86,22 @@ class VenueTheme extends RefCounted:
 	var by_id: Dictionary = {}            # room id -> room dict
 	var by_dept: Dictionary = {}          # dept id -> room dict
 	var shell: Dictionary = {}
+	## Union of every room rect — the venue's true footprint in tiles.
+	var bounds: Rect2 = Rect2()
 	var walls: Array = []
 	var exhibits: Array = []
 	var props: Array = []
 	var dressing: Dictionary = {}
+
+	## Which venue this one inherits from, or "" if it authors its own theme.
+	## Exposed so tooling and tests can ask "is this still an heir?" instead of
+	## hardcoding a venue id that stops being one the day someone authors it.
+	static func raw_extends(venue_id: String) -> String:
+		var v: Dictionary = DataLoader.get_venue(venue_id)
+		var raw: Variant = v.get("theme")
+		if raw is Dictionary:
+			return str((raw as Dictionary).get("extends", ""))
+		return ""
 
 	## The theme for a venue, following `extends` and falling back to the first
 	## venue that has one. A venue with no theme at all is a data error, not a
@@ -144,6 +156,14 @@ class VenueTheme extends RefCounted:
 		# only exists once a room's accent and its floor mix are known.
 		_build_rooms(raw.get("rooms", []) as Array)
 		shell = resolve(raw.get("shell", {})) as Dictionary
+		# The building's real extent is the UNION of its rooms, not a fixed
+		# rectangle. Deriving it is what lets a venue be L-shaped, have a
+		# courtyard, or run tall and narrow instead of every venue being the
+		# same 15x17 square with its rooms permuted inside it.
+		bounds = Rect2()
+		for entry in rooms:
+			var rr: Rect2 = (entry as Dictionary)["rect"]
+			bounds = rr if bounds.size == Vector2.ZERO else bounds.merge(rr)
 		walls = resolve(raw.get("walls", [])) as Array
 		exhibits = resolve(raw.get("exhibits", [])) as Array
 		props = resolve(raw.get("props", [])) as Array
@@ -724,7 +744,13 @@ func _fit_canvas() -> void:
 ## Move a node to a grid position: project, then scale for depth.
 func _place(n: Node2D, g: Vector2) -> void:
 	n.position = Iso.to_screen(g)
-	var t: float = clampf((g.x + g.y) / (Iso.GRID.x + Iso.GRID.y), 0.0, 1.0)
+	# Normalise depth against THIS venue's footprint, not a global grid, or a
+	# tall narrow venue would compress its whole depth range into a fraction of
+	# the scale curve and its cast would barely change size front to back.
+	var span: float = _theme.bounds.size.x + _theme.bounds.size.y
+	if span <= 0.0:
+		span = Iso.GRID.x + Iso.GRID.y
+	var t: float = clampf((g.x + g.y - _theme.bounds.position.x - _theme.bounds.position.y) / span, 0.0, 1.0)
 	n.scale = Vector2.ONE * lerpf(DEPTH_SCALE_BACK, DEPTH_SCALE_FRONT, t)
 
 # --- Cast (staffing visuals follow real dept levels) --------------------------
@@ -1157,8 +1183,16 @@ func _spawn_coin_burst(g: Vector2, count: int = 6) -> void:
 func _draw_ground() -> void:
 	# Outer slab, slightly proud of the rooms — reads as the building shell.
 	var inset: float = Exhibits.f(_theme.shell.get("inset"), 0.35)
-	Iso.floor_patch(_ground, Vector2(-inset, -inset), Iso.GRID + Vector2(inset, inset) * 2.0,
-		Exhibits.c(_theme.shell.get("col"), UI.WALL_BROWN.darkened(0.15)))
+	var shell_col: Color = Exhibits.c(_theme.shell.get("col"), UI.WALL_BROWN.darkened(0.15))
+	# One slab per room rather than one rectangle over the whole grid. Adjacent
+	# rooms merge into a continuous plinth, but a venue that does NOT tile a
+	# rectangle keeps its real silhouette — an L, a T, a courtyard, or detached
+	# wings joined by a link room. Drawing the grid rectangle instead was the
+	# single reason every venue read as the same square building.
+	for entry in _theme.rooms:
+		var rr: Rect2 = (entry as Dictionary)["rect"]
+		Iso.floor_patch(_ground, rr.position - Vector2(inset, inset),
+			rr.size + Vector2(inset, inset) * 2.0, shell_col)
 
 	for entry in _theme.rooms:
 		var room: Dictionary = entry as Dictionary

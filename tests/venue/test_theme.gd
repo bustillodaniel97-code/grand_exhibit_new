@@ -129,12 +129,21 @@ func _check_natural_history_plan() -> void:
 	check(clash == "", "no two rooms overlap (offender %s)" % clash)
 	# An inheriting venue must come back with the SAME plan, or "extends" is a
 	# copy that will drift.
-	# Aimed at grand_river rather than copper_kettle: the aquarium authors its own
-	# theme now, so it is no longer an heir this can be asked about.
-	var heir: Object = VF.VenueTheme.for_venue("grand_river")
-	check(heir.rect("gallery") == t.rect("gallery")
-		and heir.exhibits.size() == t.exhibits.size(),
-		"grand_river inherits the whispering_pines plan through `extends`")
+	# Aimed at sunspire: venues 1-3 all author their own themes now, so the heir
+	# under test has to be one that still inherits. Pick it from the data rather
+	# than naming one, so authoring sunspire later moves this to the next heir
+	# instead of failing.
+	var heir_id: String = ""
+	for vid in ["sunspire", "cloudrest", "aurora_world", "grand_river", "copper_kettle"]:
+		if VF.VenueTheme.raw_extends(vid) == "whispering_pines":
+			heir_id = vid
+			break
+	check(heir_id != "", "at least one venue still inherits, to prove `extends`")
+	if heir_id != "":
+		var heir: Object = VF.VenueTheme.for_venue(heir_id)
+		check(heir.rect("gallery") == t.rect("gallery")
+			and heir.exhibits.size() == t.exhibits.size(),
+			"%s inherits the whispering_pines plan through `extends`" % heir_id)
 
 # --- derived geometry ----------------------------------------------------------
 
@@ -176,9 +185,19 @@ func _check_derived_geometry() -> void:
 	# must not move: a rebuild that ran twice, or one that failed to clear, shows
 	# up as a count that is not the count it started with. (The aquarium's own
 	# rebuild is covered by tests/venue/test_aquarium.gd, which knows its plan.)
+	# Re-theme to an INHERITING venue, whose plan is identical to the one the
+	# floor already holds — that is what makes a changed prop count mean "rebuilt
+	# twice or failed to clear" rather than "this venue simply has more props".
+	var twin: String = ""
+	for vid in ["sunspire", "cloudrest", "aurora_world"]:
+		if VF.VenueTheme.raw_extends(vid) == "whispering_pines":
+			twin = vid
+			break
+	if twin == "":
+		twin = "whispering_pines"
 	var before: int = floor_node.prop_anchors().size()
-	floor_node.retheme("grand_river")
-	check(floor_node.theme_id() == "grand_river", "retheme switches the live venue")
+	floor_node.retheme(twin)
+	check(floor_node.theme_id() == twin, "retheme switches the live venue")
 	check(floor_node.prop_anchors().size() == before,
 		"re-themed floor rebuilds its props exactly once (%d -> %d)"
 			% [before, floor_node.prop_anchors().size()])
