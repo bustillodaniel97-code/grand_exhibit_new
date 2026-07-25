@@ -14,6 +14,7 @@ extends SceneTree
 ##   gems=INT        grant gems
 ##   levels=INT      buy this many upgrade levels per dept track before warm-up
 ##   days=INT        backdate first launch N days, to unlock day-gated features
+##   venue=ID        switch to a venue (unlocks it first) — for previewing themes
 ##   open=RES_PATH   open a popup screen after warm-up
 ##   tap=X,Y         click at design-space (720x1280) coords after warm-up
 
@@ -82,6 +83,16 @@ func _seed() -> void:
 	# Backdate first launch so day-gated features (Inspection Frenzy) unlock.
 	if _args.has("days"):
 		gs.first_launch_unix -= int(_args["days"]) * 86400
+	if _args.has("venue"):
+		var vid: String = String(_args["venue"])
+		if vid not in gs.venues_unlocked:
+			gs.venues_unlocked.append(vid)
+		gs.current_venue = vid
+		# The floor binds its theme at _ready and only re-themes on the prestige
+		# signal, so a direct venue switch needs an explicit retheme to be visible.
+		var floor_node: Node = _find_floor(root)
+		if floor_node != null and floor_node.has_method("retheme"):
+			floor_node.retheme(vid)
 	var lv := int(_args.get("levels", "0"))
 	if lv > 0:
 		var venue: String = gs.current_venue
@@ -89,6 +100,16 @@ func _seed() -> void:
 			for track in ["staff", "speed", "value"]:
 				gs.set_dept_level(venue, dept, track,
 					gs.dept_level(venue, dept, track) + lv)
+
+
+func _find_floor(n: Node) -> Node:
+	if n.name == "VenueFloor":
+		return n
+	for c in n.get_children():
+		var r: Node = _find_floor(c)
+		if r != null:
+			return r
+	return null
 
 
 func _process(delta: float) -> bool:

@@ -60,17 +60,26 @@ static func _is_blank(img: Image) -> bool:
 
 static func _bake_async(look_key: String, look: Dictionary, host: Node) -> void:
 	var CharacterScript: GDScript = load("res://scenes/venue/floor/character.gd")
+	# Grab the tree ONCE, before any await, and never touch `host` again. A bake
+	# belongs to a LOOK, not to the character that happened to ask for it: the
+	# requester can be freed mid-bake — VenueFloor.retheme() frees the whole cast
+	# on a venue change — and dereferencing it after an await threw "Cannot call
+	# method 'get_tree' on a previously freed instance" on every venue advance.
+	var tree: SceneTree = host.get_tree()
+	if tree == null:
+		_pending.erase(look_key)
+		return
 	# Let the frame settle first. The staff looks are all requested from
 	# VenueFloor._ready(), before the renderer has drawn anything, and a
 	# SubViewport created that early read back fully transparent.
-	await host.get_tree().process_frame
+	await tree.process_frame
 	var vp := SubViewport.new()
 	vp.size = Vector2i(SPRITE.x * SUPERSAMPLE, SPRITE.y * SUPERSAMPLE)
 	vp.transparent_bg = true
 	vp.disable_3d = true
 	vp.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	host.get_tree().root.add_child(vp)
+	tree.root.add_child(vp)
 
 	var painter: Node2D = CharacterScript.new()
 	painter.set_painter_mode(true)
