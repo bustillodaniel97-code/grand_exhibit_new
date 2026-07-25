@@ -15,7 +15,9 @@ const Offers := preload("res://scripts/monetization/offer_system.gd")
 const UI := preload("res://scripts/ui/ui_kit.gd")
 
 # Palette aliases (ui_kit is the single source — SPEC §2).
-const BG := UI.BG
+# This screen is popup CONTENT, so its page is a light surface, not the
+# deep app shell — it draws INK body text directly on it.
+const BG := UI.SURFACE
 const INK := UI.INK
 const PANEL := UI.PANEL
 const ACCENT := UI.ACCENT

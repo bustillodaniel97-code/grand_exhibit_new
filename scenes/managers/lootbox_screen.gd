@@ -6,7 +6,9 @@ extends Control
 const LootboxSystem := preload("res://scripts/managers/lootbox_system.gd")
 const UI := preload("res://scripts/ui/ui_kit.gd")
 
-const BG := UI.BG
+# This screen is popup CONTENT, so its page is a light surface, not the
+# deep app shell — it draws INK body text directly on it.
+const BG := UI.SURFACE
 const INK := UI.INK
 const PANEL := UI.PANEL
 const ACCENT := UI.ACCENT

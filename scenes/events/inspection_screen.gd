@@ -9,7 +9,9 @@ const BattleMath = preload("res://scripts/events/battle_math.gd")
 
 # Palette from ui_kit; these were private copies of the retired muted scheme.
 const UI := preload("res://scripts/ui/ui_kit.gd")
-const BG := UI.BG
+# This screen is popup CONTENT, so its page is a light surface, not the
+# deep app shell — it draws INK body text directly on it.
+const BG := UI.SURFACE
 const INK := UI.INK
 const PANEL := UI.PANEL
 const ACCENT := UI.ACCENT

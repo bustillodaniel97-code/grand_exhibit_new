@@ -18,6 +18,11 @@ const BG_DEEP := Color("#1B1538")   # gradient floor / behind-card wash
 const INK := Color("#2B2245")       # body text on light cards
 const PANEL := Color("#FFF9F0")     # card surface
 const PANEL_SOFT := Color("#F3ECFF")# secondary surface, faint violet cast
+## Page background INSIDE a popup card. Distinct from BG on purpose: BG is the
+## app shell behind the world and is deep indigo, while a popup's own page must
+## stay light because every screen draws INK-coloured body text on it. Pointing
+## screens at BG made all seven of them dark-on-dark after the repaint.
+const SURFACE := Color("#F7F2FF")
 const ACCENT := Color("#FF7A3D")    # vivid orange — primary action
 const BRASS := Color("#FFC53D")     # bright gold — currency, rewards
 const SAGE := Color("#2ED573")      # vivid green — confirm, income

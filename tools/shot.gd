@@ -13,6 +13,7 @@ extends SceneTree
 ##   cash=FLOAT      grant cash before warm-up (accepts 1e9 notation)
 ##   gems=INT        grant gems
 ##   levels=INT      buy this many upgrade levels per dept track before warm-up
+##   days=INT        backdate first launch N days, to unlock day-gated features
 ##   open=RES_PATH   open a popup screen after warm-up
 ##   tap=X,Y         click at design-space (720x1280) coords after warm-up
 
@@ -24,6 +25,7 @@ var _args := {}
 var _shots: Array = []          # [{t: float, path: String}]
 var _t := 0.0
 var _fired := false
+var _tapped := false
 var _done := false
 var _vp: SubViewport = null
 
@@ -64,6 +66,9 @@ func _seed() -> void:
 		gs.add_cash(BigNumber.from_float(float(_args["cash"])))
 	if _args.has("gems"):
 		gs.gems += int(_args["gems"])
+	# Backdate first launch so day-gated features (Inspection Frenzy) unlock.
+	if _args.has("days"):
+		gs.first_launch_unix -= int(_args["days"]) * 86400
 	var lv := int(_args.get("levels", "0"))
 	if lv > 0:
 		var venue: String = gs.current_venue
@@ -81,14 +86,20 @@ func _process(delta: float) -> bool:
 		return true
 	if _t < float(_shots[0]["t"]):
 		return false
-	# Interactions fire once at `warm`, then everything gets SETTLE seconds to
-	# finish animating — popups now open on a tween, so capturing on the next
-	# frame caught them half-transparent.
+	# Three staged beats, because doing them in one frame does not work:
+	#   warm            -> open the popup
+	#   warm + SETTLE   -> deliver the tap (the screen has laid out by now; tapping
+	#                      in the open frame hits a zero-size rect and does nothing)
+	#   warm + 2*SETTLE -> capture (open/close tweens have finished)
 	if not _fired:
 		_fired = true
-		_fire_interactions()
+		_fire_open()
 		for s in _shots:
-			s["t"] = float(s["t"]) + SETTLE
+			s["t"] = float(s["t"]) + SETTLE * 2.0
+		return false
+	if not _tapped and _t >= float(_shots[0]["t"]) - SETTLE:
+		_tapped = true
+		_fire_tap()
 		return false
 	var next: Dictionary = _shots.pop_front()
 	_capture(String(next["path"]))
@@ -98,13 +109,16 @@ func _process(delta: float) -> bool:
 	return false
 
 
-func _fire_interactions() -> void:
+func _fire_open() -> void:
 	var Popups: GDScript = load("res://scripts/ui/popup_manager.gd")
 	if bool(int(_args.get("clear", "1"))):
 		for _i in 4:
 			Popups.close_top()
 	if _args.has("open"):
 		Popups.open(String(_args["open"]), {})
+
+
+func _fire_tap() -> void:
 	if _args.has("tap"):
 		var xy: PackedStringArray = String(_args["tap"]).split(",")
 		if xy.size() == 2:
