@@ -80,7 +80,7 @@ func _process(delta: float) -> bool:
 		return true
 	match _phase:
 		0:  # Tap the ticket hall with a real click.
-			_click_room(Vector2(350, 620), "ticket hall")
+			_click_room(_vv._floor.room_center("ticket"), "ticket hall")
 			_next()
 		1:
 			if _phase_t >= 0.1:
@@ -90,7 +90,7 @@ func _process(delta: float) -> bool:
 						_sheet.visible, _vv._open_dept])
 				_next()
 		2:  # Tap the gallery WHILE the ticket sheet is open (dim regression).
-			_click_room(Vector2(234, 204), "gallery")
+			_click_room(_vv._floor.room_center("gallery"), "gallery")
 			_next()
 		3:
 			if _phase_t >= 0.1:
@@ -119,7 +119,7 @@ func _process(delta: float) -> bool:
 				check(not _sheet.visible, "sheet closes via its X button")
 				_next()
 		6:  # Re-open ticket, fund the museum, click the real UPGRADE button.
-			_click_room(Vector2(350, 620), "ticket hall")
+			_click_room(_vv._floor.room_center("ticket"), "ticket hall")
 			_next()
 		7:
 			if _phase_t >= 0.4:  # wait out the sheet open tween before aiming
@@ -177,7 +177,7 @@ func _process(delta: float) -> bool:
 		12:
 			if _phase_t >= 0.35:
 				check(not _sheet.visible, "sheet closed before carpet tap")
-				_click_room(Vector2(400, 740), "dead carpet")
+				_click_room(_vv._floor.dead_zone_point(), "dead zone")
 				_next()
 		13:
 			if _phase_t >= 0.1:

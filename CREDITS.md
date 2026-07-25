@@ -28,3 +28,14 @@ License audit target: 100% CC0 / OFL / proprietary-original. No NC, no ND.
 ## Attribution log
 (CC-BY assets, if any are imported later, get their attribution string appended here
 at import time.)
+
+## Fonts
+- **Quicksand** (Bold, Medium) — Copyright 2011 The Quicksand Project Authors,
+  SIL Open Font License 1.1. Full licence text in `assets/fonts/Quicksand-OFL.txt`.
+  Replaces Kenney Future, which was removed (its "X" glyph renders as "H").
+
+## Art
+All in-game art is procedural, drawn in GDScript, and is original work we dedicate
+to the public domain under CC0. No AI-generated assets are used anywhere in this
+project. The Kenney CC0 UI pack supplies icons, bar and panel sprites and the UI
+SFX only; buttons and cards are drawn with engine styleboxes.

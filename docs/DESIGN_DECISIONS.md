@@ -95,3 +95,55 @@ vault, choke made visible (full ropes / overflowing stacks / sparse floor), tap-
 upgrade cards with IBT-style bold buttons. Palette brightened per user call (overrides muted
 default). Economy autoload untouched; floor reads venue_rates at 0.5Hz. 20/20 suites green,
 motion verified via xvfb frame deltas.
+
+## 2026-07-25 · Handover · Typeface replaced, font-fallback hack removed
+Kenney Future renders "X" as "H" and "$" as "S". ui_kit dodged that by applying
+the display font only to strings containing neither glyph, so the UI mixed two
+typefaces at random — the single biggest reason it read as unfinished. Replaced
+with Quicksand Bold/Medium (OFL-1.1, ~96KB per weight) plus a real type scale and
+ThemeDB.fallback_font so no Control silently falls back to Open Sans.
+
+## 2026-07-25 · Handover · Palette pushed to high chroma
+The SPEC §2 "warm museum" scheme was built from desaturated earth tones and read
+as beige office software on a phone. Replaced with a deep indigo shell and
+saturated, hue-separated room accents. Cards and buttons moved off the tinted
+Kenney parchment nine-patches — parchment carries its own beige value, so tinting
+it with saturated colour produced mud — onto flat rounded styleboxes with a
+chunky bottom lip that collapses on press.
+
+## 2026-07-25 · Handover · Cast is baked, not drawn live
+Characters are rasterised once per look into 4x supersampled textures and blitted
+as a single quad. This fixed the aliasing (`draw_colored_polygon` has no edge
+smoothing, and the antialiased stroke flag both broke canvas batching and only
+smoothed outlines) and cut the cast from ~1189 draw calls to ~42, which in turn
+made per-figure shading detail free. Headless has no rendering context, so the
+baker no-ops and Character falls back to drawing primitives — the suites run that
+path. A blank read-back is never cached: transparent means "render target not
+ready", and caching it left three of four staff uniforms permanently invisible.
+
+## 2026-07-25 · Handover · True isometric, floor bleeding off-screen
+Phase 2 shipped a flat plan; the parity reference (Idle Bank Tycoon) is a 2:1
+isometric diorama. Rebuilt on an iso grid: the simulation runs in tile space and
+projects only at draw and tap time, which let the visitor/porter FSM come across
+unchanged. An iso diamond's bounding box is (grid.x + grid.y) * TILE/2 on BOTH
+axes, so its aspect is fixed by the tile ratio alone and no floor plan reshaping
+will make it fill a portrait screen — so the floor is drawn wider than the
+viewport and clipped, which is what the reference games do. Props are individual
+Y-sorted nodes, not one static layer, so a visitor can stand behind a counter and
+in front of a bench in the same frame.
+
+## 2026-07-25 · Handover · Mobile correctness pass
+stretch/aspect keep -> expand ("keep" letterboxed every 19.5:9 and 20:9 phone).
+HUD and BottomNav became self-sizing PanelContainers; the HUD's hardcoded 136px
+was shorter than its content and painted over the Venue Progress strip. Safe-area
+insets are mobile-only and capped at 12% per edge: DisplayServer.get_display_safe_area()
+reports the whole screen work area on desktop, which handed the nav 254px of
+phantom inset and tore the layout in half. 2D MSAA is NOT enabled — GLES3 does not
+implement it and warns; smoothing comes from the supersampled bake instead.
+
+## 2026-07-25 · Handover · z_index is global, not parent-scoped
+Two bugs from the same misconception. A negative z_index on the floor's static
+layer put it behind main.gd's full-screen background, so the entire diorama
+vanished. A large positive z_index on the room-label layer painted plaques over
+the department bottom sheet. Layers now use small values relative to the cast
+(plaques 2, cash floats 1, sheet 8-9) rather than large absolute ones.

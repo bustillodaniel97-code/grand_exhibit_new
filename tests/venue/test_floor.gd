@@ -99,11 +99,13 @@ func _check_choke_response() -> void:
 
 func _check_tap_zones() -> void:
 	_taps.clear()
-	_floor.simulate_tap(Vector2(586, 174))   # vault room center
-	_floor.simulate_tap(Vector2(586, 396))   # promotions corner
-	_floor.simulate_tap(Vector2(234, 204))   # gallery
-	_floor.simulate_tap(Vector2(350, 620))   # ticket hall / queue lanes
-	_floor.simulate_tap(Vector2(400, 740))   # carpet: no zone
+	# Ask the floor where its rooms are rather than hardcoding canvas points, so
+	# the layout can be rebuilt without silently turning these into dead taps.
+	_floor.simulate_tap(_floor.room_center("archive"))
+	_floor.simulate_tap(_floor.room_center("promotions"))
+	_floor.simulate_tap(_floor.room_center("gallery"))
+	_floor.simulate_tap(_floor.room_center("ticket"))
+	_floor.simulate_tap(_floor.dead_zone_point())   # outside every room
 	check(_taps.size() == 4, "four room taps emitted, carpet tap ignored (got %d)" % _taps.size())
 	check("archive" in _taps, "vault tap zone -> archive")
 	check("promotions" in _taps, "promo corner tap zone -> promotions")

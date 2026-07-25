@@ -33,4 +33,16 @@ and wire the real ad/billing SDKs in `autoload/ad_service.gd` / `autoload/iap_se
   (both default `true` in debug builds; with `false` the stubs fail gracefully until
   the real SDK is wired).
 - All balance lives in `data/*.json` — retune without touching code.
-- Art is procedural placeholder (drawn in code, CC0 by us) pending a Kenney/CC0 pass.
+- Art is fully procedural (drawn in code, CC0 by us). The cast is baked once per
+  look into supersampled textures at runtime — see `scenes/venue/floor/character_baker.gd`.
+  No AI-generated assets and no character sprite packs are used.
+- Fonts: Quicksand Bold/Medium, SIL Open Font License 1.1 (see `assets/fonts/`).
+
+## Dev tools
+```bash
+godot --path . -s tools/shot.gd -- out=/abs/shot.png warm=8 cash=5e7 levels=6
+godot --path . -s tools/shot.gd -- out=/abs/x.png open=res://scenes/store/store_screen.tscn
+godot --path . -s tools/perf.gd          # draw-call attribution: statics vs cast vs UI
+```
+`tools/shot.gd` renders the real shell into an exact 720x1280 SubViewport, so
+captures are display-independent. Both need a display server (not `--headless`).
