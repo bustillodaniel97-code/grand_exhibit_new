@@ -7,8 +7,12 @@ const UI := preload("res://scripts/ui/ui_kit.gd")
 const Popups := preload("res://scripts/ui/popup_manager.gd")
 const HudScene := preload("res://scenes/ui/hud.tscn")
 const NavScene := preload("res://scenes/ui/bottom_nav.tscn")
+const BoostDockScene := preload("res://scenes/ui/boost_dock.tscn")
 const VenueScene := preload("res://scenes/venue/venue_view.tscn")
 const PopupLayerScene := preload("res://scenes/ui/popup_layer.tscn")
+
+const Consent := preload("res://scripts/monetization/consent.gd")
+const Interstitials := preload("res://scripts/monetization/interstitials.gd")
 
 const WELCOME_BACK_PATH := "res://scenes/ui/welcome_back.tscn"
 
@@ -23,6 +27,10 @@ func _ready() -> void:
 		GameState.reset_to_new_game()
 	GameState.ready_flag = true
 	var offline: Dictionary = SaveSystem.compute_offline_and_apply()
+	# Privacy first: Analytics writes nothing to disk and ads stay non-personalized
+	# until the choice is resolved, so this has to run before the first event.
+	Consent.resolve_at_boot()
+	Interstitials.note_session_start()
 	Analytics.session_start()
 	_build_shell()
 	if int(offline.get("seconds", 0)) > 30:
@@ -46,6 +54,10 @@ func _build_shell() -> void:
 	var venue: Control = VenueScene.instantiate()
 	venue.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	layout.add_child(venue)
+
+	# Rewarded-video dock: a real layout row between the world and the nav bar, so
+	# it can never overlap the HUD, the nav or the venue's department sheet.
+	layout.add_child(BoostDockScene.instantiate())
 
 	layout.add_child(NavScene.instantiate())
 

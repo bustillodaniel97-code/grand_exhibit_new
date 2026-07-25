@@ -28,6 +28,8 @@ var _tuning: Dictionary = {}
 var _selected: Array = []       # manager ids for the boss fight (max 3)
 var _battle: Control = null
 var _outcome: Control = null
+var _scroll: ScrollContainer
+var _outcome_timer: Timer
 var _storage_bar: ProgressBar
 var _storage_label: Label
 var _timer: Timer
@@ -71,8 +73,9 @@ func _owned_pairs() -> Array:
 
 func _build() -> void:
 	for c in get_children():
-		if c != _timer:
+		if c != _timer and c != _outcome_timer:
 			c.queue_free()
+	_scroll = null
 	var bg_panel := Panel.new()
 	bg_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg_panel.add_theme_stylebox_override("panel", _style(BG, 0))
@@ -92,13 +95,13 @@ func _build() -> void:
 	if _selected.is_empty():
 		_auto_pick_team()
 
-	var scroll := ScrollContainer.new()
-	scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(scroll)
+	_scroll = ScrollContainer.new()
+	_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_scroll)
 	var root := VBoxContainer.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 12)
-	scroll.add_child(root)
+	_scroll.add_child(root)
 
 	var title := Label.new()
 	title.text = "Expedition Mode · Cycle %d" % (_cycle() + 1)
@@ -241,27 +244,38 @@ func _build_invest_track(root: VBoxContainer) -> void:
 		btn.custom_minimum_size = Vector2(170, 52)
 		var cost: BigNumber = BigNumber.from_parts(
 			float(s.get("invest_cost_m", 1.0)), int(s.get("invest_cost_e", 0)))
-		btn.text = "✓ Done" if done else "Invest " + cost.to_notation()
-		_style_button(btn, SAGE if done else ACCENT)
-		btn.disabled = done or i != stage or GameState.cash.lt(cost)
+		btn.text = "Funded" if done else "Invest " + cost.to_notation()
+		_style_button(btn, SAGE if done else (ACCENT if i == stage else SLATE))
+		# Only a funded step is inert. "Too expensive" and "not your turn" are
+		# explained by _on_invest's toasts, never by a dead tap.
+		btn.disabled = done
 		btn.pressed.connect(_on_invest.bind(i))
 		row.add_child(btn)
-		var info := Label.new()
-		info.text = "%s — +%s insight" % [str(s.get("name", "Site")), str(s.get("insight_reward", 0))]
-		info.add_theme_color_override("font_color", INK)
+		var info := UI.make_label("%s — +%s insight" % [
+			str(s.get("name", "Site")), str(s.get("insight_reward", 0))], UI.TYPE_LABEL)
+		info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(info)
 		root.add_child(row)
 
 
 func _on_invest(i: int) -> void:
 	var es: Dictionary = _es()
-	if i != int(es.get("stage", 0)):
+	var stage: int = int(es.get("stage", 0))
+	if i != stage:
+		var stages: Array = _event.get("stages", [])
+		if stage >= stages.size():
+			_toast("Every dig site is funded — the Guardian is waiting.")
+		elif i < stage:
+			_toast("That site is already funded.")
+		else:
+			_toast("Fund %s first." % str((stages[stage] as Dictionary).get("name", "the next site")))
 		return
 	var s: Dictionary = _event.get("stages", [])[i]
 	var cost: BigNumber = BigNumber.from_parts(
 		float(s.get("invest_cost_m", 1.0)), int(s.get("invest_cost_e", 0)))
 	if not GameState.spend_cash(cost):
-		_toast("Not enough cash")
+		_toast("Needs %s — keep the museum earning." % cost.to_notation())
 		return
 	var invested: BigNumber = BigNumber.from_save(es.get("invested", {}))
 	es["invested"] = invested.add(cost).to_save()
@@ -300,8 +314,15 @@ func _build_boss_section(root: VBoxContainer) -> void:
 	flow.add_theme_constant_override("h_separation", 10)
 	flow.add_theme_constant_override("v_separation", 10)
 	root.add_child(flow)
-	for pair in _owned_pairs():
+	var owned: Array = _owned_pairs()
+	for pair in owned:
 		flow.add_child(_manager_card(pair))
+	if owned.is_empty():
+		var none := UI.make_label(
+			"No managers yet — recruit one from a Store lootbox to field a team.",
+			UI.TYPE_BODY)
+		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		root.add_child(none)
 	var power: float = _team_power_selected()
 	var hp: float = BattleMath.expedition_boss_hp(boss, power, _cycle())
 	var info := Label.new()
@@ -312,11 +333,20 @@ func _build_boss_section(root: VBoxContainer) -> void:
 	root.add_child(info)
 	var btn := Button.new()
 	btn.text = "Fight the Guardian"
-	btn.custom_minimum_size = Vector2(0, 56)
+	btn.custom_minimum_size = Vector2(0, UI.TOUCH_MIN + 8)
 	_style_button(btn, ACCENT)
-	btn.disabled = _selected.is_empty()
-	btn.pressed.connect(_on_fight_boss.bind(hp))
+	btn.pressed.connect(_on_fight_pressed.bind(hp))
 	root.add_child(btn)
+
+
+func _on_fight_pressed(hp: float) -> void:
+	if _owned_pairs().is_empty():
+		_toast("Recruit a manager from the Store before facing the Guardian.")
+		return
+	if _selected.is_empty():
+		_toast("Pick up to 3 managers for the expedition team.")
+		return
+	_on_fight_boss(hp)
 
 
 func _auto_pick_team() -> void:
@@ -353,11 +383,15 @@ func _manager_card(pair: Dictionary) -> Control:
 		str(SPEC_GLYPH.get(spec, "?")), str(def.get("name", mid)),
 		int(st.get("level", 1)), int(st.get("rank", 1)),
 		int(round(BattleMath.manager_attack(def, st)))]
+	# A fourth pick used to silently snap back to unpressed. Nothing refuses a
+	# tap: picking past the cap rotates the oldest manager out of the team.
 	btn.toggled.connect(func(on: bool) -> void:
 		if on:
 			if _selected.size() >= 3:
-				btn.button_pressed = false
-				return
+				var dropped: String = str(_selected.pop_front())
+				_toast("%s stepped aside for %s" % [
+					str(DataLoader.get_manager_def(dropped).get("name", dropped)),
+					str(def.get("name", mid))])
 			_selected.append(mid)
 		else:
 			_selected.erase(mid)
@@ -371,6 +405,8 @@ func _on_fight_boss(hp: float) -> void:
 	for mid in _selected:
 		team.append({"def": DataLoader.get_manager_def(mid),
 			"state": GameState.managers_state[mid], "id": mid})
+	if _scroll != null and is_instance_valid(_scroll):
+		_scroll.visible = false  # nothing of the host can bleed past the board
 	_battle = BattleView.new()
 	_battle.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_battle)
@@ -380,25 +416,45 @@ func _on_fight_boss(hp: float) -> void:
 		"moves": int(boss.get("moves", 24)),
 		"team": team,
 	})
-	_battle.battle_finished.connect(_on_boss_finished, CONNECT_ONE_SHOT)
+	_battle.battle_finished.connect(_on_boss_finished.bind(hp), CONNECT_ONE_SHOT)
 
 
-func _on_boss_finished(result: String) -> void:
+func _on_boss_finished(result: String, hp: float) -> void:
 	Analytics.log_event("expedition_boss", {"cycle": _cycle(), "result": result})
-	if result == "win":
-		var boss: Dictionary = _event.get("boss", {})
-		var applied: Dictionary = _apply_rewards(boss.get("rewards", {}))
-		EventBus.event_stage_completed.emit("expedition", _cycle(), applied)
-		# New cycle: track resets, boss hp scales +25%/cycle via persisted count.
-		var es: Dictionary = _es()
-		es["stage"] = 0
-		es["invested"] = BigNumber.zero().to_save()
-		es["boss_unlocked"] = false
-		es["cycle"] = _cycle() + 1
-		_show_outcome("Guardian defeated!\n%s\nA new expedition begins (cycle %d)." % [
-			_applied_text(applied), _cycle() + 1])
-	else:
-		_show_outcome("The Guardian holds the temple.\nGrow your team and retry!")
+	if result != "win":
+		_queue_outcome("Expedition failed", "The Guardian holds the temple.\n"
+			+ "Chase the audit colour or bring stronger managers.", UI.DANGER, hp)
+		return
+	var es: Dictionary = _es()
+	# Idempotence lives here, not in whether a button happened to be disabled:
+	# clearing the boss closes the cycle, so a second emission finds it closed.
+	if not bool(es.get("boss_unlocked", false)):
+		_queue_outcome("Already claimed", "This expedition is already written up.",
+			SAGE, hp)
+		return
+	var boss: Dictionary = _event.get("boss", {})
+	var applied: Dictionary = _apply_rewards(boss.get("rewards", {}))
+	EventBus.event_stage_completed.emit("expedition", _cycle(), applied)
+	# New cycle: the track resets and the boss escalates via the persisted count.
+	es["stage"] = 0
+	es["invested"] = BigNumber.zero().to_save()
+	es["boss_unlocked"] = false
+	es["cycle"] = _cycle() + 1
+	_queue_outcome("Guardian defeated", "%s\nA new expedition begins (cycle %d)." % [
+		_applied_text(applied), _cycle() + 1], SAGE, hp)
+
+
+## Lets the last cascade and the last damage number land before the card covers
+## the board. Rewards are already applied by this point; only the card waits.
+func _queue_outcome(title: String, body: String, tint: Color, hp: float) -> void:
+	if _outcome_timer != null and is_instance_valid(_outcome_timer):
+		_outcome_timer.queue_free()
+	_outcome_timer = Timer.new()
+	_outcome_timer.one_shot = true
+	_outcome_timer.wait_time = 0.55
+	add_child(_outcome_timer)
+	_outcome_timer.timeout.connect(func() -> void: _show_outcome(title, body, tint, hp))
+	_outcome_timer.start()
 
 
 func _apply_rewards(rewards: Dictionary) -> Dictionary:
@@ -426,40 +482,73 @@ func _apply_rewards(rewards: Dictionary) -> Dictionary:
 	return applied
 
 
-func _show_outcome(text: String) -> void:
+func _show_outcome(title: String, body: String, tint: Color, hp: float) -> void:
+	if not is_inside_tree():
+		return
 	_outcome = Panel.new()
 	_outcome.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_outcome.add_theme_stylebox_override("panel", _style(Color(0, 0, 0, 0.6), 0))
+	_outcome.add_theme_stylebox_override("panel", _style(Color(0, 0, 0, 0.62), 0))
 	add_child(_outcome)
-	var card := Panel.new()
-	card.custom_minimum_size = Vector2(560, 340)
-	card.position = Vector2(80, 470)
-	card.add_theme_stylebox_override("panel", _style(PANEL, 12, BRASS))
-	_outcome.add_child(card)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_outcome.add_child(center)
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(560, 0)
+	card.add_theme_stylebox_override("panel", UI.make_frame(tint))
+	center.add_child(card)
 	var v := VBoxContainer.new()
-	v.set_anchors_preset(Control.PRESET_FULL_RECT)
-	v.alignment = BoxContainer.ALIGNMENT_CENTER
-	v.add_theme_constant_override("separation", 20)
+	v.add_theme_constant_override("separation", 14)
 	card.add_child(v)
-	var l := Label.new()
-	l.text = text
+
+	# A win and a loss have to be unmistakable from across the room: a full-width
+	# colour band, not two lines of body copy on the same cream card.
+	var band := PanelContainer.new()
+	band.add_theme_stylebox_override("panel", UI.make_panel(tint, 14, 0))
+	var band_l := UI.make_display_label(title.to_upper(), UI.TYPE_HERO, Color.WHITE)
+	band_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UI.add_text_halo(band_l)
+	band.add_child(band_l)
+	v.add_child(band)
+
+	var l := UI.make_label(body, UI.TYPE_BODY)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.add_theme_font_size_override("font_size", 22)
-	l.add_theme_color_override("font_color", INK)
 	v.add_child(l)
-	var btn := Button.new()
-	btn.text = "Continue"
-	btn.custom_minimum_size = Vector2(0, 56)
-	_style_button(btn, ACCENT)
-	btn.pressed.connect(func() -> void:
-		if _battle != null:
-			_battle.queue_free()
-			_battle = null
+
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 12)
+	v.add_child(row)
+	var still_open: bool = bool(_es().get("boss_unlocked", false))
+	if still_open and not _selected.is_empty():
+		var retry := UI.make_button("Retry", ACCENT)
+		retry.custom_minimum_size = Vector2(180, UI.TOUCH_MIN + 8)
+		retry.pressed.connect(_on_retry.bind(hp))
+		row.add_child(retry)
+	var btn := UI.make_button("Continue", SAGE if not still_open else UI.SLATE)
+	btn.custom_minimum_size = Vector2(180, UI.TOUCH_MIN + 8)
+	btn.pressed.connect(_close_battle)
+	row.add_child(btn)
+
+
+func _on_retry(hp: float) -> void:
+	if _outcome != null and is_instance_valid(_outcome):
 		_outcome.queue_free()
-		_outcome = null
-		_build())
-	v.add_child(btn)
+	_outcome = null
+	if _battle != null and is_instance_valid(_battle):
+		_battle.queue_free()
+	_battle = null
+	_on_fight_boss(hp)
+
+
+func _close_battle() -> void:
+	if _battle != null and is_instance_valid(_battle):
+		_battle.queue_free()
+	_battle = null
+	if _outcome != null and is_instance_valid(_outcome):
+		_outcome.queue_free()
+	_outcome = null
+	_build()
 
 
 func _rewards_preview(rewards: Dictionary) -> String:

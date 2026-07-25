@@ -9,11 +9,15 @@ extends RefCounted
 ## Auto-refresh selection is pseudo-random but deterministic per refresh bucket
 ## (seeded by the bucket index), so reopening the store within one bucket is stable.
 
+const MonoClock := preload("res://scripts/monetization/mono_clock.gd")
+
 static func _tuning() -> Dictionary:
 	return DataLoader.core.get("monetization_tuning", {})
 
+## Guarded day, not the system clock: the force-refresh allowance used to reset
+## with a single device-clock change, and so did the shelf.
 static func _today() -> String:
-	return Time.get_date_string_from_unix_time(ClockGuard.now())
+	return MonoClock.today()
 
 static func _interval_seconds() -> int:
 	return int(_tuning().get("daily_deal_refresh_hours", 4)) * 3600
@@ -39,7 +43,7 @@ static func refresh_at() -> int:
 	return int(GameState.daily_deals.get("refresh_at", 0))
 
 static func seconds_until_refresh() -> int:
-	return maxi(0, refresh_at() - ClockGuard.now())
+	return maxi(0, refresh_at() - MonoClock.now())
 
 static func force_refreshes_left() -> int:
 	_rollover_force_day()
@@ -72,7 +76,7 @@ static func _rollover_force_day() -> void:
 
 static func _ensure_fresh() -> void:
 	_rollover_force_day()
-	var now: int = ClockGuard.now()
+	var now: int = MonoClock.now()
 	if int(GameState.daily_deals.get("refresh_at", 0)) <= now or GameState.daily_deals.get("items", []).is_empty():
 		var bucket: int = int(now / _interval_seconds())
 		_reroll(bucket)

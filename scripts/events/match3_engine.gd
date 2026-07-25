@@ -2,21 +2,42 @@ extends RefCounted
 ## Deterministic 8x8 match-3 battler engine (SPEC §6). Pure logic, no nodes.
 ## Tiles: 0=promotions, 1=ticket, 2=archive, 3=gallery, 4=neutral brass.
 ## Neutral tiles never charge. All randomness flows through one seeded RNG.
+##
+## AUDIT FOCUS. A board with ~18 legal moves at every instant and no reason to
+## prefer one over another is a tap tax, not a game: measured, a colour-aware
+## player beat a first-legal-move player by 1.8%. The inspector now audits ONE
+## department at a time and tiles of that colour charge at FOCUS_CHARGE_MULT, so
+## every move is a search for a specific colour and the focus re-rolls the moment
+## the player satisfies it. That is the whole decision space, and it is worth
+## roughly a third of the damage budget (see tests/events/test_battle_balance.gd).
 
 const SIZE := 8
 const TYPE_COUNT := 5
 const NEUTRAL := 4
 const CHARGE_FULL := 100.0
-const CHARGE_PER_TILE := 100.0 / 12.0  # 12 cleared tiles of a color = full charge
+## Tiles of one colour that fill a manager's charge bar. Was 12, which bought a
+## 20-move battle only ~5 damage events end to end — long stretches where nothing
+## happened. At 6 a manager fires roughly every other move, which both reads as
+## responsive and tightens the outcome distribution enough to tune win rates.
+const CHARGE_TILES := 6
+const CHARGE_PER_TILE := CHARGE_FULL / float(CHARGE_TILES)
 const CASCADE_MULT := 1.25             # charge multiplier per cascade step
 const MATCH4_CHARGE_MULT := 1.5
 const MATCH5_CHARGE_MULT := 2.5
+const FOCUS_CHARGE_MULT := 1.8         # audited department pays this much more
+## Satisfying the audit on consecutive moves compounds the bonus. Small on
+## purpose: it is there so the chain counter on the HUD means something and so a
+## run of good reads feels like a run, not so that one lucky chain wins a fight.
+const FOCUS_CHAIN_STEP := 0.2
+const FOCUS_CHAIN_MAX := 3
 const MAX_CASCADE_STEPS := 64          # safety cap; cascades terminate long before
 
 var _rng := RandomNumberGenerator.new()
 var _grid: Array = []      # _grid[y][x] -> int tile type
 var _team: Array = []      # manager slot -> tile type 0..3 (-1 = empty slot)
 var _charges: Array = []   # manager slot -> float charge 0..100
+var _focus := -1           # audited tile type, or -1 when the team owns no colour
+var _focus_streak := 0     # consecutive moves that satisfied the audit
 
 
 func _init(seed: int = 0) -> void:
@@ -30,10 +51,53 @@ func set_team(tile_types: Array) -> void:
 	_charges.clear()
 	for i in _team.size():
 		_charges.append(0.0)
+	_focus_streak = 0
+	_roll_focus()
 
 
 func get_charges() -> Array:
 	return _charges.duplicate()
+
+
+## Tile type the inspector is currently auditing, or -1 when the team fields no
+## colour that could satisfy one (all-neutral or empty team).
+func focus_type() -> int:
+	return _focus
+
+
+func focus_streak() -> int:
+	return _focus_streak
+
+
+## Charge multiplier the audited colour is paying RIGHT NOW, chain included.
+func focus_multiplier() -> float:
+	return FOCUS_CHARGE_MULT + FOCUS_CHAIN_STEP * float(mini(_focus_streak, FOCUS_CHAIN_MAX))
+
+
+## Colours the team actually fields, deduplicated, neutral excluded.
+func _team_colors() -> Array:
+	var seen := {}
+	for t in _team:
+		var ti: int = int(t)
+		if ti >= 0 and ti < NEUTRAL:
+			seen[ti] = true
+	return seen.keys()
+
+
+## Rolls a new audit colour, preferring one different from the current focus so
+## the player is asked to move their eyes rather than re-match the same colour.
+func _roll_focus() -> void:
+	var colors: Array = _team_colors()
+	if colors.is_empty():
+		_focus = -1
+		return
+	var pool: Array = []
+	for c in colors:
+		if int(c) != _focus:
+			pool.append(c)
+	if pool.is_empty():
+		pool = colors
+	_focus = int(pool[_rng.randi_range(0, pool.size() - 1)])
 
 
 func grid() -> Array:
@@ -77,13 +141,51 @@ func can_swap(a: Vector2i, b: Vector2i) -> bool:
 	return d.x + d.y == 1
 
 
+## True when swapping a and b would produce at least one match. Lets the view
+## answer "is this a legal move" without mutating the board.
+func would_match(a: Vector2i, b: Vector2i) -> bool:
+	if not can_swap(a, b):
+		return false
+	_swap_cells(a, b)
+	var ok: bool = _match_at(a) or _match_at(b)
+	_swap_cells(a, b)
+	return ok
+
+
+## What the FIRST cascade step of this swap would clear, without mutating the
+## board: {cells:Array[Vector2i], total:int, focus:int}. Powers the idle hint in
+## the view and the solver harness that tunes boss pressure — both have to rank a
+## move before committing to it. Types are read INSIDE the hypothetical swap, so
+## the two swapped tiles are counted at their new positions.
+func preview_swap(a: Vector2i, b: Vector2i) -> Dictionary:
+	if not can_swap(a, b):
+		return {"cells": [], "total": 0, "focus": 0}
+	_swap_cells(a, b)
+	var cells := {}
+	for g in _find_matches():
+		for c in g["cells"]:
+			cells[c] = true
+	var focus := 0
+	for c in cells.keys():
+		if _grid[c.y][c.x] == _focus:
+			focus += 1
+	_swap_cells(a, b)
+	return {"cells": cells.keys(), "total": cells.size(), "focus": focus}
+
+
 ## Attempts a swap. Non-matching swaps are reverted.
-## Returns {swapped, events, attacks, charges, tiles_cleared}.
+## Returns {swapped, events, attacks, charges, tiles_cleared, focus, focus_hit,
+## focus_streak, grid_before}.
 ## events = one Dictionary per cascade step:
-##   {step, matches:[{type, size, kind}], cleared:int, attacks:[{manager_index, charge_mult}]}
+##   {step, matches:[{type, size, kind}], cleared:int, cells:Array[Vector2i],
+##    grid_after:Array, attacks:[{manager_index, charge_mult}]}
+## `cells` and `grid_after` exist so the view can animate the cascade instead of
+## snapping the board; they are the only reason the engine keeps snapshots.
 func try_swap(a: Vector2i, b: Vector2i) -> Dictionary:
 	var result := {"swapped": false, "events": [], "attacks": [],
-		"charges": get_charges(), "tiles_cleared": 0}
+		"charges": get_charges(), "tiles_cleared": 0,
+		"focus": _focus, "focus_hit": false, "focus_streak": _focus_streak,
+		"grid_before": grid()}
 	if not can_swap(a, b):
 		return result
 	_swap_cells(a, b)
@@ -91,10 +193,20 @@ func try_swap(a: Vector2i, b: Vector2i) -> Dictionary:
 		_swap_cells(a, b)
 		return result
 	result["swapped"] = true
+	result["grid_before"] = grid()  # post-swap, pre-clear: what the swap tween lands on
 	var resolved: Dictionary = _resolve()
 	result["events"] = resolved["events"]
 	result["attacks"] = resolved["attacks"]
 	result["tiles_cleared"] = resolved["tiles_cleared"]
+	var hit: bool = int(resolved["focus_cleared"]) > 0 and _focus >= 0
+	if hit:
+		_focus_streak += 1
+		_roll_focus()
+	elif _focus >= 0:
+		_focus_streak = 0
+	result["focus_hit"] = hit
+	result["focus_streak"] = _focus_streak
+	result["focus"] = _focus
 	result["charges"] = get_charges()
 	return result
 
@@ -141,11 +253,13 @@ func _find_matches() -> Array:
 
 
 ## Resolves the board: match -> score/charge -> clear -> gravity -> refill,
-## looping cascades until stable. Returns {events, attacks, tiles_cleared}.
+## looping cascades until stable.
+## Returns {events, attacks, tiles_cleared, focus_cleared}.
 func _resolve() -> Dictionary:
 	var events: Array = []
 	var all_attacks: Array = []
 	var total_cleared := 0
+	var focus_cleared := 0
 	var step := 0
 	while step < MAX_CASCADE_STEPS:
 		var groups := _find_matches()
@@ -179,6 +293,9 @@ func _resolve() -> Dictionary:
 				for c in affected.keys():
 					if _grid[c.y][c.x] == t:
 						n_of_type += 1
+				if t == _focus:
+					focus_cleared += n_of_type
+					kind_mult *= focus_multiplier()
 				var amount: float = CHARGE_PER_TILE * float(n_of_type) * kind_mult * step_mult
 				for slot in _team.size():
 					if int(_team[slot]) == t:
@@ -193,12 +310,15 @@ func _resolve() -> Dictionary:
 			match_descs.append({"type": t, "size": cells.size(), "kind": kind})
 		var cleared_this_step: int = clear_set.size()
 		total_cleared += cleared_this_step
-		events.append({"step": step, "matches": match_descs,
-			"cleared": cleared_this_step, "attacks": attacks})
-		all_attacks.append_array(attacks)
+		var cells_list: Array = clear_set.keys()
 		_clear_and_refill(clear_set)
+		events.append({"step": step, "matches": match_descs,
+			"cleared": cleared_this_step, "cells": cells_list,
+			"grid_after": grid(), "attacks": attacks})
+		all_attacks.append_array(attacks)
 		step += 1
-	return {"events": events, "attacks": all_attacks, "tiles_cleared": total_cleared}
+	return {"events": events, "attacks": all_attacks,
+		"tiles_cleared": total_cleared, "focus_cleared": focus_cleared}
 
 
 func _cells_of_type(t: int) -> Array:
@@ -242,6 +362,13 @@ func _clear_and_refill(clear_set: Dictionary) -> void:
 
 ## True when no legal swap would produce a match.
 func is_deadlocked() -> bool:
+	return legal_moves(1).is_empty()
+
+
+## Every swap that would produce a match, as [{a:Vector2i, b:Vector2i}].
+## `limit` > 0 stops early (is_deadlocked only needs to know whether one exists).
+func legal_moves(limit: int = 0) -> Array:
+	var out: Array = []
 	for y in SIZE:
 		for x in SIZE:
 			var p := Vector2i(x, y)
@@ -253,8 +380,10 @@ func is_deadlocked() -> bool:
 				var makes_match: bool = _match_at(p) or _match_at(q)
 				_swap_cells(p, q)
 				if makes_match:
-					return false
-	return true
+					out.append({"a": p, "b": q})
+					if limit > 0 and out.size() >= limit:
+						return out
+	return out
 
 
 func _match_at(p: Vector2i) -> bool:

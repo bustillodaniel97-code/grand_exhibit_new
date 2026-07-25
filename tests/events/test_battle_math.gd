@@ -38,9 +38,12 @@ func _initialize() -> void:
 	_test_manager_attack()
 	_test_team_power()
 	_test_stage_boss_hp_monotonic()
-	_test_final_stage_ratio()
-	_test_team_power_scaling()
+	_test_stage_ramp_is_a_ramp()
+	_test_every_stage_is_winnable_on_paper()
+	_test_stronger_team_is_never_worse_off()
 	_test_expedition_cycle_scaling()
+	_test_expedition_cycle_cap()
+	_test_hp_floor()
 	_test_reward_draw()
 	quit(1 if failures > 0 else 0)
 
@@ -94,44 +97,111 @@ func _test_stage_boss_hp_monotonic() -> void:
 			monotonic = false
 		prev = hp
 	check(monotonic, "stage_boss_hp strictly increasing in stage index")
-	# Formula sanity: stage 1 (i=0) at team_power 0 -> base_hp exactly.
-	var base: float = float(ev.get("scaling", {}).get("base_hp", 500.0))
-	check(is_equal_approx(BattleMath.stage_boss_hp(ev, 0, 0.0), base),
-		"stage 0 hp at zero team power = base_hp")
 
 
-func _test_final_stage_ratio() -> void:
+## Boss HP is quoted as a fraction of the damage the SELECTED team can expect to
+## deal in the stage's move budget. That fraction has to climb across the event,
+## or later stages are only "harder" because they hand out more moves.
+func _test_stage_ramp_is_a_ramp() -> void:
 	var ev: Dictionary = DL.get_event("inspection_frenzy")
 	var stages: Array = ev.get("stages", [])
-	var need: float = float(ev.get("scaling", {}).get("final_stage_power_need", 1.5))
-	for tp in [50.0, 100.0, 1000.0]:
-		var first: float = BattleMath.stage_boss_hp(ev, 0, tp)
-		var last: float = BattleMath.stage_boss_hp(ev, stages.size() - 1, tp)
-		check(last / first >= need,
-			"last/first hp ratio %.1f >= final_stage_power_need (tp=%s)" % [last / first, str(tp)])
+	var prev := 0.0
+	var climbs := true
+	for i in stages.size():
+		var moves: int = BattleMath.stage_moves(ev, i)
+		var ratio: float = BattleMath.stage_boss_hp(ev, i, 100.0) \
+			/ BattleMath.expected_damage(100.0, moves)
+		if ratio <= prev:
+			climbs = false
+		prev = ratio
+	check(climbs, "hp / expected damage rises every stage")
+	check(prev < 1.25, "even the last stage stays inside a reachable %.2f of budget" % prev)
 
 
-func _test_team_power_scaling() -> void:
+## THE regression for "battles are arithmetically unwinnable". Boss HP must sit
+## below the damage budget of the team that is fighting it, at EVERY team power
+## — the old model derived HP from the whole owned roster, so a 14-manager
+## collection turned stage 1 from 120 HP into 959 while damage stayed put.
+func _test_every_stage_is_winnable_on_paper() -> void:
 	var ev: Dictionary = DL.get_event("inspection_frenzy")
-	var low: float = BattleMath.stage_boss_hp(ev, 2, 0.0)
-	var high: float = BattleMath.stage_boss_hp(ev, 2, 400.0)
-	check(high > low, "boss hp scales up with team power")
-	var ev2: Dictionary = ev.duplicate(true)
-	ev2["scaling"] = ev.get("scaling", {}).duplicate()
-	ev2["scaling"]["hp_vs_power"] = 0.9
-	var s0: float = BattleMath.stage_boss_hp(ev2, 2, 100.0)
-	var s1: float = BattleMath.stage_boss_hp(ev2, 2, 200.0)
-	check(is_equal_approx(s1 / s0, pow(2.0, 0.9)),
-		"doubling team power scales hp by 2^hp_vs_power")
+	var boss: Dictionary = DL.get_event("expedition").get("boss", {})
+	for tp in [30.0, 44.4, 147.6, 722.4, 5000.0]:
+		for i in (ev.get("stages", []) as Array).size():
+			var moves: int = BattleMath.stage_moves(ev, i)
+			var hp: float = BattleMath.stage_boss_hp(ev, i, tp)
+			check(hp < BattleMath.expected_damage(tp, moves),
+				"stage %d at team power %.0f is inside the damage budget (%.0f < %.0f)" % [
+					i + 1, tp, hp, BattleMath.expected_damage(tp, moves)])
+		var bhp: float = BattleMath.expedition_boss_hp(boss, tp, 0)
+		check(bhp < BattleMath.expected_damage(tp, int(boss.get("moves", 24))),
+			"expedition boss at team power %.0f is inside the damage budget" % tp)
+	check(BattleMath.MAX_BUDGET_SHARE < 1.0,
+		"the budget ceiling is a real ceiling, not a formality")
+
+
+## Progression must not invert: a stronger team never faces a RELATIVELY tougher
+## boss. Ratio = hp / expected damage; it may fall with power, never rise.
+func _test_stronger_team_is_never_worse_off() -> void:
+	var ev: Dictionary = DL.get_event("inspection_frenzy")
+	var powers := [20.0, 30.0, 60.0, 100.0, 200.0, 500.0, 1500.0, 6000.0]
+	for i in (ev.get("stages", []) as Array).size():
+		var moves: int = BattleMath.stage_moves(ev, i)
+		var prev := INF
+		var ok := true
+		for tp in powers:
+			var ratio: float = BattleMath.stage_boss_hp(ev, i, tp) \
+				/ BattleMath.expected_damage(tp, moves)
+			if ratio > prev + 0.0001:
+				ok = false
+			prev = ratio
+		check(ok, "stage %d: difficulty never rises with team power" % (i + 1))
+	# And doubling the team really does roughly halve the effort.
+	var lo: float = BattleMath.stage_boss_hp(ev, 2, 100.0) / BattleMath.expected_damage(100.0, 22)
+	var hi: float = BattleMath.stage_boss_hp(ev, 2, 200.0) / BattleMath.expected_damage(200.0, 22)
+	check(hi < lo, "doubling team power measurably eases the fight (%.3f -> %.3f)" % [lo, hi])
+	check(hi > lo * 0.7, "growth is a reward, not a trivialiser")
 
 
 func _test_expedition_cycle_scaling() -> void:
 	var boss: Dictionary = DL.get_event("expedition").get("boss", {})
+	var growth: float = float(boss.get("cycle_hp_growth", 1.15))
 	var c0: float = BattleMath.expedition_boss_hp(boss, 100.0, 0)
 	var c1: float = BattleMath.expedition_boss_hp(boss, 100.0, 1)
 	var c2: float = BattleMath.expedition_boss_hp(boss, 100.0, 2)
-	check(is_equal_approx(c1 / c0, 1.25), "boss hp +25% per cycle")
-	check(is_equal_approx(c2 / c0, 1.5625), "boss hp compounds over two cycles")
+	check(is_equal_approx(c1 / c0, growth), "boss hp grows by cycle_hp_growth per cycle")
+	check(c2 >= c1 and c2 <= c0 * growth * growth,
+		"escalation compounds up to the budget ceiling and no further")
+
+
+## Uncapped compounding always wins eventually — at the old +25%/cycle a fully
+## maxed team dropped to a 35% clear by cycle 4, turning an evergreen mode into a
+## countdown to a wall. Escalation now tops out at "hard", never at "impossible".
+func _test_expedition_cycle_cap() -> void:
+	var boss: Dictionary = DL.get_event("expedition").get("boss", {})
+	var moves: int = int(boss.get("moves", 24))
+	for tp in [30.0, 100.0, 722.4]:
+		var budget: float = BattleMath.expected_damage(tp, moves)
+		var prev := 0.0
+		var rises := true
+		for cycle in [0, 1, 2, 4, 8, 40]:
+			var hp: float = BattleMath.expedition_boss_hp(boss, tp, cycle)
+			if hp < prev - 0.0001:
+				rises = false
+			prev = hp
+			check(hp <= budget * BattleMath.MAX_BUDGET_SHARE + 0.001,
+				"tp %.0f cycle %d: boss stays inside the damage budget (%.0f <= %.0f)" % [
+					tp, cycle, hp, budget * BattleMath.MAX_BUDGET_SHARE])
+		check(rises, "tp %.0f: later cycles are never easier" % tp)
+
+
+func _test_hp_floor() -> void:
+	var ev: Dictionary = DL.get_event("inspection_frenzy")
+	var floor_hp: float = float(ev.get("scaling", {}).get("min_hp", 30.0))
+	check(is_equal_approx(BattleMath.stage_boss_hp(ev, 0, 0.0), floor_hp),
+		"a zero-power team still faces a real boss, not an instant win")
+	check(BattleMath.expected_damage(0.0, 20) == 0.0, "no team, no damage")
+	check(BattleMath.expected_damage(-5.0, 20) == 0.0, "negative power clamps to zero")
+	check(BattleMath.stage_moves(ev, 99) == 20, "out-of-range stage falls back to 20 moves")
 
 
 func _test_reward_draw() -> void:

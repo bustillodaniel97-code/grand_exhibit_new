@@ -14,9 +14,12 @@ extends Node2D
 ## along the key side, contact occlusion under the chin and at the waist, banded
 ## hair with a highlight, and stroked silhouettes on every major mass.
 ##
-## Looks are quantised to LOOK_COUNT palettes so the bake cache stays bounded.
+## Looks are quantised to LOOK_COUNT slots so the bake cache stays bounded. One
+## slot is a whole appearance — palette, hair style and build — because the bake
+## is keyed on the slot; see look_for_slot for why the axes are strided rather
+## than drawn from one RNG stream.
 ##
-## Public API unchanged: randomize_look / set_uniform / walking / facing /
+## Public API: set_look_slot / randomize_look / set_uniform / walking / facing /
 ## with_cart / holding_sign / carry_stack.
 
 const UI := preload("res://scripts/ui/ui_kit.gd")
@@ -25,9 +28,31 @@ const Baker := preload("res://scenes/venue/floor/character_baker.gd")
 const WALK_FPS := 10.0
 const OUTLINE := Color("#3A2A1F")
 const OUTLINE_W := 1.8
-## Distinct visitor palettes. Bounds the bake cache; the crowd still reads as
-## varied because hair style and walk phase vary independently of palette.
-const LOOK_COUNT := 14
+## Eyes are inked a shade lighter than the silhouette stroke. At the size the
+## head is minified to on a phone, filling them with OUTLINE let them merge with
+## the head stroke and with the staff cap into one dark mass.
+const EYE_INK := Color("#4A3728")
+
+## Figure metrics the bake budget and the suites both reason about.
+const HEAD_R := 10.8
+const HEAD_Y := -33.5
+const BOB_AMP := 2.6
+const SQUASH_AMP := 0.07
+
+const HAIR_STYLES := 8
+## Build multiplies torso/limb width and, at 45% strength, head radius. It is
+## serialised through the bake, so it costs cache slots rather than draw time.
+const BUILDS: Array[float] = [0.91, 1.0, 1.09]
+## Distinct visitor looks. Bounds the bake cache. Every slot is a distinct
+## (hair style, build) pair, and the palette axes are strided so no two slots
+## share a full palette. Sized above the floor's peak population so a busy floor
+## no longer shows the same person three times.
+const LOOK_COUNT := HAIR_STYLES * 3   # 24
+## Per-department staff variants. Staff read by uniform hue, so the variants only
+## need to break up skin, hair and stature — three is enough for five tellers.
+const STAFF_LOOK_COUNT := 3
+## Styles that still read under a peaked cap: nothing that piles mass on the crown.
+const STAFF_STYLES: Array[int] = [0, 6, 7]
 
 const SKIN_TONES: Array[Color] = [
 	Color("#F8D8B0"), Color("#EFC094"), Color("#D9A170"), Color("#B87B4C"),
@@ -44,6 +69,67 @@ const SHIRT_COLORS: Array[Color] = [
 const PANTS_COLORS: Array[Color] = [
 	Color("#3A3F4A"), Color("#5A4A3A"), Color("#44546A"), Color("#4A3F52"),
 ]
+
+## Hair is silhouette-first. On a phone the head is about twenty screen pixels,
+## so the only thing a player resolves is the OUTLINE; four styles that all hug
+## the skull at r+0.8 are one haircut in four colours no matter how the strands
+## are shaded. Seven of the eight styles below push the outline at least 3px past
+## the skull cap.
+##
+## HAIR_BACK — masses behind the skull, drawn BEFORE it so the head occludes
+## them. That is what lets a lock or a tail read at full strength without its
+## 1.8px stroke ever crossing skin. Entries are [dx, dy, rx, ry] in design px
+## from the head centre.
+const HAIR_BACK: Array = [
+	[],                                                             # 0 crop
+	[],                                                             # 1 side sweep
+	[[-1.0, -11.8, 4.8, 4.2]],                                      # 2 bun
+	[[-10.4, 2.8, 4.2, 7.2], [10.4, 2.8, 4.2, 7.2]],                # 3 bob
+	[[-10.6, -6.0, 4.6, 4.6], [0.0, -11.4, 5.2, 4.6],
+		[10.6, -6.0, 4.6, 4.6]],                                    # 4 curls
+	[[-0.4, -8.8, 4.8, 4.2], [0.4, -13.0, 3.0, 3.0]],               # 5 tall stack
+	[[-12.0, 1.8, 4.2, 8.2], [-9.0, -5.8, 2.8, 2.8]],               # 6 ponytail
+	[[-11.8, -5.4, 4.4, 4.4], [11.0, -5.6, 4.0, 4.0]],              # 7 twin tails
+]
+
+## HAIR_FRONT — appliqués on the face side of the skull. Filled, never stroked.
+const HAIR_FRONT: Array = [
+	[], [[-5.6, -8.2, 7.0, 5.4]], [], [], [], [], [], [],
+]
+
+## Crown band per style: [outer radius above HEAD_R, band thickness, sweep start
+## in half-turns, sweep end in turns]. Style 4's band is thick and wide because
+## the halo IS its silhouette.
+const HAIR_CAP: Array = [
+	[0.8, 5.8, 0.97, 1.03],
+	[1.0, 6.6, 0.84, 1.05],
+	[0.8, 5.4, 0.97, 1.03],
+	[1.0, 6.2, 0.82, 1.08],
+	[4.2, 9.0, 0.90, 1.10],
+	[0.9, 6.0, 0.92, 1.06],
+	[1.0, 6.4, 0.88, 1.08],
+	[0.9, 6.0, 0.94, 1.06],
+]
+
+## Face layout, in design px from the head centre. The features used to pile into
+## x in [-0.2, 10.5] on a head of radius 10.8 — 97% of the ink in the right half,
+## touching the silhouette — which is why the head read as a ball with a face
+## sliding off it rather than as a face. FACE_CX keeps the 3/4 offset small, and
+## EYE_DX is held wide enough that the gap between the eyes survives being
+## minified onto a phone instead of fusing into one dark blob.
+const FACE_CX := 1.5
+const EYE_DX := 3.0
+const EYE_R := Vector2(1.35, 1.65)
+const BROW_R := Vector2(1.7, 0.65)
+const MOUTH_DX := 0.6
+const MOUTH_R := 2.5
+const BLUSH_FAR := Vector3(-4.4, 2.2, 1.9)    # dx from face centre, dy, radius
+const BLUSH_NEAR := Vector3(4.8, 2.1, 1.7)
+## Staff cap peak, design px from the head centre: x span, then y span. The peak
+## used to abut the eye tops exactly, and since both were near-black they fused
+## into one bar that read as wraparound sunglasses on every staff member.
+const CAP_PEAK_X := Vector2(-2.6, 9.6)
+const CAP_PEAK_Y := Vector2(-8.2, -5.4)
 
 var is_staff: bool = false
 var uniform_color: Color = Color("#C4703F")
@@ -62,6 +148,7 @@ var _shirt: Color = SHIRT_COLORS[0]
 var _pants: Color = PANTS_COLORS[0]
 var _hair_style: int = 0
 var _build: float = 1.0
+var _look_slot: int = -1
 var _look_key: String = ""
 var _is_painter: bool = false
 var _bob_t: float = 0.0
@@ -79,34 +166,70 @@ func set_painter_mode(on: bool) -> void:
 
 # ------------------------------------------------------------------ look
 
-## Deterministic look from a seed, quantised to one of LOOK_COUNT palettes.
-func randomize_look(rng_seed: int) -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = rng_seed
-	var slot: int = rng.randi() % LOOK_COUNT
-	var pick := RandomNumberGenerator.new()
-	pick.seed = slot * 7919
-	_skin = SKIN_TONES[pick.randi() % SKIN_TONES.size()]
-	_hair = HAIR_COLORS[pick.randi() % HAIR_COLORS.size()]
-	_shirt = SHIRT_COLORS[pick.randi() % SHIRT_COLORS.size()]
-	_pants = PANTS_COLORS[pick.randi() % PANTS_COLORS.size()]
-	_hair_style = pick.randi() % 4
-	_build = 1.0
-	_look_key = "v%d" % slot
+## The look table: slot -> a full appearance.
+##
+## Every axis is driven by a stride coprime with its palette size, so each entry
+## of each palette is used a near-equal number of times, and no axis is a
+## function of any other. The previous table ran all six axes off one
+## `seed = slot * 7919` stream, which put 43% of the crowd on one hair style,
+## 36% on one hair colour, and never selected two of the palette entries at all.
+static func look_for_slot(slot: int) -> Dictionary:
+	var s: int = posmod(slot, LOOK_COUNT)
+	var tier: int = s / HAIR_STYLES        # which build band this slot sits in
+	return {
+		"skin": SKIN_TONES[(s * 5) % SKIN_TONES.size()],
+		"hair": HAIR_COLORS[(s * 3) % HAIR_COLORS.size()],
+		"shirt": SHIRT_COLORS[(s + 3 * tier) % SHIRT_COLORS.size()],
+		"pants": PANTS_COLORS[(s + tier) % PANTS_COLORS.size()],
+		"hair_style": s % HAIR_STYLES,
+		"build": BUILDS[tier % BUILDS.size()],
+		"is_staff": false,
+		"uniform": Color("#C4703F"),
+	}
+
+## Adopt a specific look slot. The floor deals slots rather than rolling them:
+## with 24 slots and twenty people on screen, independent random picks put three
+## visitors in the same face by the birthday paradox alone.
+func set_look_slot(slot: int) -> void:
+	_look_slot = posmod(slot, LOOK_COUNT)
+	apply_look(look_for_slot(_look_slot))
+	_look_key = "v%d" % _look_slot
 	_try_bake()
 	queue_redraw()
 
-func set_uniform(dept_color: Color) -> void:
+## Which look slot this figure wears, or -1 for staff and unassigned figures.
+func look_slot() -> int:
+	return _look_slot
+
+## Deterministic look from a seed, quantised to one of LOOK_COUNT slots.
+func randomize_look(rng_seed: int) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = rng_seed
+	set_look_slot(rng.randi() % LOOK_COUNT)
+
+## Staff read by uniform hue first, so the variant only moves skin, hair colour,
+## hair style and stature. Variants are capped at STAFF_LOOK_COUNT so a room full
+## of staff costs a bounded number of bake slots; without it the five tellers
+## behind the counters were one person copy-pasted five times.
+func set_uniform(dept_color: Color, variant: int = 0) -> void:
+	var v: int = posmod(variant, STAFF_LOOK_COUNT)
 	is_staff = true
 	uniform_color = dept_color
 	_shirt = dept_color
 	_pants = dept_color.darkened(0.45)
-	_hair = HAIR_COLORS[0]
-	_skin = SKIN_TONES[1]
-	_hair_style = 0
-	_look_key = "s%s" % dept_color.to_html(false)
+	_skin = SKIN_TONES[(v * 2 + 1) % SKIN_TONES.size()]
+	_hair = HAIR_COLORS[(v * 3) % HAIR_COLORS.size()]
+	_hair_style = STAFF_STYLES[v % STAFF_STYLES.size()]
+	_build = BUILDS[(v + 1) % BUILDS.size()]
+	_look_slot = -1
+	_look_key = "s%s_%d" % [dept_color.to_html(false), v]
 	_try_bake()
 	queue_redraw()
+
+## Bake-cache key for this figure's appearance. Two characters sharing a key are
+## the same person on screen.
+func look_key() -> String:
+	return _look_key
 
 ## Serialise the current look so the baker can rebuild it on its painter.
 func current_look() -> Dictionary:
@@ -181,9 +304,9 @@ func _draw_figure() -> void:
 	elif walking:
 		phase = float(int(_bob_t * WALK_FPS)) / WALK_FPS * TAU * 2.2
 	var moving: bool = bake_pose > 0 or (bake_pose < 0 and walking)
-	var bob: float = -absf(sin(phase)) * 2.6 if moving else 0.0
+	var bob: float = -absf(sin(phase)) * BOB_AMP if moving else 0.0
 	var swing: float = sin(phase) * 3.6 if moving else 0.0
-	var squash: float = 1.0 + (absf(sin(phase)) - 0.5) * 0.07 if moving else 1.0
+	var squash: float = 1.0 + (absf(sin(phase)) - 0.5) * SQUASH_AMP if moving else 1.0
 	var w: float = _build / squash
 	var h: float = squash
 
@@ -254,7 +377,9 @@ func _draw_body(bob: float, w: float, h: float) -> void:
 
 func _draw_arm(side: float, bob: float, swing: float, w: float, h: float) -> void:
 	var top: float = -25.0 * h + bob
-	var x: float = 8.3 * w * side
+	# The torso reaches 9.7*w at the shoulder, so an arm at 8.3*w was swallowed
+	# whole on the far side and every figure read one-armed with a floating hand.
+	var x: float = (8.3 * w + 1.2) * side
 	var lift: float = swing * 0.52 * side
 	var sleeve := _shirt if side > 0.0 else _shirt.darkened(0.14)
 	_shape(_capsule(Rect2(x - 2.5, top + 3.0 + lift, 5.0, 11.0)), sleeve)
@@ -264,8 +389,12 @@ func _draw_arm(side: float, bob: float, swing: float, w: float, h: float) -> voi
 	draw_circle(hand + Vector2(-0.6, -0.7), 1.0, _skin.lightened(0.22))
 
 func _draw_head(bob: float, swing: float, w: float, h: float) -> void:
-	var hc := Vector2(swing * 0.16, -33.5 * h + bob * 0.8)
-	var r: float = 10.8
+	var hc := Vector2(swing * 0.16, HEAD_Y * h + bob * 0.8)
+	# Build carries into the head at 45% strength. Full strength made the small
+	# builds read as children, and none at all left every figure wearing the same
+	# head — which is most of why the crowd looked stamped from one die.
+	var r: float = HEAD_R * (1.0 + (_build - 1.0) * 0.45)
+	_draw_hair_back(hc, r)
 	draw_colored_polygon(_capsule(Rect2(hc.x - 2.8, hc.y + r - 3.6, 5.6, 6.4)),
 		_skin.darkened(0.26))
 	_shape(_ellipse_poly(hc, Vector2(r, r * 0.97), 26), _skin)
@@ -277,55 +406,112 @@ func _draw_head(bob: float, swing: float, w: float, h: float) -> void:
 		_skin.lightened(0.16))
 	draw_arc(hc, r - 0.9, PI * 1.08, PI * 1.52, 10, _skin.lightened(0.32), 1.6)
 	draw_circle(hc + Vector2(-r + 1.2, 1.0), 2.2, _skin.darkened(0.10))
-	_draw_hair(hc, r)
+	_draw_hair_front(hc, r)
 	_draw_face(hc)
 	if is_staff:
 		_draw_cap(hc, r)
 
-func _draw_hair(hc: Vector2, r: float) -> void:
-	var dark := _hair.darkened(0.26)
-	match _hair_style:
-		0:  # short crop
-			_shape(_arc_poly(hc, r + 0.8, PI * 0.97, TAU * 1.03, 5.8), _hair)
-			draw_colored_polygon(_arc_poly(hc, r + 0.8, PI * 1.30, TAU * 1.03, 5.8), dark)
-		1:  # side sweep with a fringe
-			_shape(_arc_poly(hc, r + 0.8, PI * 0.84, TAU * 1.05, 6.6), _hair)
-			_shape(_ellipse_poly(hc + Vector2(-6.4, -3.2), Vector2(4.8, 4.2), 16), _hair)
-			draw_colored_polygon(_ellipse_poly(hc + Vector2(-7.2, -2.0), Vector2(2.6, 2.6), 12), dark)
-		2:  # bun
-			_shape(_arc_poly(hc, r + 0.8, PI * 0.97, TAU * 1.03, 5.4), _hair)
-			_shape(_ellipse_poly(hc + Vector2(-1.0, -12.4), Vector2(4.8, 4.4), 16), _hair)
-			draw_colored_polygon(_ellipse_poly(hc + Vector2(0.4, -11.4), Vector2(2.2, 2.0), 12), dark)
-		_:  # bob cut past the ears
-			_shape(_arc_poly(hc, r + 1.0, PI * 0.78, TAU * 1.12, 6.2), _hair)
-			_shape(_ellipse_poly(hc + Vector2(-8.4, 1.6), Vector2(3.4, 5.6), 16), _hair)
-			_shape(_ellipse_poly(hc + Vector2(8.4, 1.6), Vector2(3.4, 5.6), 16), _hair)
-	draw_line(hc + Vector2(-5.4, -8.6), hc + Vector2(1.6, -10.0), _hair.lightened(0.38), 2.0)
-	draw_line(hc + Vector2(-3.0, -10.4), hc + Vector2(2.6, -10.8), _hair.lightened(0.24), 1.2)
+## Masses behind the skull. Drawn before the head so the head occludes their
+## inner half: the outline changes, but no stroke lands on the face.
+func _draw_hair_back(hc: Vector2, r: float) -> void:
+	var k: float = r / HEAD_R
+	var back := _hair.darkened(0.14)
+	for e in HAIR_BACK[_hair_style]:
+		_shape(_ellipse_poly(hc + Vector2(e[0], e[1]) * k, Vector2(e[2], e[3]) * k, 18), back)
+
+func _draw_hair_front(hc: Vector2, r: float) -> void:
+	var cap: Array = HAIR_CAP[_hair_style]
+	var outer: float = r + float(cap[0])
+	var thick: float = float(cap[1])
+	var from_a: float = PI * float(cap[2])
+	var to_a: float = TAU * float(cap[3])
+	_shape(_crescent(hc, outer, from_a, to_a, thick), _hair)
+	# Key light is upper-left, so the back of the sweep carries the shadow.
+	draw_colored_polygon(_crescent(hc, outer, lerpf(from_a, to_a, 0.55), to_a, thick),
+		_hair.darkened(0.26))
+	var k: float = r / HEAD_R
+	for e in HAIR_FRONT[_hair_style]:
+		# Filled, never stroked. A 1.8px outline laid across a 21px head is a bar,
+		# and the stroked lock this replaces ran vertically between the two eyes.
+		draw_colored_polygon(_ellipse_poly(hc + Vector2(e[0], e[1]) * k,
+			Vector2(e[2], e[3]) * k, 18), _hair)
+		draw_colored_polygon(_ellipse_poly(hc + Vector2(e[0] - 1.2, e[1] + 1.2) * k,
+			Vector2(e[2] * 0.34, e[3] * 0.42) * k, 12), _hair.darkened(0.26))
+	# The highlight rides the middle of the crown band. It used to be two straight
+	# lines across the top of the head, which at this size read as a bandage.
+	draw_arc(hc, outer - thick * 0.34, lerpf(from_a, to_a, 0.17), lerpf(from_a, to_a, 0.41),
+		12, _hair.lightened(0.26), 1.6)
 
 ## Faces +x; mirrored by scale.x when facing left.
 func _draw_face(hc: Vector2) -> void:
-	for ex in [3.0, 7.4]:
-		var e := hc + Vector2(ex, -0.8)
-		# Brow shadow, iris, catchlight — a face at 30px still needs three parts.
-		draw_colored_polygon(_ellipse_poly(e + Vector2(0, -2.4), Vector2(1.8, 0.7), 10),
+	for side in [-1.0, 1.0]:
+		var e := hc + Vector2(FACE_CX + EYE_DX * side, -0.8)
+		# Brow shadow, iris, catchlight — a face this small still needs three parts.
+		draw_colored_polygon(_ellipse_poly(e + Vector2(0, -2.3), BROW_R, 10),
 			_skin.darkened(0.24))
-		draw_colored_polygon(_ellipse_poly(e, Vector2(1.6, 2.0), 12), OUTLINE)
-		draw_circle(e + Vector2(-0.55, -0.75), 0.7, Color(1, 1, 1, 0.9))
-	draw_arc(hc + Vector2(5.3, 2.5), 2.7, 0.16 * PI, 0.84 * PI, 10, OUTLINE, 1.4)
-	draw_circle(hc + Vector2(1.9, 2.2), 2.1, Color(0.92, 0.47, 0.42, 0.26))
-	draw_circle(hc + Vector2(8.8, 2.0), 1.7, Color(0.92, 0.47, 0.42, 0.20))
+		draw_colored_polygon(_ellipse_poly(e, EYE_R, 12), EYE_INK)
+		draw_circle(e + Vector2(-0.45, -0.6), 0.62, Color(1, 1, 1, 0.92))
+	draw_arc(hc + Vector2(FACE_CX + MOUTH_DX, 2.6), MOUTH_R, 0.18 * PI, 0.82 * PI, 10,
+		EYE_INK, 1.3)
+	draw_circle(hc + Vector2(FACE_CX + BLUSH_FAR.x, BLUSH_FAR.y), BLUSH_FAR.z,
+		Color(0.92, 0.47, 0.42, 0.22))
+	draw_circle(hc + Vector2(FACE_CX + BLUSH_NEAR.x, BLUSH_NEAR.y), BLUSH_NEAR.z,
+		Color(0.92, 0.47, 0.42, 0.24))
 
 func _draw_cap(hc: Vector2, r: float) -> void:
 	var crown := uniform_color.darkened(0.08)
-	_shape(_arc_poly(hc + Vector2(0, -1.6), r + 1.0, PI * 1.01, TAU * 0.99, 6.6), crown)
-	draw_colored_polygon(_arc_poly(hc + Vector2(0, -1.6), r + 1.0, PI * 1.34, TAU * 0.99, 6.6),
+	var cc := hc + Vector2(0, -1.6)
+	_shape(_crescent(cc, r + 1.0, PI * 1.01, TAU * 0.99, 6.6), crown)
+	draw_colored_polygon(_crescent(cc, r + 1.0, PI * 1.42, TAU * 0.99, 6.6),
 		uniform_color.darkened(0.30))
-	_shape(PackedVector2Array([
-		Vector2(hc.x + 0.8, hc.y - 6.4), Vector2(hc.x + 12.6, hc.y - 5.6),
-		Vector2(hc.x + 12.6, hc.y - 3.0), Vector2(hc.x + 0.8, hc.y - 2.8),
-	]), uniform_color.darkened(0.34))
-	draw_circle(hc + Vector2(-1.0, -9.4), 1.6, UI.BRASS)
+	# The peak clears the eyes by more than 2 design px and its lower edge carries
+	# no stroke, so it can no longer fuse with them into a sunglasses bar.
+	var peak := PackedVector2Array([
+		Vector2(hc.x + CAP_PEAK_X.x, hc.y + CAP_PEAK_Y.x + 0.6),
+		Vector2(hc.x + CAP_PEAK_X.y, hc.y + CAP_PEAK_Y.x),
+		Vector2(hc.x + CAP_PEAK_X.y, hc.y + CAP_PEAK_Y.y),
+		Vector2(hc.x + CAP_PEAK_X.x, hc.y + CAP_PEAK_Y.y - 0.4),
+	])
+	draw_colored_polygon(peak, uniform_color.darkened(0.34))
+	draw_polyline(PackedVector2Array([peak[0], peak[1], peak[2]]), OUTLINE, OUTLINE_W)
+	draw_circle(hc + Vector2(-1.4, -9.6), 1.6, UI.BRASS)
+
+## Furthest any of a style's hair reaches from the head centre, in design px at
+## the nominal head radius. The suite measures silhouette variety with this, and
+## checks the tallest styles still fit inside the baked sprite.
+static func hair_reach(style: int) -> float:
+	var s: int = clampi(style, 0, HAIR_STYLES - 1)
+	var best: float = HEAD_R + float(HAIR_CAP[s][0])
+	for group in [HAIR_BACK[s], HAIR_FRONT[s]]:
+		for e in group:
+			var c := Vector2(e[0], e[1])
+			for i in 32:
+				var a: float = TAU * float(i) / 32.0
+				best = maxf(best, (c + Vector2(cos(a) * float(e[2]), sin(a) * float(e[3]))).length())
+	return best
+
+## Axis-aligned bounds of a style's hair, in design px from the head centre. The
+## crown is treated as a full circle, which is conservative. The suite uses this
+## to prove the tall styles still fit above the baked sprite's anchor — hair that
+## overruns the sprite is silently guillotined, not an error anyone would see.
+static func hair_bounds(style: int) -> Rect2:
+	var s: int = clampi(style, 0, HAIR_STYLES - 1)
+	var outer: float = HEAD_R + float(HAIR_CAP[s][0])
+	var box := Rect2(-outer, -outer, outer * 2.0, outer * 2.0)
+	for group in [HAIR_BACK[s], HAIR_FRONT[s]]:
+		for e in group:
+			box = box.merge(Rect2(float(e[0]) - float(e[2]), float(e[1]) - float(e[3]),
+				float(e[2]) * 2.0, float(e[3]) * 2.0))
+	return box
+
+## Horizontal span of every facial feature, in design px from the head centre.
+static func face_extent() -> Vector2:
+	var half: float = maxf(EYE_R.x, BROW_R.x)
+	var lo: float = minf(minf(FACE_CX - EYE_DX - half, FACE_CX + MOUTH_DX - MOUTH_R),
+		FACE_CX + BLUSH_FAR.x - BLUSH_FAR.z)
+	var hi: float = maxf(maxf(FACE_CX + EYE_DX + half, FACE_CX + MOUTH_DX + MOUTH_R),
+		FACE_CX + BLUSH_NEAR.x + BLUSH_NEAR.z)
+	return Vector2(lo, hi)
 
 ## Museum exhibit board on a stick (promotions marketer).
 func _draw_sign(bob: float) -> void:
@@ -413,15 +599,19 @@ func _round_poly(poly: PackedVector2Array, amount: float) -> PackedVector2Array:
 		out.append(cur + (next - cur) / d_next * minf(amount, d_next * 0.45))
 	return out
 
-## Filled band between two radii over an angular sweep — hair caps, cap crowns.
-func _arc_poly(center: Vector2, radius: float, from_a: float, to_a: float,
-		thickness: float, segments: int = 18) -> PackedVector2Array:
+## Hair crescent: an arc band whose inner edge tapers back out to meet the outer
+## edge at both ends. A constant-thickness annulus closes with a radial end cap,
+## and stroking that cap laid a dark bar diagonally across the cheek on every
+## style whose sweep came past the horizontal.
+func _crescent(center: Vector2, radius: float, from_a: float, to_a: float,
+		depth: float, segments: int = 22) -> PackedVector2Array:
 	var outer := PackedVector2Array()
 	var inner := PackedVector2Array()
 	for i in segments + 1:
-		var a: float = lerpf(from_a, to_a, float(i) / float(segments))
-		outer.append(center + Vector2(cos(a), sin(a)) * radius)
-		inner.append(center + Vector2(cos(a), sin(a)) * (radius - thickness))
+		var t: float = float(i) / float(segments)
+		var d := Vector2.RIGHT.rotated(lerpf(from_a, to_a, t))
+		outer.append(center + d * radius)
+		inner.append(center + d * (radius - depth * pow(sin(PI * t), 0.55)))
 	inner.reverse()
 	var pts := outer
 	pts.append_array(inner)

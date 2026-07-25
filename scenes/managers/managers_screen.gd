@@ -4,6 +4,8 @@ extends Control
 
 const ManagerSystem := preload("res://scripts/managers/manager_system.gd")
 const UI := preload("res://scripts/ui/ui_kit.gd")
+const ManagerBadge := preload("res://scenes/managers/manager_badge.gd")
+const ManagerPortrait := preload("res://scenes/managers/manager_portrait.gd")
 
 # This screen is popup CONTENT, so its page is a light surface, not the
 # deep app shell — it draws INK body text directly on it.
@@ -24,6 +26,7 @@ const RARITY_ORDER := {"common": 0, "rare": 1, "epic": 2, "legendary": 3}
 
 var _payload: Dictionary = {}
 var _insight_chip: PanelContainer
+var _roster_label: Label
 var _grid: VBoxContainer
 var _overlay: Control
 var _viewed: Dictionary = {}        # manager_id -> true (NEW badge cleared this session)
@@ -68,11 +71,17 @@ func _ready() -> void:
 func _build_header() -> Control:
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override("separation", 12)
-	var title := UI.make_display_label("Managers", 36, INK)
-	bar.add_child(title)
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bar.add_child(spacer)
+	var titles := VBoxContainer.new()
+	titles.add_theme_constant_override("separation", 0)
+	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	titles.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	titles.add_child(UI.make_display_label("Staff Passes", 34, INK))
+	# A collection screen has to say how much of the collection is left, or the
+	# only way to count the roster is to scroll it.
+	_roster_label = UI.make_label("", UI.TYPE_LABEL)
+	_roster_label.add_theme_color_override("font_color", INK.lerp(PANEL, 0.34))
+	titles.add_child(_roster_label)
+	bar.add_child(titles)
 	_insight_chip = UI.make_currency_chip("insight", "0", SLATE, 26)
 	bar.add_child(_insight_chip)
 	_refresh_header()
@@ -81,6 +90,12 @@ func _build_header() -> Control:
 func _refresh_header() -> void:
 	if is_instance_valid(_insight_chip):
 		UI.set_chip_value(_insight_chip, GameState.insight.to_notation())
+	if is_instance_valid(_roster_label):
+		var have := 0
+		for id in DataLoader.managers.keys():
+			if ManagerSystem.cards(id) > 0:
+				have += 1
+		_roster_label.text = "%d of %d passes issued" % [have, DataLoader.managers.size()]
 
 func refresh() -> void:
 	_refresh_header()
@@ -107,99 +122,31 @@ func _style(bg_color: Color, border_color: Color, radius: int = 12, border_w: in
 	var tint := Color(1, 1, 1).lerp(border_color, 0.18 + 0.05 * clampi(border_w - 3, 0, 2))
 	return UI.make_frame(tint)
 
-## Manager avatar: tinted disc (Kenney) + display-font letter.
-func _circle(color: Color, letter: String, diameter: int = 64) -> Control:
-	var c := Control.new()
-	c.custom_minimum_size = Vector2(diameter, diameter)
-	var disc := UI.make_icon("disc", diameter, color)
-	disc.set_anchors_preset(Control.PRESET_FULL_RECT)
-	c.add_child(disc)
-	var l := Label.new()
-	l.text = letter
-	UI.apply_display_font(l, letter)
-	l.add_theme_font_size_override("font_size", int(diameter * 0.45))
-	l.add_theme_color_override("font_color", Color.WHITE)
-	l.set_anchors_preset(Control.PRESET_FULL_RECT)
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	c.add_child(l)
-	return c
-
-## Rank pips: star icons (brass earned / dim empty).
+## Rank pips: brass stars earned, outline stars spent. A dimmed FILLED star on a
+## cream card sat at ~2:1 and read as a rendering fault rather than an empty slot.
 func _pips(rank: int) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
+	row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	for i in range(4):
-		var tint: Color = BRASS if i < rank else Color(BG.darkened(0.18))
-		row.add_child(UI.make_icon("star", 18, tint))
+		if i < rank:
+			row.add_child(UI.make_icon("star", 20, BRASS))
+		else:
+			row.add_child(UI.make_icon("star_outline", 20, INK.lerp(PANEL, 0.48)))
 	return row
-
-func _dept_badge(dept_id: String) -> Control:
-	var s := StyleBoxFlat.new()
-	s.bg_color = DEPT_COLORS.get(dept_id, LOCKED)
-	s.set_corner_radius_all(6)
-	s.content_margin_left = 8
-	s.content_margin_right = 8
-	s.content_margin_top = 2
-	s.content_margin_bottom = 2
-	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", s)
-	var l := Label.new()
-	l.text = str(dept_id).capitalize()
-	l.add_theme_font_size_override("font_size", 16)
-	l.add_theme_color_override("font_color", PANEL)
-	p.add_child(l)
-	return p
 
 func _rebuild_grid() -> void:
 	for c in _grid.get_children():
+		_grid.remove_child(c)
 		c.queue_free()
 	for id in _sorted_ids():
-		_grid.add_child(_build_card(id))
-
-func _build_card(id: String) -> Control:
-	var def: Dictionary = DataLoader.get_manager_def(id)
-	var rarity: String = str(def.get("rarity", "common"))
-	var specialty: String = str(def.get("specialty", ""))
-	var has_cards: bool = ManagerSystem.cards(id) > 0
-	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel",
-		_style(PANEL if has_cards else BG.darkened(0.06), RARITY_COLORS.get(rarity, LOCKED)))
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-	card.add_child(row)
-	var letter: String = str(def.get("name", "?")).substr(0, 1) if has_cards else "?"
-	row.add_child(_circle(DEPT_COLORS.get(specialty, LOCKED) if has_cards else LOCKED, letter))
-	var info := VBoxContainer.new()
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(info)
-	var name_l := Label.new()
-	name_l.text = str(def.get("name", id)) if has_cards else "Undiscovered"
-	name_l.add_theme_font_size_override("font_size", 22)
-	name_l.add_theme_color_override("font_color", INK if has_cards else LOCKED)
-	info.add_child(name_l)
-	var sub := HBoxContainer.new()
-	sub.add_theme_constant_override("separation", 10)
-	info.add_child(sub)
-	var lv := Label.new()
-	lv.text = "Lv %d" % ManagerSystem.level(id)
-	lv.add_theme_font_size_override("font_size", 18)
-	lv.add_theme_color_override("font_color", INK)
-	sub.add_child(lv)
-	sub.add_child(_pips(ManagerSystem.rank(id)))
-	sub.add_child(_dept_badge(specialty))
-	if has_cards and not _viewed.get(id, false):
-		var new_l := Label.new()
-		new_l.text = "NEW"
-		new_l.add_theme_font_size_override("font_size", 18)
-		new_l.add_theme_color_override("font_color", ACCENT)
-		row.add_child(new_l)
-	card.gui_input.connect(func(ev: InputEvent) -> void:
-		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
-			UI.play_sfx(card, "tap")
-			_open_detail(id))
-	return card
+		var badge := ManagerBadge.new()
+		# Parent before setup: the badge's photo asks PortraitBaker for a render,
+		# and the baker refuses a request from a node with no tree to await on.
+		_grid.add_child(badge)
+		badge.setup(id, DataLoader.get_manager_def(id), ManagerSystem.state(id),
+			ManagerSystem.cards(id) > 0, not _viewed.get(id, false))
+		badge.tapped.connect(_open_detail)
 
 func _open_detail(id: String) -> void:
 	_selected = id
@@ -244,7 +191,7 @@ func _rebuild_detail(id: String) -> void:
 	var top := HBoxContainer.new()
 	box.add_child(top)
 	var title := Label.new()
-	title.text = str(def.get("name", id)) if not locked else "Undiscovered"
+	title.text = str(def.get("name", id)) if not locked else "Personnel File Sealed"
 	UI.apply_display_font(title, title.text)
 	title.add_theme_font_size_override("font_size", 30)
 	title.add_theme_color_override("font_color", INK)
@@ -253,28 +200,46 @@ func _rebuild_detail(id: String) -> void:
 	var close := UI.make_icon_button("cross", ACCENT, 52)
 	close.pressed.connect(_close_detail)
 	top.add_child(close)
-	# identity row
+	# Identity block — the badge, blown up. Same portrait, same fields, so the
+	# detail sheet reads as the pass the player just tapped rather than a
+	# different document about the same person.
+	var dept: Color = DEPT_COLORS.get(specialty, LOCKED)
 	var id_row := HBoxContainer.new()
-	id_row.add_theme_constant_override("separation", 12)
+	id_row.add_theme_constant_override("separation", 14)
 	box.add_child(id_row)
-	id_row.add_child(_circle(DEPT_COLORS.get(specialty, LOCKED) if not locked else LOCKED,
-		str(def.get("name", "?")).substr(0, 1) if not locked else "?", 84))
+	var photo := ManagerPortrait.new()
+	id_row.add_child(photo)
+	photo.setup(def, 148, not locked)
 	var id_col := VBoxContainer.new()
 	id_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	id_col.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	id_col.add_theme_constant_override("separation", 6)
 	id_row.add_child(id_col)
-	var rar := Label.new()
-	rar.text = rarity.capitalize()
-	rar.add_theme_font_size_override("font_size", 20)
-	rar.add_theme_color_override("font_color", RARITY_COLORS.get(rarity, LOCKED))
-	id_col.add_child(rar)
-	id_col.add_child(_dept_badge(specialty))
-	id_col.add_child(_pips(ManagerSystem.rank(id)))
+	var tags := HBoxContainer.new()
+	tags.add_theme_constant_override("separation", 8)
+	id_col.add_child(tags)
+	tags.add_child(ManagerBadge.pill(rarity.to_upper(), RARITY_COLORS.get(rarity, LOCKED)))
+	tags.add_child(ManagerBadge.pill(specialty.to_upper(), dept))
+	id_col.add_child(UI.make_display_label(
+		str(def.get("post", "")), UI.TYPE_HEADING, INK))
+	id_col.add_child(UI.make_display_label(
+		"PASS NO. %s" % ManagerBadge.service_no(def), UI.TYPE_CAPTION,
+		INK.lerp(PANEL, 0.44)))
+	if not locked:
+		id_col.add_child(_pips(ManagerSystem.rank(id)))
+	var traits: Array = def.get("traits", [])
+	if not traits.is_empty():
+		var trait_row := HBoxContainer.new()
+		trait_row.add_theme_constant_override("separation", 6)
+		id_col.add_child(trait_row)
+		for t in traits:
+			trait_row.add_child(ManagerBadge.trait_chip(str(t), dept))
 	# flavor
 	var flavor := Label.new()
 	flavor.text = str(def.get("flavor", ""))
 	flavor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	flavor.add_theme_font_size_override("font_size", 17)
-	flavor.add_theme_color_override("font_color", INK.lightened(0.2))
+	flavor.add_theme_color_override("font_color", INK.lerp(PANEL, 0.26))
 	box.add_child(flavor)
 	# stats
 	var st: Dictionary = ManagerSystem.state(id)

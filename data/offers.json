@@ -4,63 +4,54 @@
       "id": "offer_venue2",
       "trigger": "venue_2_start",
       "iap_id": "starter_bundle",
-      "discount_pct": 50,
       "expires_hours": 24
     },
     {
       "id": "offer_venue2_gems",
       "trigger": "venue_2_start",
       "iap_id": "gems_sack",
-      "discount_pct": 20,
       "expires_hours": 24
     },
     {
       "id": "offer_venue3",
       "trigger": "venue_3_start",
       "iap_id": "venue3_bundle",
-      "discount_pct": 40,
       "expires_hours": 48
     },
     {
       "id": "offer_venue4",
       "trigger": "venue_4_start",
       "iap_id": "venue4_bundle",
-      "discount_pct": 40,
       "expires_hours": 48
     },
     {
       "id": "offer_venue5",
       "trigger": "venue_5_start",
       "iap_id": "venue5_bundle",
-      "discount_pct": 35,
       "expires_hours": 72
     },
     {
       "id": "offer_venue6",
       "trigger": "venue_6_start",
       "iap_id": "venue6_bundle",
-      "discount_pct": 30,
       "expires_hours": 72
     },
     {
       "id": "offer_rep10",
       "trigger": "rep_10",
       "iap_id": "veteran_director_pack",
-      "discount_pct": 50,
       "expires_hours": 48
     },
     {
       "id": "offer_rep10_gems",
       "trigger": "rep_10",
       "iap_id": "gems_vault",
-      "discount_pct": 25,
       "expires_hours": 24
     },
     {
       "id": "offer_event_day",
       "trigger": "event_day",
       "iap_id": "inspection_prep_bundle",
-      "discount_pct": 45,
       "expires_hours": 24
     }
   ]

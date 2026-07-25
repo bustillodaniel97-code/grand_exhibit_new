@@ -5,14 +5,14 @@
     "unlock_day": 1,
     "duration_hours": 48,
     "cooldown_hours": 72,
-    "scaling": { "base_hp": 120.0, "hp_vs_power": 0.9, "final_stage_power_need": 1.5 },
+    "scaling": { "hp_vs_power": 0.85, "base_pressure": 0.65, "min_hp": 30.0 },
     "stages": [
-      { "boss_hp": 120.0, "moves": 20, "rewards": { "cards_box": "field_case", "gems": 0, "insight_m": 20.0 } },
-      { "boss_hp": 364.0, "moves": 20, "rewards": { "cards_box": "field_case", "gems": 5, "insight_m": 30.0 } },
-      { "boss_hp": 696.0, "moves": 22, "rewards": { "cards_box": "field_case", "gems": 10, "insight_m": 50.0 } },
-      { "boss_hp": 1103.0, "moves": 22, "rewards": { "cards_box": "specialist_case", "gems": 15, "insight_m": 80.0 } },
-      { "boss_hp": 1576.0, "moves": 24, "rewards": { "cards_box": "specialist_case", "gems": 25, "insight_m": 120.0 } },
-      { "boss_hp": 3164.0, "moves": 25, "rewards": { "cards_box": "executive_case", "gems": 50, "insight_m": 200.0 } }
+      { "pressure": 0.55, "moves": 20, "rewards": { "cards_box": "field_case", "gems": 0, "insight_m": 20.0 } },
+      { "pressure": 0.59, "moves": 20, "rewards": { "cards_box": "field_case", "gems": 5, "insight_m": 30.0 } },
+      { "pressure": 0.65, "moves": 22, "rewards": { "cards_box": "field_case", "gems": 10, "insight_m": 50.0 } },
+      { "pressure": 0.69, "moves": 22, "rewards": { "cards_box": "specialist_case", "gems": 15, "insight_m": 80.0 } },
+      { "pressure": 0.78, "moves": 24, "rewards": { "cards_box": "specialist_case", "gems": 25, "insight_m": 120.0 } },
+      { "pressure": 0.85, "moves": 25, "rewards": { "cards_box": "executive_case", "gems": 50, "insight_m": 200.0 } }
     ]
   },
   "expedition": {
@@ -26,7 +26,7 @@
       { "invest_cost_m": 1.0, "invest_cost_e": 5, "insight_reward": 100.0, "name": "Sunken Cave" },
       { "invest_cost_m": 5.0, "invest_cost_e": 5, "insight_reward": 180.0, "name": "Lost Temple Gate" }
     ],
-    "boss": { "boss_hp": 900.0, "moves": 24, "rewards": { "cards_box": "specialist_case", "gems": 40, "insight_m": 250.0 }, "name": "The Temple Guardian" },
+    "boss": { "pressure": 0.75, "hp_vs_power": 0.85, "min_hp": 30.0, "cycle_hp_growth": 1.15, "cycle_hp_cap": 4.0, "moves": 24, "rewards": { "cards_box": "specialist_case", "gems": 40, "insight_m": 250.0 }, "name": "The Temple Guardian" },
     "insight_idle": { "per_minute": 2.0, "cap_base": 60.0, "cap_per_rep_level": 5.0 }
   }
 }

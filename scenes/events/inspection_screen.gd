@@ -3,6 +3,13 @@ extends Control
 ## Gate: feature_unlocked("inspection") (Day 2). Time-boxed windows from
 ## events.json duration_hours/cooldown_hours, state persisted in
 ## GameState.event_state["inspection_frenzy"].
+##
+## NO BUTTON HERE IS EVER DISABLED FOR A REASON THE PLAYER COULD FIX. Every stage
+## button stays tappable and answers with a toast that names the missing thing;
+## the only greyed rows are stages already cleared, which is a state, not a
+## blocker. The previous build disabled all six stages whenever no manager was
+## picked — and a Day-1 player owns none, because the event opens on day 1 while
+## managers unlock at rep 6, so the whole screen was six dead taps.
 
 const BattleView = preload("res://scenes/events/battle_view.gd")
 const BattleMath = preload("res://scripts/events/battle_math.gd")
@@ -19,15 +26,18 @@ const BRASS := UI.BRASS
 const SAGE := UI.SAGE
 const SPEC_GLYPH := {"promotions": "P", "ticket": "T", "archive": "A", "gallery": "G"}
 const SPEC_COLOR := UI.DEPT_COLORS
+const MAX_TEAM := 3
 
 var _payload := {}
 var _event: Dictionary = {}
-var _selected: Array = []       # manager ids (max 3)
+var _selected: Array = []       # manager ids (max MAX_TEAM)
 var _battle: Control = null
 var _outcome: Control = null
+var _scroll: ScrollContainer
 var _status_label: Label
 var _start_button: Button
 var _timer: Timer
+var _outcome_timer: Timer
 
 
 func setup(payload: Dictionary) -> void:
@@ -65,19 +75,33 @@ func _cooldown_over(now: int) -> bool:
 	return now >= int(es["opened_at"]) + cd
 
 
-func _owned_team_power() -> float:
+func _owned_pairs() -> Array:
 	var pairs: Array = []
 	for mid in GameState.managers_state.keys():
 		var st: Dictionary = GameState.managers_state[mid]
 		if int(st.get("cards", 0)) >= 1:
-			pairs.append({"def": DataLoader.get_manager_def(mid), "state": st})
+			pairs.append({"def": DataLoader.get_manager_def(mid), "state": st, "id": mid})
+	return pairs
+
+
+## Power of the managers actually being SENT IN. Boss HP keys off this and only
+## this: the old screen fed the whole owned roster into stage_boss_hp(), so every
+## manager the event handed out made the event harder while the three managers
+## that fight stayed the same.
+func _selected_team_power() -> float:
+	var pairs: Array = []
+	for mid in _selected:
+		if GameState.managers_state.has(mid):
+			pairs.append({"def": DataLoader.get_manager_def(mid),
+				"state": GameState.managers_state[mid]})
 	return BattleMath.team_power(pairs)
 
 
 func _build() -> void:
 	for c in get_children():
-		if c != _timer:
+		if c != _timer and c != _outcome_timer:
 			c.queue_free()
+	_scroll = null
 	var bg_panel := Panel.new()
 	bg_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg_panel.add_theme_stylebox_override("panel", _style(BG, 0))
@@ -88,105 +112,137 @@ func _build() -> void:
 		add_child(lock)
 		return
 
-	var scroll := ScrollContainer.new()
-	scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(scroll)
+	_prune_selection()
+	_scroll = ScrollContainer.new()
+	_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_scroll)
 	var root := VBoxContainer.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 12)
-	scroll.add_child(root)
+	_scroll.add_child(root)
 	var pad := MarginContainer.new()
 	root.add_child(pad)
 
-	var title := Label.new()
-	title.text = str(_event.get("name", "Inspection Frenzy"))
+	var title := UI.make_display_label(str(_event.get("name", "Inspection Frenzy")),
+		UI.TYPE_DISPLAY, INK)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 34)
-	title.add_theme_color_override("font_color", INK)
 	root.add_child(title)
 
-	_status_label = Label.new()
+	_status_label = UI.make_label("", UI.TYPE_BODY)
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status_label.add_theme_color_override("font_color", INK)
+	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	root.add_child(_status_label)
 
-	_start_button = Button.new()
-	_start_button.text = "Start Inspection"
-	_start_button.custom_minimum_size = Vector2(0, 56)
-	_style_button(_start_button, ACCENT)
+	_start_button = UI.make_button("Start Inspection", ACCENT)
+	_start_button.custom_minimum_size = Vector2(0, UI.TOUCH_MIN + 8)
 	_start_button.pressed.connect(_on_start_pressed)
 	root.add_child(_start_button)
 
-	# Team picker.
-	var team_head := Label.new()
-	team_head.text = "Pick your team (up to 3 owned managers)"
-	team_head.add_theme_font_size_override("font_size", 20)
-	team_head.add_theme_color_override("font_color", INK)
-	root.add_child(team_head)
-	var flow := HFlowContainer.new()
-	flow.add_theme_constant_override("h_separation", 10)
-	flow.add_theme_constant_override("v_separation", 10)
-	root.add_child(flow)
-	var owned_count := 0
-	for mid in GameState.managers_state.keys():
-		var st: Dictionary = GameState.managers_state[mid]
-		if int(st.get("cards", 0)) < 1:
-			continue
-		owned_count += 1
-		flow.add_child(_manager_card(mid, st))
-	if owned_count == 0:
-		var none := Label.new()
-		none.text = "No managers yet — open lootboxes to recruit a team."
-		none.add_theme_color_override("font_color", INK)
-		root.add_child(none)
+	var owned: Array = _owned_pairs()
+	if owned.is_empty():
+		root.add_child(_no_managers_card())
+	else:
+		root.add_child(_rules_card())
+		var team_head := UI.make_display_label(
+			"Your team  %d/%d" % [_selected.size(), MAX_TEAM], UI.TYPE_HEADING, INK)
+		root.add_child(team_head)
+		var flow := HFlowContainer.new()
+		flow.add_theme_constant_override("h_separation", 10)
+		flow.add_theme_constant_override("v_separation", 10)
+		root.add_child(flow)
+		for pair in owned:
+			flow.add_child(_manager_card(pair))
 
 	# Stage list.
-	var stages_head := Label.new()
-	stages_head.text = "Stages"
-	stages_head.add_theme_font_size_override("font_size", 20)
-	stages_head.add_theme_color_override("font_color", INK)
-	root.add_child(stages_head)
+	root.add_child(UI.make_display_label("Stages", UI.TYPE_HEADING, INK))
 	var es: Dictionary = _es()
 	var stages: Array = _event.get("stages", [])
 	for i in stages.size():
 		root.add_child(_stage_row(i, stages[i], es))
 	if int(es.get("stage", 0)) >= stages.size() and _window_active(ClockGuard.now()):
-		var done := Label.new()
-		done.text = "All stages cleared! Come back after the cooldown."
+		var done := UI.make_label("All stages cleared! Come back after the cooldown.", UI.TYPE_BODY)
 		done.add_theme_color_override("font_color", SAGE)
 		root.add_child(done)
 
 	_refresh_window_status()
 
 
-func _manager_card(mid: String, st: Dictionary) -> Control:
-	var def: Dictionary = DataLoader.get_manager_def(mid)
-	var btn := Button.new()
-	btn.toggle_mode = true
-	btn.custom_minimum_size = Vector2(210, 92)
-	btn.button_pressed = _selected.has(mid)
+## Managers unlock at rep 6 but the event opens on day 1, so a new player reaches
+## this screen with an empty roster. Say so once, loudly, instead of leaving six
+## grey bricks and one line of body text to explain themselves.
+func _no_managers_card() -> Control:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", UI.make_frame(BRASS))
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	card.add_child(v)
+	v.add_child(UI.make_display_label("You need a team first", UI.TYPE_TITLE, INK))
+	var body := UI.make_label(
+		"Inspections are fought by managers. Recruit your first one from a lootbox "
+		+ "in the Store, then come back and pick up to three.", UI.TYPE_BODY)
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(body)
+	return card
+
+
+func _rules_card() -> Control:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", UI.make_inset(UI.PANEL_SOFT))
+	var body := UI.make_label(
+		"Match your managers' colours to charge them. The inspector audits one "
+		+ "department at a time — clearing THAT colour charges far faster, and the "
+		+ "audit moves as soon as you satisfy it.", UI.TYPE_LABEL)
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	card.add_child(body)
+	return card
+
+
+## Drops selections the player no longer owns (a prestige or a save edit) so the
+## team never carries a phantom manager into stage_boss_hp().
+func _prune_selection() -> void:
+	var keep: Array = []
+	for mid in _selected:
+		var st: Dictionary = GameState.managers_state.get(mid, {})
+		if int(st.get("cards", 0)) >= 1 and keep.size() < MAX_TEAM:
+			keep.append(mid)
+	_selected = keep
+
+
+func _manager_card(pair: Dictionary) -> Control:
+	var mid: String = str(pair["id"])
+	var def: Dictionary = pair["def"]
+	var st: Dictionary = pair["state"]
+	var on: bool = _selected.has(mid)
 	var spec: String = str(def.get("specialty", ""))
 	var col: Color = SPEC_COLOR.get(spec, BRASS)
-	btn.add_theme_stylebox_override("normal", _style(PANEL, 12, col))
-	btn.add_theme_stylebox_override("pressed", _style(col, 12, INK))
-	btn.add_theme_stylebox_override("hover", _style(PANEL.lightened(0.03), 12, col))
-	btn.add_theme_stylebox_override("disabled", _style(PANEL.darkened(0.1), 12))
+	var btn := Button.new()
+	btn.custom_minimum_size = Vector2(212, 96)
+	btn.add_theme_stylebox_override("normal", _style(col if on else PANEL, 12, INK if on else col))
+	btn.add_theme_stylebox_override("hover", _style(col if on else PANEL.lightened(0.03), 12, col))
+	btn.add_theme_stylebox_override("pressed", _style(col.darkened(0.1), 12, INK))
+	# White on the gold department card is a 1.26:1 label; pick the ink that wins
+	# on whichever hue this manager carries.
+	btn.add_theme_color_override("font_color",
+		(INK if col.get_luminance() > 0.45 else Color.WHITE) if on else INK)
+	btn.add_theme_font_size_override("font_size", UI.TYPE_LABEL)
 	var atk: float = BattleMath.manager_attack(def, st)
-	btn.text = "%s %s\nLv %d · Rank %d\nPower %d" % [
+	btn.text = "%s %s\nLv %d · Rank %d · Power %d\n%s" % [
 		str(SPEC_GLYPH.get(spec, "?")), str(def.get("name", mid)),
-		int(st.get("level", 1)), int(st.get("rank", 1)), int(round(atk))]
-	btn.toggled.connect(func(on: bool) -> void:
-		if on:
-			if _selected.size() >= 3:
-				btn.button_pressed = false
-				return
-			_selected.append(mid)
-		else:
-			_selected.erase(mid))
+		int(st.get("level", 1)), int(st.get("rank", 1)), int(round(atk)),
+		"IN TEAM" if on else "tap to add"]
+	# A fourth pick used to disable every other card. Nothing here refuses a tap:
+	# picking past the cap rotates the oldest manager out.
 	btn.pressed.connect(func() -> void:
-		_build())  # refresh card enabled/disabled states
-	if not _selected.has(mid) and _selected.size() >= 3:
-		btn.disabled = true
+		if _selected.has(mid):
+			_selected.erase(mid)
+		else:
+			if _selected.size() >= MAX_TEAM:
+				var dropped: String = str(_selected.pop_front())
+				_toast("%s stepped aside for %s" % [
+					str(DataLoader.get_manager_def(dropped).get("name", dropped)),
+					str(def.get("name", mid))])
+			_selected.append(mid)
+		_build())
 	return btn
 
 
@@ -195,20 +251,25 @@ func _stage_row(i: int, stage: Dictionary, es: Dictionary) -> Control:
 	row.add_theme_constant_override("separation", 12)
 	var unlocked: bool = i <= int(es.get("stage", 0))
 	var cleared: bool = i < int(es.get("stage", 0)) or es.get("completed", []).has(i)
-	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(150, 52)
-	btn.text = ("✓ " if cleared else "") + "Stage %d" % (i + 1)
-	_style_button(btn, SAGE if cleared else ACCENT)
-	btn.disabled = not unlocked or not _window_active(ClockGuard.now()) \
-		or _selected.is_empty() or cleared
+	var btn := UI.make_button(("Cleared" if cleared else "Stage %d" % (i + 1)),
+		SAGE if cleared else ACCENT)
+	btn.custom_minimum_size = Vector2(160, UI.TOUCH_MIN + 4)
+	# Only an already-cleared stage is inert, and that is a state rather than a
+	# blocker. Locked / no-team / closed-window all stay tappable and explain.
+	btn.disabled = cleared
 	btn.pressed.connect(_on_play_stage.bind(i))
 	row.add_child(btn)
-	var info := Label.new()
-	info.text = "%s\nHP ~%d · %d moves" % [
-		_rewards_preview(stage.get("rewards", {})),
-		int(round(BattleMath.stage_boss_hp(_event, i, float(es.get("team_power_at_open", 0.0))))),
-		int(stage.get("moves", 20))]
-	info.add_theme_color_override("font_color", INK)
+	var power: float = _selected_team_power()
+	var hp: float = BattleMath.stage_boss_hp(_event, i, power)
+	var odds := "pick a team to see the odds"
+	if power > 0.0:
+		odds = "%d HP · %d moves" % [int(round(hp)), BattleMath.stage_moves(_event, i)]
+	elif not unlocked:
+		odds = "clear stage %d first" % i
+	var info := UI.make_label("%s\n%s" % [_rewards_preview(stage.get("rewards", {})), odds],
+		UI.TYPE_LABEL)
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(info)
 	return row
 
@@ -230,56 +291,73 @@ func _refresh_window_status() -> void:
 		return
 	var now: int = ClockGuard.now()
 	var es: Dictionary = _es()
+	var power: float = _selected_team_power()
+	var team_line := "\nTeam power %d" % int(round(power)) if power > 0.0 else ""
 	if _window_active(now):
 		var left: int = int(es["opened_at"]) + int(float(_event.get("duration_hours", 48)) * 3600.0) - now
-		_status_label.text = "Window OPEN — closes in %s · team power at open: %d" % [
-			_fmt_hours(left), int(round(float(es.get("team_power_at_open", 0.0))))]
+		_status_label.text = "Window OPEN — closes in %s%s" % [_fmt_hours(left), team_line]
 		_start_button.visible = false
 	else:
+		_start_button.visible = true
+		_start_button.disabled = false
 		if _cooldown_over(now):
-			_status_label.text = "Next inspection: READY"
-			_start_button.visible = true
-			_start_button.disabled = false
+			_status_label.text = "Next inspection: READY" + team_line
 			_start_button.text = "Start Inspection"
 		else:
-			var left: int = int(es.get("opened_at", 0)) \
+			var wait: int = int(es.get("opened_at", 0)) \
 				+ int(float(_event.get("cooldown_hours", 72)) * 3600.0) - now
-			_status_label.text = "Next inspection in %s" % _fmt_hours(left)
-			_start_button.visible = true
-			_start_button.disabled = true
+			_status_label.text = "Next inspection in %s" % _fmt_hours(wait)
 			_start_button.text = "On cooldown"
 
 
 func _on_start_pressed() -> void:
 	var now: int = ClockGuard.now()
 	if not _cooldown_over(now):
+		_toast("The inspectors need %s to write up the last visit."
+			% _fmt_hours(int(_es().get("opened_at", 0))
+				+ int(float(_event.get("cooldown_hours", 72)) * 3600.0) - now))
 		return
 	var es: Dictionary = _es()
 	es["opened_at"] = now
 	es["stage"] = 0
 	es["completed"] = []
-	es["team_power_at_open"] = _owned_team_power()
+	es["team_power_at_open"] = _selected_team_power()
 	Analytics.log_event("inspection_open", {"team_power": es["team_power_at_open"]})
 	_build()
 
 
 func _on_play_stage(stage_index: int) -> void:
 	var es: Dictionary = _es()
-	if not _window_active(ClockGuard.now()) or _selected.is_empty():
+	if not _window_active(ClockGuard.now()):
+		_toast("Start the inspection first — the window is closed.")
+		return
+	if int(stage_index) > int(es.get("stage", 0)):
+		_toast("Clear stage %d first." % int(es.get("stage", 0) + 1))
+		return
+	if _owned_pairs().is_empty():
+		_toast("Recruit a manager from the Store to fight an inspection.")
+		return
+	if _selected.is_empty():
+		_toast("Pick up to %d managers first." % MAX_TEAM)
 		return
 	var stage: Dictionary = _event.get("stages", [])[stage_index]
 	var team: Array = []
 	for mid in _selected:
 		team.append({"def": DataLoader.get_manager_def(mid),
 			"state": GameState.managers_state[mid], "id": mid})
+	_open_battle(stage_index, team, int(stage.get("moves", 20)))
+
+
+func _open_battle(stage_index: int, team: Array, moves: int) -> void:
+	if _scroll != null and is_instance_valid(_scroll):
+		_scroll.visible = false  # nothing of the host can bleed past the board
 	_battle = BattleView.new()
 	_battle.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_battle)
 	_battle.setup_battle({
 		"boss_name": "Chief Inspector — Stage %d" % (stage_index + 1),
-		"boss_hp": BattleMath.stage_boss_hp(_event, stage_index,
-			float(es.get("team_power_at_open", 0.0))),
-		"moves": int(stage.get("moves", 20)),
+		"boss_hp": BattleMath.stage_boss_hp(_event, stage_index, _selected_team_power()),
+		"moves": moves,
 		"team": team,
 	})
 	_battle.battle_finished.connect(_on_battle_finished.bind(stage_index), CONNECT_ONE_SHOT)
@@ -287,17 +365,39 @@ func _on_play_stage(stage_index: int) -> void:
 
 func _on_battle_finished(result: String, stage_index: int) -> void:
 	Analytics.log_event("inspection_stage", {"stage": stage_index, "result": result})
-	if result == "win":
-		var stage: Dictionary = _event.get("stages", [])[stage_index]
-		var applied: Dictionary = _apply_rewards(stage.get("rewards", {}))
-		var es: Dictionary = _es()
-		if not es.get("completed", []).has(stage_index):
-			es["completed"].append(stage_index)
-		es["stage"] = maxi(int(es.get("stage", 0)), stage_index + 1)
-		EventBus.event_stage_completed.emit("inspection_frenzy", stage_index, applied)
-		_show_outcome("Stage %d cleared!\n%s" % [stage_index + 1, _applied_text(applied)])
-	else:
-		_show_outcome("The inspectors were unimpressed.\nAdjust your team and retry!")
+	if result != "win":
+		_queue_outcome("Inspection failed", "The inspectors ran out of patience.\n"
+			+ "Chase the audit colour — it charges 1.8x — or bring stronger managers.",
+			UI.DANGER, stage_index)
+		return
+	var es: Dictionary = _es()
+	# Idempotence lives HERE, not in whether the stage button happened to be
+	# disabled. A retry path or a re-emitted signal must never double-grant.
+	if es.get("completed", []).has(stage_index):
+		_queue_outcome("Already cleared", "This stage was already signed off.",
+			SAGE, stage_index)
+		return
+	var stage: Dictionary = _event.get("stages", [])[stage_index]
+	var applied: Dictionary = _apply_rewards(stage.get("rewards", {}))
+	es["completed"].append(stage_index)
+	es["stage"] = maxi(int(es.get("stage", 0)), stage_index + 1)
+	EventBus.event_stage_completed.emit("inspection_frenzy", stage_index, applied)
+	_queue_outcome("Stage %d cleared" % (stage_index + 1), _applied_text(applied),
+		SAGE, stage_index)
+
+
+## Lets the last cascade and the last damage number land before the card covers
+## the board. Rewards are already applied by this point; only the card waits.
+func _queue_outcome(title: String, body: String, tint: Color, stage_index: int) -> void:
+	if _outcome_timer != null and is_instance_valid(_outcome_timer):
+		_outcome_timer.queue_free()
+	_outcome_timer = Timer.new()
+	_outcome_timer.one_shot = true
+	_outcome_timer.wait_time = 0.55
+	add_child(_outcome_timer)
+	_outcome_timer.timeout.connect(func() -> void:
+		_show_outcome(title, body, tint, stage_index))
+	_outcome_timer.start()
 
 
 func _apply_rewards(rewards: Dictionary) -> Dictionary:
@@ -338,57 +438,98 @@ func _applied_text(applied: Dictionary) -> String:
 	return "Rewards: " + (" · ".join(parts) if not parts.is_empty() else "none")
 
 
-func _show_outcome(text: String) -> void:
+func _show_outcome(title: String, body: String, tint: Color, stage_index: int) -> void:
+	if not is_inside_tree():
+		return
 	_outcome = Panel.new()
 	_outcome.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_outcome.add_theme_stylebox_override("panel", _style(Color(0, 0, 0, 0.6), 0))
+	_outcome.add_theme_stylebox_override("panel", _style(Color(0, 0, 0, 0.62), 0))
 	add_child(_outcome)
-	var card := Panel.new()
-	card.custom_minimum_size = Vector2(560, 320)
-	card.position = Vector2(80, 480)
-	card.add_theme_stylebox_override("panel", _style(PANEL, 12, BRASS))
-	_outcome.add_child(card)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_outcome.add_child(center)
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(560, 0)
+	card.add_theme_stylebox_override("panel", UI.make_frame(tint))
+	center.add_child(card)
 	var v := VBoxContainer.new()
-	v.set_anchors_preset(Control.PRESET_FULL_RECT)
-	v.alignment = BoxContainer.ALIGNMENT_CENTER
-	v.add_theme_constant_override("separation", 20)
+	v.add_theme_constant_override("separation", 14)
 	card.add_child(v)
-	var l := Label.new()
-	l.text = text
+
+	# A win and a loss have to be unmistakable from across the room: a full-width
+	# colour band, not two lines of body copy on the same cream card.
+	var band := PanelContainer.new()
+	band.add_theme_stylebox_override("panel", UI.make_panel(tint, 14, 0))
+	var band_l := UI.make_display_label(title.to_upper(), UI.TYPE_HERO, Color.WHITE)
+	band_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UI.add_text_halo(band_l)
+	band.add_child(band_l)
+	v.add_child(band)
+
+	var l := UI.make_label(body, UI.TYPE_BODY)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.add_theme_font_size_override("font_size", 22)
-	l.add_theme_color_override("font_color", INK)
 	v.add_child(l)
-	var btn := Button.new()
-	btn.text = "Continue"
-	btn.custom_minimum_size = Vector2(0, 56)
-	_style_button(btn, ACCENT)
-	btn.pressed.connect(func() -> void:
-		if _battle != null:
-			_battle.queue_free()
-			_battle = null
+
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 12)
+	v.add_child(row)
+	var cleared: bool = _es().get("completed", []).has(stage_index)
+	if not cleared:
+		var retry := UI.make_button("Retry", ACCENT)
+		retry.custom_minimum_size = Vector2(180, UI.TOUCH_MIN + 8)
+		retry.pressed.connect(_on_retry.bind(stage_index))
+		row.add_child(retry)
+	var btn := UI.make_button("Continue", SAGE if cleared else UI.SLATE)
+	btn.custom_minimum_size = Vector2(180, UI.TOUCH_MIN + 8)
+	btn.pressed.connect(_close_battle)
+	row.add_child(btn)
+
+
+func _on_retry(stage_index: int) -> void:
+	if not _window_active(ClockGuard.now()) or _selected.is_empty():
+		_close_battle()
+		return
+	if _outcome != null and is_instance_valid(_outcome):
 		_outcome.queue_free()
-		_outcome = null
-		_build())
-	v.add_child(btn)
+	_outcome = null
+	var stage: Dictionary = _event.get("stages", [])[stage_index]
+	var team: Array = []
+	for mid in _selected:
+		team.append({"def": DataLoader.get_manager_def(mid),
+			"state": GameState.managers_state[mid], "id": mid})
+	if _battle != null and is_instance_valid(_battle):
+		_battle.queue_free()
+	_battle = null
+	_open_battle(stage_index, team, int(stage.get("moves", 20)))
+
+
+func _close_battle() -> void:
+	if _battle != null and is_instance_valid(_battle):
+		_battle.queue_free()
+	_battle = null
+	if _outcome != null and is_instance_valid(_outcome):
+		_outcome.queue_free()
+	_outcome = null
+	_build()
+
+
+func _toast(text: String) -> void:
+	EventBus.toast_requested.emit(text)
 
 
 func _center_label(text: String) -> Label:
-	var l := Label.new()
-	l.text = text
+	var l := UI.make_display_label(text, UI.TYPE_DISPLAY, INK)
 	l.set_anchors_preset(Control.PRESET_FULL_RECT)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	l.add_theme_font_size_override("font_size", 28)
-	l.add_theme_color_override("font_color", INK)
 	return l
 
 
 func _fmt_hours(seconds: int) -> String:
-	var h: int = seconds / 3600
-	var m: int = (seconds % 3600) / 60
-	return "%dh %02dm" % [h, m]
+	var s: int = maxi(seconds, 0)
+	return "%dh %02dm" % [s / 3600, (s % 3600) / 60]
 
 
 func _style(color: Color, radius: int, border := Color.TRANSPARENT) -> StyleBoxFlat:
@@ -401,12 +542,3 @@ func _style(color: Color, radius: int, border := Color.TRANSPARENT) -> StyleBoxF
 	sb.content_margin_left = 12
 	sb.content_margin_right = 12
 	return sb
-
-
-func _style_button(btn: Button, color: Color) -> void:
-	btn.add_theme_stylebox_override("normal", _style(color, 12))
-	btn.add_theme_stylebox_override("hover", _style(color.lightened(0.08), 12))
-	btn.add_theme_stylebox_override("pressed", _style(color.darkened(0.1), 12))
-	btn.add_theme_stylebox_override("disabled", _style(color.darkened(0.35), 12))
-	btn.add_theme_color_override("font_color", Color.WHITE)
-	btn.add_theme_font_size_override("font_size", 20)

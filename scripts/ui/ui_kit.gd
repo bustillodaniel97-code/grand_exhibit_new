@@ -338,6 +338,48 @@ static func make_bar_fill(kind: String = "green") -> StyleBoxFlat:
 	sb.border_color = (sb.bg_color as Color).lightened(0.35)
 	return sb
 
+# --- Floating chrome (HUD, nav and quest chips drawn over the world) ---------
+## Base tone for chrome that floats instead of sitting on a panel. Deeper than BG
+## so a pill still separates from the shell behind it.
+const GLASS := Color("#171132")
+
+## Translucent "glass" pill for floating chrome. The shell bars used to be opaque
+## cream slabs: together they painted a fifth of the portrait canvas light, and
+## the cream currency chips landed on a same-coloured backing (1.00:1, visible
+## only by their shadow). Floating chrome instead carries its own deep surface
+## plus a light hairline, which holds up over a bright room as well as over the
+## deep shell.
+static func make_glass(radius: int = RADIUS_BUTTON, alpha: float = 0.86,
+		rim: Color = Color(1, 1, 1, 0.18)) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(GLASS.r, GLASS.g, GLASS.b, alpha)
+	sb.set_corner_radius_all(radius)
+	sb.set_content_margin_all(8)
+	if rim.a > 0.0:
+		sb.set_border_width_all(2)
+		sb.border_color = rim
+	sb.shadow_color = Color(0, 0, 0, 0.38)
+	sb.shadow_size = 5
+	sb.shadow_offset = Vector2(0, 2)
+	return sb
+
+## Bar trough for a progress bar drawn ON dark chrome. make_bar_bg's track is
+## tuned to sit in a light card and reads at 1.45:1 against the deep shell; this
+## one is a lightened channel cut into the pill that hosts it.
+static func make_channel(tint: Color = Color(1, 1, 1, 0.16), radius: int = 10) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = tint
+	sb.set_corner_radius_all(radius)
+	sb.set_border_width_all(1)
+	sb.border_color = Color(0, 0, 0, 0.35)
+	return sb
+
+## Label styling for text that floats over unknown pixels: white with a dark rim.
+static func add_text_halo(l: Label, halo: Color = Color(0, 0, 0, 0.55), size: int = 4) -> Label:
+	l.add_theme_color_override("font_outline_color", halo)
+	l.add_theme_constant_override("outline_size", size)
+	return l
+
 # ---------------------------------------------------------------- widgets
 
 ## v1 signature preserved. v2: nine-patch texture states (depth edge on normal,

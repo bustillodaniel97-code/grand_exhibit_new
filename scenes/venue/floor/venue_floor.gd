@@ -42,25 +42,63 @@ const TAP_ZONES := {  # checked in order (first hit wins)
 }
 
 # --- Waypoints, in grid space -------------------------------------------------
+##
+## Every constant here is inside Iso.gx_window() for its own depth row, with at
+## least half a tile of margin. That was not true before: the vault drop sat
+## exactly on the clip edge and the porters banked their loads off screen.
 const DOOR_G := Vector2(12.9, 16.3)  # just inside the entrance facade
 const COUNTER_GY := 10.1
-const WINDOW_GX: Array[float] = [1.5, 4.2, 6.9, 9.6, 12.3]
-const SLOT_GY: Array[float] = [11.4, 12.2, 13.0, 13.8]
+## Shifted +0.8 tiles east of the original row. The projection shears x by -gy,
+## so a queue that runs 3 tiles deeper also runs 90px further left; window 1's
+## outer rope line used to end up at x = -9 once the queues got longer.
+const WINDOW_GX: Array[float] = [2.3, 4.8, 7.3, 9.8, 12.3]
+## Six slots at 0.55 tiles instead of four at 0.8. The reference queues are
+## packed shoulder to shoulder; ours were a dotted line of people.
+const SLOT_GY: Array[float] = [11.10, 11.65, 12.20, 12.75, 13.30, 13.85]
 const MAX_WINDOWS := 5
-const SLOTS_PER_WINDOW := 4
-const MAX_ALIVE := 28
-const MAX_CROWD := 6
+const SLOTS_PER_WINDOW := 6
+const MAX_ALIVE := 34
+const MAX_CROWD := 14
 const MAX_STACK_VIS := 10
-const PORTER_HOME := Vector2(10.6, 4.2)
-const VAULT_DROP := Vector2(12.4, 1.4)
-const PILE_G := Vector2(13.4, 1.2)
+const PORTER_HOME := Vector2(10.4, 4.4)
+const VAULT_DROP := Vector2(12.2, 4.2)
+const PILE_G := Vector2(12.7, 4.3)
 const MARKETER_G := Vector2(11.3, 16.2)  # touting beside the entrance
+## Six exhibits rather than three, each with several viewing spots. Browsers
+## used to pile onto the same three tiles, which read as a queue for the dinosaur
+## rather than as a gallery being looked at.
 const BROWSE_SPOTS := {
-	"dino": [Vector2(2.2, 4.2), Vector2(4.4, 4.4), Vector2(3.2, 5.0)],
-	"painting": [Vector2(5.4, 1.4), Vector2(6.6, 1.6)],
-	"sarcophagus": [Vector2(6.4, 6.2), Vector2(7.6, 5.4)],
+	"dino": [Vector2(2.0, 4.4), Vector2(3.4, 4.6), Vector2(4.8, 4.3), Vector2(1.3, 3.7)],
+	"painting": [Vector2(2.6, 0.9), Vector2(5.0, 0.9), Vector2(7.4, 1.0)],
+	"sarcophagus": [Vector2(6.0, 6.4), Vector2(7.5, 6.0), Vector2(5.3, 5.7)],
+	"statue": [Vector2(5.0, 2.7), Vector2(6.3, 2.9)],
+	"vitrine": [Vector2(6.6, 3.4), Vector2(8.0, 3.2)],
+	"minerals": [Vector2(1.1, 2.2), Vector2(2.3, 2.0)],
 }
-const EXHIBIT_KEYS: Array[String] = ["dino", "painting", "sarcophagus"]
+const EXHIBIT_KEYS: Array[String] = [
+	"dino", "painting", "sarcophagus", "statue", "vitrine", "minerals"]
+## Where a visitor stands for a moment on the way out. Without this the lobby was
+## a corridor: everyone walked it in a straight line to the door, so the largest
+## room on the floor was the only one with nobody standing in it. Each spot is
+## clear of the lobby furniture and inside Iso.gx_window for its own depth.
+const LOBBY_SPOTS: Array[Vector2] = [
+	Vector2(8.0, 15.2), Vector2(9.3, 15.7), Vector2(10.6, 16.1),
+	Vector2(8.6, 16.4), Vector2(7.6, 15.8), Vector2(11.5, 15.4),
+	Vector2(9.9, 14.8), Vector2(11.0, 16.8), Vector2(7.2, 16.9),
+]
+## Room plaques, placed by hand on floor the cast and the props do not use. The
+## old rule (16% / 84% of each room) dropped the ticket plaque into the queue and
+## the archive plaque onto the porters' home tile.
+## Room plaques. Every one of these sits over a piece of FURNITURE — the dino
+## plinth, a shelf bank, a promotions desk, a ticket counter — because furniture
+## is the only floor the cast never stands on. The old rule (16% / 84% of each
+## room) put the ticket plaque in the queue and the archive plaque on the
+## porters' home tile, and once the rooms were furnished it covered a face in
+## three rooms out of four.
+const PLAQUE_G := {
+	"gallery": Vector2(6.1, 7.1), "archive": Vector2(10.6, 3.8),
+	"promotions": Vector2(10.5, 6.7), "ticket": Vector2(1.1, 9.6),
+}
 
 # --- Depth --------------------------------------------------------------------
 ## Actors shrink slightly toward the back of the hall. Subtle on top of a real
@@ -76,6 +114,7 @@ var _stacks_layer: Node2D      # window ticket-stub stacks
 var _pile_layer: Node2D        # vault pile
 var _labels_layer: Node2D      # room plaques, always above the cast
 var _props: Array = []         # Y-sorted static furniture nodes
+var _prop_g: Array[Vector2] = []   # their grid anchors, for the geometry suite
 var _font: Font
 
 var _arrival: float = 0.28
@@ -96,6 +135,7 @@ var _docent_nodes: Array = []
 var _promo_nodes: Array = []
 var _marketer: Character
 var _spawn_t: float = 0.0
+var _look_cursor: int = 0
 var _porter_trips: int = 0
 var _pile_height: float = 8.0
 var _pile_flash: float = 0.0
@@ -167,7 +207,9 @@ func _ready() -> void:
 		_serve_t.append(0.0)
 
 	_marketer = Character.new()
-	_marketer.set_uniform(UI.ROOM_PROMO)
+	# Variant 2: the promotions room seats at most two clerks, so this keeps the
+	# roaming marketer from being a copy of whoever is standing at the desk.
+	_marketer.set_uniform(UI.ROOM_PROMO, 2)
 	_marketer.holding_sign = true
 	_marketer.visible = false
 	_canvas.add_child(_marketer)
@@ -214,6 +256,55 @@ func get_porter_trips() -> int:
 
 func get_choke() -> String:
 	return _choke
+
+## Population by FSM state. The density pass is tuned against this: a floor whose
+## whole crowd is parked in one room reads worse than a thinner one spread over
+## four, and that is invisible from any single screenshot.
+func state_census() -> Dictionary:
+	var out := {"to_queue": 0, "queue": 0, "crowd": 0, "browse": 0, "linger": 0, "exit": 0}
+	for v in _visitors:
+		out[v.state] = int(out.get(v.state, 0)) + 1
+	return out
+
+## Look keys of everyone currently on the floor — visitors then staff. The cast
+## suite censuses this: a crowd that repeats a look is the defect, and the only
+## place it is observable is a populated floor.
+func cast_look_keys(include_staff: bool = false) -> PackedStringArray:
+	var keys := PackedStringArray()
+	for v in _visitors:
+		keys.append((v.node as Character).look_key())
+	if include_staff:
+		for c in _staff_nodes + _docent_nodes + _promo_nodes:
+			keys.append((c as Character).look_key())
+		for p in _porters:
+			keys.append((p.node as Character).look_key())
+	return keys
+
+## Grid anchors of every static prop on the floor. The geometry suite walks
+## these: a prop whose anchor projects outside Iso.VIEW is simply not there, and
+## that failure is silent — the archive lost its vault door, its money pile and
+## half its shelving that way and nobody noticed for two passes.
+func prop_anchors() -> Array[Vector2]:
+	return _prop_g.duplicate()
+
+## Every grid point a character is ever asked to stand on. Same reason: a
+## waypoint outside the canvas walks somebody off screen, and one inside a prop
+## footprint stands them in the furniture.
+func standing_spots() -> Array[Vector2]:
+	var out: Array[Vector2] = [DOOR_G, MARKETER_G, PORTER_HOME, VAULT_DROP, PILE_G]
+	for w in MAX_WINDOWS:
+		out.append(Vector2(WINDOW_GX[w], COUNTER_GY - 0.7))
+		out.append(Vector2(WINDOW_GX[w] + 0.8, COUNTER_GY + 0.5))
+		for j in SLOTS_PER_WINDOW:
+			out.append(_slot_pos(w, j))
+	for i in MAX_CROWD:
+		out.append(_crowd_slot(i))
+	for spot in LOBBY_SPOTS:
+		out.append(spot)
+	for key in BROWSE_SPOTS.keys():
+		for spot in BROWSE_SPOTS[key]:
+			out.append(spot)
+	return out
 
 ## Dept id for a canvas-space position, or "" if no room hit.
 func tap_zone_at(canvas_pos: Vector2) -> String:
@@ -284,7 +375,7 @@ func _refresh_cast() -> void:
 	while _staff_nodes.size() < _windows_active:
 		var i: int = _staff_nodes.size()
 		var c: Character = Character.new()
-		c.set_uniform(UI.ROOM_TICKET)
+		c.set_uniform(UI.ROOM_TICKET, i)
 		c.facing = 1
 		_canvas.add_child(c)
 		_place(c, Vector2(WINDOW_GX[i], COUNTER_GY - 0.7))
@@ -295,9 +386,9 @@ func _refresh_cast() -> void:
 	var docents: int = clampi(_staff_level("gallery"), 0, 2)
 	while _docent_nodes.size() < docents:
 		var c: Character = Character.new()
-		c.set_uniform(UI.ROOM_GALLERY.darkened(0.2))
+		c.set_uniform(UI.ROOM_GALLERY.darkened(0.2), _docent_nodes.size())
 		_canvas.add_child(c)
-		_place(c, [Vector2(1.2, 2.6), Vector2(7.4, 3.2)][_docent_nodes.size()])
+		_place(c, [Vector2(1.0, 3.5), Vector2(8.2, 3.9)][_docent_nodes.size()])
 		_docent_nodes.append(c)
 	while _docent_nodes.size() > docents:
 		_docent_nodes.pop_back().queue_free()
@@ -305,9 +396,9 @@ func _refresh_cast() -> void:
 	var clerks: int = clampi(_staff_level("promotions"), 1, 2)
 	while _promo_nodes.size() < clerks:
 		var c: Character = Character.new()
-		c.set_uniform(UI.ROOM_PROMO)
+		c.set_uniform(UI.ROOM_PROMO, _promo_nodes.size())
 		_canvas.add_child(c)
-		_place(c, [Vector2(10.4, 7.2), Vector2(12.0, 7.6)][_promo_nodes.size()])
+		_place(c, [Vector2(10.5, 6.15), Vector2(13.2, 6.65)][_promo_nodes.size()])
 		_promo_nodes.append(c)
 	while _promo_nodes.size() > clerks:
 		_promo_nodes.pop_back().queue_free()
@@ -316,7 +407,7 @@ func _refresh_cast() -> void:
 	while _porters.size() < porters:
 		var p := Porter.new()
 		var c: Character = Character.new()
-		c.set_uniform(UI.ROOM_VAULT)
+		c.set_uniform(UI.ROOM_VAULT, _porters.size())
 		c.with_cart = true
 		_canvas.add_child(c)
 		p.pos = PORTER_HOME + Vector2(float(_porters.size()) * 0.7, 0.0)
@@ -361,7 +452,17 @@ func _process(delta: float) -> void:
 		_stacks_layer.queue_redraw()
 
 func _try_spawn() -> void:
-	var interval: float = clampf(1.0 / clampf(_arrival, 0.2, 3.0), 1.2, 6.0)
+	# The old floor could never spawn faster than one visitor every 1.2s, so a
+	# fully upgraded museum held about fifteen people and still read as a diagram.
+	# MAX_ALIVE is the real cap now; this only paces the arrivals up to it.
+	#
+	# The 0.7s floor is set by the BAKE, not by the economy. Filling to MAX_ALIVE
+	# in twelve seconds outran CharacterBaker and left a third of the cast drawing
+	# ~18 primitives apiece instead of blitting one quad, which measured as a
+	# 1270-draw-call spike over the first ten seconds of a session. Arriving half
+	# as fast keeps the ramp inside the bake and costs nothing at steady state,
+	# where throughput is set by dwell time and never approaches this rate.
+	var interval: float = clampf(1.0 / clampf(_arrival, 0.2, 8.0), 0.7, 6.0)
 	if _spawn_t < interval:
 		return
 	_spawn_t = 0.0
@@ -375,7 +476,7 @@ func _try_spawn() -> void:
 		return  # turn away — floor is packed
 	var v := Visitor.new()
 	var c: Character = Character.new()
-	c.randomize_look(randi())
+	c.set_look_slot(_next_look_slot())
 	_canvas.add_child(c)
 	v.node = c
 	v.pos = DOOR_G
@@ -389,8 +490,42 @@ func _try_spawn() -> void:
 	else:
 		_assign_to_window(v, best)
 
+## The look slot least represented among the visitors already on the floor.
+##
+## Rolling a slot at random is not good enough at these populations: with 24
+## slots and fifteen people on screen the birthday paradox alone puts three of
+## them in the same face, and a repeated face is the most obvious tell that a
+## crowd is procedural. Dealing the rarest slot makes every visitor unique while
+## the floor holds fewer than LOOK_COUNT of them.
+func _next_look_slot() -> int:
+	var used := PackedInt32Array()
+	used.resize(Character.LOOK_COUNT)
+	used.fill(0)
+	for v in _visitors:
+		var s: int = (v.node as Character).look_slot()
+		if s >= 0:
+			used[s] += 1
+	var best: int = _look_cursor
+	var fewest: int = 1 << 30
+	for i in Character.LOOK_COUNT:
+		# Sweeping from a rolling cursor stops ties always resolving to slot 0,
+		# which would make the first faces of every session identical.
+		var s: int = (_look_cursor + i) % Character.LOOK_COUNT
+		if used[s] < fewest:
+			fewest = used[s]
+			best = s
+			if fewest == 0:
+				break
+	_look_cursor = (best + 1) % Character.LOOK_COUNT
+	return best
+
+## Overflow visitors mill in the lobby between the reception desk and the
+## carpet. Rows are offset +0.5 tiles east as they come forward so the block
+## stays inside the visible wedge (gx >= gy - 12) all the way to the front row.
 func _crowd_slot(i: int) -> Vector2:
-	return Vector2(6.4 + float(i % 3) * 1.1, 15.0 + float(i / 3) * 0.9)
+	var col: int = i % 5
+	var row: int = i / 5
+	return Vector2(8.2 + float(col) * 0.95 + float(row) * 0.5, 15.1 + float(row) * 0.8)
 
 func _assign_to_window(v: Visitor, w: int) -> void:
 	if v.state == "crowd":
@@ -403,9 +538,21 @@ func _assign_to_window(v: Visitor, w: int) -> void:
 func _slot_pos(w: int, idx: int) -> Vector2:
 	return Vector2(WINDOW_GX[w], SLOT_GY[clampi(idx, 0, SLOTS_PER_WINDOW - 1)])
 
+## Seconds a window spends on one visitor, as a VISUAL pace — the economy's real
+## throughput is Economy's business, not the diorama's.
+##
+## The floor is a closed system of MAX_ALIVE people, so where they stand is set
+## purely by the ratio of dwell times, and the old 0.6s floor made the ticket
+## hall the fastest stage by an order of magnitude: five windows chewing through
+## 8 visitors a second emptied every queue and parked the entire crowd in the
+## gallery. Measured over 180 sim seconds, a 4.8s floor holds ~13 people in the
+## queues, ~10 at the exhibits and ~11 crossing the lobby, against 4 / 16 / 14
+## before; tests/venue/test_geometry.gd asserts no single state takes the floor.
+const MIN_SERVE_S := 4.8
+
 func _serve_time() -> float:
 	var per_window: float = clampf(_serve, 0.25, 3.0) / float(maxi(_windows_active, 1))
-	return clampf(1.0 / per_window, 0.6, 8.0)
+	return clampf(1.0 / per_window, MIN_SERVE_S, 8.0)
 
 func _update_serve(dt: float) -> void:
 	for w in _windows_active:
@@ -436,7 +583,9 @@ func _serve_visitor(w: int) -> void:
 	var keys: Array = EXHIBIT_KEYS.duplicate()
 	keys.shuffle()
 	var spots: Array = []
-	for k in keys.slice(0, randi_range(1, 2)):
+	# Two or three exhibits each, not one or two: a served visitor now spends long
+	# enough in the gallery for the room to hold a standing audience.
+	for k in keys.slice(0, randi_range(1, 3)):
 		var opts: Array = BROWSE_SPOTS[k]
 		spots.append(opts[randi() % opts.size()])
 	v.spots = spots
@@ -466,10 +615,18 @@ func _update_visitors(dt: float) -> void:
 					v.wait -= dt
 					if v.wait <= 0.0:
 						if v.spots.is_empty():
-							v.state = "exit"
-							v.target = DOOR_G
+							v.state = "linger"
+							v.target = LOBBY_SPOTS[randi() % LOBBY_SPOTS.size()]
 						else:
 							v.target = v.spots.pop_front()
+			"linger":
+				if arrived:
+					if v.wait <= 0.0:
+						v.wait = randf_range(1.0, 2.6)
+					v.wait -= dt
+					if v.wait <= 0.0:
+						v.state = "exit"
+						v.target = DOOR_G
 			"exit":
 				if arrived:
 					done.append(v)
@@ -583,8 +740,8 @@ func _spawn_coin_burst(g: Vector2, count: int = 6) -> void:
 		var a: float = TAU * float(i) / float(count) + randf_range(-0.2, 0.2)
 		var reach: float = randf_range(18.0, 34.0)
 		coin.draw.connect(func() -> void:
-			coin.draw_circle(Vector2.ZERO, 4.4, UI.BRASS.darkened(0.25))
-			coin.draw_circle(Vector2(-0.6, -0.6), 3.2, UI.BRASS.lightened(0.25)))
+			Iso.pip(coin, Vector2.ZERO, 4.4, UI.BRASS.darkened(0.25))
+			Iso.pip(coin, Vector2(-0.6, -0.6), 3.2, UI.BRASS.lightened(0.25)))
 		var tw := coin.create_tween()
 		tw.set_parallel(true)
 		tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -627,6 +784,8 @@ func _draw_ground() -> void:
 	Iso.floor_patch(_ground, Vector2(12.1, 10.2), Vector2(1.6, 6.8), UI.CARPET_RED)
 	Iso.floor_patch(_ground, Vector2(12.25, 10.2), Vector2(1.3, 6.8), UI.CARPET_RED.lightened(0.14))
 
+	_draw_floor_dressing()
+
 	# Back walls along the two far edges, per room.
 	Iso.wall(_ground, Vector2(0, 0), 9.0, "x", UI.ROOM_GALLERY.darkened(0.10))
 	Iso.wall(_ground, Vector2(9, 0), 6.0, "x", UI.ROOM_VAULT.darkened(0.10))
@@ -636,9 +795,40 @@ func _draw_ground() -> void:
 	# Low interior dividers.
 	Iso.wall(_ground, Vector2(0, 9), 15.0, "x", UI.ROOM_TICKET.darkened(0.05), 16.0)
 	Iso.wall(_ground, Vector2(9, 5), 6.0, "x", UI.ROOM_PROMO.darkened(0.05), 16.0)
-	Iso.wall(_ground, Vector2(9, 0), 5.0, "y", UI.ROOM_VAULT.darkened(0.18), 30.0)
+	# Raised from 30 to 44 so the archive's vault door has a wall to hang on.
+	Iso.wall(_ground, Vector2(9, 0), 5.0, "y", UI.ROOM_VAULT.darkened(0.18), 44.0)
 
 	_draw_wall_art()
+	_draw_ceiling_dressing()
+
+## Painted floor: exhibit medallions, queue lanes, thresholds, doormat.
+##
+## All of it lives in the ground canvas item on purpose. A decal can never
+## occlude an actor, so it needs neither a node nor a Y-sort slot, and drawing a
+## run of polygons back to back inside one canvas item batches into a handful of
+## draw calls. That is the whole trick behind this density pass: detail goes into
+## existing canvas items, not into new ones.
+func _draw_floor_dressing() -> void:
+	var gal: Color = UI.ROOM_GALLERY.lerp(UI.FLOOR_CREAM, 0.40)
+	Iso.rug(_ground, Vector2(1.1, 2.1), Vector2(4.3, 2.6), gal.darkened(0.12),
+		UI.BRASS.darkened(0.20))
+	Iso.rug(_ground, Vector2(6.0, 4.7), Vector2(2.0, 1.9), gal.darkened(0.12),
+		UI.BRASS.darkened(0.20))
+	Iso.rug(_ground, Vector2(0.2, 0.2), Vector2(8.6, 0.55), gal.darkened(0.06))
+	# Queue lanes, one painted strip per window: floor markings are how the
+	# reference tells the player where a line forms before anyone is standing in it.
+	var tick: Color = UI.ROOM_TICKET.lerp(UI.FLOOR_CREAM, 0.42)
+	for w in MAX_WINDOWS:
+		Iso.rug(_ground, Vector2(WINDOW_GX[w] - 0.5, SLOT_GY[0] - 0.5),
+			Vector2(1.0, SLOT_GY[SLOTS_PER_WINDOW - 1] - SLOT_GY[0] + 1.0),
+			tick.darkened(0.07))
+	Iso.rug(_ground, Vector2(0.4, 9.3), Vector2(14.2, 0.5), tick.darkened(0.13))
+	# Threshold band through the corridor, so the cream gap between the gallery
+	# and the ticket hall reads as a doorway rather than as a hole in the floor.
+	Iso.rug(_ground, Vector2(0.3, 8.15), Vector2(8.4, 0.7), UI.FLOOR_CREAM.darkened(0.08),
+		UI.WALL_BROWN.lightened(0.35))
+	Iso.rug(_ground, Vector2(11.9, 16.1), Vector2(2.0, 0.8), UI.WALL_BROWN.darkened(0.05))
+	Iso.rug(_ground, Vector2(3.4, 14.9), Vector2(4.2, 1.9), UI.FLOOR_CREAM.darkened(0.07))
 
 ## Framed pieces and signage hung on the two back walls.
 func _draw_wall_art() -> void:
@@ -647,26 +837,41 @@ func _draw_wall_art() -> void:
 	Iso.panel(_ground, f + Vector2(0.16, 0.0), 1.88, "x", 19.0, 41.0, Color("#BFDCF2"))
 	Iso.panel(_ground, f + Vector2(0.16, 0.0), 1.88, "x", 19.0, 27.0, Color("#7E9E78"),
 		Color(0, 0, 0, 0))
-	_ground.draw_circle(Iso.to_screen(f + Vector2(1.5, 0.0)) + Vector2(0, -35.0), 5.0,
+	Iso.pip(_ground, Iso.to_screen(f + Vector2(1.5, 0.0)) + Vector2(0, -35.0), 5.0,
 		Color("#F7DE93"))
-	for gx in [1.4, 7.0]:
-		Iso.panel(_ground, Vector2(gx, 0.0), 0.9, "x", 22.0, 38.0, UI.BRASS.darkened(0.34))
-		Iso.panel(_ground, Vector2(gx + 0.1, 0.0), 0.7, "x", 24.0, 36.0,
-			UI.PANEL_SOFT, Color(0, 0, 0, 0))
-	# Archive vault door, set into its back wall.
-	var vc: Vector2 = Iso.to_screen(Vector2(12.0, 0.0)) + Vector2(0, -26.0)
-	_ground.draw_circle(vc, 25.0, Color("#3C5068"))
-	_ground.draw_circle(vc, 21.0, Color("#5B7896"))
-	_ground.draw_circle(vc, 18.0, Color("#8FA9C8"))
-	for i in 8:
-		var a: float = TAU * float(i) / 8.0
-		_ground.draw_line(vc + Vector2(cos(a), sin(a)) * 6.0,
-			vc + Vector2(cos(a), sin(a)) * 16.0, Color("#4A627E"), 2.4)
-	_ground.draw_circle(vc, 6.0, Color("#3C5068"))
-	_ground.draw_circle(vc, 3.4, UI.BRASS)
+	# A hung gallery, not three lonely rectangles: the north wall carries a row of
+	# framed work and the west wall its own, all of them `panel` calls in a row so
+	# the whole hang costs about what the three originals did.
+	for spec in [[1.2, 0.9, 22.0, 38.0, "#8E6BB0"], [2.4, 0.7, 26.0, 36.0, "#3E7E8C"],
+			[3.4, 0.8, 21.0, 34.0, "#B4653C"], [7.1, 1.0, 22.0, 40.0, "#4E7FB5"],
+			[8.2, 0.6, 25.0, 35.0, "#C85A5A"]]:
+		Iso.picture(_ground, Vector2(float(spec[0]), 0.0), float(spec[1]), "x",
+			float(spec[2]), float(spec[3]), Color(str(spec[4])))
+	for spec in [[0.9, 0.9, 21.0, 37.0, "#5FA86E"], [2.2, 0.7, 24.0, 35.0, "#D19A3E"],
+			[3.6, 0.9, 20.0, 36.0, "#7A6BB5"], [5.2, 0.8, 23.0, 38.0, "#4FA3A5"],
+			[6.6, 0.7, 25.0, 35.0, "#C77BA6"]]:
+		Iso.picture(_ground, Vector2(0.0, float(spec[0])), float(spec[1]), "y",
+			float(spec[2]), float(spec[3]), Color(str(spec[4])))
+	# Ticket-hall notices along the low divider, and one on the lobby's west wall.
+	for gx in [0.7, 3.3, 5.9, 8.5, 11.1]:
+		Iso.panel(_ground, Vector2(gx, 9.0), 0.8, "x", 3.0, 13.0, UI.PANEL)
+		Iso.panel(_ground, Vector2(gx + 0.12, 9.0), 0.56, "x", 5.0, 8.0,
+			UI.ROOM_TICKET.darkened(0.10), Color(0, 0, 0, 0))
 	# Promotions poster board.
 	Iso.panel(_ground, Vector2(9.4, 5.0), 1.8, "x", 4.0, 24.0, UI.PANEL)
-	_ground.draw_circle(Iso.to_screen(Vector2(9.9, 5.0)) + Vector2(0, -16.0), 4.0, UI.ROOM_PROMO)
+	Iso.panel(_ground, Vector2(11.6, 5.0), 1.4, "x", 4.0, 20.0, UI.PANEL_SOFT)
+	Iso.pip(_ground, Iso.to_screen(Vector2(9.9, 5.0)) + Vector2(0, -16.0), 4.0, UI.ROOM_PROMO)
+	Iso.pip(_ground, Iso.to_screen(Vector2(12.3, 5.0)) + Vector2(0, -13.0), 3.4, UI.BRASS)
+
+## Bunting strung under the ceiling. Drawn last into the ground item, which is
+## also the only layer it can live in for free: the strings hang above the top of
+## the tallest wall, where nothing on the floor ever reaches them.
+func _draw_ceiling_dressing() -> void:
+	var flags: Array = [UI.ROOM_TICKET, UI.ROOM_GALLERY, UI.SAGE, UI.SLATE, UI.PLUM]
+	Iso.bunting(_ground, Vector2(2.4, 0.0), Vector2(0.0, 2.4), 46.0, 9.0, flags, 5)
+	Iso.bunting(_ground, Vector2(5.8, 0.0), Vector2(0.0, 5.4), 45.0, 15.0, flags, 8)
+	Iso.bunting(_ground, Vector2(8.7, 0.0), Vector2(0.0, 7.8), 43.0, 22.0, flags, 11)
+	Iso.bunting(_ground, Vector2(11.4, 17.0), Vector2(14.4, 17.0), 50.0, 7.0, flags, 5)
 
 # --- Props: individual Y-sorted furniture nodes --------------------------------
 
@@ -674,6 +879,7 @@ func _draw_wall_art() -> void:
 ## Y-sort can interleave it with the moving cast; the painter works in absolute
 ## canvas coordinates and cancels the node offset with a draw transform.
 func _add_prop(g: Vector2, painter: Callable) -> void:
+	_prop_g.append(g)
 	var n := Node2D.new()
 	n.position = Iso.to_screen(g)
 	_canvas.add_child(n)
@@ -687,6 +893,7 @@ func _clear_props() -> void:
 		if is_instance_valid(p):
 			p.queue_free()
 	_props.clear()
+	_prop_g.clear()
 
 func _rebuild_props() -> void:
 	var key: String = "%d" % _windows_active
@@ -710,68 +917,128 @@ func _build_ticket_props() -> void:
 			Iso.box(ci, g, Vector2(1.7, 0.6), 21.0, UI.ROOM_TICKET.darkened(0.06))
 			Iso.box(ci, g + Vector2(-0.05, -0.05), Vector2(1.8, 0.7), 24.0,
 				UI.BRASS, Color(0, 0, 0, 0.22))
+			# Till, monitor and a paper tray. Adding detail INSIDE an existing prop
+			# node is close to free: consecutive polygons in one canvas item batch,
+			# where a second node would have cost its own draw calls.
+			var mon: Vector2 = Iso.to_screen(Vector2(gx + 0.52, COUNTER_GY - 0.02)) \
+				+ Vector2(0, -24.0)
+			ci.draw_colored_polygon(PackedVector2Array([
+				mon + Vector2(-8, -17), mon + Vector2(8, -17),
+				mon + Vector2(8, -4), mon + Vector2(-8, -4)]), Color("#2B2245"))
+			ci.draw_colored_polygon(PackedVector2Array([
+				mon + Vector2(-6, -15), mon + Vector2(6, -15),
+				mon + Vector2(6, -6), mon + Vector2(-6, -6)]), UI.SLATE.lightened(0.25))
+			var tray: Vector2 = Iso.to_screen(Vector2(gx - 0.55, COUNTER_GY - 0.02)) \
+				+ Vector2(0, -24.0)
+			for k in 3:
+				var ty: float = -float(k) * 2.6
+				ci.draw_colored_polygon(PackedVector2Array([
+					tray + Vector2(-8, ty), tray + Vector2(0, ty - 4),
+					tray + Vector2(8, ty), tray + Vector2(0, ty + 4)]),
+					UI.PANEL if k % 2 == 0 else UI.FLOOR_CREAM)
+			# Glass screen across the customer face of the counter.
+			Iso.panel(ci, g + Vector2(0.06, 0.62), 1.58, "x", 24.0, 43.0,
+				Color(0.76, 0.92, 1.0, 0.28), Color(1, 1, 1, 0.34))
 			var label: Vector2 = Iso.to_screen(Vector2(gx, COUNTER_GY - 0.02)) + Vector2(-4, -6)
 			ci.draw_string(_font, label, str(idx + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 13,
 				UI.FLOOR_CREAM))
-		for side in [-0.62, 0.62]:
-			for j in SLOTS_PER_WINDOW:
-				var sg := Vector2(gx + side, SLOT_GY[j])
-				var prev_gy: float = SLOT_GY[j - 1] if j > 0 else -1.0
-				_add_prop(sg, func(ci: CanvasItem) -> void:
-					var base: Vector2 = Iso.to_screen(sg)
-					Iso.shadow(ci, sg - Vector2(0.1, 0.1), Vector2(0.2, 0.2), 0.20)
-					ci.draw_line(base, base + Vector2(0, -26.0), UI.WALL_BROWN, 2.6)
-					ci.draw_circle(base + Vector2(0, -28.0), 3.6, UI.BRASS)
-					ci.draw_circle(base + Vector2(-1, -29.0), 1.6, UI.BRASS.lightened(0.4))
-					if prev_gy >= 0.0:
-						var prev: Vector2 = Iso.to_screen(Vector2(sg.x, prev_gy))
-						var rope := PackedVector2Array()
-						for k in 9:
-							var t: float = float(k) / 8.0
-							var p: Vector2 = (prev + Vector2(0, -25.0)).lerp(
-								base + Vector2(0, -25.0), t)
-							p.y += sin(t * PI) * 6.0
-							rope.append(p)
-						ci.draw_polyline(rope, UI.ROPE_RED.darkened(0.3), 3.6)
-						ci.draw_polyline(rope, UI.ROPE_RED, 2.0))
+		_add_queue_lane(gx, -0.62)
+		_add_queue_lane(gx, 0.62)
+	_add_prop(Vector2(14.2, 10.4), _bin_painter(Vector2(14.2, 10.4)))
+	_add_prop(Vector2(3.55, 13.95), _planter_painter(Vector2(3.55, 13.95)))
+	_add_prop(Vector2(14.6, 13.4), _planter_painter(Vector2(14.6, 13.4)))
+
+## One rope line as ONE node, instead of one node per post.
+##
+## The queues used to build forty separate stanchion nodes, which was about a
+## sixth of the whole floor's draw-call budget spent on posts. Merging a lane
+## into a single canvas item only stays honest if the merged node sorts correctly
+## against the people standing in it, and here it does exactly: the far lane
+## belongs BEHIND every visitor at that window, so it anchors at the back of the
+## queue, and the near lane belongs in front of all of them, so it anchors at the
+## front. There is no depth at which a lane and its queue interleave.
+func _add_queue_lane(gx: float, side: float) -> void:
+	var lane_gx: float = gx + side
+	var anchor_gy: float = SLOT_GY[0] - 0.45
+	if side > 0.0:
+		anchor_gy = SLOT_GY[SLOTS_PER_WINDOW - 1] + 0.45
+	_add_prop(Vector2(lane_gx, anchor_gy), func(ci: CanvasItem) -> void:
+		# Grouped BY PRIMITIVE, not by post. The GL Compatibility batcher only
+		# merges consecutive commands of the same kind, so shadow/rope/post/knob
+		# per post made one lane cost about thirty draw calls; issuing all the
+		# shadows, then all the ropes, then all the posts costs five, and the
+		# painted order is the same because the groups never overlap each other.
+		var pts: Array[Vector2] = []
+		for j in SLOTS_PER_WINDOW:
+			pts.append(Iso.to_screen(Vector2(lane_gx, SLOT_GY[j])))
+		var ropes: Array = []
+		for j in range(1, SLOTS_PER_WINDOW):
+			var rope := PackedVector2Array()
+			for k in 9:
+				var t: float = float(k) / 8.0
+				var p: Vector2 = (pts[j - 1] + Vector2(0, -25.0)).lerp(
+					pts[j] + Vector2(0, -25.0), t)
+				p.y += sin(t * PI) * 6.0
+				rope.append(p)
+			ropes.append(rope)
+		for rope in ropes:
+			Iso.stroke(ci, rope, UI.ROPE_RED.darkened(0.3), 3.6)
+		for rope in ropes:
+			Iso.stroke(ci, rope, UI.ROPE_RED, 2.0)
+		for p in pts:
+			ci.draw_line(p, p + Vector2(0, -26.0), UI.WALL_BROWN, 2.6)
+		for p in pts:
+			Iso.pip(ci, p + Vector2(0, -28.0), 3.6, UI.BRASS)
+		for p in pts:
+			Iso.pip(ci, p + Vector2(-1, -29.0), 1.6, UI.BRASS.lightened(0.4)))
 
 func _build_gallery_props() -> void:
 	_add_prop(Vector2(3.2, 3.4), func(ci: CanvasItem) -> void:
 		var g := Vector2(1.6, 2.6)
 		Iso.shadow(ci, g + Vector2(0.08, 0.12), Vector2(3.2, 1.3), 0.22)
 		Iso.box(ci, g, Vector2(3.2, 1.2), 14.0, Color("#C9B896"))
-		_draw_skeleton(ci, Iso.to_screen(g + Vector2(1.6, 0.6)) + Vector2(0, -14.0)))
+		Iso.box(ci, g + Vector2(0.0, 1.04), Vector2(3.2, 0.16), 16.0, Color("#B3A281"))
+		_draw_skeleton(ci, Iso.to_screen(g + Vector2(1.6, 0.6)) + Vector2(0, -14.0))
+		_draw_barrier(ci, Vector2(1.4, 3.98), Vector2(5.0, 3.98), 4))
 	_add_prop(Vector2(7.0, 5.6), func(ci: CanvasItem) -> void:
 		var g := Vector2(6.5, 5.1)
 		Iso.shadow(ci, g + Vector2(0.06, 0.10), Vector2(1.1, 1.1), 0.22)
 		Iso.box(ci, g, Vector2(1.0, 1.0), 12.0, Color("#C9B896"))
-		_draw_sarcophagus(ci, Iso.to_screen(g + Vector2(0.5, 0.5)) + Vector2(0, -12.0)))
-	for spec in [[Vector2(1.4, 6.6), 1.8], [Vector2(5.2, 6.9), 1.8]]:
-		var bg: Vector2 = spec[0]
-		var bl: float = spec[1]
-		_add_prop(bg + Vector2(bl * 0.5, 0.2), func(ci: CanvasItem) -> void:
-			Iso.shadow(ci, bg + Vector2(0.05, 0.08), Vector2(bl, 0.5), 0.18)
-			Iso.box(ci, bg, Vector2(bl, 0.42), 9.0, Color("#A9793F"))
-			Iso.box(ci, bg + Vector2(0.0, 0.06), Vector2(bl, 0.10), 22.0, Color("#8A6033")))
-	for pg in [Vector2(0.5, 7.4), Vector2(8.3, 0.6), Vector2(8.3, 7.4)]:
+		_draw_sarcophagus(ci, Iso.to_screen(g + Vector2(0.5, 0.5)) + Vector2(0, -12.0))
+		_draw_barrier(ci, Vector2(6.3, 6.25), Vector2(7.7, 6.25), 3))
+	_add_prop(Vector2(5.5, 2.1), _statue_painter(Vector2(5.0, 1.6), Vector2(1.0, 1.0)))
+	_add_prop(Vector2(7.75, 2.75), _vitrine_painter(Vector2(7.0, 2.4), Vector2(1.5, 0.7),
+		Color("#7FD4E8")))
+	_add_prop(Vector2(1.45, 1.75), _case_painter(Vector2(0.7, 1.4), Vector2(1.5, 0.7)))
+	_add_prop(Vector2(4.55, 5.85), _kiosk_painter(Vector2(4.3, 5.6)))
+	for spec in [[Vector2(1.4, 6.6), 1.8], [Vector2(5.2, 6.9), 1.8], [Vector2(7.3, 6.4), 1.4]]:
+		_add_prop((spec[0] as Vector2) + Vector2(float(spec[1]) * 0.5, 0.2),
+			_bench_painter(spec[0], float(spec[1])))
+	_add_prop(Vector2(8.5, 4.6), _bin_painter(Vector2(8.5, 4.6)))
+	for pg in [Vector2(0.5, 7.4), Vector2(8.3, 0.6), Vector2(8.4, 7.5),
+			Vector2(0.4, 4.9), Vector2(4.6, 0.5)]:
 		_add_prop(pg, _planter_painter(pg))
 
+## The archive furnishes a WEDGE, not a rectangle. Its east corner projects to
+## x = 840 on a 720-wide canvas, so shelving that ran the full room width had its
+## far half clipped away and the vault door was never on screen at all. Each rank
+## steps one tile forward as it runs east, which is precisely how Iso.gx_window
+## opens up with depth, so the room now reads as full to its visible edge.
 func _build_vault_props() -> void:
-	for row in [1.9, 3.1]:
-		var gy: float = row
-		_add_prop(Vector2(12.0, gy), func(ci: CanvasItem) -> void:
-			var g := Vector2(9.5, gy)
-			Iso.shadow(ci, g + Vector2(0.06, 0.10), Vector2(5.0, 0.6), 0.20)
-			Iso.box(ci, g, Vector2(5.0, 0.55), 30.0, Color("#5D7B96"))
-			for i in 9:
-				var bx: float = g.x + 0.25 + float(i) * 0.52
-				var top: Vector2 = Iso.to_screen(Vector2(bx, g.y + 0.28)) + Vector2(0, -30.0)
-				ci.draw_colored_polygon(PackedVector2Array([
-					top + Vector2(-7, -3), top + Vector2(2, -7),
-					top + Vector2(9, -3), top + Vector2(0, 1)]), Color("#4ADE80"))
-				ci.draw_line(top + Vector2(-4, -3), top + Vector2(5, -6),
-					Color("#22A45A"), 1.4))
-	_add_prop(Vector2(10.3, 4.3), _planter_painter(Vector2(10.3, 4.3)))
+	# Nothing tall in front of the door. A shelf bank at gy 1.9 projects into the
+	# same screen wedge as a door on the gx = 9 divider and cut the vault dial in
+	# half; the racking starts at gy 2.3 so the door stands clear above it.
+	_add_prop(Vector2(9.0, 0.8), _vault_door_painter(Vector2(9.0, 0.1), 1.4))
+	for spec in [[Vector2(9.6, 1.6), 1.6, 3], [Vector2(9.4, 2.6), 3.0, 6],
+			[Vector2(9.4, 3.6), 4.0, 8], [Vector2(13.2, 4.6), 1.2, 2]]:
+		var sg: Vector2 = spec[0]
+		var sw: float = spec[1]
+		_add_prop(sg + Vector2(sw * 0.5, 0.5),
+			_shelf_painter(sg, Vector2(sw, 0.5), int(spec[2])))
+	_add_prop(Vector2(11.6, 2.1), _crate_painter(Vector2(11.2, 1.5)))
+	_add_prop(Vector2(10.2, 2.15), _trolley_painter(Vector2(10.2, 2.15)))
+	_add_prop(Vector2(9.75, 5.1), _cabinet_painter(Vector2(9.4, 4.6), Vector2(0.7, 0.5)))
+	_add_prop(Vector2(14.0, 4.7), _planter_painter(Vector2(14.0, 4.7)))
 
 func _build_promo_props() -> void:
 	for spec in [[Vector2(9.6, 6.4), 1.9], [Vector2(12.4, 6.9), 1.6]]:
@@ -787,7 +1054,11 @@ func _build_promo_props() -> void:
 			ci.draw_colored_polygon(PackedVector2Array([
 				mon + Vector2(-7, -18), mon + Vector2(7, -18),
 				mon + Vector2(7, -8), mon + Vector2(-7, -8)]), UI.SLATE.lightened(0.2)))
-	_add_prop(Vector2(14.3, 8.4), _planter_painter(Vector2(14.3, 8.4)))
+	_add_prop(Vector2(13.9, 5.5), _banner_painter(Vector2(13.9, 5.5)))
+	_add_prop(Vector2(10.65, 8.8), _bench_painter(Vector2(10.0, 8.3), 1.3))
+	_add_prop(Vector2(13.0, 8.9), _rack_painter(Vector2(12.4, 8.4), Vector2(1.2, 0.5)))
+	_add_prop(Vector2(14.4, 6.4), _balloon_painter(Vector2(14.4, 6.4)))
+	_add_prop(Vector2(14.5, 8.7), _planter_painter(Vector2(14.5, 8.7)))
 
 func _build_lobby_props() -> void:
 	# Entrance facade. Two earlier attempts were wrong in instructive ways: the
@@ -812,19 +1083,60 @@ func _build_lobby_props() -> void:
 		Iso.panel(ci, d0 + Vector2(0.16, 0.0), leaf * 2.0 - 0.32, "x", 42.0, 52.0,
 			UI.BRASS.darkened(0.18))
 		var mid: Vector2 = Iso.to_screen(d0 + Vector2(leaf, 0.0))
-		ci.draw_circle(mid + Vector2(-4, -18), 2.6, UI.BRASS)
-		ci.draw_circle(mid + Vector2(4, -16), 2.6, UI.BRASS)
+		Iso.pip(ci, mid + Vector2(-4, -18), 2.6, UI.BRASS)
+		Iso.pip(ci, mid + Vector2(4, -16), 2.6, UI.BRASS)
 		# Daylight spilling across the threshold.
 		Iso.floor_patch(ci, d0 - Vector2(0.0, 0.85), Vector2(leaf * 2.0, 0.85),
 			Color(1.0, 0.95, 0.75, 0.14)))
-	_add_prop(Vector2(4.6, 15.4), func(ci: CanvasItem) -> void:
-		var g := Vector2(3.6, 15.1)
-		Iso.shadow(ci, g + Vector2(0.06, 0.10), Vector2(2.1, 0.7), 0.20)
-		Iso.box(ci, g, Vector2(2.0, 0.65), 20.0, UI.ROOM_TICKET.darkened(0.18))
-		Iso.box(ci, g + Vector2(-0.05, -0.05), Vector2(2.1, 0.75), 23.0, UI.BRASS,
-			Color(0, 0, 0, 0.22)))
-	for pg in [Vector2(0.6, 14.6), Vector2(14.4, 14.6), Vector2(8.6, 16.6)]:
+	_add_prop(Vector2(5.5, 15.7), func(ci: CanvasItem) -> void:
+		var g := Vector2(4.4, 15.0)
+		Iso.shadow(ci, g + Vector2(0.06, 0.10), Vector2(2.3, 0.8), 0.20)
+		Iso.box(ci, g, Vector2(2.2, 0.7), 20.0, UI.ROOM_TICKET.darkened(0.18))
+		Iso.box(ci, g + Vector2(-0.05, -0.05), Vector2(2.3, 0.8), 23.0, UI.BRASS,
+			Color(0, 0, 0, 0.22))
+		var sign: Vector2 = Iso.to_screen(g + Vector2(1.1, 0.35)) + Vector2(0, -23.0)
+		ci.draw_colored_polygon(PackedVector2Array([
+			sign + Vector2(-16, -22), sign + Vector2(16, -22),
+			sign + Vector2(16, -10), sign + Vector2(-16, -10)]), UI.PANEL)
+		ci.draw_string(_font, sign + Vector2(-13, -13), "INFO",
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 11, UI.INK))
+	_add_prop(Vector2(6.25, 16.8), _rack_painter(Vector2(5.4, 16.2), Vector2(1.7, 0.6)))
+	for mg in [Vector2(6.7, 14.3), Vector2(7.6, 14.3)]:
+		_add_prop(mg + Vector2(0.3, 0.45), _machine_painter(mg))
+	_add_prop(Vector2(4.4, 14.9), _cabinet_painter(Vector2(3.6, 14.6), Vector2(1.6, 0.6)))
+	_add_prop(Vector2(6.6, 16.6), _bench_painter(Vector2(6.0, 16.4), 1.2))
+	_add_prop(Vector2(12.6, 14.6), _banner_painter(Vector2(12.6, 14.6)))
+	_add_prop(Vector2(14.5, 15.8), _bench_painter(Vector2(14.0, 15.6), 1.0))
+	for pg in [Vector2(6.2, 14.3), Vector2(14.6, 14.5), Vector2(5.1, 16.3),
+			Vector2(11.6, 16.9), Vector2(4.2, 15.3)]:
 		_add_prop(pg, _planter_painter(pg))
+
+# --- Prop painters ------------------------------------------------------------
+
+## Velvet barrier between two floor points — posts plus a swagged rope. Drawn
+## inside an exhibit's own node so it sorts with the exhibit it protects.
+func _draw_barrier(ci: CanvasItem, a: Vector2, b: Vector2, posts: int = 3) -> void:
+	var pts: Array[Vector2] = []
+	for i in posts:
+		pts.append(Iso.to_screen(a.lerp(b, float(i) / float(maxi(posts - 1, 1)))))
+	var ropes: Array = []
+	for i in range(1, posts):
+		var rope := PackedVector2Array()
+		for k in 7:
+			var u: float = float(k) / 6.0
+			var p: Vector2 = (pts[i - 1] + Vector2(0, -20.0)).lerp(
+				pts[i] + Vector2(0, -20.0), u)
+			p.y += sin(u * PI) * 5.0
+			rope.append(p)
+		ropes.append(rope)
+	for rope in ropes:
+		Iso.stroke(ci, rope, UI.ROPE_RED.darkened(0.3), 3.2)
+	for rope in ropes:
+		Iso.stroke(ci, rope, UI.ROPE_RED, 1.8)
+	for p in pts:
+		ci.draw_line(p, p + Vector2(0, -21.0), UI.WALL_BROWN, 2.4)
+	for p in pts:
+		Iso.pip(ci, p + Vector2(0, -23.0), 3.2, UI.BRASS)
 
 ## Potted plant: terracotta pot plus leaf blades. Cheap, and the single most
 ## effective thing for making a floor look furnished rather than empty.
@@ -834,11 +1146,218 @@ func _planter_painter(g: Vector2) -> Callable:
 		Iso.shadow(ci, g - Vector2(0.28, 0.28), Vector2(0.56, 0.56), 0.20)
 		Iso.box(ci, g - Vector2(0.24, 0.24), Vector2(0.48, 0.48), 13.0, Color("#B4653C"))
 		var top: Vector2 = base + Vector2(0, -13.0)
+		var tips: Array[Vector2] = []
 		for i in 6:
 			var a: float = -PI * 0.5 + lerpf(-1.0, 1.0, float(i) / 5.0)
-			var tip: Vector2 = top + Vector2(cos(a), sin(a)) * 17.0
+			tips.append(top + Vector2(cos(a), sin(a)) * 17.0)
+		for tip in tips:
 			ci.draw_line(top, tip, Color("#2F8F52"), 3.2)
+		for tip in tips:
 			ci.draw_line(top, tip.lerp(top, 0.35), Color("#46B86A"), 2.0)
+
+## Bench: seat slab plus a back rail.
+func _bench_painter(g: Vector2, length: float) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.shadow(ci, g + Vector2(0.05, 0.08), Vector2(length, 0.5), 0.18)
+		Iso.box(ci, g, Vector2(length, 0.42), 9.0, Color("#A9793F"))
+		Iso.box(ci, g + Vector2(0.0, 0.06), Vector2(length, 0.10), 22.0, Color("#8A6033"))
+
+## Waste bin — a lidded drum. The one prop that says "public building".
+func _bin_painter(g: Vector2) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.shadow(ci, g - Vector2(0.20, 0.20), Vector2(0.40, 0.40), 0.18)
+		Iso.cyl(ci, g, 0.18, 20.0, Color("#5C6B8A"))
+		Iso.cyl(ci, g, 0.20, 22.0, Color("#46536D"))
+
+## Stone figure on a plinth.
+func _statue_painter(g: Vector2, size: Vector2) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.shadow(ci, g + Vector2(0.06, 0.10), size + Vector2(0.06, 0.06), 0.22)
+		Iso.box(ci, g, size, 26.0, Color("#C9B896"))
+		var at: Vector2 = Iso.to_screen(g + size * 0.5) + Vector2(0.0, -26.0)
+		var stone := Color("#E6DCC4")
+		var edge := Color("#9C8C6E")
+		ci.draw_colored_polygon(PackedVector2Array([
+			at + Vector2(-7, 0), at + Vector2(7, 0),
+			at + Vector2(5, -25), at + Vector2(-5, -25)]), stone)
+		ci.draw_line(at + Vector2(-6, -21), at + Vector2(-13, -33), stone, 4.6)
+		ci.draw_line(at + Vector2(6, -21), at + Vector2(12, -29), stone, 4.6)
+		ci.draw_circle(at + Vector2(0, -32), 6.2, stone)
+		ci.draw_arc(at + Vector2(0, -32), 6.2, 0.0, TAU, 16, edge, 1.6)
+		ci.draw_line(at + Vector2(-7, -1), at + Vector2(7, -1), edge, 1.8)
+
+## Glass display case with an artefact standing inside it.
+func _vitrine_painter(g: Vector2, size: Vector2, art: Color) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.shadow(ci, g + Vector2(0.06, 0.10), size + Vector2(0.06, 0.06), 0.20)
+		Iso.box(ci, g, size, 15.0, Color("#7E6C52"))
+		var c: Vector2 = Iso.to_screen(g + size * 0.5) + Vector2(0.0, -15.0)
+		ci.draw_colored_polygon(PackedVector2Array([
+			c + Vector2(-9, -10), c + Vector2(0, -21),
+			c + Vector2(9, -10), c + Vector2(0, 1)]), art)
+		ci.draw_colored_polygon(PackedVector2Array([
+			c + Vector2(-4, -12), c + Vector2(0, -18),
+			c + Vector2(3, -11), c + Vector2(0, -5)]), art.lightened(0.42))
+		ci.draw_line(c + Vector2(-8, -6), c + Vector2(8, -6), art.darkened(0.30), 2.0)
+		Iso.box(ci, g + Vector2(0.05, 0.05), size - Vector2(0.10, 0.10), 30.0,
+			Color(0.78, 0.92, 1.0, 0.20), Color(1, 1, 1, 0.34))
+
+## Low mineral cabinet with a lit glass top.
+func _case_painter(g: Vector2, size: Vector2) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.shadow(ci, g + Vector2(0.06, 0.10), size + Vector2(0.06, 0.06), 0.20)
+		Iso.box(ci, g, size, 17.0, Color("#7E6C52"))
+		var c: Vector2 = Iso.to_screen(g + size * 0.5) + Vector2(0.0, -17.0)
+		for spec in [[-10.0, Color("#7ED8F0")], [0.0, Color("#F08CC4")],
+				[10.0, Color("#9CE8A8")]]:
+			var p: Vector2 = c + Vector2(float(spec[0]), 0.0)
+			ci.draw_colored_polygon(PackedVector2Array([
+				p + Vector2(-4, -1), p + Vector2(0, -8),
+				p + Vector2(4, -1), p + Vector2(0, 3)]), spec[1])
+		Iso.box(ci, g + Vector2(0.04, 0.04), size - Vector2(0.08, 0.08), 21.0,
+			Color(0.80, 0.93, 1.0, 0.28), Color(1, 1, 1, 0.36))
+
+## Audio-guide pedestal: a stalk with a tilted screen on top.
+func _kiosk_painter(g: Vector2) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.shadow(ci, g - Vector2(0.02, 0.02), Vector2(0.5, 0.5), 0.18)
+		Iso.box(ci, g, Vector2(0.34, 0.34), 30.0, Color("#5C6B8A"))
+		var at: Vector2 = Iso.to_screen(g + Vector2(0.17, 0.17)) + Vector2(0, -30.0)
+		ci.draw_colored_polygon(PackedVector2Array([
+			at + Vector2(-11, -6), at + Vector2(2, -12),
+			at + Vector2(11, -5), at + Vector2(-2, 1)]), Color("#2B2245"))
+		ci.draw_colored_polygon(PackedVector2Array([
+			at + Vector2(-8, -6), at + Vector2(2, -10),
+			at + Vector2(8, -5), at + Vector2(-2, -1)]), UI.SAGE.darkened(0.10))
+
+## Shelving bank: uprights carrying cash bundles and ledger boxes.
+func _shelf_painter(g: Vector2, size: Vector2, bays: int) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.shadow(ci, g + Vector2(0.06, 0.10), size + Vector2(0.06, 0.06), 0.20)
+		Iso.box(ci, g, size, 30.0, Color("#5D7B96"))
+		var step: float = (size.x - 0.5) / float(maxi(bays - 1, 1))
+		var tops: Array[Vector2] = []
+		for i in bays:
+			tops.append(Iso.to_screen(Vector2(g.x + 0.25 + float(i) * step,
+				g.y + size.y * 0.5)) + Vector2(0, -30.0))
+		for top in tops:
+			ci.draw_colored_polygon(PackedVector2Array([
+				top + Vector2(-7, -3), top + Vector2(2, -7),
+				top + Vector2(9, -3), top + Vector2(0, 1)]), Color("#4ADE80"))
+		for i in bays:
+			if i % 2 == 0:
+				ci.draw_colored_polygon(PackedVector2Array([
+					tops[i] + Vector2(-6, -10), tops[i] + Vector2(1, -14),
+					tops[i] + Vector2(7, -10), tops[i] + Vector2(0, -6)]), Color("#C9B896"))
+		for top in tops:
+			ci.draw_line(top + Vector2(-4, -3), top + Vector2(5, -6), Color("#22A45A"), 1.4)
+
+## Stack of archive crates, tapering as it goes up.
+func _crate_painter(g: Vector2) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.shadow(ci, g + Vector2(0.06, 0.10), Vector2(0.8, 0.6), 0.20)
+		Iso.box(ci, g, Vector2(0.8, 0.6), 15.0, Color("#A9793F"))
+		Iso.box(ci, g + Vector2(0.10, 0.08), Vector2(0.58, 0.44), 27.0, Color("#BE8B4E"))
+		Iso.box(ci, g + Vector2(0.20, 0.16), Vector2(0.40, 0.30), 36.0, Color("#8A6033"))
+
+## Porter's hand trolley, parked between the racks.
+func _trolley_painter(g: Vector2) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		var base: Vector2 = Iso.to_screen(g)
+		Iso.shadow(ci, g - Vector2(0.24, 0.16), Vector2(0.48, 0.32), 0.18)
+		ci.draw_line(base + Vector2(-7, 0), base + Vector2(-7, -30), Color("#46536D"), 2.6)
+		ci.draw_line(base + Vector2(7, 0), base + Vector2(7, -30), Color("#46536D"), 2.6)
+		ci.draw_line(base + Vector2(-8, -30), base + Vector2(8, -30), Color("#46536D"), 2.6)
+		Iso.box(ci, g - Vector2(0.20, 0.14), Vector2(0.40, 0.28), 18.0, Color("#BE8B4E"))
+		Iso.pip(ci, base + Vector2(-7, -1), 3.0, Color("#2B2245"))
+		Iso.pip(ci, base + Vector2(7, -1), 3.0, Color("#2B2245"))
+
+## Filing cabinet with drawer faces.
+func _cabinet_painter(g: Vector2, size: Vector2) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.shadow(ci, g + Vector2(0.05, 0.08), size + Vector2(0.05, 0.05), 0.20)
+		Iso.box(ci, g, size, 34.0, Color("#4E6B84"))
+		var f: Vector2 = Iso.to_screen(g + Vector2(size.x * 0.5, size.y))
+		for k in 3:
+			var y: float = -8.0 - float(k) * 9.0
+			ci.draw_line(f + Vector2(-10, y), f + Vector2(10, y - 6),
+				Color("#8FA9C8"), 2.0)
+
+## The archive's vault door, hung on the divider wall that faces the gallery.
+## It used to be drawn into the ground layer at grid x = 12 on the archive's own
+## back wall, which projects to canvas x = 750 — thirty pixels past the clip
+## edge, so the museum's signature prop had never rendered a single pixel.
+func _vault_door_painter(g: Vector2, length: float) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.panel(ci, g, length, "y", 0.0, 40.0, UI.ROOM_VAULT.darkened(0.42))
+		var vc: Vector2 = Iso.to_screen(g + Vector2(0.0, length * 0.5)) + Vector2(0, -21.0)
+		ci.draw_circle(vc, 19.0, Color("#3C5068"))
+		ci.draw_circle(vc, 16.0, Color("#5B7896"))
+		ci.draw_circle(vc, 13.5, Color("#8FA9C8"))
+		for i in 8:
+			var a: float = TAU * float(i) / 8.0
+			ci.draw_line(vc + Vector2(cos(a), sin(a)) * 4.5,
+				vc + Vector2(cos(a), sin(a)) * 12.0, Color("#4A627E"), 2.2)
+		ci.draw_circle(vc, 4.6, Color("#3C5068"))
+		ci.draw_circle(vc, 2.8, UI.BRASS)
+
+## Roll-up promotional banner.
+func _banner_painter(g: Vector2) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.shadow(ci, g - Vector2(0.22, 0.10), Vector2(0.44, 0.20), 0.18)
+		var base: Vector2 = Iso.to_screen(g)
+		ci.draw_line(base + Vector2(-12, 0), base + Vector2(12, 0), UI.SLATE.darkened(0.4), 3.0)
+		ci.draw_colored_polygon(PackedVector2Array([
+			base + Vector2(-11, -4), base + Vector2(11, -4),
+			base + Vector2(11, -52), base + Vector2(-11, -52)]), UI.ROOM_PROMO)
+		ci.draw_colored_polygon(PackedVector2Array([
+			base + Vector2(-8, -10), base + Vector2(8, -10),
+			base + Vector2(8, -30), base + Vector2(-8, -30)]), UI.PANEL)
+		Iso.pip(ci, base + Vector2(0, -40), 6.0, UI.BRASS)
+
+## Leaflet / merchandise rack.
+func _rack_painter(g: Vector2, size: Vector2) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.shadow(ci, g + Vector2(0.05, 0.08), size + Vector2(0.05, 0.05), 0.20)
+		Iso.box(ci, g, size, 16.0, Color("#9C7550"))
+		var at: Vector2 = Iso.to_screen(g + size * 0.5) + Vector2(0, -16.0)
+		for i in 4:
+			var p: Vector2 = at + Vector2(-13.0 + float(i) * 8.5, -float(i % 2) * 2.0)
+			ci.draw_colored_polygon(PackedVector2Array([
+				p + Vector2(-4, 0), p + Vector2(0, -14),
+				p + Vector2(4, -12), p + Vector2(0, 2)]),
+				[UI.SAGE, UI.SLATE, UI.PLUM, UI.ACCENT][i])
+
+## Self-service ticket machine.
+func _machine_painter(g: Vector2) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		Iso.shadow(ci, g + Vector2(0.05, 0.08), Vector2(0.7, 0.6), 0.20)
+		Iso.box(ci, g, Vector2(0.7, 0.55), 32.0, Color("#46536D"))
+		var at: Vector2 = Iso.to_screen(g + Vector2(0.35, 0.55)) + Vector2(0, -32.0)
+		# Screen raked toward the customer, card slot and ticket mouth below it.
+		ci.draw_colored_polygon(PackedVector2Array([
+			at + Vector2(-13, -2), at + Vector2(0, -9),
+			at + Vector2(13, -2), at + Vector2(0, 5)]), Color("#2B2245"))
+		ci.draw_colored_polygon(PackedVector2Array([
+			at + Vector2(-10, -2), at + Vector2(0, -7),
+			at + Vector2(10, -2), at + Vector2(0, 3)]), UI.SAGE.darkened(0.10))
+		ci.draw_line(at + Vector2(-8, 12), at + Vector2(8, 12), UI.BRASS, 2.6)
+		ci.draw_line(at + Vector2(-6, 19), at + Vector2(6, 19), UI.PANEL, 2.2)
+
+## Helium balloon cluster over the promotions desk.
+func _balloon_painter(g: Vector2) -> Callable:
+	return func(ci: CanvasItem) -> void:
+		var base: Vector2 = Iso.to_screen(g)
+		var specs: Array = [[-8.0, -46.0, UI.ROOM_PROMO], [4.0, -54.0, UI.ROOM_TICKET],
+			[11.0, -42.0, UI.SLATE]]
+		for spec in specs:
+			ci.draw_line(base + Vector2(0, -6),
+				base + Vector2(float(spec[0]), float(spec[1])), Color(1, 1, 1, 0.45), 1.2)
+		for spec in specs:
+			ci.draw_circle(base + Vector2(float(spec[0]), float(spec[1])), 7.0, spec[2])
+		for spec in specs:
+			Iso.pip(ci, base + Vector2(float(spec[0]) - 2.0, float(spec[1]) - 2.0),
+				2.4, Color(1, 1, 1, 0.55))
 
 func _draw_skeleton(ci: CanvasItem, at: Vector2) -> void:
 	var bone := Color("#F3EAD6")
@@ -847,22 +1366,24 @@ func _draw_skeleton(ci: CanvasItem, at: Vector2) -> void:
 	for i in 13:
 		var t: float = float(i) / 12.0
 		spine.append(at + Vector2(lerpf(-52.0, 52.0, t), -26.0 - sin(t * PI) * 20.0))
-	ci.draw_polyline(spine, edge, 8.0)
-	ci.draw_polyline(spine, bone, 4.6)
+	Iso.stroke(ci, spine, edge, 8.0)
+	Iso.stroke(ci, spine, bone, 4.6)
 	for p in spine:
-		ci.draw_circle(p, 3.0, edge)
-		ci.draw_circle(p, 1.8, bone)
+		Iso.pip(ci, p, 3.0, edge)
+	for p in spine:
+		Iso.pip(ci, p, 1.8, bone)
 	for i in range(3, 10, 2):
 		ci.draw_arc(spine[i] + Vector2(0, 2), 13.0, 0.10 * PI, 0.90 * PI, 10, edge, 4.6)
+	for i in range(3, 10, 2):
 		ci.draw_arc(spine[i] + Vector2(0, 2), 13.0, 0.10 * PI, 0.90 * PI, 10, bone, 2.4)
 	var tail := PackedVector2Array([spine[0], spine[0] + Vector2(-16, 4),
 		spine[0] + Vector2(-28, -4)])
-	ci.draw_polyline(tail, edge, 6.0)
-	ci.draw_polyline(tail, bone, 3.0)
+	Iso.stroke(ci, tail, edge, 6.0)
+	Iso.stroke(ci, tail, bone, 3.0)
 	var neck := PackedVector2Array([spine[12], spine[12] + Vector2(12, -12),
 		spine[12] + Vector2(20, -26)])
-	ci.draw_polyline(neck, edge, 7.0)
-	ci.draw_polyline(neck, bone, 3.8)
+	Iso.stroke(ci, neck, edge, 7.0)
+	Iso.stroke(ci, neck, bone, 3.8)
 	var skull: Vector2 = spine[12] + Vector2(24, -30)
 	var head := PackedVector2Array([
 		skull + Vector2(-8, -6), skull + Vector2(6, -7), skull + Vector2(16, -1),
@@ -870,12 +1391,16 @@ func _draw_skeleton(ci: CanvasItem, at: Vector2) -> void:
 	ci.draw_colored_polygon(head, bone)
 	var ring := head.duplicate()
 	ring.append(head[0])
-	ci.draw_polyline(ring, edge, 2.4)
-	ci.draw_circle(skull + Vector2(2, -2), 2.2, edge)
+	Iso.stroke(ci, ring, edge, 2.4)
+	Iso.pip(ci, skull + Vector2(2, -2), 2.2, edge)
+	var legs: Array = []
 	for lx in [-34.0, -12.0, 16.0, 34.0]:
-		var top: Vector2 = at + Vector2(lx, -26.0 - sin((lx + 52.0) / 104.0 * PI) * 20.0 + 4.0)
-		ci.draw_line(top, at + Vector2(lx - 3, 0), edge, 6.4)
-		ci.draw_line(top, at + Vector2(lx - 3, 0), bone, 3.4)
+		legs.append([at + Vector2(lx, -26.0 - sin((lx + 52.0) / 104.0 * PI) * 20.0 + 4.0),
+			at + Vector2(lx - 3, 0)])
+	for leg in legs:
+		ci.draw_line(leg[0], leg[1], edge, 6.4)
+	for leg in legs:
+		ci.draw_line(leg[0], leg[1], bone, 3.4)
 
 func _draw_sarcophagus(ci: CanvasItem, at: Vector2) -> void:
 	var lid := PackedVector2Array()
@@ -889,13 +1414,13 @@ func _draw_sarcophagus(ci: CanvasItem, at: Vector2) -> void:
 	ci.draw_colored_polygon(PackedVector2Array([
 		at + Vector2(-11, -40), at + Vector2(11, -40),
 		at + Vector2(11, -28), at + Vector2(-11, -28)]), Color("#3E7E8C"))
-	ci.draw_circle(at + Vector2(-5, -34), 2.6, UI.PANEL)
-	ci.draw_circle(at + Vector2(5, -34), 2.6, UI.PANEL)
+	Iso.pip(ci, at + Vector2(-5, -34), 2.6, UI.PANEL)
+	Iso.pip(ci, at + Vector2(5, -34), 2.6, UI.PANEL)
 	ci.draw_line(at + Vector2(-10, -20), at + Vector2(10, -20), Color("#3E7E8C"), 3.4)
 	ci.draw_line(at + Vector2(-8, -12), at + Vector2(8, -12), Color("#357280"), 2.6)
 	var ring := lid.duplicate()
 	ring.append(lid[0])
-	ci.draw_polyline(ring, Color("#8A6524"), 2.2)
+	Iso.stroke(ci, ring, Color("#8A6524"), 2.2)
 
 # --- Dynamic layers -------------------------------------------------------------
 
@@ -933,18 +1458,24 @@ func _draw_labels() -> void:
 			[R_PROMO, UI.ROOM_PROMO, "PROMOTIONS"],
 			[R_TICKET, UI.ROOM_TICKET, "TICKET HALL"]]:
 		var r: Rect2 = spec[0]
-		# Front-left of each room, not dead centre: the middle of a room is where
-		# the exhibits and the cast are, and a plaque there covers them.
 		var at: Vector2 = Iso.to_screen(
-			r.position + Vector2(r.size.x * 0.16, r.size.y * 0.84)) + Vector2(0, -8)
+			PLAQUE_G.get(_dept_of(r), r.position + r.size * 0.5)) + Vector2(0, -8)
 		_draw_plaque(at, str(spec[2]), spec[1])
+
+func _dept_of(r: Rect2) -> String:
+	for dept_id in TAP_ZONES.keys():
+		if TAP_ZONES[dept_id] == r:
+			return dept_id
+	return ""
 
 ## Room name on a floating plaque at the room's centre, on its own layer: an
 ## earlier pass drew labels onto the floor, where the cast walked through them.
 func _draw_plaque(center: Vector2, title: String, accent: Color) -> void:
-	var w: float = float(_font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x) + 20.0
-	var plate := Rect2(center.x - w * 0.5, center.y - 11.0, w, 22.0)
+	var w: float = float(_font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x) + 16.0
+	var plate := Rect2(center.x - w * 0.5, center.y - 10.0, w, 20.0)
+	_labels_layer.draw_rect(Rect2(plate.position + Vector2(1.5, 2.0), plate.size),
+		Color(0.06, 0.04, 0.14, 0.40))
 	_labels_layer.draw_rect(plate, accent.darkened(0.58))
 	_labels_layer.draw_rect(plate, accent.lightened(0.25), false, 1.5)
-	_labels_layer.draw_string(_font, Vector2(plate.position.x + 10.0, plate.position.y + 16.0),
-		title, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, UI.FLOOR_CREAM)
+	_labels_layer.draw_string(_font, Vector2(plate.position.x + 8.0, plate.position.y + 15.0),
+		title, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, UI.FLOOR_CREAM)

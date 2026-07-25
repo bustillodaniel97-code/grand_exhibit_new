@@ -5,6 +5,8 @@ extends Control
 
 const LootboxSystem := preload("res://scripts/managers/lootbox_system.gd")
 const UI := preload("res://scripts/ui/ui_kit.gd")
+const ManagerBadge := preload("res://scenes/managers/manager_badge.gd")
+const ManagerPortrait := preload("res://scenes/managers/manager_portrait.gd")
 
 # This screen is popup CONTENT, so its page is a light surface, not the
 # deep app shell — it draws INK body text directly on it.
@@ -295,14 +297,28 @@ func _show_reveal(box_id: String, results: Dictionary) -> void:
 	title.add_theme_font_size_override("font_size", 26)
 	title.add_theme_color_override("font_color", INK)
 	box.add_child(title)
-	var rows: Array[Label] = []
+	# A reveal shows the FACE. The roster is a wall of ID photos now, so a won
+	# manager arriving as a coloured line of text was the one place the player
+	# met someone new and never saw them. The portrait comes out of the same
+	# bake cache the badges fill, so a reveal costs no extra render.
+	var rows: Array[Control] = []
 	for entry in results.get("cards", []):
 		var def: Dictionary = DataLoader.get_manager_def(str(entry.get("id", "")))
 		var rarity: String = str(def.get("rarity", "common"))
-		var row := Label.new()
-		row.text = "%dx  %s  (%s)" % [int(entry.get("n", 1)), str(def.get("name", entry.get("id", "?"))), rarity.capitalize()]
-		row.add_theme_font_size_override("font_size", 22)
-		row.add_theme_color_override("font_color", RARITY_COLORS.get(rarity, INK))
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		var photo := ManagerPortrait.new()
+		row.add_child(photo)
+		photo.setup(def, 64, true)
+		var text := VBoxContainer.new()
+		text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		text.add_theme_constant_override("separation", 2)
+		row.add_child(text)
+		text.add_child(UI.make_display_label("%dx  %s" % [
+			int(entry.get("n", 1)), str(def.get("name", entry.get("id", "?")))],
+			UI.TYPE_HEADING, INK))
+		text.add_child(ManagerBadge.pill(rarity.to_upper(),
+			RARITY_COLORS.get(rarity, UI.LOCKED)))
 		row.visible = false
 		box.add_child(row)
 		rows.append(row)
@@ -320,7 +336,7 @@ func _show_reveal(box_id: String, results: Dictionary) -> void:
 	box.add_child(close)
 	_stage_reveal(rows, bonus, close)
 
-func _stage_reveal(rows: Array[Label], bonus: Label, close: Button) -> void:
+func _stage_reveal(rows: Array[Control], bonus: Label, close: Button) -> void:
 	for row in rows:
 		if not is_instance_valid(row):
 			return
