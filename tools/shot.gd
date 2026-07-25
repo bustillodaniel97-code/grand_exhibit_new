@@ -57,7 +57,20 @@ func _initialize() -> void:
 
 
 ## Grant currency / levels so the floor renders a mature museum, not an empty one.
+## Dev harnesses seed cash and levels into the LIVE GameState autoload. With
+## SaveSystem's 20s autosave running, those doctored values were being written
+## to the real user:// save, which then loaded into the next test run and turned
+## the battery red (test_shell_smoke asserting a purchase moved a level that was
+## already past it). A dev tool must never mutate the player's save.
+func _isolate_from_save() -> void:
+	var ss: Node = root.get_node_or_null("SaveSystem")
+	if ss != null:
+		ss.set_process(false)          # stop the autosave tick
+		ss.autosave_interval_sec = 1 << 30
+
+
 func _seed() -> void:
+	_isolate_from_save()
 	var gs: Node = root.get_node_or_null("GameState")
 	if gs == null:
 		return

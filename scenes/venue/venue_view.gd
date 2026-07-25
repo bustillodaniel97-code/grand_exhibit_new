@@ -65,7 +65,7 @@ func _build_sheet() -> void:
 	_sheet_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_sheet_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_sheet_dim.visible = false
-	# Above every layer the floor draws (cast 0, plaques 1, cash floats 2).
+	# Above every layer the floor draws (cast 0, cash floats 1, plaques 2).
 	_sheet_dim.z_index = 8
 	add_child(_sheet_dim)
 

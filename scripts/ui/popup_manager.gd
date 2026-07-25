@@ -45,6 +45,13 @@ func _open(path: String, payload: Dictionary) -> void:
 	var holder := Control.new()
 	holder.set_anchors_preset(Control.PRESET_FULL_RECT)
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Parent the holder BEFORE building the card. The card's height depends on the
+	# safe-area inset, and UI.safe_area_insets() takes a Control and early-outs to
+	# all-zeros for anything not yet in the tree — so measuring off a detached node
+	# silently disabled the inset entirely. (Passing `self` instead is not the fix:
+	# PopupManager is a CanvasLayer, not a Control, and that type mismatch errors
+	# out mid-open and leaves the popup half-built.)
+	add_child(holder)
 
 	var dim := ColorRect.new()
 	dim.color = Color(0, 0, 0, 0.55)
@@ -117,7 +124,6 @@ func _open(path: String, payload: Dictionary) -> void:
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body.add_child(content)
 
-	add_child(holder)
 	_stack.append(holder)
 	if content.has_method("setup"):
 		content.setup(payload)
