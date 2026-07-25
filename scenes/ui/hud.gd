@@ -98,15 +98,11 @@ func _ready() -> void:
 	_rep_bar.add_theme_stylebox_override("fill", UI.make_bar_fill("green"))
 	rep_row.add_child(_rep_bar)
 
-	_decor_btn = UI.make_button("Decor", UI.SAGE)
-	_decor_btn.custom_minimum_size = Vector2(112, UI.TOUCH_MIN)
-	_decor_btn.icon = UI.icon_texture("star", 18)
+	_decor_btn = _glass_button("Decor", "star", UI.SAGE)
 	_decor_btn.pressed.connect(_on_decor_pressed)
 	row2.add_child(_decor_btn)
 
-	_prestige_btn = UI.make_button("Prestige", UI.BRASS)
-	_prestige_btn.custom_minimum_size = Vector2(128, UI.TOUCH_MIN)
-	_prestige_btn.icon = UI.icon_texture("trophy", 18)
+	_prestige_btn = _glass_button("Prestige", "trophy", UI.BRASS)
 	_prestige_btn.pressed.connect(_on_prestige_pressed)
 	row2.add_child(_prestige_btn)
 
@@ -134,6 +130,37 @@ func _pill_box(radius: int = 20) -> StyleBoxFlat:
 	sb.content_margin_top = 5
 	sb.content_margin_bottom = 6
 	return sb
+
+## Meta entry points (Decor, Prestige) on the same dark glass as the readouts they
+## sit beside. They used to be a green and a gold candy slab, which put two of the
+## money palette's colours in the status bar — the row the player reads for state,
+## not for actions. Now the surface is chrome and the icon carries the colour, so
+## the only saturated controls left on the world view are the rewarded ones.
+func _glass_button(text: String, icon_name: String, tint: Color) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.custom_minimum_size = Vector2(0, UI.TOUCH_MIN)
+	b.add_theme_font_override("font", UI.font())
+	b.add_theme_font_size_override("font_size", UI.TYPE_LABEL)
+	b.add_theme_color_override("font_color", Color.WHITE)
+	b.add_theme_color_override("font_hover_color", Color.WHITE)
+	b.add_theme_color_override("font_pressed_color", Color.WHITE)
+	b.icon = UI.icon_texture(icon_name, 18)
+	b.expand_icon = false
+	b.add_theme_constant_override("h_separation", 7)
+	for state in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
+		b.add_theme_color_override(state, tint)
+	var normal := _pill_box(UI.TOUCH_MIN / 2)
+	b.add_theme_stylebox_override("normal", normal)
+	b.add_theme_stylebox_override("hover", normal)
+	var pressed: StyleBoxFlat = normal.duplicate()
+	pressed.bg_color = UI.GLASS.lerp(Color.WHITE, 0.22)
+	pressed.bg_color.a = 0.95
+	pressed.shadow_size = 0
+	b.add_theme_stylebox_override("pressed", pressed)
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	UI.add_press_squish(b)
+	return b
 
 ## Currency chip restyled for a floating bar: dark surface, white value. No text
 ## halo — the pill is the guarantee (white on it measures 18:1), and an outline

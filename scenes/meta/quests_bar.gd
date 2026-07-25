@@ -16,7 +16,9 @@ const UI = preload("res://scripts/ui/ui_kit.gd")
 const Popups = preload("res://scripts/ui/popup_manager.gd")
 
 # Palette aliases (ui_kit is the single source — SPEC §2).
-const PANEL := UI.PANEL
+## Text on dark glass. Was UI.PANEL — the cream CARD FILL used as an ink, which
+## happened to look right and would have broken the moment that fill moved.
+const TEXT := UI.TEXT
 const BRASS := UI.BRASS
 const SAGE := UI.SAGE
 ## Unearned milestone pip. A light alpha on the pill it sits in, not a dark tint
@@ -90,7 +92,7 @@ func _build_ui() -> void:
 	var top := HBoxContainer.new()
 	top.add_theme_constant_override("separation", 8)
 	header_col.add_child(top)
-	var title := UI.make_display_label("Venue Progress", UI.TYPE_LABEL, UI.PANEL)
+	var title := UI.make_display_label("Venue Progress", UI.TYPE_LABEL, TEXT)
 	top.add_child(title)
 
 	var pip_row := HBoxContainer.new()

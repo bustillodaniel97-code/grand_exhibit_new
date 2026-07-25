@@ -6,16 +6,16 @@ const DecorSystem = preload("res://scripts/meta/decor_system.gd")
 const UI = preload("res://scripts/ui/ui_kit.gd")
 
 # Palette aliases (ui_kit is the single source — SPEC §2).
-# This screen is popup CONTENT, so its page is a light surface, not the
-# deep app shell — it draws INK body text directly on it.
-const BG := UI.SURFACE
-const INK := UI.INK
-const PANEL := UI.PANEL
+# Popup CONTENT on a DARK page. DIM is the muted ink for locked / empty states;
+# it used to be a pale beige, which on this page would out-shout the live rows.
+const BG := UI.PAGE
+const INK := UI.TEXT
+const PANEL := UI.CARD
 const ACCENT := UI.ACCENT
 const BRASS := UI.BRASS
 const SAGE := UI.SAGE
 const SLATE := UI.SLATE
-const DIM := Color("#D8CFC0")
+const DIM := UI.TEXT_MUTE
 
 const THEME_ORDER: Array = ["entrance", "hall", "garden"]
 
@@ -80,13 +80,13 @@ func _header(text: String) -> Label:
 
 func _panel() -> PanelContainer:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UI.make_card(PANEL))
+	p.add_theme_stylebox_override("panel", UI.make_dark_card(PANEL))
 	return p
 
 ## Recessed well for empty decor slots.
 func _inset_panel() -> PanelContainer:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UI.make_inset())
+	p.add_theme_stylebox_override("panel", UI.make_dark_inset())
 	return p
 
 func _label(text: String, size: int = 15, color: Color = INK) -> Label:

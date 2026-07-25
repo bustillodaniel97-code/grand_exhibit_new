@@ -7,16 +7,16 @@ const MilestoneSystem = preload("res://scripts/meta/milestone_system.gd")
 const UI = preload("res://scripts/ui/ui_kit.gd")
 
 # Palette aliases (ui_kit is the single source — SPEC §2).
-# This screen is popup CONTENT, so its page is a light surface, not the
-# deep app shell — it draws INK body text directly on it.
-const BG := UI.SURFACE
-const INK := UI.INK
-const PANEL := UI.PANEL
+# Popup CONTENT on a DARK page. DIM is the muted ink for locked / empty states;
+# it used to be a pale beige, which on this page would out-shout the live rows.
+const BG := UI.PAGE
+const INK := UI.TEXT
+const PANEL := UI.CARD
 const ACCENT := UI.ACCENT
 const BRASS := UI.BRASS
 const SAGE := UI.SAGE
 const SLATE := UI.SLATE
-const DIM := Color("#D8CFC0")
+const DIM := UI.TEXT_MUTE
 
 var _list: VBoxContainer
 var _confirm: ConfirmationDialog
@@ -67,7 +67,7 @@ func _label(text: String, size: int = 15, color: Color = INK) -> Label:
 
 func _panel() -> PanelContainer:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UI.make_card(PANEL))
+	p.add_theme_stylebox_override("panel", UI.make_dark_card(PANEL))
 	return p
 
 func refresh() -> void:
@@ -124,7 +124,7 @@ func refresh() -> void:
 	if next_id != "":
 		var nv: Dictionary = DataLoader.get_venue(next_id)
 		var card := PanelContainer.new()
-		card.add_theme_stylebox_override("panel", UI.make_frame(Color(1, 1, 1).lerp(BRASS, 0.15)))
+		card.add_theme_stylebox_override("panel", UI.make_dark_frame(BRASS))
 		var cv := VBoxContainer.new()
 		card.add_child(cv)
 		cv.add_child(_label(str(nv.get("name", next_id)), 18, INK))

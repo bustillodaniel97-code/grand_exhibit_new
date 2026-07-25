@@ -29,8 +29,12 @@ const STORE_PATH := "res://scenes/store/store_screen.tscn"
 
 ## Chip height. 64 rather than the 48dp floor: this row is the most-tapped control
 ## in the game and it sits next to a 5-tab nav bar, so it has to win the thumb.
+## The side chips are square at that height on purpose — the nav below is a row of
+## 64px discs, so the two rows share one module size and read as a single bottom
+## system instead of two unrelated bars. Square also buys the wide BOOST pill ~100px
+## it did not have, which is where the eye should land.
 const CHIP_H := 64
-const SIDE_CHIP_W := 96
+const SIDE_CHIP_W := 72
 ## Offers are re-evaluated here rather than on store open, so a timed offer's clock
 ## starts when the player could actually see it. The check is a loop over ~9 rows.
 const OFFER_POLL_SECONDS := 5.0
@@ -48,13 +52,13 @@ func _ready() -> void:
 	UI.install_default_font()
 	mouse_filter = Control.MOUSE_FILTER_PASS
 
-	add_theme_constant_override("margin_left", 10)
-	add_theme_constant_override("margin_right", 10)
-	add_theme_constant_override("margin_top", 6)
-	add_theme_constant_override("margin_bottom", 6)
+	add_theme_constant_override("margin_left", 14)
+	add_theme_constant_override("margin_right", 14)
+	add_theme_constant_override("margin_top", 4)
+	add_theme_constant_override("margin_bottom", 2)
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	row.add_theme_constant_override("separation", 10)
 	add_child(row)
 
 	_gems_btn = _chip("gems", UI.BRASS, SIDE_CHIP_W)
@@ -102,16 +106,18 @@ func _ready() -> void:
 ## bar below us, so only the sides matter here.
 func _apply_safe_area() -> void:
 	var inset: Dictionary = UI.safe_area_insets(self)
-	add_theme_constant_override("margin_left", 10 + int(inset["left"]))
-	add_theme_constant_override("margin_right", 10 + int(inset["right"]))
+	add_theme_constant_override("margin_left", 14 + int(inset["left"]))
+	add_theme_constant_override("margin_right", 14 + int(inset["right"]))
 
 func _chip(icon_name: String, color: Color, width: int) -> Button:
 	var b := UI.make_button("", color)
 	b.custom_minimum_size = Vector2(width, CHIP_H)
-	b.icon = UI.icon_texture(icon_name, 24)
-	b.add_theme_font_size_override("font_size", UI.TYPE_CAPTION)
-	# Icon above the caption rather than beside it: at 96px a side-by-side icon and
-	# word leaves the word two letters wide.
+	b.icon = UI.icon_texture(icon_name, 26)
+	# 11px, not TYPE_CAPTION: the chips are square now and "+CASH" at 13 clipped to
+	# "+CAS", which reads as a rendering fault rather than a tight fit.
+	b.add_theme_font_size_override("font_size", 11)
+	# Icon above the caption rather than beside it: at chip width a side-by-side icon
+	# and word leaves the word two letters wide.
 	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	b.expand_icon = false
@@ -128,11 +134,17 @@ func _free_stack(btn: Button) -> Control:
 	var ribbon := Art.make_ribbon("FREE", UI.SAGE)
 	ribbon.position = Vector2(-2, -6)
 	holder.add_child(ribbon)
-	_gems_badge = UI.make_display_label("", UI.TYPE_CAPTION, Color.WHITE)
+	# Dark ink, not white: the counter prints on the gold chip face, where white
+	# measures under 2:1 and the halo was doing all the work.
+	_gems_badge = UI.make_display_label("", 11, Color("#4A2E05"))
 	_gems_badge.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	_gems_badge.offset_top = -18
+	# Clear of the candy cap's bottom lip: sat on it, the descenders were cut and the
+	# counter read as a clipped label.
+	_gems_badge.offset_top = -26
+	_gems_badge.offset_bottom = -8
 	_gems_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_gems_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	UI.add_text_halo(_gems_badge, Color(1, 0.93, 0.75, 0.65), 3)
 	holder.add_child(_gems_badge)
 	return holder
 
@@ -157,10 +169,10 @@ func refresh() -> void:
 		_boost_btn.text = "x2 BOOST"
 	UI.retint_button(_boost_btn, UI.SAGE if remaining <= 0 else UI.SAGE.darkened(0.12))
 
-	_cash_btn.text = "loading…" if RV.is_busy("instant_cash") else "+CASH"
-	_gems_btn.text = "loading…" if RV.is_busy("free_gems") else "GEMS"
-	var left: int = RV.remaining_free_gems()
-	_gems_badge.text = "%d left" % left if left > 0 else "back tomorrow"
+	_cash_btn.text = "loading…" if RV.is_busy("instant_cash") else "CASH"
+	# The gems chip already spends its caption line on the daily counter, so the word
+	# would land on top of it. FREE ribbon + gem icon + "3 left" says it without one.
+	_gems_badge.text = "loading…" if RV.is_busy("free_gems") else "%d left" % RV.remaining_free_gems()
 
 	var offers: Array = Offers.active_offers()
 	_offer_btn.visible = not offers.is_empty()

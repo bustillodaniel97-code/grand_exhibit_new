@@ -17,15 +17,29 @@ var _ad_btn: Button
 var _gem_btn: Button
 
 func _ready() -> void:
+	# The column has to be told to fill. A VBoxContainer parented to a plain Control
+	# keeps its minimum size in the top-left corner, so every centred label was
+	# centred inside a 245px box hugging the left edge and the three claim buttons
+	# came out a third of the sheet wide.
+	var pad := MarginContainer.new()
+	pad.set_anchors_preset(Control.PRESET_FULL_RECT)
+	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		pad.add_theme_constant_override(side, 22)
+	add_child(pad)
+
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 14)
-	add_child(vbox)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	pad.add_child(vbox)
 
-	var title := UI.make_label("Welcome Back!", 34)
+	# No page fill of its own: this sheet sits straight on the popup frame, which
+	# is UI.PAGE. Every label therefore has to name a light colour explicitly —
+	# make_label still defaults to INK for the light surfaces that remain.
+	var title := UI.make_label("Welcome Back!", 34, UI.TEXT)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
 
-	var sub := UI.make_label("While you were away, your museum earned:", 20)
+	var sub := UI.make_label("While you were away, your museum earned:", 20, UI.TEXT_DIM)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(sub)
@@ -36,11 +50,12 @@ func _ready() -> void:
 	vbox.add_child(coin_row)
 	coin_row.add_child(UI.make_icon("cash", 56))
 
-	_amount_lbl = UI.make_display_label("+$0", 40, UI.SAGE.darkened(0.15))
+	# Full-chroma green: the darkened variant was tuned to carry on cream stock.
+	_amount_lbl = UI.make_display_label("+$0", 40, UI.SAGE)
 	_amount_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(_amount_lbl)
 
-	_away_lbl = UI.make_label("", 20)
+	_away_lbl = UI.make_label("", 20, UI.TEXT_DIM)
 	_away_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(_away_lbl)
 

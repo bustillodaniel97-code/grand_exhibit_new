@@ -27,6 +27,7 @@ signal dept_selected(dept_id: String)
 const UI := preload("res://scripts/ui/ui_kit.gd")
 const Character := preload("res://scenes/venue/floor/character.gd")
 const Iso := preload("res://scenes/venue/floor/iso.gd")
+const City := preload("res://scenes/venue/floor/city.gd")
 
 const FLOOR := Vector2(720, 760)      # logical canvas the diorama is fitted into
 
@@ -47,6 +48,11 @@ const TAP_ZONES := {  # checked in order (first hit wins)
 ## least half a tile of margin. That was not true before: the vault drop sat
 ## exactly on the clip edge and the porters banked their loads off screen.
 const DOOR_G := Vector2(12.9, 16.3)  # just inside the entrance facade
+## The far end of the entrance approach, out on the forecourt by the kerb. Every
+## visitor is born here and dies here, so arrivals walk in off the street under
+## the canopy instead of materialising in the doorway. City owns the constant
+## because City owns the pavement it stands on.
+const STREET_G := City.STREET_G
 const COUNTER_GY := 10.1
 ## Shifted +0.8 tiles east of the original row. The projection shears x by -gy,
 ## so a queue that runs 3 tiles deeper also runs 90px further left; window 1's
@@ -109,6 +115,7 @@ const DEPTH_SCALE_FRONT := 1.06
 var time_scale: float = 1.0    # test hook: accelerate the visual sim
 
 var _canvas: Node2D
+var _city: Node2D              # the block outside the museum, behind the ground
 var _ground: Node2D            # floors + walls, always behind everything
 var _stacks_layer: Node2D      # window ticket-stub stacks
 var _pile_layer: Node2D        # vault pile
@@ -149,6 +156,11 @@ class Visitor:
 	var state: String = "to_queue"        # to_queue | queue | crowd | browse | exit
 	var window: int = -1
 	var target: Vector2 = Vector2.ZERO    # grid space
+	## Waypoints to clear before `target`. Only the entrance approach uses it:
+	## an arrival walks street -> door -> queue as one continuous move, so the
+	## FSM never has to learn that the museum has an outside. Untyped to match
+	## `spots` above — a typed Array here rejects a plain [DOOR_G] literal.
+	var path: Array = []
 	var spots: Array = []
 	var wait: float = 0.0
 	var speed: float = 2.1                # tiles/second
@@ -173,6 +185,13 @@ func _ready() -> void:
 	# counter and in front of a bench without any manual layering.
 	_canvas.y_sort_enabled = true
 	add_child(_canvas)
+
+	# The city surround goes in FIRST and sits a pixel above the canvas origin,
+	# so Y-sort puts the whole block behind Ground and therefore behind every
+	# room, prop and actor. It draws nothing inside the footprint and takes no
+	# input, so it can never occlude gameplay or eat a tap.
+	_city = City.new()
+	_canvas.add_child(_city)
 
 	# Ground sits at the canvas origin, which projects above every prop and
 	# actor, so Y-sorting alone keeps it behind. Do NOT force it with a negative
@@ -291,7 +310,8 @@ func prop_anchors() -> Array[Vector2]:
 ## waypoint outside the canvas walks somebody off screen, and one inside a prop
 ## footprint stands them in the furniture.
 func standing_spots() -> Array[Vector2]:
-	var out: Array[Vector2] = [DOOR_G, MARKETER_G, PORTER_HOME, VAULT_DROP, PILE_G]
+	var out: Array[Vector2] = [
+		DOOR_G, STREET_G, MARKETER_G, PORTER_HOME, VAULT_DROP, PILE_G]
 	for w in MAX_WINDOWS:
 		out.append(Vector2(WINDOW_GX[w], COUNTER_GY - 0.7))
 		out.append(Vector2(WINDOW_GX[w] + 0.8, COUNTER_GY + 0.5))
@@ -439,6 +459,7 @@ func _process(delta: float) -> void:
 	if not GameState.ready_flag:
 		return
 	var dt: float = delta * time_scale
+	_city.advance(dt)
 	_spawn_t += dt
 	_try_spawn()
 	_update_serve(dt)
@@ -479,9 +500,11 @@ func _try_spawn() -> void:
 	c.set_look_slot(_next_look_slot())
 	_canvas.add_child(c)
 	v.node = c
-	v.pos = DOOR_G
+	v.pos = STREET_G
+	v.path = [DOOR_G]
 	v.speed = randf_range(1.8, 2.5)
 	_place(c, v.pos)
+	_fade_outdoors(v)
 	_visitors.append(v)
 	if best == -1:
 		v.state = "crowd"
@@ -626,7 +649,8 @@ func _update_visitors(dt: float) -> void:
 					v.wait -= dt
 					if v.wait <= 0.0:
 						v.state = "exit"
-						v.target = DOOR_G
+						v.path = [DOOR_G]
+						v.target = STREET_G
 			"exit":
 				if arrived:
 					done.append(v)
@@ -637,9 +661,13 @@ func _update_visitors(dt: float) -> void:
 ## Grid-space movement. Facing flips on the projected x direction so characters
 ## turn the way they visually travel, not the way the grid axis points.
 func _move(v: Visitor, dt: float) -> bool:
-	var d: Vector2 = v.target - v.pos
+	var goal: Vector2 = v.path[0] if not v.path.is_empty() else v.target
+	var d: Vector2 = goal - v.pos
 	var dist: float = d.length()
 	if dist < 0.06:
+		if not v.path.is_empty():
+			v.path.remove_at(0)
+			return false        # a waypoint is a corner, not an arrival
 		v.node.walking = false
 		return true
 	var step: float = minf(v.speed * dt, dist)
@@ -648,7 +676,18 @@ func _move(v: Visitor, dt: float) -> bool:
 	_place(v.node, v.pos)
 	v.node.facing = 1 if v.node.position.x >= before else -1
 	v.node.walking = true
+	_fade_outdoors(v)
 	return false
+
+## Dissolve a figure across the last tile of the approach.
+##
+## The spawn point has to stay inside the clipped canvas (Iso.on_canvas), so a
+## visitor cannot simply walk in from off screen — without this they pop into
+## existence on the pavement, which is the exact tell the surround exists to
+## remove. Fading over the forecourt costs one clamp per visitor per frame.
+func _fade_outdoors(v: Visitor) -> void:
+	var a: float = clampf((STREET_G.y - v.pos.y) * 1.6, 0.0, 1.0)
+	v.node.modulate.a = a
 
 func _porter_speed() -> float:
 	return clampf(1.8 + _transport * 0.5, 1.8, 4.2)
@@ -1100,6 +1139,10 @@ func _build_lobby_props() -> void:
 			sign + Vector2(16, -10), sign + Vector2(-16, -10)]), UI.PANEL)
 		ci.draw_string(_font, sign + Vector2(-13, -13), "INFO",
 			HORIZONTAL_ALIGNMENT_LEFT, -1, 11, UI.INK))
+	# Entrance canopy. It belongs to the city surround but stands in FRONT of the
+	# facade, and the surround draws behind the whole museum — so it comes across
+	# as a Y-sorted prop and City only supplies the painter.
+	_add_prop(City.CANOPY_G, func(ci: CanvasItem) -> void: City.draw_canopy(ci))
 	_add_prop(Vector2(6.25, 16.8), _rack_painter(Vector2(5.4, 16.2), Vector2(1.7, 0.6)))
 	for mg in [Vector2(6.7, 14.3), Vector2(7.6, 14.3)]:
 		_add_prop(mg + Vector2(0.3, 0.45), _machine_painter(mg))

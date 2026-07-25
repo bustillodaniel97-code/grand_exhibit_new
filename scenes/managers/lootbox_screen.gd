@@ -8,11 +8,12 @@ const UI := preload("res://scripts/ui/ui_kit.gd")
 const ManagerBadge := preload("res://scenes/managers/manager_badge.gd")
 const ManagerPortrait := preload("res://scenes/managers/manager_portrait.gd")
 
-# This screen is popup CONTENT, so its page is a light surface, not the
-# deep app shell — it draws INK body text directly on it.
-const BG := UI.SURFACE
-const INK := UI.INK
-const PANEL := UI.PANEL
+# Popup CONTENT on a DARK page: the tier cards and the reveal are the bright
+# things here, so the ground behind them is deep and the body text is light.
+const BG := UI.PAGE
+const INK := UI.TEXT
+const DIM := UI.TEXT_DIM
+const PANEL := UI.CARD
 const ACCENT := UI.ACCENT
 const BRASS := UI.BRASS
 const SAGE := UI.SAGE
@@ -56,7 +57,7 @@ func _ready() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(spacer)
-	_gems_chip = UI.make_currency_chip("gems", "0", Color(1, 1, 1), 26)
+	_gems_chip = UI.make_dark_currency_chip("gems", "0", Color(1, 1, 1), 26)
 	bar.add_child(_gems_chip)
 	# tier list
 	var scroll := ScrollContainer.new()
@@ -77,9 +78,13 @@ func _ready() -> void:
 	_refresh_timer.start()
 	_refresh_boxes()
 
-## Ornate framed parchment panel (rpg-expansion), tinted toward the accent.
-func _style(bg_color: Color, border_color: Color, radius: int = 12, border_w: int = 3) -> StyleBox:
-	return UI.make_frame(Color(1, 1, 1).lerp(border_color, 0.16 + 0.04 * clampi(border_w - 3, 0, 2)))
+## Framed tier card: dark stock, saturated rim. The rim used to be the whole
+## card — a near-white panel washed with 16% of the tier colour — which on a dark
+## page was a sheet of paper with a hint of tint rather than a lootbox.
+func _style(bg_color: Color, border_color: Color, _radius: int = 12, border_w: int = 3) -> StyleBox:
+	var sb := UI.make_dark_frame(border_color, bg_color)
+	sb.set_border_width_all(maxi(border_w, 3))
+	return sb
 
 ## --- free_lootbox charge logic (owned here per SPEC §8) ------------------------
 
@@ -175,7 +180,7 @@ func _build_tier_card(box_id: String) -> Control:
 		BigNumber.from_float(float(def.get("insight_bonus_m", 0.0))).to_notation(),
 		int(def.get("gems_bonus", 0))]
 	desc.add_theme_font_size_override("font_size", 18)
-	desc.add_theme_color_override("font_color", INK.lightened(0.15))
+	desc.add_theme_color_override("font_color", DIM)
 	box.add_child(desc)
 	# price / free-charge line
 	var price_l := Label.new()
@@ -251,7 +256,7 @@ func _popup_panel(border_color: Color) -> Dictionary:
 	dlg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(dlg)
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.5)
+	dim.color = Color(0, 0, 0, 0.62)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dlg.add_child(dim)
 	var center := CenterContainer.new()

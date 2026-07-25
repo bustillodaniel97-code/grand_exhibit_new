@@ -10,11 +10,12 @@ const BattleMath = preload("res://scripts/events/battle_math.gd")
 
 # Palette from ui_kit; these were private copies of the retired muted scheme.
 const UI := preload("res://scripts/ui/ui_kit.gd")
-# This screen is popup CONTENT, so its page is a light surface, not the
-# deep app shell — it draws INK body text directly on it.
-const BG := UI.SURFACE
-const INK := UI.INK
-const PANEL := UI.PANEL
+# Popup CONTENT on a DARK page: the dig-site track and the department cards carry
+# the colour, so the ground stays deep and the ink light.
+const BG := UI.PAGE
+const INK := UI.TEXT
+const DIM := UI.TEXT_DIM
+const PANEL := UI.CARD
 const ACCENT := UI.ACCENT
 const BRASS := UI.BRASS
 const SAGE := UI.SAGE
@@ -252,7 +253,7 @@ func _build_invest_track(root: VBoxContainer) -> void:
 		btn.pressed.connect(_on_invest.bind(i))
 		row.add_child(btn)
 		var info := UI.make_label("%s — +%s insight" % [
-			str(s.get("name", "Site")), str(s.get("insight_reward", 0))], UI.TYPE_LABEL)
+			str(s.get("name", "Site")), str(s.get("insight_reward", 0))], UI.TYPE_LABEL, DIM)
 		info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(info)
@@ -320,7 +321,7 @@ func _build_boss_section(root: VBoxContainer) -> void:
 	if owned.is_empty():
 		var none := UI.make_label(
 			"No managers yet — recruit one from a Store lootbox to field a team.",
-			UI.TYPE_BODY)
+			UI.TYPE_BODY, DIM)
 		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		root.add_child(none)
 	var power: float = _team_power_selected()
@@ -379,6 +380,13 @@ func _manager_card(pair: Dictionary) -> Control:
 	btn.add_theme_stylebox_override("normal", _style(PANEL, 12, col))
 	btn.add_theme_stylebox_override("pressed", _style(col, 12, INK))
 	btn.add_theme_stylebox_override("disabled", _style(PANEL.darkened(0.1), 12))
+	# Explicit, because the two states sit on opposite grounds: unpicked is the
+	# dark CARD and wants light ink, picked is a light saturated fill (gold is the
+	# case that breaks white) and wants whichever ink measures better on it.
+	btn.add_theme_color_override("font_color", INK)
+	btn.add_theme_color_override("font_pressed_color",
+		UI.INK if col.get_luminance() > 0.45 else Color.WHITE)
+	btn.add_theme_color_override("font_hover_color", INK)
 	btn.text = "%s %s\nLv %d · Rank %d\nPower %d" % [
 		str(SPEC_GLYPH.get(spec, "?")), str(def.get("name", mid)),
 		int(st.get("level", 1)), int(st.get("rank", 1)),
@@ -494,14 +502,14 @@ func _show_outcome(title: String, body: String, tint: Color, hp: float) -> void:
 	_outcome.add_child(center)
 	var card := PanelContainer.new()
 	card.custom_minimum_size = Vector2(560, 0)
-	card.add_theme_stylebox_override("panel", UI.make_frame(tint))
+	card.add_theme_stylebox_override("panel", UI.make_dark_frame(tint))
 	center.add_child(card)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 14)
 	card.add_child(v)
 
 	# A win and a loss have to be unmistakable from across the room: a full-width
-	# colour band, not two lines of body copy on the same cream card.
+	# colour band, not two lines of body copy on the same card.
 	var band := PanelContainer.new()
 	band.add_theme_stylebox_override("panel", UI.make_panel(tint, 14, 0))
 	var band_l := UI.make_display_label(title.to_upper(), UI.TYPE_HERO, Color.WHITE)
@@ -510,7 +518,7 @@ func _show_outcome(title: String, body: String, tint: Color, hp: float) -> void:
 	band.add_child(band_l)
 	v.add_child(band)
 
-	var l := UI.make_label(body, UI.TYPE_BODY)
+	var l := UI.make_label(body, UI.TYPE_BODY, INK)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(l)

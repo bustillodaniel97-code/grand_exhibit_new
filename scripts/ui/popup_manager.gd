@@ -76,7 +76,15 @@ func _open(path: String, payload: Dictionary) -> void:
 		clampf(vis.y - 220.0 - float(inset["top"]) - float(inset["bottom"]), 560.0, 1180.0))
 	card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	card.add_theme_stylebox_override("panel", UI.make_panel(UI.PANEL, UI.RADIUS_CARD, 0))
+	# The frame is the page. Screens paint their own PAGE fill on top of it, but
+	# welcome-back does not, and the rounded corners the screens cannot reach are
+	# this stylebox's — so a cream frame drew a light halo around every dark sheet.
+	var frame := UI.make_dark_card(UI.PAGE, UI.RADIUS_CARD)
+	frame.set_content_margin_all(0)
+	frame.set_border_width_all(2)
+	frame.border_color = Color(1, 1, 1, 0.14)
+	frame.shadow_size = 12
+	card.add_theme_stylebox_override("panel", frame)
 	card.clip_contents = true
 	center.add_child(card)
 
@@ -90,26 +98,32 @@ func _open(path: String, payload: Dictionary) -> void:
 	# deliberate bar. It stays a real layout row (not an overlay) so it can never
 	# collide with the right-aligned header chips several screens already draw.
 	var bar := PanelContainer.new()
-	bar.add_theme_stylebox_override("panel", UI.make_panel(UI.BG.darkened(0.04), 0, 0))
+	# A deep RAIL, not a lighter strip. The bar carries nothing but the close
+	# button — the screens draw their own titles — so a strip lighter than the page
+	# is 60px of empty saturated slab at the top of every popup. Sunk below the
+	# page instead, it reads as the frame's edge and the divider does the work.
+	bar.add_theme_stylebox_override("panel", UI.make_panel(UI.PAGE_DEEP, 0, 0))
 	var top_row := HBoxContainer.new()
 	top_row.add_theme_constant_override("separation", 8)
 	var pad := MarginContainer.new()
 	pad.add_theme_constant_override("margin_left", 10)
 	pad.add_theme_constant_override("margin_right", 10)
-	pad.add_theme_constant_override("margin_top", 6)
-	pad.add_theme_constant_override("margin_bottom", 6)
+	pad.add_theme_constant_override("margin_top", 4)
+	pad.add_theme_constant_override("margin_bottom", 4)
 	pad.add_child(top_row)
 	bar.add_child(pad)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	top_row.add_child(spacer)
-	var x_btn := UI.make_button("X", UI.ACCENT)
+	# Red, not orange. Orange is the primary-action colour everywhere else in the
+	# app, and the one control that throws the screen away should not wear it.
+	var x_btn := UI.make_button("X", UI.DANGER)
 	x_btn.custom_minimum_size = Vector2(UI.TOUCH_MIN, UI.TOUCH_MIN)
 	x_btn.pressed.connect(close_top)
 	top_row.add_child(x_btn)
 	vbox.add_child(bar)
-	vbox.add_child(UI.make_divider())
+	vbox.add_child(UI.make_divider(UI.HAIRLINE))
 
 	var body := MarginContainer.new()
 	body.add_theme_constant_override("margin_left", 4)

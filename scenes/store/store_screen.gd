@@ -23,8 +23,9 @@ extends Control
 ##  · Every value claim is computed from the catalog (store_pricing.gd) and states
 ##    its basis on screen. No invented "most popular", no strikethrough without a
 ##    printed anchor, no countdown on something that does not actually expire.
-##  · This screen is popup CONTENT, so its page is the light SURFACE and its body
-##    text is INK — never the deep indigo app shell.
+##  · The page is DARK (UI.PAGE) and the body text is light (UI.TEXT). The shop is
+##    the ground the products stand on, so it stays out of the way and the gold,
+##    green and violet on the cards do the selling.
 
 const RV := preload("res://scripts/monetization/rv_placements.gd")
 const IAPCat := preload("res://scripts/monetization/iap_catalog.gd")
@@ -37,9 +38,10 @@ const Art := preload("res://scripts/monetization/store_art.gd")
 const UI := preload("res://scripts/ui/ui_kit.gd")
 
 # Palette aliases (ui_kit is the single source — SPEC §2).
-const BG := UI.SURFACE
-const INK := UI.INK
-const PANEL := UI.PANEL
+const BG := UI.PAGE
+const INK := UI.TEXT
+const DIM := UI.TEXT_DIM
+const PANEL := UI.CARD
 const ACCENT := UI.ACCENT
 const BRASS := UI.BRASS
 const SAGE := UI.SAGE
@@ -158,7 +160,10 @@ func _build_hero() -> void:
 		return
 	_log_impression(product_id, "hero")
 
-	var card := _card(PANEL, ACCENT)
+	# The hero rides the ELEVATED card tone. On a dark shelf every card is the same
+	# value, so "this one is the offer" has to be carried by the surface as well as
+	# by the ribbon and the rim.
+	var card := _card(UI.CARD_HI, ACCENT)
 	_sections.add_child(card)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 8)
@@ -195,7 +200,7 @@ func _build_hero() -> void:
 	text.add_child(_display(str(def.get("title", product_id)), UI.TYPE_TITLE, INK))
 	var sub: String = str(def.get("subtitle", ""))
 	if sub != "":
-		text.add_child(_wrapped(sub, UI.TYPE_LABEL, SLATE))
+		text.add_child(_wrapped(sub, UI.TYPE_LABEL, DIM))
 	text.add_child(_wrapped(_grants_text(def), UI.TYPE_BODY, INK))
 	var anchor_row := _value_row(def)
 	if anchor_row != null:
@@ -218,7 +223,7 @@ func _value_row(def: Dictionary) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	row.add_child(Art.make_strikethrough(Pricing.format_usd(Pricing.alacarte_usd(def))))
-	row.add_child(_label("bought separately", UI.TYPE_CAPTION, SLATE))
+	row.add_child(_label("bought separately", UI.TYPE_CAPTION, DIM))
 	row.add_child(Art.make_ribbon("SAVE %d%%" % save, SAGE))
 	return row
 
@@ -290,7 +295,7 @@ func _build_starter() -> void:
 		return
 	_sections.add_child(_section_header("Get started"))
 	_sections.add_child(_label(
-		"Shown once. These disappear after your first purchase.", UI.TYPE_CAPTION, SLATE))
+		"Shown once. These disappear after your first purchase.", UI.TYPE_CAPTION, DIM))
 	var grid := _grid(2)
 	_sections.add_child(grid)
 	for pid in ids:
@@ -340,7 +345,7 @@ func _build_gem_ladder() -> void:
 	if ids.is_empty():
 		return
 	_sections.add_child(_section_header("Gems"))
-	_sections.add_child(_label("Value compared with the smallest pouch.", UI.TYPE_CAPTION, SLATE))
+	_sections.add_child(_label("Value compared with the smallest pouch.", UI.TYPE_CAPTION, DIM))
 	var grid := _grid(2)
 	_sections.add_child(grid)
 	var top_count: int = mini(2, ids.size())
@@ -388,7 +393,7 @@ func _build_ad_free() -> void:
 # -------------------------------------------------------------------- footer
 
 func _build_footer() -> void:
-	_sections.add_child(UI.make_divider())
+	_sections.add_child(UI.make_divider(UI.HAIRLINE))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	_sections.add_child(row)
@@ -402,7 +407,7 @@ func _build_footer() -> void:
 	privacy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	privacy.pressed.connect(_on_privacy_pressed)
 	row.add_child(privacy)
-	_sections.add_child(_wrapped(_footer_text(), UI.TYPE_CAPTION, SLATE))
+	_sections.add_child(_wrapped(_footer_text(), UI.TYPE_CAPTION, DIM))
 
 func _footer_text() -> String:
 	var lines: Array = [
@@ -455,7 +460,7 @@ func _product_card(pid: String, section: String, tier: int, wide: bool = false) 
 		text.add_child(_wrapped(_grants_text(def), UI.TYPE_LABEL, SLATE))
 	var sub: String = str(def.get("subtitle", ""))
 	if sub != "" and wide:
-		text.add_child(_wrapped(sub, UI.TYPE_CAPTION, SLATE))
+		text.add_child(_wrapped(sub, UI.TYPE_CAPTION, DIM))
 	if wide:
 		var value_row := _value_row(def)
 		if value_row != null:
@@ -539,7 +544,7 @@ func _show_reward_burst(title: String, contents: String) -> void:
 	card.set_anchors_preset(Control.PRESET_CENTER)
 	card.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	card.grow_vertical = Control.GROW_DIRECTION_BOTH
-	card.add_theme_stylebox_override("panel", UI.make_frame(SAGE))
+	card.add_theme_stylebox_override("panel", UI.make_dark_frame(SAGE))
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(card)
 
@@ -683,15 +688,14 @@ func _grid(columns: int) -> GridContainer:
 	grid.add_theme_constant_override("v_separation", 10)
 	return grid
 
-## Card surface: light page with a saturated rim in the product's own colour, so a
-## shelf of cards reads as a set of different things rather than one repeated thing.
+## Card surface: a lifted dark tile with a saturated rim in the product's own
+## colour, so a shelf reads as a set of different things rather than one repeated
+## thing. The rim is now doing most of that work — on a dark page it is the only
+## part of the card carrying chroma.
 func _card(fill: Color, border: Color = Color(0, 0, 0, 0)) -> PanelContainer:
 	var p := PanelContainer.new()
 	if border.a > 0.0:
-		var sb := UI.make_card(fill)
-		sb.set_border_width_all(3)
-		sb.border_color = border
-		p.add_theme_stylebox_override("panel", sb)
+		p.add_theme_stylebox_override("panel", UI.make_dark_frame(border, fill))
 	else:
-		p.add_theme_stylebox_override("panel", UI.make_card(fill))
+		p.add_theme_stylebox_override("panel", UI.make_dark_card(fill))
 	return p

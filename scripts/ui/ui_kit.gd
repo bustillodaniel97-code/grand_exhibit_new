@@ -18,10 +18,10 @@ const BG_DEEP := Color("#1B1538")   # gradient floor / behind-card wash
 const INK := Color("#2B2245")       # body text on light cards
 const PANEL := Color("#FFF9F0")     # card surface
 const PANEL_SOFT := Color("#F3ECFF")# secondary surface, faint violet cast
-## Page background INSIDE a popup card. Distinct from BG on purpose: BG is the
-## app shell behind the world and is deep indigo, while a popup's own page must
-## stay light because every screen draws INK-coloured body text on it. Pointing
-## screens at BG made all seven of them dark-on-dark after the repaint.
+## LEGACY light popup page. Superseded by PAGE below for every popup screen; it
+## survives because the match-3 battle board's tile hues and rims were measured
+## against this exact value and retuning that board is its own job. Do not point
+## anything new at it.
 const SURFACE := Color("#F7F2FF")
 const ACCENT := Color("#FF7A3D")    # vivid orange — primary action
 const BRASS := Color("#FFC53D")     # bright gold — currency, rewards
@@ -29,6 +29,35 @@ const SAGE := Color("#2ED573")      # vivid green — confirm, income
 const SLATE := Color("#3BA9F5")     # bright azure — info, archive
 const PLUM := Color("#B45CF0")      # vivid violet — promotions, premium
 const DANGER := Color("#FF4757")    # hot red — unaffordable / bottleneck
+
+# --- Dark popup scheme (semantic; SPEC §2) -----------------------------------
+## Every popup used to paint a cream page, which made each sheet a light island
+## inside a deep-indigo shell — incoherent, and the single loudest "dated" tell
+## in the app. The page is now the dark GROUND and the saturated palette above
+## does the work on top of it, which is how the genre reads.
+##
+## These are new NAMED constants rather than a repaint of SURFACE/PANEL/INK on
+## purpose: the department sheet, the world toast and the battle board still draw
+## INK on cream, and flipping the shared constants under them would invert seven
+## screens into dark-on-dark — a bug this project has already paid for once.
+##
+## Measured against PAGE (WCAG): TEXT 15.8:1, TEXT_DIM 8.4:1, TEXT_MUTE 5.4:1.
+## Against CARD: 11.1:1, 5.9:1, 3.7:1. Accents clear 4.5:1 on PAGE except where
+## noted at the call site.
+const PAGE := Color("#141033")        # popup page ground
+const PAGE_DEEP := Color("#0D0A24")   # wells, troughs, sunken rows
+const CARD := Color("#332A70")        # a card sitting on PAGE (1.48:1 lift)
+const CARD_HI := Color("#443893")     # selected / elevated / header strip
+const TEXT := Color("#F6F3FF")        # primary text on PAGE or CARD
+const TEXT_DIM := Color("#B7ADE4")    # secondary text, captions, sub-values
+const TEXT_MUTE := Color("#8F84C4")   # fine print, empty states, spent pips
+## The one disabled-control tone. Flat, hueless and quieter than any live card,
+## so a dead button recedes on the dark page and still reads as spent on the one
+## light surface that disables anything (the dept sheet's MAX).
+const DEAD := Color("#332F4A")
+## Hairline rule / rim on dark. A light rule at low alpha reads on both PAGE and
+## CARD; a dark one disappears into whichever of the two it lands on.
+const HAIRLINE := Color(1, 1, 1, 0.12)
 
 const DEPT_COLORS := {
 	"promotions": Color("#B45CF0"),
@@ -305,6 +334,41 @@ static func make_inset(tint: Color = PANEL_SOFT) -> StyleBoxFlat:
 	sb.border_color = tint.darkened(0.18)
 	return sb
 
+## Card on a dark PAGE. Not make_card with a dark fill: a drop shadow does not
+## separate one dark surface from another, so the lift comes from a lit top edge
+## (the same trick the candy buttons use) plus a black shadow underneath.
+static func make_dark_card(fill: Color = CARD, radius: int = RADIUS_CARD) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = fill
+	sb.set_corner_radius_all(radius)
+	sb.set_content_margin_all(14)
+	sb.border_width_top = 2
+	sb.border_color = Color(1, 1, 1, 0.10)
+	sb.shadow_color = Color(0, 0, 0, 0.42)
+	sb.shadow_size = 6
+	sb.shadow_offset = Vector2(0, 3)
+	return sb
+
+## Dark card plus a saturated rim — offers, rarity frames, outcome cards. The rim
+## is what tells the player which KIND of thing this is, so it stays full chroma.
+static func make_dark_frame(tint: Color = BRASS, fill: Color = CARD) -> StyleBoxFlat:
+	var sb := make_dark_card(fill)
+	sb.set_border_width_all(3)
+	sb.border_color = tint
+	return sb
+
+## Recessed well on a dark page (empty slots, stat wells, sub-panels). Reads as
+## cut INTO the surface: darker than its host, with a light lip along the bottom.
+static func make_dark_inset(fill: Color = PAGE_DEEP, radius: int = RADIUS_BUTTON) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = fill
+	sb.set_corner_radius_all(radius)
+	sb.set_content_margin_all(10)
+	sb.set_border_width_all(1)
+	sb.border_color = Color(0, 0, 0, 0.45)
+	sb.border_width_bottom = 2
+	return sb
+
 ## Dark panel (toasts, dramatic headers).
 static func make_dark_panel() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
@@ -429,8 +493,11 @@ static func retint_button(b: Button, bg: Color) -> Button:
 	b.add_theme_stylebox_override("normal", _button_box(bg, 6))
 	b.add_theme_stylebox_override("hover", _button_box(bg.lightened(0.12), 6))
 	b.add_theme_stylebox_override("pressed", _button_box(bg.darkened(0.10), 2, 4))
-	b.add_theme_stylebox_override("disabled",
-		_button_box(bg.lerp(Color(0.42, 0.40, 0.50), 0.62), 4))
+	# Disabled is ONE state, so it gets one tone and keeps none of the live hue.
+	# The old target was a 42%-grey mixed with the button's own colour, which on a
+	# dark page came out as the brightest slab on the screen — a dead control
+	# out-shouting every live one, and four different deads at that.
+	b.add_theme_stylebox_override("disabled", _button_box(DEAD, 4))
 	return b
 
 static func _button_box(bg: Color, lip: int, top_pad_extra: int = 0) -> StyleBoxFlat:
@@ -497,13 +564,15 @@ static func make_badge(letter: String, color: Color) -> Control:
 	p.add_child(l)
 	return p
 
-## Body-face label (prose, descriptions, stat rows).
-static func make_label(text: String, size: int = TYPE_BODY) -> Label:
+## Body-face label (prose, descriptions, stat rows). `color` defaults to INK for
+## the light surfaces that still exist (dept sheet, battle board); dark popups
+## pass TEXT / TEXT_DIM.
+static func make_label(text: String, size: int = TYPE_BODY, color: Color = INK) -> Label:
 	var l := Label.new()
 	l.text = text
 	l.add_theme_font_override("font", body_font())
 	l.add_theme_font_size_override("font_size", size)
-	l.add_theme_color_override("font_color", INK)
+	l.add_theme_color_override("font_color", color)
 	return l
 
 ## Display-font label (headers / numbers that should feel "designed").
@@ -552,6 +621,21 @@ static func make_currency_chip(icon_name: String, value: String,
 	l.name = "ValueLabel"
 	row.add_child(l)
 	chip.set_meta("value_label", l)
+	return chip
+
+## Currency chip for a DARK page. The light chip's cream card vanishes on PAGE
+## and its INK value is unreadable on it, so the surface becomes the same glass
+## pill the HUD floats over the world and the value goes white.
+static func make_dark_currency_chip(icon_name: String, value: String,
+		tint: Color = Color(1, 1, 1), font_size: int = 24) -> PanelContainer:
+	var chip := make_currency_chip(icon_name, value, tint, font_size)
+	var sb := make_glass(RADIUS_BUTTON)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	sb.content_margin_top = 5
+	sb.content_margin_bottom = 6
+	chip.add_theme_stylebox_override("panel", sb)
+	chip_value_label(chip).add_theme_color_override("font_color", TEXT)
 	return chip
 
 static func chip_value_label(chip: Control) -> Label:

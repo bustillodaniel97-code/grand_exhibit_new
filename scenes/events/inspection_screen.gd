@@ -16,11 +16,12 @@ const BattleMath = preload("res://scripts/events/battle_math.gd")
 
 # Palette from ui_kit; these were private copies of the retired muted scheme.
 const UI := preload("res://scripts/ui/ui_kit.gd")
-# This screen is popup CONTENT, so its page is a light surface, not the
-# deep app shell — it draws INK body text directly on it.
-const BG := UI.SURFACE
-const INK := UI.INK
-const PANEL := UI.PANEL
+# Popup CONTENT on a DARK page: the department hues on the manager cards and the
+# stage buttons are the colour here, so the ground stays deep and the ink light.
+const BG := UI.PAGE
+const INK := UI.TEXT
+const DIM := UI.TEXT_DIM
+const PANEL := UI.CARD
 const ACCENT := UI.ACCENT
 const BRASS := UI.BRASS
 const SAGE := UI.SAGE
@@ -128,7 +129,7 @@ func _build() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(title)
 
-	_status_label = UI.make_label("", UI.TYPE_BODY)
+	_status_label = UI.make_label("", UI.TYPE_BODY, DIM)
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	root.add_child(_status_label)
@@ -172,14 +173,14 @@ func _build() -> void:
 ## grey bricks and one line of body text to explain themselves.
 func _no_managers_card() -> Control:
 	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", UI.make_frame(BRASS))
+	card.add_theme_stylebox_override("panel", UI.make_dark_frame(BRASS))
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 8)
 	card.add_child(v)
 	v.add_child(UI.make_display_label("You need a team first", UI.TYPE_TITLE, INK))
 	var body := UI.make_label(
 		"Inspections are fought by managers. Recruit your first one from a lootbox "
-		+ "in the Store, then come back and pick up to three.", UI.TYPE_BODY)
+		+ "in the Store, then come back and pick up to three.", UI.TYPE_BODY, DIM)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(body)
 	return card
@@ -187,11 +188,11 @@ func _no_managers_card() -> Control:
 
 func _rules_card() -> Control:
 	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", UI.make_inset(UI.PANEL_SOFT))
+	card.add_theme_stylebox_override("panel", UI.make_dark_inset())
 	var body := UI.make_label(
 		"Match your managers' colours to charge them. The inspector audits one "
 		+ "department at a time — clearing THAT colour charges far faster, and the "
-		+ "audit moves as soon as you satisfy it.", UI.TYPE_LABEL)
+		+ "audit moves as soon as you satisfy it.", UI.TYPE_LABEL, DIM)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_child(body)
 	return card
@@ -221,9 +222,11 @@ func _manager_card(pair: Dictionary) -> Control:
 	btn.add_theme_stylebox_override("hover", _style(col if on else PANEL.lightened(0.03), 12, col))
 	btn.add_theme_stylebox_override("pressed", _style(col.darkened(0.1), 12, INK))
 	# White on the gold department card is a 1.26:1 label; pick the ink that wins
-	# on whichever hue this manager carries.
+	# on whichever hue this manager carries. UI.INK, not the screen's INK alias — a
+	# SELECTED card is a light saturated fill and still wants the dark ink, while an
+	# unselected one is the dark CARD and wants the light one.
 	btn.add_theme_color_override("font_color",
-		(INK if col.get_luminance() > 0.45 else Color.WHITE) if on else INK)
+		(UI.INK if col.get_luminance() > 0.45 else Color.WHITE) if on else INK)
 	btn.add_theme_font_size_override("font_size", UI.TYPE_LABEL)
 	var atk: float = BattleMath.manager_attack(def, st)
 	btn.text = "%s %s\nLv %d · Rank %d · Power %d\n%s" % [
@@ -267,7 +270,7 @@ func _stage_row(i: int, stage: Dictionary, es: Dictionary) -> Control:
 	elif not unlocked:
 		odds = "clear stage %d first" % i
 	var info := UI.make_label("%s\n%s" % [_rewards_preview(stage.get("rewards", {})), odds],
-		UI.TYPE_LABEL)
+		UI.TYPE_LABEL, DIM)
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(info)
@@ -450,7 +453,7 @@ func _show_outcome(title: String, body: String, tint: Color, stage_index: int) -
 	_outcome.add_child(center)
 	var card := PanelContainer.new()
 	card.custom_minimum_size = Vector2(560, 0)
-	card.add_theme_stylebox_override("panel", UI.make_frame(tint))
+	card.add_theme_stylebox_override("panel", UI.make_dark_frame(tint))
 	center.add_child(card)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 14)
@@ -466,7 +469,7 @@ func _show_outcome(title: String, body: String, tint: Color, stage_index: int) -
 	band.add_child(band_l)
 	v.add_child(band)
 
-	var l := UI.make_label(body, UI.TYPE_BODY)
+	var l := UI.make_label(body, UI.TYPE_BODY, INK)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(l)
