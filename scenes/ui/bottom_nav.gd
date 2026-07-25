@@ -1,7 +1,10 @@
-extends Control
+extends PanelContainer
 ## Bottom nav (SPEC §9): Museum / Managers / Expedition / Event / Store.
 ## Locked features show their requirement and toast when tapped.
 ## Screens open by path string via PopupManager (SPEC §11 — no cross-branch preloads).
+##
+## Root is a PanelContainer so the bar sizes to its buttons instead of a fixed
+## 100px, and its bottom margin absorbs the gesture-pill safe-area inset.
 
 const UI := preload("res://scripts/ui/ui_kit.gd")
 const Popups := preload("res://scripts/ui/popup_manager.gd")
@@ -12,27 +15,24 @@ const PATH_INSPECTION := "res://scenes/events/inspection_screen.tscn"
 const PATH_STORE := "res://scenes/store/store_screen.tscn"
 
 var _buttons := {}  # id -> Button
+var _margin: MarginContainer
 var _timer: Timer
 
 func _ready() -> void:
 	name = "BottomNav"
-	custom_minimum_size = Vector2(0, 100)
+	UI.install_default_font()
+	add_theme_stylebox_override("panel", UI.make_panel(UI.PANEL, 0, 0))
 
-	var panel := PanelContainer.new()
-	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
-	panel.add_theme_stylebox_override("panel", UI.make_panel(UI.PANEL, 0, 0))
-	add_child(panel)
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
-	panel.add_child(margin)
+	_margin = MarginContainer.new()
+	_margin.add_theme_constant_override("margin_left", 10)
+	_margin.add_theme_constant_override("margin_right", 10)
+	_margin.add_theme_constant_override("margin_top", 8)
+	_margin.add_theme_constant_override("margin_bottom", 8)
+	add_child(_margin)
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
-	margin.add_child(row)
+	_margin.add_child(row)
 
 	_add_nav_button(row, "museum", "Museum", "home")
 	_add_nav_button(row, "managers", "Managers", "medal")
@@ -49,13 +49,24 @@ func _ready() -> void:
 	_timer.timeout.connect(refresh_locks)
 	add_child(_timer)
 
+	get_viewport().size_changed.connect(_apply_safe_area)
+	_apply_safe_area()
 	refresh_locks()
+
+## Keep the tab row above the gesture pill / home indicator.
+func _apply_safe_area() -> void:
+	if _margin == null:
+		return
+	var inset: Dictionary = UI.safe_area_insets(self)
+	_margin.add_theme_constant_override("margin_bottom", 8 + int(inset["bottom"]))
+	_margin.add_theme_constant_override("margin_left", 10 + int(inset["left"]))
+	_margin.add_theme_constant_override("margin_right", 10 + int(inset["right"]))
 
 func _add_nav_button(row: HBoxContainer, id: String, label_text: String, icon_name: String) -> void:
 	var b := UI.make_button(label_text, UI.ACCENT)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	b.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	b.add_theme_font_size_override("font_size", 18)
+	b.custom_minimum_size = Vector2(0, UI.TOUCH_MIN + 20)
+	b.add_theme_font_size_override("font_size", UI.TYPE_LABEL)
 	b.icon = UI.icon_texture(icon_name, 26)
 	b.expand_icon = false
 	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -81,18 +92,23 @@ func _set_lock(id: String, unlocked: bool, req_text: String) -> void:
 	if b == null:
 		return
 	var base: String = id.capitalize()
+	b.text = base
 	if unlocked:
-		b.text = base
 		b.icon = UI.icon_texture(str(b.get_meta("icon_name")), 26)
 		b.tooltip_text = ""
-		b.modulate = Color(1, 1, 1, 1)
+		UI.retint_button(b, UI.ACCENT)
 	else:
-		# Accessible label stays; the lock glyph replaces the requirement text
-		# (the exact requirement lives on the tooltip and in the tap toast).
-		b.text = base
+		# Locked reads as a deliberate state, not a render fault: restyle to a
+		# muted slate tab with a lock glyph. The old code dimmed the whole button
+		# with modulate, which greyed the nine-patch too and just looked broken.
+		# The exact requirement lives on the tooltip and in the tap toast.
 		b.icon = UI.icon_texture("lock", 24)
 		b.tooltip_text = "Unlocks at %s" % req_text
-		b.modulate = Color(0.6, 0.6, 0.6, 1)
+		UI.retint_button(b, UI.INK.lerp(UI.SLATE, 0.35))
+	b.modulate = Color(1, 1, 1, 1)
+	b.add_theme_font_size_override("font_size", UI.TYPE_LABEL)
+	b.add_theme_color_override("font_color",
+		Color.WHITE if unlocked else Color(1, 1, 1, 0.72))
 
 func _on_nav_pressed(id: String) -> void:
 	match id:

@@ -10,6 +10,9 @@ const MAX_DOTS := 12
 
 var venue_id: String = ""
 var dept_id: String = ""
+## Set by VenueView before the panel enters the tree. When true the panel drops
+## its own name label, because the bottom sheet already titles the department.
+var embedded_in_sheet: bool = false
 
 var _row_level := {}   # track -> Label
 var _row_effect := {}  # track -> Label
@@ -50,7 +53,9 @@ func _ready() -> void:
 	vbox.add_child(header)
 
 	header.add_child(UI.make_badge(str(def.get("icon", "?")), col))
-	var name_l := UI.make_label(str(def.get("name", dept_id)), 24)
+	# The bottom sheet already prints the department name in its own title bar;
+	# printing it again here was showing every dept's name twice.
+	var name_l := UI.make_label("" if embedded_in_sheet else str(def.get("name", dept_id)), 24)
 	name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	header.add_child(name_l)
@@ -75,7 +80,7 @@ func _ready() -> void:
 
 	_staff_dot_box = HBoxContainer.new()
 	_staff_dot_box.add_theme_constant_override("separation", 6)
-	_staff_dot_box.position = Vector2(10, 20)
+	_staff_dot_box.position = Vector2(12, 8)
 	_staff_dot_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_strip.add_child(_staff_dot_box)
 
@@ -219,7 +224,7 @@ func update_queue(arrival_per_s: float, serve_per_s: float) -> void:
 	var col: Color = UI.DEPT_COLORS.get(dept_id, UI.ACCENT)
 	for i in count:
 		var dot := UI.make_dot(col, 14)
-		dot.position = Vector2(12 + i * 20, 24)
+		dot.position = Vector2(12 + i * 20, 34)
 		_strip.add_child(dot)
 		_queue_dots.append(dot)
 
@@ -227,10 +232,14 @@ func _process(delta: float) -> void:
 	if dept_id == "ticket" and not _queue_dots.is_empty():
 		_bob_t += delta
 		for i in _queue_dots.size():
-			_queue_dots[i].position.y = 24.0 + sin(_bob_t * 4.0 + float(i) * 0.7) * 4.0
+			_queue_dots[i].position.y = 34.0 + sin(_bob_t * 4.0 + float(i) * 0.7) * 4.0
 
 func _update_staff_dots() -> void:
-	if dept_id in ["ticket", "archive"]:
+	# Archive draws travelling cart dots instead; everyone else — ticket included
+	# — shows one dot per staffed unit. Ticket used to hide this row and rely on
+	# queue dots alone, so a department that was keeping up with arrivals drew an
+	# empty box that looked like a rendering failure.
+	if dept_id == "archive":
 		_staff_dot_box.visible = false
 	else:
 		_staff_dot_box.visible = true

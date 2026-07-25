@@ -14,7 +14,7 @@ const PANEL := UI.PANEL
 const ACCENT := UI.ACCENT
 const BRASS := UI.BRASS
 const SAGE := UI.SAGE
-const DIM := Color("#D8CFC0")
+const DIM := Color("#5A4E86")   # unearned milestone pip, on the dark shell
 
 const MILESTONE_COUNT := 8
 
@@ -46,12 +46,14 @@ func _build_ui() -> void:
 	# Row 1: title + percent.
 	var top := HBoxContainer.new()
 	vbox.add_child(top)
-	var title := UI.make_display_label("Venue Progress", 16, INK)
+	# On the deep shell background this must be light, not INK.
+	var title := UI.make_display_label("Venue Progress", UI.TYPE_LABEL, UI.PANEL)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(title)
 	_pct_label = Label.new()
-	_pct_label.add_theme_color_override("font_color", ACCENT)
-	_pct_label.add_theme_font_size_override("font_size", 16)
+	_pct_label.add_theme_color_override("font_color", UI.BRASS)
+	_pct_label.add_theme_font_size_override("font_size", UI.TYPE_LABEL)
+	UI.apply_display_font(_pct_label)
 	top.add_child(_pct_label)
 
 	# Row 2: progress bar.

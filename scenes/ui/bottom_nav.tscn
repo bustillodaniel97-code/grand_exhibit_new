@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/ui/bottom_nav.gd" id="1"]
 
-[node name="BottomNav" type="Control"]
+[node name="BottomNav" type="PanelContainer"]
 layout_mode = 3
 anchors_preset = 10
 anchor_right = 1.0

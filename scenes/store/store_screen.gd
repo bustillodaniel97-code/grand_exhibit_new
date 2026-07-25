@@ -95,13 +95,24 @@ func _tick() -> void:
 
 # ------------------------------------------------------------------- sections
 
+## Card shelves wrap into two columns instead of running off the right edge.
+## Product cards have a 300px floor and the sheet is ~660px wide, so any shelf
+## with three or more items overflowed an HBoxContainer — and a popup has no
+## horizontal scroll, so those cards were simply unreachable.
+func _card_grid() -> GridContainer:
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 10)
+	return grid
+
+
 func _build_offers() -> void:
 	var offers: Array = Offers.active_offers()
 	if offers.is_empty():
 		return
 	_sections.add_child(_section_header("Special Offers"))
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
+	var row := _card_grid()
 	_sections.add_child(row)
 	for offer in offers:
 		row.add_child(_offer_card(offer))
@@ -110,7 +121,7 @@ func _offer_card(offer: Dictionary) -> Control:
 	var offer_id: String = str(offer["id"])
 	var def: Dictionary = DataLoader.get_iap(str(offer.get("iap_id", "")))
 	var card := _panel(BRASS)
-	card.custom_minimum_size = Vector2(300, 0)
+	card.custom_minimum_size = Vector2(286, 0)
 	var vbox := VBoxContainer.new()
 	card.add_child(vbox)
 	var name_label := _label(str(def.get("title", offer_id)), 20, INK)
@@ -140,8 +151,7 @@ func _build_daily_deals() -> void:
 	var force := _button("Refresh (%d gems, %d left)" % [Deals.force_cost(), Deals.force_refreshes_left()], SLATE)
 	force.pressed.connect(func() -> void: Deals.force_refresh())
 	header_row.add_child(force)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
+	var row := _card_grid()
 	_sections.add_child(row)
 	for pid in Deals.shelf():
 		row.add_child(_product_card(str(pid)))
@@ -159,8 +169,7 @@ func _build_gem_packs() -> void:
 
 func _build_cash_insight() -> void:
 	_sections.add_child(_section_header("Cash & Insight"))
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
+	var row := _card_grid()
 	_sections.add_child(row)
 	for pid in _products_where(func(def: Dictionary) -> bool:
 		return str(def.get("kind", "")) in ["cash_pack", "insight_pack"] and str(def.get("tag", "")) == "regular"):
@@ -168,8 +177,7 @@ func _build_cash_insight() -> void:
 
 func _build_rv_corner() -> void:
 	_sections.add_child(_section_header("Free Rewards (Watch an Ad)"))
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
+	var row := _card_grid()
 	_sections.add_child(row)
 
 	var cash_card := _panel(SAGE)
@@ -223,7 +231,7 @@ func _kind_icon(def: Dictionary) -> Array:  # [icon_name, tint]
 func _product_card(pid: String) -> Control:
 	var def: Dictionary = DataLoader.get_iap(pid)
 	var card := _panel(PANEL, ACCENT)
-	card.custom_minimum_size = Vector2(300, 0)
+	card.custom_minimum_size = Vector2(286, 0)
 	var vbox := VBoxContainer.new()
 	card.add_child(vbox)
 	var head := HBoxContainer.new()

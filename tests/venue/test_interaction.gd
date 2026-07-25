@@ -102,10 +102,16 @@ func _process(delta: float) -> bool:
 		4:  # Close via the sheet's real X button.
 			var close_btn: Button = null
 			for b in _sheet.find_children("*", "Button", true, false):
-				if (b as Button).text == "✕":
+				# ui_kit swaps a lone "✕" label for a cross icon (a glyph that
+				# small is a poor touch target), so match the role tag it sets
+				# rather than the now-empty label text.
+				if (b as Button).get_meta("role", "") == "close":
 					close_btn = b
 					break
 			check(close_btn != null, "sheet exposes a close button")
+			if close_btn == null:
+				_next()
+				return false
 			_click_at(close_btn.get_global_rect().get_center(), "sheet X")
 			_next()
 		5:

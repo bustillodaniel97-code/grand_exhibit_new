@@ -58,38 +58,84 @@ func _open(path: String, payload: Dictionary) -> void:
 	holder.add_child(center)
 
 	var card := PanelContainer.new()
-	# 90% width x 70% height of the 720x1280 portrait viewport: screens always get room
-	# regardless of how their root Control is configured (integration fix — collapsed-card bug).
-	card.custom_minimum_size = Vector2(648, 896)
+	# Sized from the live viewport rather than a fixed 648x896. With stretch
+	# aspect "expand" a tall phone reports a taller viewport, and a hardcoded
+	# card left a growing dead gap under it. Screens still always get room —
+	# that was the original point of the floor (collapsed-card integration fix).
+	var vis: Vector2 = get_viewport().get_visible_rect().size
+	var inset: Dictionary = UI.safe_area_insets(dim)
+	card.custom_minimum_size = Vector2(
+		minf(vis.x - 2.0 * UI.GUTTER, 700.0),
+		clampf(vis.y - 220.0 - float(inset["top"]) - float(inset["bottom"]), 560.0, 1180.0))
 	card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	card.add_theme_stylebox_override("panel", UI.make_panel(UI.PANEL, 12, 0))
+	card.add_theme_stylebox_override("panel", UI.make_panel(UI.PANEL, UI.RADIUS_CARD, 0))
+	card.clip_contents = true
 	center.add_child(card)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 12)
+	vbox.add_theme_constant_override("separation", 0)
 	card.add_child(vbox)
 
+	# Title bar. The close button used to sit alone on an otherwise blank strip,
+	# which read as a rendering fault on every one of the eight screens; giving
+	# the strip its own tinted background and a rule underneath makes it a
+	# deliberate bar. It stays a real layout row (not an overlay) so it can never
+	# collide with the right-aligned header chips several screens already draw.
+	var bar := PanelContainer.new()
+	bar.add_theme_stylebox_override("panel", UI.make_panel(UI.BG.darkened(0.04), 0, 0))
 	var top_row := HBoxContainer.new()
+	top_row.add_theme_constant_override("separation", 8)
+	var pad := MarginContainer.new()
+	pad.add_theme_constant_override("margin_left", 10)
+	pad.add_theme_constant_override("margin_right", 10)
+	pad.add_theme_constant_override("margin_top", 6)
+	pad.add_theme_constant_override("margin_bottom", 6)
+	pad.add_child(top_row)
+	bar.add_child(pad)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	top_row.add_child(spacer)
 	var x_btn := UI.make_button("X", UI.ACCENT)
-	x_btn.custom_minimum_size = Vector2(52, 52)
+	x_btn.custom_minimum_size = Vector2(UI.TOUCH_MIN, UI.TOUCH_MIN)
 	x_btn.pressed.connect(close_top)
 	top_row.add_child(x_btn)
-	vbox.add_child(top_row)
+	vbox.add_child(bar)
+	vbox.add_child(UI.make_divider())
+
+	var body := MarginContainer.new()
+	body.add_theme_constant_override("margin_left", 4)
+	body.add_theme_constant_override("margin_right", 4)
+	body.add_theme_constant_override("margin_top", 6)
+	body.add_theme_constant_override("margin_bottom", 6)
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(body)
 
 	var content: Node = packed.instantiate()
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_child(content)
+	body.add_child(content)
 
 	add_child(holder)
 	_stack.append(holder)
 	if content.has_method("setup"):
 		content.setup(payload)
+	_play_open(card, dim)
+
+## Sheet rises and fades in. Cheap, and the absence of it is one of the loudest
+## "unfinished" tells on a mobile game.
+func _play_open(card: Control, dim: ColorRect) -> void:
+	card.pivot_offset = card.custom_minimum_size * 0.5
+	card.scale = Vector2(0.94, 0.94)
+	card.modulate.a = 0.0
+	dim.color.a = 0.0
+	var tw := card.create_tween()
+	tw.set_parallel(true)
+	tw.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(card, "scale", Vector2.ONE, 0.18)
+	tw.tween_property(card, "modulate:a", 1.0, 0.14)
+	tw.tween_property(dim, "color:a", 0.55, 0.14)
 
 func _close_top() -> void:
 	if _stack.is_empty():

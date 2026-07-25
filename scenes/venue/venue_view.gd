@@ -65,6 +65,8 @@ func _build_sheet() -> void:
 	_sheet_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_sheet_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_sheet_dim.visible = false
+	# Above every layer the floor draws (cast 0, plaques 1, cash floats 2).
+	_sheet_dim.z_index = 8
 	add_child(_sheet_dim)
 
 	_sheet = PanelContainer.new()
@@ -76,7 +78,8 @@ func _build_sheet() -> void:
 	_sheet.offset_bottom = -8
 	_sheet.offset_top = 0  # zero height while closed
 	_sheet.visible = false
-	_sheet.add_theme_stylebox_override("panel", UI.make_panel(UI.PANEL, 14, 3))
+	_sheet.add_theme_stylebox_override("panel", UI.make_panel(UI.PANEL, UI.RADIUS_CARD, 3))
+	_sheet.z_index = 9
 	add_child(_sheet)
 
 	var margin := MarginContainer.new()
@@ -116,6 +119,7 @@ func _open_sheet(dept_id: String) -> void:
 		p.name = "DeptPanel"
 		p.venue_id = GameState.current_venue
 		p.dept_id = dept_id
+		p.embedded_in_sheet = true
 		# DeptPanel _ready runs on add; ids set above so it builds correctly.
 		p.set_anchors_preset(Control.PRESET_FULL_RECT)
 		_panel_holder.add_child(p)

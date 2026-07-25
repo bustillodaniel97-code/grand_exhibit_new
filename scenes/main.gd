@@ -17,6 +17,7 @@ var _toast_lbl: Label
 var _toast_tween: Tween
 
 func _ready() -> void:
+	UI.install_default_font()
 	DataLoader.reload_all()
 	if not SaveSystem.load_game():
 		GameState.reset_to_new_game()
