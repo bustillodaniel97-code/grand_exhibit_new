@@ -528,11 +528,20 @@ static func draw_canopy(ci: CanvasItem, style_name: String = "parkland") -> void
 		var a: Vector2 = edge[0]
 		var b: Vector2 = edge[1]
 		var n: int = edge[2]
+		# One polygon per lip, but with a 2px solid band along the top that the
+		# teeth hang from. The previous shape ran tooth-tip / top-edge / tooth-tip
+		# with the polygon's implicit closing edge (b back to a) lying exactly
+		# along the top line — which put every interior top vertex ON that edge,
+		# and a vertex incident to another edge is degenerate to the triangulator.
+		# That was the "Invalid polygon data, triangulation failed" pair spamming
+		# every boot: one per lip, twice per floor build. The band keeps the tooth
+		# valleys 2px clear of the closing edge and reads as the hem's tape.
 		var hem := PackedVector2Array()
-		for i in n:
-			hem.append(a.lerp(b, float(i) / float(n)))
-			hem.append(a.lerp(b, (float(i) + 0.5) / float(n)) + Vector2(0.0, 8.0))
+		hem.append(a)
 		hem.append(b)
+		for i in range(n - 1, -1, -1):
+			hem.append(a.lerp(b, (float(i) + 0.5) / float(n)) + Vector2(0.0, 8.0))
+			hem.append(a.lerp(b, float(i) / float(n)) + Vector2(0.0, 2.0))
 		ci.draw_colored_polygon(hem, UI.ROOM_TICKET.darkened(0.10))
 	Iso.stroke(ci, PackedVector2Array([q[3] + up, q[0] + up, q[1] + up]),
 		Color(0, 0, 0, 0.18), 1.4)
