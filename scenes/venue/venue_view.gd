@@ -20,6 +20,7 @@ var _sheet_bottleneck: Label
 var _panels := {}  # dept_id -> DeptPanel (lazily created, reused)
 var _open_dept: String = ""
 var _timer: Timer
+var _sheet_tween: Tween
 
 func _ready() -> void:
 	name = "VenueView"
@@ -54,14 +55,16 @@ func _ready() -> void:
 # --- Bottom-sheet upgrade card -------------------------------------------------
 
 func _build_sheet() -> void:
-	# Dim tap-catcher behind the sheet.
+	# Dim behind the sheet — VISUAL ONLY. It must never consume input:
+	# with a STOP filter it swallowed every tap while a sheet was open, so
+	# tapping another room closed the sheet instead of switching to it
+	# (player bug: "room taps unreliable"). The floor stays tappable; the
+	# sheet's ✕ button closes it.
 	_sheet_dim = ColorRect.new()
 	_sheet_dim.color = Color(0, 0, 0, 0.35)
 	_sheet_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_sheet_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_sheet_dim.visible = false
-	_sheet_dim.gui_input.connect(func(event: InputEvent) -> void:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			_close_sheet())
 	add_child(_sheet_dim)
 
 	_sheet = PanelContainer.new()
@@ -128,17 +131,20 @@ func _open_sheet(dept_id: String) -> void:
 	_sheet.visible = true
 	_sheet_dim.visible = true
 	var h: float = minf(_sheet.get_combined_minimum_size().y, maxf(size.y - 24.0, 200.0))
-	_sheet.offset_top = 0
-	var tw := create_tween()
-	tw.tween_property(_sheet, "offset_top", -h, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if _sheet_tween and _sheet_tween.is_valid():
+		_sheet_tween.kill()  # never let open/close tweens fight over offset_top
+	_sheet_tween = create_tween()
+	_sheet_tween.tween_property(_sheet, "offset_top", -h, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 func _close_sheet() -> void:
 	if not _sheet.visible:
 		return
 	_open_dept = ""
-	var tw := create_tween()
-	tw.tween_property(_sheet, "offset_top", 0.0, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.tween_callback(func() -> void:
+	if _sheet_tween and _sheet_tween.is_valid():
+		_sheet_tween.kill()
+	_sheet_tween = create_tween()
+	_sheet_tween.tween_property(_sheet, "offset_top", 0.0, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_sheet_tween.tween_callback(func() -> void:
 		_sheet.visible = false
 		_sheet_dim.visible = false)
 
