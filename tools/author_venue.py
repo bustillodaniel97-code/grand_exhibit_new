@@ -192,7 +192,7 @@ def build(spec):
             rooms.append(room)
             continue
         if r["role"] != "lobby":
-            room["plaque"] = [round(rect[2] * 0.5, 2), round(rect[3] * 0.82, 2)]
+            room["plaque"] = VK.plaque_at(r["role"], rect)
         if r["role"] == "queue":
             room["queue"] = queue_block(rect)
         elif r["role"] == "store":
@@ -216,8 +216,8 @@ def build(spec):
     blocked = [(e["anchor"][0], e["anchor"][1]) for e in exhibits if "anchor" in e]
     blocked += [(p["at"][0], p["at"][1]) for p in props]
     scatter_rooms = [r for r in rooms if r.get("role") != "lobby"]
-    props += VK.scatter_props(scatter_rooms, rng, spec["prop_vocab"], blocked,
-                              spec.get("prop_count", 22))
+    props += VK.scatter_weighted(scatter_rooms, rng, spec["prop_vocab"], blocked,
+                                 spec.get("prop_density", 0.17))
     # And the forecourt. A plan that follows the diamond leaves paved notches
     # beside the building; bare, they read as a car park.
     props += VK.terrace_props(rooms, rng, spec.get("terrace_vocab",
@@ -228,7 +228,7 @@ def build(spec):
     dressing = OD([
         ("carpet", spec.get("carpet", [])),
         ("floor", spec.get("floor_dressing", [])),
-        ("wall", VK.derive_wall_art(rooms, rng, art_keys)),
+        ("wall", VK.derive_wall_art(rooms, rng, art_keys, 0.72)),
         ("ceiling", spec.get("ceiling", [])),
     ])
 
@@ -277,6 +277,7 @@ SUNSPIRE = {
         ("floor", "#FDF0D5"), ("shell", "#8C5A2B"), ("carpet", "#E8622F"),
         ("rope", "#C2410C"), ("trim", "#FFD166"), ("panel", "#FFFBF0"),
         ("panel_soft", "#FFF0DC"), ("stone", "#E0C79A"),
+        ("partition", "#A2653A"),
         ("room.gallery", "#F4A93C"), ("room.archive", "#3FBFB5"),
         ("room.promotions", "#E56BB0"), ("room.ticket", "#6C8CE8"),
     ]),
@@ -293,7 +294,7 @@ SUNSPIRE = {
     ],
     "prop_count": 20,
     "art_cols": ["#C2410C", "#3FBFB5", "#E56BB0", "#6C8CE8", "#F4A93C"],
-    "terrace_vocab": ["planter", "bench"],
+    "terrace_vocab": ["planter", "planter", "bench"],
     "terrace_count": 10,
 }
 
@@ -303,6 +304,7 @@ CLOUDREST = {
         ("floor", "#EAF2F8"), ("shell", "#3F5468"), ("carpet", "#2E86AB"),
         ("rope", "#1B6B93"), ("trim", "#C9D9E8"), ("panel", "#FFFFFF"),
         ("panel_soft", "#E4EDF5"), ("stone", "#A9BACB"),
+        ("partition", "#6E8296"),
         ("room.gallery", "#A9C9DE"), ("room.archive", "#7FCB8C"),
         ("room.promotions", "#C58CF0"), ("room.ticket", "#F2A65A"),
     ]),
@@ -320,7 +322,7 @@ CLOUDREST = {
     ],
     "prop_count": 20,
     "art_cols": ["#7A5C3E", "#7FCB8C", "#C58CF0", "#F2A65A", "#59C3E8"],
-    "terrace_vocab": ["planter", "bench"],
+    "terrace_vocab": ["planter", "planter", "bench"],
     "terrace_count": 10,
 }
 
@@ -330,6 +332,7 @@ AURORA = {
         ("floor", "#3A3170"), ("shell", "#241C4A"), ("carpet", "#7C4DFF"),
         ("rope", "#B388FF"), ("trim", "#7CF5D4"), ("panel", "#F3F0FF"),
         ("panel_soft", "#E7E1FF"), ("stone", "#6B5FA8"),
+        ("partition", "#B9AEEA"),
         ("room.gallery", "#8B6BFF"), ("room.archive", "#22D3EE"),
         ("room.promotions", "#F472B6"), ("room.ticket", "#FBBF24"),
     ]),
@@ -348,12 +351,12 @@ AURORA = {
     ],
     "prop_count": 22,
     "art_cols": ["#22D3EE", "#F472B6", "#FBBF24", "#7CF5D4", "#8B6BFF"],
-    "terrace_vocab": ["planter", "bench", "banner"],
+    "terrace_vocab": ["planter", "planter", "bench", "banner"],
     "terrace_count": 11,
 }
 
 PROP_VOCAB = {
-    "exhibit": ["bench", "planter"],
+    "exhibit": ["planter", "planter", "planter", "bench"],
     "store": ["shelf", "crate", "rack", "trolley", "cabinet"],
     "promo": ["desk", "kiosk", "banner", "rack"],
     "queue": ["planter", "bin", "kiosk"],

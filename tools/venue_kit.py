@@ -162,44 +162,97 @@ def bounds(rooms):
 
 # --- derivation ---------------------------------------------------------------
 
-def derive_walls(rooms, colour_of):
-    """A back wall wherever a room's north or west edge faces open air.
+def derive_walls(rooms, colour_of, partition="@partition",
+                 exterior_h=None, interior_h=46.0):
+    """A wall on EVERY room boundary, with doorways cut through the interior ones.
 
-    Derived rather than authored because a wall that does not match the plan is
-    the single most obvious way a venue looks broken, and hand-listing them is
-    where that mismatch comes from. Runs are merged so a shared edge across two
-    rooms is one wall, not two abutting stubs.
+    THIS IS WHAT MAKES A VENUE READ AS A BUILDING. The previous rule only walled
+    edges that faced open air, so the inside was one continuous plane with
+    coloured floor patches on it — reported, correctly, as "no walls or
+    staircases / section division". The reference draws a full partition between
+    every pair of rooms and cuts a door through it, and that single difference is
+    most of why its floors read as separate rooms rather than as zones.
+
+    Only NORTH and WEST faces are drawn. A south or east wall stands between the
+    camera and the room it belongs to and would black out its own interior; and
+    every shared boundary is still covered exactly once, because the more
+    southern room's north wall IS the northern room's south wall.
+
+    Doorways are a GAP in the run rather than a new kind: a wall with a hole in
+    it is two shorter walls, so this needs nothing from the renderer. The sim
+    never consults them — walkers cross where they always did — so a doorway is
+    a promise about where people LOOK like they walk, and it is placed on the
+    middle of the shared span where the traffic actually crosses.
     """
     walls = []
+
+    def emit(at, length, axis, interior):
+        if length <= 0:
+            return
+        # Exteriors take the room's own accent, shaded by which way the face
+        # turns: north catches the key light, west is turned away from it.
+        shade = "|d10" if axis == "x" else "|d22"
+        col = partition if interior else colour_of_edge + shade
+        entry = {"at": [round(at[0], 2), round(at[1], 2)],
+                 "len": round(length, 2), "axis": axis, "col": col}
+        if interior:
+            entry["h"] = interior_h
+        elif exterior_h is not None:
+            entry["h"] = exterior_h
+        walls.append(entry)
+
+    def runs(edge_cells):
+        """Group consecutive cells sharing an interior/exterior classification."""
+        out, run = [], None
+        for pos, interior in edge_cells:
+            if run is not None and run[2] == interior and pos == run[0] + run[1]:
+                run[1] += 1
+            else:
+                if run is not None:
+                    out.append(run)
+                run = [pos, 1, interior]
+        if run is not None:
+            out.append(run)
+        return out
+
+    def with_doorway(start, length):
+        """Split an interior run into segments either side of a door."""
+        if length < 2:
+            return []                      # too short to wall AND door: leave open
+        door = 2 if length >= 6 else 1
+        lead = (length - door) // 2
+        segs = []
+        if lead > 0:
+            segs.append((start, lead))
+        tail = length - lead - door
+        if tail > 0:
+            segs.append((start + lead + door, tail))
+        return segs
+
     for r in rooms:
         gx, gy, w, h = r["rect"]
-        col = colour_of(r)
-        # North face: any span along the top edge with nothing above it.
-        run = None
-        for i in range(w):
-            open_air = not covered(rooms, gx + i + 0.5, gy - 0.5)
-            if open_air and run is None:
-                run = gx + i
-            elif not open_air and run is not None:
-                walls.append({"at": [run, gy], "len": gx + i - run, "axis": "x",
-                              "col": f"{col}|d10"})
-                run = None
-        if run is not None:
-            walls.append({"at": [run, gy], "len": gx + w - run, "axis": "x",
-                          "col": f"{col}|d10"})
+        colour_of_edge = colour_of(r)
+        # North face, cell by cell: is there a room on the far side of it?
+        cells = [(gx + i, covered(rooms, gx + i + 0.5, gy - 0.5)) for i in range(w)]
+        for start, length, interior in runs(cells):
+            if interior:
+                for s0, ln in with_doorway(start, length):
+                    emit((s0, gy), ln, "x", True)
+            else:
+                emit((start, gy), length, "x", False)
         # West face.
-        run = None
-        for i in range(h):
-            open_air = not covered(rooms, gx - 0.5, gy + i + 0.5)
-            if open_air and run is None:
-                run = gy + i
-            elif not open_air and run is not None:
-                walls.append({"at": [gx, run], "len": gy + i - run, "axis": "y",
-                              "col": f"{col}|d22"})
-                run = None
-        if run is not None:
-            walls.append({"at": [gx, run], "len": gy + h - run, "axis": "y",
-                          "col": f"{col}|d22"})
+        cells = [(gy + j, covered(rooms, gx - 0.5, gy + j + 0.5)) for j in range(h)]
+        for start, length, interior in runs(cells):
+            if interior:
+                for s0, ln in with_doorway(start, length):
+                    emit((gx, s0), ln, "y", True)
+            else:
+                emit((gx, start), length, "y", False)
+
+    # Back to front. Walls are drawn in list order into one canvas item, so a
+    # wall further from the camera has to be emitted first or it paints over the
+    # one in front of it.
+    walls.sort(key=lambda e: e["at"][0] + e["at"][1])
     return walls
 
 
@@ -301,4 +354,62 @@ def terrace_props(rooms, rng, vocab, count, pad=1.0):
         if kind == "bench":
             prop["len"] = round(rng.uniform(1.5, 2.1), 2)
         out.append(prop)
+    return out
+
+
+def plaque_at(role, rect):
+    """Where a room's name plaque hangs, in room-relative tiles.
+
+    NOT the centre. Centred plaques were reported sitting on top of the staff:
+    the middle of a room is exactly where the counters, the porters and the
+    browsing crowd are, because every fixture is derived from the rect's centre
+    line. Each role has a different quiet corner:
+
+      queue   above the counters — the top edge is clear, the rest is lanes
+      store   far LEFT — the drop, the pile and the gold stack are all bottom-right
+      promo   top-left, clear of the desks on the centre line
+      other   bottom-left, behind the browse spots
+    """
+    w, h = rect[2], rect[3]
+    if role == "queue":
+        return [round(min(1.6, w * 0.16), 2), 0.55]
+    if role == "store":
+        return [round(w * 0.20, 2), round(h - 0.9, 2)]
+    if role == "promo":
+        return [round(w * 0.22, 2), 0.85]
+    return [round(w * 0.18, 2), round(h - 0.85, 2)]
+
+
+def scatter_weighted(rooms, rng, vocab, blocked, per_tile=0.16):
+    """Furniture spread across the plan in proportion to FLOOR AREA.
+
+    Picking a room uniformly at random left the big halls bare and the small
+    ones cluttered — the large empty stretches reported in the treasury and the
+    sun court. Budgeting per tile puts the furniture where the space actually is.
+    """
+    out, taken = [], list(blocked)
+    for r in rooms:
+        gx, gy, w, h = r["rect"]
+        role = r.get("role")
+        kinds = vocab.get(role) or vocab.get("any")
+        if not kinds or w < 2 or h < 2:
+            continue
+        want = max(1, int(round(w * h * per_tile)))
+        attempts = 0
+        placed = 0
+        while placed < want and attempts < want * 50:
+            attempts += 1
+            px = round(rng.uniform(gx + 0.6, gx + w - 0.8), 2)
+            py = round(rng.uniform(gy + 0.6, gy + h - 0.8), 2)
+            if not on_canvas(px, py, 24.0):
+                continue
+            if any(abs(px - tx) < 1.1 and abs(py - ty) < 0.95 for tx, ty in taken):
+                continue
+            taken.append((px, py))
+            kind = rng.choice(kinds)
+            prop = {"kind": kind, "at": [px, py]}
+            if kind == "bench":
+                prop["len"] = round(rng.uniform(1.4, 2.0), 2)
+            out.append(prop)
+            placed += 1
     return out

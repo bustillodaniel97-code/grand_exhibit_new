@@ -177,6 +177,13 @@ class VenueTheme extends RefCounted:
 			var room: Dictionary = (entry as Dictionary).duplicate(true)
 			var r: Array = room.get("rect", [0, 0, 1, 1]) as Array
 			room["rect"] = Rect2(float(r[0]), float(r[1]), float(r[2]), float(r[3]))
+			# Storey. Normalised here so every reader can treat it as an int and a
+			# venue that never mentions levels behaves exactly as before.
+			room["level"] = int(room.get("level", 0))
+			# `rise_to` makes the room a STAIR: the lift ramps across its long axis
+			# from `level` to `rise_to` instead of stepping at the threshold, so a
+			# walker climbs it rather than teleporting a storey mid-stride.
+			room["rise_to"] = int(room.get("rise_to", room["level"]))
 			var dept: String = str(room.get("dept", ""))
 			var accent: Color = palette.get("room." + dept, cream) if dept != "" else cream
 			room["accent"] = accent
@@ -187,6 +194,72 @@ class VenueTheme extends RefCounted:
 			by_id[str(room.get("id", ""))] = room
 			if dept != "":
 				by_dept[dept] = room
+
+	# --- Storeys ----------------------------------------------------------------
+	##
+	## A venue is a BUILDING, not a floor plan: the later ones want a mezzanine
+	## over the entrance, a tower wing, a lounge you climb to. All of that is
+	## carried by one int per room plus a stair room, and NONE of it reaches the
+	## simulation — see Iso.LEVEL_H.
+
+	## Every storey this venue uses, ascending. Level 0 is always present so a
+	## flat venue still gets its one ground node.
+	func levels() -> Array:
+		var seen := {0: true}
+		for entry in rooms:
+			var room: Dictionary = entry as Dictionary
+			seen[int(room.get("level", 0))] = true
+			seen[int(room.get("rise_to", 0))] = true
+		var out: Array = seen.keys()
+		out.sort()
+		return out
+
+	## Screen-y offset for a grid point — which storey a thing standing there is
+	## drawn on. Points outside every room are on the forecourt, at ground level.
+	func lift_at(g: Vector2) -> float:
+		var room: Dictionary = room_at(g)
+		if room.is_empty():
+			return 0.0
+		var from_level: int = int(room.get("level", 0))
+		var to_level: int = int(room.get("rise_to", from_level))
+		if to_level == from_level:
+			return Iso.level_lift(from_level)
+		return lerpf(Iso.level_lift(from_level), Iso.level_lift(to_level),
+			_rise_t(room, g))
+
+	## The storey a point belongs to for DEPTH purposes. A stair belongs to its
+	## higher end for its top half, so a climbing figure passes in front of the
+	## upper floor's edge at the moment it steps onto it.
+	func level_at(g: Vector2) -> int:
+		var room: Dictionary = room_at(g)
+		if room.is_empty():
+			return 0
+		var from_level: int = int(room.get("level", 0))
+		var to_level: int = int(room.get("rise_to", from_level))
+		if to_level == from_level:
+			return from_level
+		return from_level if _rise_t(room, g) < 0.5 else to_level
+
+	## How far along a stair's climb a point is, 0 at the bottom, 1 at the top.
+	func _rise_t(room: Dictionary, g: Vector2) -> float:
+		var r: Rect2 = room["rect"]
+		var t: float = 0.0
+		if r.size.x >= r.size.y:
+			t = (g.x - r.position.x) / maxf(r.size.x, 0.001)
+		else:
+			t = (g.y - r.position.y) / maxf(r.size.y, 0.001)
+		if bool(room.get("rise_reverse", false)):
+			t = 1.0 - t
+		return clampf(t, 0.0, 1.0)
+
+	## The room containing a grid point, or an empty dict. Rooms never overlap
+	## (test_theme holds that), so the first hit is the only hit.
+	func room_at(g: Vector2) -> Dictionary:
+		for entry in rooms:
+			var room: Dictionary = entry as Dictionary
+			if (room["rect"] as Rect2).has_point(g):
+				return room
+		return {}
 
 	# --- Lookups ---------------------------------------------------------------
 
@@ -256,7 +329,10 @@ var time_scale: float = 1.0    # test hook: accelerate the visual sim
 var _theme: VenueTheme
 var _canvas: Node2D
 var _city: Node2D              # the block outside the museum, behind the ground
-var _ground: Node2D            # floors + walls, always behind everything
+var _ground: Node2D            # floors + walls of storey 0, behind everything
+## One extra node per storey above the ground, level -> Node2D. Each carries
+## that storey's rise as its position and its own z band; see _build_upper_grounds.
+var _upper_grounds: Dictionary = {}
 var _stacks_layer: Node2D      # window ticket-stub stacks
 var _pile_layer: Node2D        # vault pile
 var _labels_layer: Node2D      # room plaques, always above the cast
@@ -381,6 +457,7 @@ func _ready() -> void:
 	_ground.name = "Ground"
 	_canvas.add_child(_ground)
 	_ground.draw.connect(_draw_ground)
+	_build_upper_grounds()
 
 	_stacks_layer = Node2D.new()
 	_stacks_layer.name = "Stacks"
@@ -396,7 +473,9 @@ func _ready() -> void:
 
 	_labels_layer = Node2D.new()
 	_labels_layer.name = "Labels"
-	_labels_layer.z_index = 2      # above the cast (0) and the cash floats (1)
+	# Above the cast (0) and the cash floats (1) — and above the TOP storey, so a
+	# room plaque is never hidden behind the floor above the room it names.
+	_labels_layer.z_index = int(_theme.levels().back()) * Iso.LEVEL_Z + 2
 	_canvas.add_child(_labels_layer)
 	_labels_layer.draw.connect(_draw_labels)
 
@@ -523,12 +602,16 @@ func _cache_ground_paint() -> void:
 		_band(3, "bunting", item as Dictionary)
 
 func _band(index: int, fallback: String, spec: Dictionary) -> void:
-	_ground_paint.append([index, Exhibits.painter(str(spec.get("kind", fallback)), spec)])
+	# Storey is resolved ONCE here, from the piece's own grid position, so the
+	# per-frame paint is still a flat walk of a cached array.
+	var at: Vector2 = Exhibits.v2(spec.get("at", spec.get("from")))
+	_ground_paint.append([index, Exhibits.painter(str(spec.get("kind", fallback)), spec),
+		_theme.level_at(at)])
 
-func _paint_band(index: int) -> void:
+func _paint_band(ci: CanvasItem, level: int, index: int) -> void:
 	for entry in _ground_paint:
-		if int(entry[0]) == index:
-			(entry[1] as Callable).call(_ground)
+		if int(entry[0]) == index and int(entry[2]) == level:
+			(entry[1] as Callable).call(ci)
 
 # --- Public API (venue_view + tests) -----------------------------------------
 
@@ -577,6 +660,11 @@ func retheme(venue_id: String) -> void:
 	_city.set_footprint(_theme.bounds)
 	_street_g = _city.street_point()
 	_city.queue_redraw()
+	# Storeys are per-venue: a flat venue following a two-storey one has to lose
+	# the upper node, or its rooms keep drawing into a floor that no longer exists.
+	_clear_upper_grounds()
+	_build_upper_grounds()
+	_labels_layer.z_index = int(_theme.levels().back()) * Iso.LEVEL_Z + 2
 
 	_queues.clear()
 	_stacks.clear()
@@ -766,9 +854,18 @@ func _fit_canvas() -> void:
 
 # --- Placement ----------------------------------------------------------------
 
-## Move a node to a grid position: project, then scale for depth.
+## Move a node to a grid position: project, lift to its storey, then scale for
+## depth. Every moving figure in the venue goes through here, which is why a
+## storey costs nothing in the FSM — a walker's grid position is unchanged and
+## only what is DRAWN moves up.
 func _place(n: Node2D, g: Vector2) -> void:
-	n.position = Iso.to_screen(g)
+	n.position = Iso.to_screen(g) + Vector2(0.0, _theme.lift_at(g))
+	# Depth band, so a figure upstairs is never drawn behind the floor it is
+	# standing on. Recomputed per move because a walker on a stair changes storey
+	# mid-stride.
+	var band: int = _theme.level_at(g) * Iso.LEVEL_Z
+	if n.z_index != band:
+		n.z_index = band
 	# Normalise depth against THIS venue's footprint, not a global grid, or a
 	# tall narrow venue would compress its whole depth range into a fraction of
 	# the scale curve and its cast would barely change size front to back.
@@ -1321,7 +1418,51 @@ func _spawn_coin_burst(g: Vector2, count: int = 6) -> void:
 ## handful of draw calls. That is the whole trick behind the density pass:
 ## detail goes into existing canvas items, not into new ones.
 
+## One node per STOREY above the ground. Each is offset by the storey's rise and
+## claims its own z band, so an upper floor wins over the one below outright
+## rather than depending on where its projected y happens to land.
+func _build_upper_grounds() -> void:
+	for lv in _theme.levels():
+		var level := int(lv)
+		if level == 0 or _upper_grounds.has(level):
+			continue
+		var n := Node2D.new()
+		n.name = "Ground%d" % level
+		n.position = Vector2(0.0, Iso.level_lift(level))
+		n.z_index = level * Iso.LEVEL_Z
+		_canvas.add_child(n)
+		n.draw.connect(func() -> void: _draw_storey(n, level))
+		_upper_grounds[level] = n
+
+func _clear_upper_grounds() -> void:
+	for n in _upper_grounds.values():
+		if is_instance_valid(n):
+			(n as Node2D).queue_free()
+	_upper_grounds.clear()
+
 func _draw_ground() -> void:
+	# The storey masses come first and belong to the GROUND node, not to the
+	# storey they hold up: Iso.box extrudes UP from the grid plane, so a box of
+	# height level*LEVEL_H drawn here lands its top face exactly where that
+	# storey's floor patch is drawn. Without them an upper floor is a slab
+	# hanging in the air.
+	var shell_col: Color = Exhibits.c(_theme.shell.get("col"), UI.WALL_BROWN.darkened(0.15))
+	for entry in _theme.rooms:
+		var room: Dictionary = entry as Dictionary
+		var level: int = int(room.get("level", 0))
+		var top: int = maxi(level, int(room.get("rise_to", level)))
+		if top <= 0:
+			continue
+		var r: Rect2 = room["rect"]
+		Iso.box(_ground, r.position, r.size, -Iso.level_lift(top),
+			shell_col.darkened(0.10), Color(0, 0, 0, 0.22))
+	_draw_storey(_ground, 0)
+
+## Everything that belongs to one storey: its plinth, its floors, its walls and
+## its flat dressing. Split by level so an upper floor draws into its own lifted
+## node instead of every room being painted onto one plane.
+func _draw_storey(ci: CanvasItem, level: int) -> void:
+	var rooms: Array = _rooms_on(level)
 	# Outer slab, slightly proud of the rooms — reads as the building shell.
 	var inset: float = Exhibits.f(_theme.shell.get("inset"), 0.35)
 	var shell_col: Color = Exhibits.c(_theme.shell.get("col"), UI.WALL_BROWN.darkened(0.15))
@@ -1330,48 +1471,65 @@ func _draw_ground() -> void:
 	# rectangle keeps its real silhouette — an L, a T, a courtyard, or detached
 	# wings joined by a link room. Drawing the grid rectangle instead was the
 	# single reason every venue read as the same square building.
-	for entry in _theme.rooms:
+	for entry in rooms:
 		var rr: Rect2 = (entry as Dictionary)["rect"]
-		Iso.floor_patch(_ground, rr.position - Vector2(inset, inset),
+		Iso.floor_patch(ci, rr.position - Vector2(inset, inset),
 			rr.size + Vector2(inset, inset) * 2.0, shell_col)
 
-	for entry in _theme.rooms:
+	for entry in rooms:
 		var room: Dictionary = entry as Dictionary
 		var r: Rect2 = room["rect"]
 		var col: Color = room["floor"]
-		Iso.floor_patch(_ground, r.position, r.size, col)
-		Iso.floor_tiles(_ground, r.position, r.size, col.darkened(0.10))
+		Iso.floor_patch(ci, r.position, r.size, col)
+		Iso.floor_tiles(ci, r.position, r.size, col.darkened(0.10))
 		if str(room.get("dept", "")) != "" and _choke == str(room["dept"]):
 			# Bottleneck room: hot rim on the floor edge, readable at a glance.
 			var ring := Iso.quad(r.position, r.size)
 			ring.append(ring[0])
-			_ground.draw_polyline(ring, UI.DANGER, 3.0)
+			ci.draw_polyline(ring, UI.DANGER, 3.0)
 
-	_paint_band(0)          # entrance runner
-	_draw_queue_paint()
-	_paint_band(1)          # rugs, thresholds, mats
+	_paint_band(ci, level, 0)          # entrance runner
+	if level == _level_of_role("queue"):
+		_draw_queue_paint(ci)
+	_paint_band(ci, level, 1)          # rugs, thresholds, mats
 
 	for entry in _theme.walls:
 		var w: Dictionary = entry as Dictionary
-		Iso.wall(_ground, Exhibits.v2(w.get("at")), Exhibits.f(w.get("len"), 1.0),
+		var at: Vector2 = Exhibits.v2(w.get("at"))
+		if _theme.level_at(at + Vector2(0.25, 0.25)) != level:
+			continue
+		Iso.wall(ci, at, Exhibits.f(w.get("len"), 1.0),
 			str(w.get("axis", "x")), Exhibits.c(w.get("col"), UI.WALL_BROWN),
 			Exhibits.f(w.get("h"), Iso.WALL_H))
 
-	_paint_band(2)          # wall art, signage, wall-mounted exhibits
-	_paint_band(3)          # bunting, strung above the tallest wall
+	_paint_band(ci, level, 2)          # wall art, signage, wall-mounted exhibits
+	_paint_band(ci, level, 3)          # bunting, strung above the tallest wall
+
+## Rooms standing on a storey. A stair belongs to its LOWER end so its ramp is
+## drawn once, on the floor it climbs away from.
+func _rooms_on(level: int) -> Array:
+	var out: Array = []
+	for entry in _theme.rooms:
+		if int((entry as Dictionary).get("level", 0)) == level:
+			out.append(entry)
+	return out
+
+func _level_of_role(role_name: String) -> int:
+	var room: Dictionary = _theme.role(role_name)
+	return 0 if room.is_empty() else int(room.get("level", 0))
 
 ## Painted queue lanes, one strip per window. Floor markings are how the
 ## reference tells the player where a line forms before anyone is standing in it,
 ## and deriving them here rather than listing them in the theme is what
 ## guarantees they land under the queue instead of beside it.
-func _draw_queue_paint() -> void:
+func _draw_queue_paint(ci: CanvasItem) -> void:
 	var room: Dictionary = _theme.role("queue")
 	if room.is_empty() or _slot_gy.is_empty():
 		return
 	var col: Color = (room["floor"] as Color).darkened(0.07)
 	var depth: float = _slot_gy[_slots_per_window - 1] - _slot_gy[0] + 1.0
 	for w in _max_windows:
-		Iso.rug(_ground, Vector2(_window_gx[w] - 0.5, _slot_gy[0] - 0.5),
+		Iso.rug(ci, Vector2(_window_gx[w] - 0.5, _slot_gy[0] - 0.5),
 			Vector2(1.0, depth), col)
 
 # --- Props: individual Y-sorted furniture nodes --------------------------------
@@ -1382,7 +1540,8 @@ func _draw_queue_paint() -> void:
 func _add_prop(g: Vector2, painter: Callable) -> void:
 	_prop_g.append(g)
 	var n := Node2D.new()
-	n.position = Iso.to_screen(g)
+	n.position = Iso.to_screen(g) + Vector2(0.0, _theme.lift_at(g))
+	n.z_index = _theme.level_at(g) * Iso.LEVEL_Z
 	_canvas.add_child(n)
 	n.draw.connect(func() -> void:
 		n.draw_set_transform(-n.position)

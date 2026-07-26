@@ -266,6 +266,108 @@ const STYLES := {
 		# spilling from nowhere.
 		"mown_stripes": false,
 	},
+	# Foundry Row's block: a working yard, not a park. Cinder and oil-stained
+	# concrete where the others put grass, brick sheds for neighbours, and the
+	# planting cut right back — a landscaped verge would undo the whole read.
+	"ironworks": {
+		"palette": {
+			"lawn": "#5A5048", "lawn_lit": "#6B6055", "lawn_dim": "#453D36",
+			"paving": "#78706A", "paving_lit": "#8C847D", "kerb": "#4E4842",
+			"tree_dark": "#3A4A33", "tree_mid": "#4A5E40", "tree_lit": "#5C724F",
+			"hedge": "#4A5A44", "trunk": "#3E332A",
+			"neighbour": ["#7A3F32", "#8C5040", "#5E4A3E"],
+			"runner": "#E07A3C",
+		},
+		# Tall and close: the point of a foundry yard is that the sheds crowd it.
+		"blocks": [
+			[-7.0, 3.2, 3.0, 3.0, 66.0, 0],
+			[0.9, -4.9, 3.4, 2.2, 58.0, 1],
+			[18.2, 9.4, 3.0, 3.2, 62.0, 2],
+		],
+		"fences": [[-2.0, -1.8, 11.0, -1.8, 14], [-2.0, -1.8, -2.0, 7.0, 11]],
+		"trees": [[-4.3, 6.2, 0.78], [3.2, -3.2, 0.74], [17.6, 13.4, 0.76]],
+		"pines": [],
+		"hedges": [[16.6, 3.0, 16.6, 15.4, 0.34], [-1.45, 10.0, -1.45, 14.6, 0.30]],
+		"near_trees": [[9.2, 18.3, 0.72], [6.4, 18.3, 0.66]],
+		"planters": [[11.55, 17.35], [14.15, 17.35]],
+		"lamps": [[12.1, 18.36], [10.0, 18.36]],
+		"bench": [7.7, 18.16],
+		"bollards": [10.9, 17.84, 0.62, 4],
+		"mown_stripes": false,
+	},
+	# The Verdant Vault stands in its own gardens, so this is the one style that
+	# puts MORE planting outside than the museum has inside: deep lawn, hedging
+	# on both flanks, and a full treeline instead of the token pair.
+	"gardens": {
+		"palette": {
+			"lawn": "#4E8C3E", "lawn_lit": "#5FA64B", "lawn_dim": "#3C6E30",
+			"paving": "#C3BCA8", "paving_lit": "#D6CFBC", "kerb": "#948D7C",
+			"tree_dark": "#1F5230", "tree_mid": "#2C6E3F", "tree_lit": "#3E8C52",
+			"hedge": "#2C6E3F", "trunk": "#4A3524",
+			"neighbour": ["#7A6A4E", "#8E7C5C", "#5E6E4A"],
+			"runner": "#C2410C",
+		},
+		"blocks": [
+			[-7.0, 3.2, 2.6, 2.8, 40.0, 0],
+			[0.9, -4.9, 3.0, 2.0, 44.0, 1],
+			[18.2, 9.4, 2.6, 3.0, 42.0, 2],
+		],
+		"fences": [[-2.0, -1.8, 11.0, -1.8, 12], [-2.0, -1.8, -2.0, 7.0, 9]],
+		"trees": [
+			[-4.3, 0.4, 1.08], [-3.5, 2.6, 0.94], [-4.6, 5.0, 1.14],
+			[-3.2, 7.4, 0.88], [-4.8, 9.6, 1.02],
+			[1.4, -3.0, 1.00], [4.3, -2.8, 1.12], [6.9, -3.6, 0.90],
+			[9.2, -2.9, 1.04], [11.8, -3.4, 0.96],
+			[17.6, 12.2, 1.08], [17.4, 14.4, 0.92], [18.0, 9.8, 1.00],
+		],
+		"pines": [[-5.6, 4.0, 0.98], [7.9, -5.0, 1.06]],
+		# Hedging on both flanks and a clipped run across the front verge: the
+		# formal garden read comes from the hedges, not from the tree count.
+		"hedges": [
+			[16.6, 1.6, 16.6, 16.4, 0.50], [-1.45, 8.6, -1.45, 15.6, 0.46],
+			[-1.2, 17.6, 4.4, 17.6, 0.38],
+		],
+		"near_trees": [[9.2, 18.3, 0.88], [6.4, 18.3, 0.82]],
+		"planters": [[11.55, 17.35], [14.15, 17.35]],
+		"lamps": [[12.1, 18.36], [10.0, 18.36]],
+		"bench": [7.7, 18.16],
+		"bollards": [10.9, 17.84, 0.62, 3],
+		"mown_stripes": true,
+	},
+	# Borealis stands on the ice shelf. Distinct from alpine on purpose: alpine
+	# is a treeline with rock under it, this is snow with almost nothing living
+	# on it, so the neighbours and the traffic carry all the colour.
+	"tundra": {
+		"palette": {
+			"lawn": "#D6E2EA", "lawn_lit": "#EAF2F7", "lawn_dim": "#B9C8D4",
+			"paving": "#9FAEBA", "paving_lit": "#B9C6CF", "kerb": "#7C8A95",
+			"tree_dark": "#244A44", "tree_mid": "#2F5E54", "tree_lit": "#3E7568",
+			"hedge": "#2F5E54", "trunk": "#4A4038",
+			"neighbour": ["#5B6E7E", "#6E7F8C", "#48596B"],
+			"runner": "#3AA6D8",
+		},
+		"blocks": [
+			[-7.2, 3.0, 2.8, 2.8, 44.0, 0],
+			[0.6, -5.1, 3.2, 2.0, 48.0, 1],
+			[18.2, 9.0, 2.8, 3.0, 42.0, 2],
+		],
+		"fences": [[-2.0, -1.8, 11.0, -1.8, 12], [-2.0, -1.8, -2.0, 7.0, 9]],
+		"trees": [],
+		# A thin, struggling treeline — enough to say "something grows here",
+		# not enough to say "forest".
+		"pines": [
+			[-5.2, 2.4, 0.72], [-4.4, 6.8, 0.64], [8.2, -4.4, 0.70],
+			[18.0, 7.4, 0.66],
+		],
+		"hedges": [[16.6, 4.0, 16.6, 14.2, 0.28], [-1.45, 10.4, -1.45, 14.2, 0.26]],
+		"near_trees": [[9.0, 18.3, 0.62], [6.2, 18.3, 0.58]],
+		"planters": [[11.55, 17.35], [14.15, 17.35]],
+		"lamps": [[12.1, 18.36], [10.0, 18.36]],
+		"bench": [7.7, 18.16],
+		"bollards": [10.9, 17.84, 0.62, 4],
+		# Off: a bright band on snow reads as glare, not as ground texture.
+		"mown_stripes": false,
+	},
 }
 
 static func style_def(style_name: String) -> Dictionary:
@@ -571,19 +673,54 @@ func _draw_street() -> void:
 ## Everything on the far side of the building: neighbouring blocks, the boundary
 ## fence, the north and west treelines. Drawn back to front by depth.
 func _draw_far_scenery() -> void:
+	# Drawn back-to-front by PROJECTED DEPTH, not by category.
+	#
+	# Drawing all the blocks, then all the trees, put every tree in front of
+	# every block regardless of where it stood: a conifer authored well behind a
+	# neighbouring shed was painted straight up its roof and front face. Reported
+	# as trees "growing through" the buildings, and it happened in every style
+	# because the ordering was the loop order.
+	#
+	# The rest of the diorama is Y-sorted by the scene tree; this node draws its
+	# whole surround into one canvas item for the draw-call budget, so it has to
+	# do the same sort itself. Key is the base point's projected y — the same
+	# quantity Y-sort uses — so the two agree.
 	var hues: Array = _pal["neighbour"]
+	var items: Array = []
 	for b in _def.get("blocks", []):
-		_block(Vector2(float(b[0]), float(b[1])), Vector2(float(b[2]), float(b[3])),
-			float(b[4]), hues[int(b[5]) % hues.size()])
+		var bg := Vector2(float(b[0]), float(b[1]))
+		var bs := Vector2(float(b[2]), float(b[3]))
+		# A block's depth is its FRONT corner, not its origin: keyed on the origin
+		# a deep block sorts behind things standing beside it.
+		items.append([_depth(bg + bs), "block", bg, bs, float(b[4]),
+			hues[int(b[5]) % hues.size()]])
 	for f in _def.get("fences", []):
-		_fence(Vector2(float(f[0]), float(f[1])), Vector2(float(f[2]), float(f[3])), int(f[4]))
+		var fa := Vector2(float(f[0]), float(f[1]))
+		var fb := Vector2(float(f[2]), float(f[3]))
+		items.append([_depth((fa + fb) * 0.5), "fence", fa, fb, int(f[4]), null])
 	for t in _def.get("trees", []):
-		_tree(Vector2(float(t[0]), float(t[1])), float(t[2]))
+		var tg := Vector2(float(t[0]), float(t[1]))
+		items.append([_depth(tg), "tree", tg, float(t[2]), 0.0, null])
 	for t in _def.get("pines", []):
-		_pine(Vector2(float(t[0]), float(t[1])), float(t[2]))
+		var pg := Vector2(float(t[0]), float(t[1]))
+		items.append([_depth(pg), "pine", pg, float(t[2]), 0.0, null])
 	for h in _def.get("hedges", []):
-		_hedge(Vector2(float(h[0]), float(h[1])), Vector2(float(h[2]), float(h[3])),
-			float(h[4]))
+		var ha := Vector2(float(h[0]), float(h[1]))
+		var hb := Vector2(float(h[2]), float(h[3]))
+		items.append([_depth((ha + hb) * 0.5), "hedge", ha, hb, float(h[4]), null])
+	items.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+	for it in items:
+		match str(it[1]):
+			"block": _block(it[2], it[3], float(it[4]), it[5])
+			"fence": _fence(it[2], it[3], int(it[4]))
+			"tree": _tree(it[2], float(it[3]))
+			"pine": _pine(it[2], float(it[3]))
+			"hedge": _hedge(it[2], it[3], float(it[4]))
+
+## Sort key for the surround: the projected y of a grid point, which is what
+## Y-sort uses for everything else in the diorama.
+func _depth(g: Vector2) -> float:
+	return _p(g).y
 
 ## The paved plinth the museum stands on, plus its shadow and its skirt.
 func _draw_apron() -> void:

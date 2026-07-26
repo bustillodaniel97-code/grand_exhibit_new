@@ -24,6 +24,29 @@ const ORIGIN := Vector2(390.0, 80.0)  # grid (0,0) in canvas space
 const GRID := Vector2(15.0, 17.0)     # museum footprint, in tiles
 const WALL_H := 52.0                  # wall extrusion height, px
 
+## Screen rise of one STOREY, in px.
+##
+## Elevation is a RENDER property here, never a simulation one: a level lifts
+## what is DRAWN and nothing else. The FSM stays flat — every waypoint, queue
+## slot and browse spot is a plain grid coordinate and pathing never learns
+## about storeys — so a multi-storey venue adds no sim state and cannot
+## introduce a class of pathing bug.
+##
+## Sized against WALL_H rather than picked by eye: a storey has to clear a full
+## back wall plus its cap rail, or the floor above is drawn INSIDE the room below
+## and the two read as one cluttered plane instead of as two floors.
+const LEVEL_H := 74.0
+
+## z_index band reserved per storey. Y-sort orders the diorama within a level;
+## across levels the upper storey must win outright regardless of its projected
+## y, so each level claims a band and the cast (0), cash floats (1) and room
+## plaques (2) sit inside their own level's band.
+const LEVEL_Z := 8
+
+## Screen offset of a storey. Negative because up is -y in canvas space.
+static func level_lift(level: int) -> float:
+	return -LEVEL_H * float(level)
+
 ## The canvas VenueFloor fits the diorama into and CLIPS to. Letting the diamond
 ## overhang it is deliberate; putting content out there is not. The archive's
 ## vault door (x=750), its money pile (x=756), the far half of its shelving
