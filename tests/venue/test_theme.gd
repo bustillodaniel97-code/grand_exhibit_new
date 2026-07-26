@@ -127,23 +127,38 @@ func _check_natural_history_plan() -> void:
 			if (a["rect"] as Rect2).intersects(b["rect"] as Rect2):
 				clash = "%s/%s" % [a.get("id"), b.get("id")]
 	check(clash == "", "no two rooms overlap (offender %s)" % clash)
-	# An inheriting venue must come back with the SAME plan, or "extends" is a
+	# An inheriting venue must come back with the SAME plan, or `extends` is a
 	# copy that will drift.
-	# Aimed at sunspire: venues 1-3 all author their own themes now, so the heir
-	# under test has to be one that still inherits. Pick it from the data rather
-	# than naming one, so authoring sunspire later moves this to the next heir
-	# instead of failing.
-	var heir_id: String = ""
-	for vid in ["sunspire", "cloudrest", "aurora_world", "grand_river", "copper_kettle"]:
-		if VF.VenueTheme.raw_extends(vid) == "whispering_pines":
-			heir_id = vid
-			break
-	check(heir_id != "", "at least one venue still inherits, to prove `extends`")
-	if heir_id != "":
-		var heir: Object = VF.VenueTheme.for_venue(heir_id)
-		check(heir.rect("gallery") == t.rect("gallery")
-			and heir.exhibits.size() == t.exhibits.size(),
-			"%s inherits the whispering_pines plan through `extends`" % heir_id)
+	#
+	# Tested against a SYNTHETIC heir registered into DataLoader for the duration
+	# of the check, not against a shipped venue. An earlier version scanned the
+	# roster for whoever still inherited, which meant the mechanism went untested
+	# the moment the last venue got its own theme — and that is precisely when a
+	# regression in it would go unnoticed. `extends` stays supported for future
+	# venues whether or not any current one uses it, so the test says that.
+	var loader: Node = _dl
+	var probe := "test_heir_probe"
+	(loader.venues as Dictionary)[probe] = {
+		"id": probe, "name": "Heir Probe", "order": 999,
+		"theme": {"extends": "whispering_pines"},
+	}
+	check(VF.VenueTheme.raw_extends(probe) == "whispering_pines",
+		"`extends` is read back off the venue's theme block")
+	var heir: Object = VF.VenueTheme.for_venue(probe)
+	check(heir.rect("gallery") == t.rect("gallery")
+		and heir.exhibits.size() == t.exhibits.size()
+		and heir.surround == t.surround,
+		"an heir resolves to the parent's plan, exhibits and surround")
+
+	# And an override replaces a whole top-level key while the rest still comes
+	# down the chain — the half of `extends` that a plain copy would not give.
+	(loader.venues as Dictionary)[probe]["theme"] = {
+		"extends": "whispering_pines", "surround": "nightfall",
+	}
+	var tweaked: Object = VF.VenueTheme.for_venue(probe)
+	check(tweaked.surround == "nightfall" and tweaked.rect("gallery") == t.rect("gallery"),
+		"an heir can override one key and inherit the rest")
+	(loader.venues as Dictionary).erase(probe)
 
 # --- derived geometry ----------------------------------------------------------
 

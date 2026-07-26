@@ -159,6 +159,113 @@ const STYLES := {
 		# swell catching the light on water.
 		"mown_stripes": true,
 	},
+	# Sunspire's block: sand instead of lawn, adobe instead of offices, date
+	# palms instead of broadleaves. No conifers — a pine on a dune is the one
+	# thing that would give the whole surround away.
+	"dunes": {
+		"palette": {
+			"lawn": "#D9AE6A", "lawn_lit": "#E6C185", "lawn_dim": "#B88C4C",
+			"paving": "#C9BFA6", "paving_lit": "#DFD6BF", "kerb": "#9B907A",
+			"tree_dark": "#3E6B3A", "tree_mid": "#4F8547", "tree_lit": "#6AA75E",
+			"hedge": "#8C7C4E", "trunk": "#7A5330",
+			"neighbour": ["#B4784A", "#9A5F3E", "#C99763"],
+			"runner": "#E8622F",
+		},
+		# Flat-roofed and low: a desert skyline is horizontal, and a tall
+		# neighbour here read as an office block someone had painted beige.
+		"blocks": [
+			[-7.0, 3.2, 3.2, 3.0, 34.0, 0],
+			[0.9, -4.9, 3.6, 2.2, 30.0, 1],
+			[18.2, 9.4, 3.0, 3.2, 36.0, 2],
+		],
+		"fences": [[-2.0, -1.8, 11.0, -1.8, 10], [-2.0, -1.8, -2.0, 7.0, 8]],
+		"trees": [
+			[-4.3, 0.8, 0.94], [-3.8, 5.0, 1.02], [-3.2, 7.6, 0.86],
+			[2.2, -3.0, 0.98], [6.9, -3.6, 0.90], [17.6, 12.2, 0.96],
+		],
+		"pines": [],
+		"hedges": [[16.6, 2.4, 16.6, 15.8, 0.40], [-1.45, 9.4, -1.45, 15.0, 0.36]],
+		"near_trees": [[9.2, 18.3, 0.86], [6.4, 18.3, 0.76]],
+		"planters": [[11.55, 17.35], [14.15, 17.35]],
+		"lamps": [[12.1, 18.36], [10.0, 18.36]],
+		"bench": [7.7, 18.16],
+		"bollards": [10.9, 17.84, 0.62, 3],
+		# On: constant-gx bands on sand read as wind ripple, which is the one
+		# texture that stops a desert apron looking like a blank beige field.
+		"mown_stripes": true,
+	},
+	# Cloudrest's block: the citadel stands above the treeline, so the ground is
+	# cold meadow going to rock, the neighbours are slate and timber, and the
+	# conifers do the work the broadleaves do at sea level.
+	"alpine": {
+		"palette": {
+			"lawn": "#9FB6A6", "lawn_lit": "#B6CBBC", "lawn_dim": "#7E9689",
+			"paving": "#AFBCC7", "paving_lit": "#C8D3DC", "kerb": "#7D8A95",
+			"tree_dark": "#1F4A3E", "tree_mid": "#2C6350", "tree_lit": "#3C7F66",
+			"hedge": "#365C4C", "trunk": "#4A3B30",
+			"neighbour": ["#4C5F72", "#5E6E7E", "#7A6553"],
+			"runner": "#2E86AB",
+		},
+		"blocks": [
+			[-7.2, 3.0, 2.6, 2.8, 54.0, 0],
+			[0.6, -5.1, 3.0, 2.0, 58.0, 1],
+			[18.2, 9.0, 2.6, 3.0, 50.0, 2],
+		],
+		"fences": [[-2.0, -1.8, 11.0, -1.8, 12], [-2.0, -1.8, -2.0, 7.0, 9]],
+		"trees": [[-4.6, 5.4, 0.82], [9.2, -2.9, 0.78], [17.4, 14.4, 0.80]],
+		# The treeline is the whole point of the style, so most of the planting
+		# is conifers rather than the two token ones parkland carries.
+		"pines": [
+			[-5.6, 1.2, 1.14], [-4.2, 3.4, 0.96], [-5.0, 6.8, 1.06],
+			[1.4, -3.2, 1.10], [4.6, -3.8, 0.94], [7.9, -5.0, 1.16],
+			[17.8, 6.6, 1.02], [18.4, 11.8, 0.92],
+		],
+		"hedges": [[16.6, 2.0, 16.6, 16.2, 0.42], [-1.45, 9.2, -1.45, 15.2, 0.38]],
+		"near_trees": [[9.0, 18.3, 0.78], [6.2, 18.3, 0.72]],
+		"planters": [[11.55, 17.35], [14.15, 17.35]],
+		"lamps": [[12.1, 18.36], [10.0, 18.36]],
+		"bench": [7.7, 18.16],
+		"bollards": [10.9, 17.84, 0.62, 3],
+		# Off: mown bands on a rock-and-meadow shelf read as terracing cut into
+		# the mountain, which fights the flat plane the museum stands on.
+		"mown_stripes": false,
+	},
+	# Aurora's block, after dark. Every value is pulled down and the hues run
+	# cold, so the museum's own lit windows and the traffic are the only bright
+	# things outside the walls — which is what makes a night scene read as night
+	# rather than as a daylight scene with the brightness turned down.
+	"nightfall": {
+		"palette": {
+			"lawn": "#2C4A3E", "lawn_lit": "#38594B", "lawn_dim": "#20372E",
+			"paving": "#4A4766", "paving_lit": "#5D5980", "kerb": "#34324B",
+			"road": "#191436", "marking": "#8E86C4",
+			"tree_dark": "#12302A", "tree_mid": "#1B4238", "tree_lit": "#255345",
+			"hedge": "#1B4238", "trunk": "#2A2438",
+			"neighbour": ["#2E2A5C", "#3A3568", "#4A2E5E"],
+			"runner": "#7C4DFF",
+		},
+		"blocks": [
+			[-7.0, 3.2, 2.6, 2.8, 62.0, 0],
+			[0.9, -4.9, 3.2, 2.0, 68.0, 1],
+			[18.2, 9.4, 2.8, 3.0, 58.0, 2],
+		],
+		"fences": [[-2.0, -1.8, 11.0, -1.8, 12], [-2.0, -1.8, -2.0, 7.0, 9]],
+		"trees": [
+			[-4.3, 0.4, 1.05], [-3.5, 3.1, 0.92], [-4.6, 5.4, 1.12],
+			[1.4, -3.0, 0.98], [4.3, -2.8, 1.10], [9.2, -2.9, 1.02],
+			[17.6, 12.2, 1.06],
+		],
+		"pines": [[-5.6, 2.0, 1.0], [7.9, -5.0, 1.1], [18.2, 6.6, 0.95]],
+		"hedges": [[16.6, 2.0, 16.6, 16.2, 0.44], [-1.45, 9.2, -1.45, 15.2, 0.40]],
+		"near_trees": [[9.2, 18.3, 0.84], [6.4, 18.3, 0.78]],
+		"planters": [[11.55, 17.35], [14.15, 17.35]],
+		"lamps": [[12.1, 18.36], [10.0, 18.36]],
+		"bench": [7.7, 18.16],
+		"bollards": [10.9, 17.84, 0.62, 3],
+		# Off: a mown highlight is a SUNLIT band. At night it reads as light
+		# spilling from nowhere.
+		"mown_stripes": false,
+	},
 }
 
 static func style_def(style_name: String) -> Dictionary:
