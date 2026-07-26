@@ -187,6 +187,12 @@ def build(spec):
         room["role"] = r["role"]
         room["rect"] = rect
         room["floor_mix"] = r.get("floor_mix", 0.42)
+        # Storey. Emitted only when the venue actually uses one, so a flat
+        # venue's JSON is unchanged and diffs stay readable.
+        if r.get("level"):
+            room["level"] = int(r["level"])
+        if r.get("rise_to") is not None and r.get("rise_to") != r.get("level", 0):
+            room["rise_to"] = int(r["rise_to"])
         if r["role"] == "link":
             room["merge_into"] = r["merge_into"]
             rooms.append(room)
@@ -311,11 +317,12 @@ CLOUDREST = {
     "plan": [
         {"id": "gallery", "dept": "gallery", "name": "THE AVIARY",
          "role": "exhibit", "rect": [0, 2, 6, 8], "floor_mix": 0.40},
-        {"id": "span", "role": "link", "rect": [6, 5, 3, 3], "merge_into": "gallery"},
+        {"id": "span", "role": "link", "rect": [6, 5, 3, 3], "merge_into": "gallery",
+         "level": 0, "rise_to": 1},
         {"id": "archive", "dept": "archive", "name": "THE EYRIE",
-         "role": "store", "rect": [9, 4, 5, 5], "floor_mix": 0.44},
+         "role": "store", "rect": [9, 4, 5, 5], "floor_mix": 0.44, "level": 1},
         {"id": "promotions", "dept": "promotions", "name": "PATRONAGE",
-         "role": "promo", "rect": [9, 9, 5, 4], "floor_mix": 0.44},
+         "role": "promo", "rect": [9, 9, 5, 4], "floor_mix": 0.44, "level": 1},
         {"id": "ticket", "dept": "ticket", "name": "GATEHOUSE",
          "role": "queue", "rect": [2, 10, 7, 4], "floor_mix": 0.42},
         {"id": "lobby", "role": "lobby", "rect": [5, 14, 8, 3]},

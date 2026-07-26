@@ -5799,6 +5799,7 @@
               3
             ],
             "floor_mix": 0.42,
+            "rise_to": 1,
             "merge_into": "gallery"
           },
           {
@@ -5813,6 +5814,7 @@
               5
             ],
             "floor_mix": 0.44,
+            "level": 1,
             "plaque": [
               1.0,
               4.1
@@ -5845,6 +5847,7 @@
               4
             ],
             "floor_mix": 0.44,
+            "level": 1,
             "plaque": [
               1.1,
               0.85

@@ -461,13 +461,18 @@ func _ready() -> void:
 
 	_stacks_layer = Node2D.new()
 	_stacks_layer.name = "Stacks"
-	_stacks_layer.position = Iso.to_screen(Vector2(0.0, _counter_gy))
+	# Lifted with the room they belong to, like every other placed thing: the
+	# ticket stubs sit on the counters and the vault pile on the archive floor,
+	# so a venue that puts either upstairs must carry them up too.
+	_stacks_layer.position = _lifted(Vector2(0.0, _counter_gy))
+	_stacks_layer.z_index = _level_of_role("queue") * Iso.LEVEL_Z
 	_canvas.add_child(_stacks_layer)
 	_stacks_layer.draw.connect(_draw_stacks)
 
 	_pile_layer = Node2D.new()
 	_pile_layer.name = "VaultPile"
-	_pile_layer.position = Iso.to_screen(_pile_g)
+	_pile_layer.position = _lifted(_pile_g)
+	_pile_layer.z_index = _theme.level_at(_pile_g) * Iso.LEVEL_Z
 	_canvas.add_child(_pile_layer)
 	_pile_layer.draw.connect(_draw_pile)
 
@@ -674,8 +679,10 @@ func retheme(venue_id: String) -> void:
 		_stacks.append(0)
 		_serve_t.append(0.0)
 	_windows_active = 1
-	_stacks_layer.position = Iso.to_screen(Vector2(0.0, _counter_gy))
-	_pile_layer.position = Iso.to_screen(_pile_g)
+	_stacks_layer.position = _lifted(Vector2(0.0, _counter_gy))
+	_stacks_layer.z_index = _level_of_role("queue") * Iso.LEVEL_Z
+	_pile_layer.position = _lifted(_pile_g)
+	_pile_layer.z_index = _theme.level_at(_pile_g) * Iso.LEVEL_Z
 	_marketer.set_uniform(_theme.accent("promotions"), 2)
 	_place(_marketer, _marketer_g)
 
@@ -853,6 +860,11 @@ func _fit_canvas() -> void:
 		_city.set_visible_band(Rect2(-_canvas.position / s, size / s))
 
 # --- Placement ----------------------------------------------------------------
+
+## Project a grid point onto its storey. The one place a static layer gets the
+## same lift the moving cast gets from _place().
+func _lifted(g: Vector2) -> Vector2:
+	return Iso.to_screen(g) + Vector2(0.0, _theme.lift_at(g))
 
 ## Move a node to a grid position: project, lift to its storey, then scale for
 ## depth. Every moving figure in the venue goes through here, which is why a
@@ -1457,6 +1469,46 @@ func _draw_ground() -> void:
 		Iso.box(_ground, r.position, r.size, -Iso.level_lift(top),
 			shell_col.darkened(0.10), Color(0, 0, 0, 0.22))
 	_draw_storey(_ground, 0)
+	# After the storey, not before: a stair room owns a floor patch like any
+	# other room, and drawing the treads first just meant painting over them.
+	_draw_stairs(_ground, shell_col)
+
+## Treads for every stair room.
+##
+## The lift already ramps across a stair so a walker climbs it smoothly, but a
+## ramped floor with nothing drawn on it reads as a slope, not as a staircase —
+## and a visible staircase is the clearest single signal that a venue has more
+## than one floor. Drawn into the GROUND node because the step heights are
+## absolute rises from level zero, not offsets within a storey.
+func _draw_stairs(ci: CanvasItem, shell_col: Color) -> void:
+	const TREADS := 9
+	for entry in _theme.rooms:
+		var room: Dictionary = entry as Dictionary
+		var from_level: int = int(room.get("level", 0))
+		var to_level: int = int(room.get("rise_to", from_level))
+		if to_level == from_level:
+			continue
+		var r: Rect2 = room["rect"]
+		var along_x: bool = r.size.x >= r.size.y
+		var reverse: bool = bool(room.get("rise_reverse", false))
+		var bottom: float = -Iso.level_lift(from_level)
+		var top: float = -Iso.level_lift(to_level)
+		for i in TREADS:
+			# Height of the tread's FAR edge, so each step's top face is flat and
+			# the riser between it and the next one is what the eye reads as a step.
+			var t: float = float(i + 1) / float(TREADS)
+			if reverse:
+				t = 1.0 - float(i) / float(TREADS)
+			var pos: Vector2
+			var size: Vector2
+			if along_x:
+				pos = Vector2(r.position.x + r.size.x * float(i) / float(TREADS), r.position.y)
+				size = Vector2(r.size.x / float(TREADS), r.size.y)
+			else:
+				pos = Vector2(r.position.x, r.position.y + r.size.y * float(i) / float(TREADS))
+				size = Vector2(r.size.x, r.size.y / float(TREADS))
+			Iso.box(ci, pos, size, lerpf(bottom, top, t),
+				shell_col.lightened(0.16 + 0.014 * float(i)), Color(0, 0, 0, 0.20))
 
 ## Everything that belongs to one storey: its plinth, its floors, its walls and
 ## its flat dressing. Split by level so an upper floor draws into its own lifted
@@ -1510,8 +1562,14 @@ func _draw_storey(ci: CanvasItem, level: int) -> void:
 func _rooms_on(level: int) -> Array:
 	var out: Array = []
 	for entry in _theme.rooms:
-		if int((entry as Dictionary).get("level", 0)) == level:
-			out.append(entry)
+		var room: Dictionary = entry as Dictionary
+		if int(room.get("level", 0)) != level:
+			continue
+		# A stair is drawn as treads by _draw_stairs; a flat patch under them
+		# would be a floor at the bottom of a staircase, which is a hole.
+		if int(room.get("rise_to", level)) != level:
+			continue
+		out.append(room)
 	return out
 
 func _level_of_role(role_name: String) -> int:
