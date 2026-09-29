@@ -12,6 +12,7 @@ var QS: GDScript
 var MS: GDScript
 var PS: GDScript
 var DS: GDScript
+var WS: GDScript
 var DL: Node
 var GS: Node
 var ECON: Node
@@ -37,6 +38,7 @@ func _initialize() -> void:
 	MS = load("res://scripts/meta/milestone_system.gd")
 	PS = load("res://scripts/meta/prestige_system.gd")
 	DS = load("res://scripts/meta/decor_system.gd")
+	WS = load("res://scripts/meta/wing_system.gd")
 	var venue_id: String = GS.current_venue
 	QS.ensure_active_quests(venue_id)
 
@@ -167,6 +169,14 @@ func _highest_track(venue_id: String) -> int:
 	return highest
 
 func _advance_core_build(venue_id: String) -> void:
+	# Renovate the next wing (new floor / facade) the moment it is ready and
+	# affordable; once the rest of the museum is built, save up for it.
+	var nxt: Dictionary = WS.next_wing(venue_id)
+	if not nxt.is_empty() and WS.status(venue_id, str(nxt["id"])) == "ready":
+		if WS.renovate(venue_id, str(nxt["id"])):
+			return
+		if PS.operations_met(venue_id) and PS.decor_met(venue_id):
+			return
 	if PS.operations_met(venue_id) and not PS.decor_met(venue_id):
 		_buy_cash_decor(venue_id)
 		return

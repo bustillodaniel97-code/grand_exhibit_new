@@ -61,9 +61,12 @@ func run() -> void:
  print("station graduation: %d failure(s)" % failures)
  quit(0 if failures==0 else 1)
 
-## The graduation gate also asks for a furnished museum; stand up the richest
-## pieces through the real shop path until it is met.
+## The graduation gate also asks for a furnished museum and every wing open;
+## meet both through the real shop and renovation paths.
 func furnish(gs: Node, dl: Node, vid: String) -> void:
+ var ws: GDScript = load("res://scripts/meta/wing_system.gd")
+ while not ws.next_wing(vid).is_empty():
+  if not ws.renovate(vid, str(ws.next_wing(vid)["id"])):break
  var ps: GDScript = load("res://scripts/meta/prestige_system.gd")
  var ds: GDScript = load("res://scripts/meta/decor_system.gd")
  gs.gems = 1 << 30

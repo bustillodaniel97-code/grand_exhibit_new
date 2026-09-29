@@ -155,6 +155,11 @@ func _test_kill_during_venue_completion() -> void:
 	for did in DL.decor:
 		if PrestigeSystem.decor_met(V1):break
 		DecorSystem.grant_event_decor(did,V1)
+	var ws: GDScript = load("res://scripts/meta/wing_system.gd")
+	while not ws.next_wing(V1).is_empty():
+		var nw: Dictionary = ws.next_wing(V1)
+		GS.add_cash(ws.price(V1, str(nw["id"])))
+		if not ws.renovate(V1, str(nw["id"])):break
 	SS.save_now()
 	check(PrestigeSystem.gate_met(V1), "decorated completion fixture satisfies gate")
 

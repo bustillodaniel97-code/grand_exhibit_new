@@ -34,6 +34,8 @@ var boosts: Dictionary = {"income_x2_until": 0}
 var rv_state: Dictionary = {}
 var daily_deals: Dictionary = {}
 var expedition_state: Dictionary = {}
+## Dig Site mini game (scripts/digsite/dig_system.gd): energy, sites, collection.
+var dig_state: Dictionary = {}
 var event_state: Dictionary = {}
 var first_launch_unix: int = 0
 var last_seen_unix: int = 0
@@ -67,6 +69,7 @@ func reset_to_new_game() -> void:
 		"boss_unlocked": false,
 	}
 	event_state = {}
+	dig_state = {}
 	first_launch_unix = ClockGuard.now()
 	last_seen_unix = first_launch_unix
 	offer_state = {}
@@ -195,6 +198,8 @@ func feature_unlocked(feature: String) -> bool:
 			return rep_level() >= int(u.get("managers_rep", 6))
 		"expedition":
 			return rep_level() >= int(u.get("expedition_rep", 7))
+		"dig":
+			return rep_level() >= int(u.get("dig_rep", 2))
 		"inspection":
 			return day_index() >= int(u.get("inspection_day", 1))
 		"decor":
@@ -282,6 +287,7 @@ func to_save_dict() -> Dictionary:
 		"pending_cash": pending_save, "managers_state": managers_state,
 		"boosts": boosts, "rv_state": rv_state, "daily_deals": daily_deals,
 		"expedition_state": expedition_state, "event_state": event_state,
+		"dig_state": dig_state,
 		"first_launch_unix": first_launch_unix, "last_seen_unix": last_seen_unix,
 		"offer_state": offer_state, "settings": settings,
 	}
@@ -331,6 +337,7 @@ func from_save_dict(d: Dictionary) -> void:
 	for k in d.get("expedition_state", {}).keys():
 		expedition_state[k] = d["expedition_state"][k]
 	event_state = d.get("event_state", event_state)
+	dig_state = (d.get("dig_state", {}) as Dictionary).duplicate(true)
 	first_launch_unix = int(d.get("first_launch_unix", first_launch_unix))
 	last_seen_unix = int(d.get("last_seen_unix", last_seen_unix))
 	offer_state = d.get("offer_state", offer_state)

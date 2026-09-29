@@ -324,6 +324,223 @@ def case():
     return p
 
 
+# ============================================================ giants (upper-floor heroes)
+FUR = "#8A5A3A"
+FUR_DK = "#6B4229"
+IVORY = "#FFF3D6"
+
+
+def mammoth():
+    """Hero exhibit: woolly mammoth on a stone plinth, footprint 4.0 x 2.2, about 3.2 tall."""
+    fur, dk = m(FUR, 0.8), m(FUR_DK, 0.85)
+    p = [box((4.0, 2.2, 0.35), (0, 0, 0.175), m(STONE), bev=0.07),
+         box((3.7, 1.9, 0.05), (0, 0, 0.36), m(shade(STONE, 1.06)), bev=0.02),
+         box((0.9, 0.04, 0.18), (0, -1.12, 0.18), m(BRASS, 0.25, metal=0.4), bev=0.015)]
+    p.append(sphere(1.0, (-0.2, 0, 1.95), fur, scale=(1.45, 0.95, 0.95)))       # body
+    p.append(sphere(0.75, (0.85, 0, 2.35), fur, scale=(1.0, 0.85, 1.0)))        # shoulder hump
+    p.append(sphere(0.62, (1.45, 0, 2.2), dk, scale=(0.95, 0.85, 1.0)))         # head
+    p.append(sphere(0.3, (1.3, 0, 2.85), dk, scale=(1.0, 0.8, 0.7)))            # head dome
+    for sy in (-1, 1):
+        p.append(sphere(0.3, (1.25, sy * 0.52, 2.2), fur, scale=(0.5, 0.3, 0.9)))  # ears
+        p.append(sphere(0.06, (1.85, sy * 0.3, 2.35), m(INK), seg=12))          # eyes
+        # tusks: long sweeping arcs of ivory, down and forward then up and in
+        ivory = m(IVORY, 0.3)
+        prev = (1.85, sy * 0.26, 1.95)
+        n = 14
+        for i in range(1, n + 1):
+            t = i / n
+            pt = (1.85 + 1.15 * math.sin(t * 1.9), sy * (0.26 + 0.42 * math.sin(t * 2.6)),
+                  1.95 - 0.75 * math.sin(t * math.pi * 0.72) + 0.95 * t ** 2.2)
+            r0, r1 = 0.16 - 0.1 * (t - 1 / n), 0.16 - 0.1 * t
+            p.append(rod(prev, pt, r0, ivory, r2=r1))
+            p.append(sphere(r1, pt, ivory, seg=12))
+            prev = pt
+    # trunk
+    prev = (1.95, 0, 2.05)
+    for i in range(1, 8):
+        t = i / 7
+        pt = (2.05 + 0.2 * math.sin(t * 2.5), 0, 2.05 - 1.2 * t)
+        p.append(rod(prev, pt, 0.17 - 0.08 * t, dk, r2=0.17 - 0.08 * (t + 0.14)))
+        p.append(sphere(0.17 - 0.08 * t, pt, dk, seg=12))
+        prev = pt
+    for sx, sy in ((-1.0, -0.5), (-1.0, 0.5), (0.75, -0.5), (0.75, 0.5)):       # legs
+        p.append(cyl(0.3, 1.25, (sx, sy, 0.98), fur, r2=0.26, bev=0.05))
+        p.append(cyl(0.3, 0.12, (sx, sy, 0.42), m(shade(FUR_DK, 0.8), 0.7), bev=0.03))
+    r = random.Random(4)
+    for _ in range(26):                                                          # shaggy tufts
+        a = r.uniform(0, TAU)
+        p.append(sphere(r.uniform(0.18, 0.28), (r.uniform(-1.4, 0.9), math.cos(a) * 0.85, 1.7 + math.sin(a) * 0.55),
+                        m(shade(FUR, r.uniform(0.85, 1.12)), 0.85), scale=(1, 1, 1.25), seg=12))
+    p.append(rod((-1.6, 0, 2.1), (-1.85, 0, 1.4), 0.07, dk))                    # tail
+    p.append(sphere(0.12, (-1.87, 0, 1.36), dk, seg=12))
+    return p
+
+
+def whale():
+    """Hero exhibit: blue whale skeleton on tall stands, footprint 6.0 x 1.6, about 3.4 tall."""
+    b = m(BONE, 0.3)
+    steel = m(STEEL, 0.3, metal=0.6)
+    p = [box((6.0, 1.6, 0.2), (0, 0, 0.1), m("#3E6FA8", 0.6), bev=0.05),
+         box((5.6, 1.2, 0.04), (0, 0, 0.22), m("#5E95CF", 0.4), bev=0.02),
+         box((0.9, 0.04, 0.16), (0, -0.82, 0.12), m(BRASS, 0.25, metal=0.4), bev=0.015)]
+    spine = []
+    for i in range(34):
+        u = i / 33
+        x = -2.9 + 5.6 * u
+        z = 2.45 + 0.35 * math.sin(u * math.pi) - (0.25 * u * u if u > 0.8 else 0)
+        spine.append((x, z, u))
+    for x, z, u in spine:
+        r = 0.05 + 0.12 * math.sin(min(1.0, u * 1.15) * math.pi * 0.95)
+        p.append(sphere(max(r, 0.04), (x, 0, z), b, seg=12))
+    for x, z, u in spine[8:24:2]:                                                # ribs
+        rr = 0.35 + 0.35 * math.sin((u - 0.2) / 0.55 * math.pi)
+        p.append(torus(rr, 0.035, (x, 0, z - rr * 0.8), b, rot=(0, math.pi / 2, 0)))
+    # skull: a domed cranium tapering into a long rostrum, with bowed jaws
+    p.append(sphere(0.42, (2.75, 0, 2.3), b, scale=(1.2, 1.05, 0.8)))
+    for i in range(8):
+        t = i / 7
+        p.append(sphere(0.34 - 0.24 * t, (3.05 + 1.1 * t, 0, 2.28 - 0.12 * t), b, scale=(1.4, 1.0, 0.55), seg=12))
+    for sy in (-1, 1):
+        prev = (2.55, sy * 0.36, 2.0)
+        for i in range(1, 7):                                                    # bowed lower jaw
+            t = i / 6
+            pt = (2.55 + 1.75 * t, sy * (0.36 + 0.12 * math.sin(t * math.pi) - 0.28 * t), 2.0 + 0.05 * t)
+            p.append(rod(prev, pt, 0.06 - 0.02 * t, b, r2=0.06 - 0.02 * t))
+            prev = pt
+        p.append(rod((1.9, sy * 0.3, 2.3), (1.5, sy * 0.95, 1.7), 0.07, b))       # flippers
+        p.append(sphere(0.12, (1.5, sy * 0.95, 1.7), b, scale=(1.6, 1, 0.5), seg=12))
+    for sy in (-1, 1):                                                           # tail flukes
+        p.append(sphere(0.3, (-3.15, sy * 0.3, 2.1), b, scale=(0.6, 1.2, 0.18), seg=12))
+    for x in (-1.8, 0.2, 2.0):                                                    # stands
+        p.append(rod((x, 0, 0.22), (x, 0, 2.3), 0.035, steel))
+        p.append(cyl(0.18, 0.05, (x, 0, 0.25), steel, bev=0.01))
+    # The skull reaches past the plinth; pull the whole skeleton inside its
+    # 6.0 footprint (the plinth, first three parts, keeps its size).
+    for o in p[3:]:
+        o.scale = (0.8, 1.0, 1.0)
+        o.location = (-0.35, 0, 0)
+        toy.bpy.context.view_layer.objects.active = o
+        toy.bpy.ops.object.select_all(action="DESELECT")
+        o.select_set(True)
+        toy.bpy.ops.object.transform_apply(location=True, rotation=False, scale=True)
+    return p
+
+
+# ============================================================ rooftop café
+def cafe_table():
+    """Round café table with two stools and a striped parasol, 1.2 x 1.2."""
+    p = [cyl(0.36, 0.05, (0, 0, 0.62), m(CREAM, 0.3), bev=0.02),
+         cyl(0.04, 0.6, (0, 0, 0.31), m(WOOD_DK)),
+         cyl(0.2, 0.03, (0, 0, 0.02), m(WOOD_DK), bev=0.01),
+         cyl(0.025, 1.7, (0, 0, 1.15), m(WOOD_DK), bev=0)]
+    p.append(cyl(0.82, 0.34, (0, 0, 1.9), m(TEAL, 0.45), r2=0.03, bev=0.02, verts=12))
+    p.append(cyl(0.6, 0.25, (0, 0, 1.97), m(CREAM, 0.45), r2=0.03, bev=0.02, verts=12))
+    p.append(cyl(0.34, 0.14, (0, 0, 2.03), m(TEAL, 0.45), r2=0.03, bev=0.02, verts=12))
+    for i in range(12):                                                          # scalloped rim
+        a = (i + 0.5) / 12 * TAU
+        p.append(sphere(0.09, (math.cos(a) * 0.8, math.sin(a) * 0.8, 1.73), m(CREAM if i % 2 else TEAL, 0.45), seg=10))
+    p.append(sphere(0.06, (0, 0, 2.08), m(BRASS)))
+    for sx in (-0.55, 0.55):
+        p += [cyl(0.17, 0.06, (sx, 0, 0.42), m(RED, 0.4), bev=0.02), cyl(0.03, 0.4, (sx, 0, 0.2), m(WOOD_DK))]
+    p.append(cyl(0.05, 0.1, (0.1, -0.1, 0.7), m("#FFFFFF", 0.3)))                # cup
+    return p
+
+
+def telescope():
+    """Brass observatory telescope on a tripod, 0.8 x 0.8."""
+    br = m(BRASS, 0.25, metal=0.6)
+    p = [rod((0, 0, 0.9), (0.3 * math.cos(a), 0.3 * math.sin(a), 0.0), 0.03, m(WOOD_DK))
+         for a in (0.3, 2.4, 4.5)]
+    p.append(sphere(0.07, (0, 0, 0.92), br, seg=12))
+    p.append(rod((-0.45, 0.0, 0.75), (0.55, 0.0, 1.3), 0.09, br, r2=0.06))
+    p.append(cyl(0.11, 0.08, (-0.45, 0, 0.75), m(INK), rot=(0, math.radians(61), 0), bev=0.01))
+    return p
+
+
+def parasol_planter():
+    """Tall topiary in a square box, 0.6 x 0.6."""
+    p = [box((0.55, 0.55, 0.45), (0, 0, 0.225), m(WOOD), bev=0.04),
+         cyl(0.04, 0.6, (0, 0, 0.75), m(WOOD_DK)),
+         sphere(0.38, (0, 0, 1.25), m(LEAF, 0.6)),
+         sphere(0.22, (0.1, -0.12, 1.45), m(LEAF_HI, 0.6))]
+    return p
+
+
+# ============================================================ renovation dressing
+def scaffold():
+    """Builder's scaffold, 2.0 wide x 0.6 deep x 2.6 tall, with planks and a tarp."""
+    pole = m("#8C96A3", 0.35, metal=0.5)
+    plank = m("#C99A5B", 0.6)
+    p = []
+    for sx in (-0.95, 0.95):
+        for sy in (-0.28, 0.28):
+            p.append(cyl(0.035, 2.6, (sx, sy, 1.3), pole, bev=0))
+    for z in (0.9, 1.8, 2.55):
+        p.append(box((2.1, 0.62, 0.06), (0, 0, z), plank, bev=0.01))
+        for sy in (-0.28, 0.28):
+            p.append(cyl(0.025, 1.9, (0, sy, z + 0.35), pole, rot=(0, math.pi / 2, 0), bev=0))
+    p.append(rod((-0.95, -0.3, 0.05), (0.95, -0.3, 1.8), 0.02, pole))
+    p.append(box((1.1, 0.04, 1.0), (0.3, -0.33, 1.3), m("#3E7FC8", 0.7), bev=0.02))  # tarp
+    return p
+
+
+def dust_sheet():
+    """A lumpy white sheet thrown over something big, 1.4 x 1.4, 1.1 tall."""
+    cloth = m("#E9E6DD", 0.9)
+    p = [sphere(0.7, (0, 0, 0.45), cloth, scale=(1.0, 1.0, 0.95)),
+         sphere(0.45, (0.2, -0.1, 0.85), cloth, scale=(1.0, 1.0, 0.8)),
+         cyl(0.72, 0.3, (0, 0, 0.15), cloth, r2=0.66, bev=0.03)]
+    for i in range(6):
+        a = i / 6 * TAU
+        p.append(sphere(0.16, (math.cos(a) * 0.68, math.sin(a) * 0.68, 0.12), cloth, scale=(1, 1, 0.6), seg=12))
+    return p
+
+
+def work_sign():
+    """Striped A-frame builder's sign, 0.8 x 0.4."""
+    p = []
+    for sy, rx in ((-0.12, 0.25), (0.12, -0.25)):
+        for i in range(3):
+            p.append(box((0.75, 0.04, 0.16), (0, sy + (0.03 * (1 - i) if sy < 0 else -0.03 * (1 - i)), 0.2 + i * 0.2),
+                         m(("#F2C14E" if i % 2 == 0 else "#2B2245")), rot=(rx, 0, 0), bev=0.01))
+    p.append(cyl(0.05, 0.12, (0, 0, 0.72), m("#FF7A2E", 0.3, emit=1.2)))
+    return p
+
+
+# ============================================================ grandeur dressing
+def banner():
+    """Tall pole with a hanging museum banner, 0.5 x 0.3, about 3 tall."""
+    pole = m("#2E3A4A", 0.35, metal=0.3)
+    p = [cyl(0.05, 3.0, (0, 0, 1.5), pole, bev=0),
+         box((0.3, 0.3, 0.1), (0, 0, 0.05), m(STONE_DK), bev=0.02),
+         sphere(0.08, (0, 0, 3.05), m(BRASS, 0.25, metal=0.6)),
+         cyl(0.02, 0.62, (0.28, 0, 2.8), pole, rot=(0, math.pi / 2, 0), bev=0),
+         box((0.5, 0.03, 1.3), (0.3, -0.03, 2.1), m(RED, 0.5), bev=0.01),
+         box((0.36, 0.035, 0.36), (0.3, -0.05, 2.25), m(BRASS, 0.3, metal=0.4), bev=0.01)]
+    return p
+
+
+def spotlight():
+    """Ground spotlight aimed up at the facade, 0.4 x 0.4."""
+    p = [box((0.35, 0.3, 0.12), (0, 0, 0.06), m("#2E3A4A", 0.4), bev=0.02),
+         cyl(0.12, 0.3, (0, 0.02, 0.28), m("#2E3A4A", 0.4), rot=(math.radians(35), 0, 0), bev=0.02),
+         cyl(0.1, 0.02, (0, -0.08, 0.4), m("#FFF2B0", 0.2, emit=3.0), rot=(math.radians(35), 0, 0), bev=0)]
+    return p
+
+
+def gold_statue():
+    """Gilded founder statue on a tall plinth, 1 x 1, about 2.6 tall."""
+    gold = m("#E8B83A", 0.2, metal=0.8)
+    p = [box((0.9, 0.9, 0.9), (0, 0, 0.45), m(STONE), bev=0.05),
+         box((1.0, 1.0, 0.1), (0, 0, 0.95), m(STONE_DK), bev=0.03),
+         cyl(0.22, 0.8, (0, 0, 1.4), gold, r2=0.15, bev=0.03),
+         sphere(0.17, (0, 0, 1.95), gold),
+         rod((0.14, 0, 1.6), (0.35, -0.1, 2.15), 0.06, gold),
+         sphere(0.1, (0.37, -0.1, 2.22), gold, seg=12),
+         rod((-0.14, 0, 1.6), (-0.22, -0.05, 1.3), 0.06, gold)]
+    return p
+
+
 # ============================================================ outdoor
 def tree(seed=0):
     """Round, puffy Link's-Awakening-style tree (about 1.9 tall)."""
@@ -411,6 +628,17 @@ PROPS = {
     "statue": (statue, (1.0, 1.0), "exhibits"),
     "vitrine": (vitrine, (0.7, 1.5), "exhibits"),
     "case": (case, (1.5, 0.7), "exhibits"),
+    "mammoth": (mammoth, (4.0, 2.2), "exhibits"),
+    "whale": (whale, (6.0, 1.6), "exhibits"),
+    "cafe_table": (cafe_table, (1.2, 1.2), "props"),
+    "telescope": (telescope, (0.8, 0.8), "props"),
+    "topiary": (parasol_planter, (0.6, 0.6), "props"),
+    "scaffold": (scaffold, (2.0, 0.6), "props"),
+    "dust_sheet": (dust_sheet, (1.4, 1.4), "props"),
+    "work_sign": (work_sign, (0.8, 0.4), "props"),
+    "banner": (banner, (0.5, 0.3), "outdoor"),
+    "spotlight": (spotlight, (0.4, 0.4), "outdoor"),
+    "gold_statue": (gold_statue, (1.0, 1.0), "outdoor"),
     "tree": (tree, (1.5, 1.5), "outdoor"),
     "bush": (bush, (0.7, 0.7), "outdoor"),
     "lamp_post": (lamp_post, (0.3, 0.3), "outdoor"),
@@ -425,8 +653,10 @@ def build(kind, name=None):
     return toy.join(fn(), name or kind)
 
 
-def export_all():
+def export_all(only=None):
     for kind, (_, fp, folder) in PROPS.items():
+        if only and kind not in only:
+            continue
         toy.reset()
         o = build(kind)
         o["footprint"] = list(fp)  # glTF extras -> Godot node metadata
@@ -434,4 +664,5 @@ def export_all():
 
 
 if __name__ == "__main__":
-    export_all()
+    argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    export_all(set(argv[0].split(",")) if argv else None)

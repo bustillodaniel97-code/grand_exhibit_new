@@ -16,6 +16,9 @@ signal item_selected(dept_id: String, index: int)
 
 const Venue3D := preload("res://scenes/venue3d/venue_3d.gd")
 const UI := preload("res://scripts/ui/ui_kit.gd")
+const Popups := preload("res://scripts/ui/popup_manager.gd")
+const WingSystem := preload("res://scripts/meta/wing_system.gd")
+const WINGS_PATH := "res://scenes/meta/wings_screen.tscn"
 
 const TAP_SLOP := 14.0     # px a press may travel and still count as a tap
 const CHIP := Vector2(52, 52)
@@ -38,6 +41,9 @@ var _press_at := Vector2.ZERO
 var _press_travel := 0.0
 var _pressed := false
 var _font: Font
+var _floor_bar: VBoxContainer
+var _floor_btns: Array[Button] = []   # top floor first, ground last
+var _ground_focus := Vector3.ZERO
 
 func _ready() -> void:
 	name = "VenueFloor"
@@ -66,8 +72,16 @@ func _ready() -> void:
 	_chips_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_chips_layer)
 
+	_floor_bar = VBoxContainer.new()
+	_floor_bar.name = "FloorSelector"
+	_floor_bar.add_theme_constant_override("separation", 6)
+	_floor_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_floor_bar.position = Vector2(10, 16)
+	add_child(_floor_bar)
+
 	build(GameState.current_venue)
 	EventBus.prestige_performed.connect(func(_from: String, to_vid: String) -> void: retheme(to_vid))
+	EventBus.wing_renovated.connect(_on_wing_renovated)
 
 ## (Re)build the diorama for `vid`. Callers check supports() first.
 func build(vid: String) -> void:
@@ -84,6 +98,8 @@ func build(vid: String) -> void:
 	world.venue_id = vid
 	world.ticket_sold.connect(_on_ticket_sold)
 	_viewport.add_child(world)
+	_ground_focus = world.camera.focus
+	_build_floor_bar()
 	_refresh_stations()
 
 func retheme(vid: String) -> void:
@@ -107,14 +123,83 @@ func get_choke() -> String:
 func theme_id() -> String:
 	return venue_id
 
-## Same code path as a real tap (tests call this directly).
+## Same code path as a real tap (tests call this directly). A tap on a floor
+## that is still derelict opens Floors & Grandeur on that wing.
 func simulate_tap(pos: Vector2) -> void:
-	var g: Variant = world.ground_at(pos)
-	if g == null:
+	var hit: Dictionary = world.pick(pos)
+	if hit.is_empty():
 		return
-	var dept: String = world.dept_at(g)
+	var wing := str(hit.get("wing", ""))
+	if wing != "" and not bool(hit.get("open", true)):
+		wing_requested(wing)
+		return
+	var dept := str(hit.get("dept", ""))
 	if dept != "":
 		dept_selected.emit(dept)
+
+func wing_requested(wing_id: String) -> void:
+	Popups.open(WINGS_PATH, {"focus": wing_id})
+
+# --- Floor selector --------------------------------------------------------------
+
+## One pill per storey on the left edge, top floor first: tap to glide there.
+func _build_floor_bar() -> void:
+	for b in _floor_btns:
+		b.queue_free()
+	_floor_btns.clear()
+	var floors: Array = world.floors
+	_floor_bar.visible = not floors.is_empty()
+	for i in range(floors.size(), -1, -1):
+		var label := "G" if i == 0 else str((floors[i - 1] as Dictionary).get("label", "%dF" % (i + 1)))
+		var b := _round_button("Floor%d" % i, Color("#FFF4E0"), Color("#3A2A10"))
+		b.text = label
+		b.add_theme_font_size_override("font_size", 18)
+		b.custom_minimum_size = Vector2(52, 44)
+		b.size = Vector2(52, 44)
+		_chips_layer.remove_child(b)
+		_floor_bar.add_child(b)
+		b.pressed.connect(go_to_floor.bind(i))
+		_floor_btns.append(b)
+
+## Glide the camera to floor `index` (0 = ground).
+func go_to_floor(index: int) -> void:
+	if index <= 0 or index > world.floors.size():
+		world.camera.fly_to(_ground_focus)
+		return
+	var f: Dictionary = world.floors[index - 1]
+	var r: Rect2 = f["rect"]
+	world.camera.fly_to(Vector3(r.get_center().x, float(f["y"]), r.get_center().y + 2.0))
+
+func _floor_in_view() -> int:
+	var z: float = world.camera.focus.z
+	var best := 0
+	for i in world.floors.size():
+		var r: Rect2 = (world.floors[i] as Dictionary)["rect"]
+		if z <= r.end.y + 1.0:
+			best = i + 1
+	return best
+
+func _style_floor_bar() -> void:
+	if _floor_btns.is_empty():
+		return
+	var here := _floor_in_view()
+	var n := _floor_btns.size()
+	for k in n:
+		var index := n - 1 - k
+		var b := _floor_btns[k]
+		var open := index == 0 or bool((world.floors[index - 1] as Dictionary)["open"])
+		b.modulate = Color(1, 1, 1, 1.0 if index == here else 0.72)
+		b.add_theme_color_override("font_color", Color("#3A2A10") if open else Color("#9A8F80"))
+
+func _on_wing_renovated(vid: String, wing_id: String) -> void:
+	if vid != venue_id or world == null:
+		return
+	for i in world.floors.size():
+		if str((world.floors[i] as Dictionary)["id"]) == wing_id:
+			go_to_floor(i + 1)
+			return
+	# The facade (no floor): pull back to the entrance for the grandeur moment.
+	world.camera.fly_to(_ground_focus + Vector3(0, 0, 3.0))
 
 ## Screen-space anchor of ticket station `index` (for tests / quest routing).
 func station_center(index: int) -> Vector2:
@@ -146,6 +231,7 @@ func _refresh_stations() -> void:
 		return
 	var owned: int = GameState.dept_items(venue_id, "ticket").size()
 	world.set_open_windows(maxi(owned, 1))
+	world.refresh_signs()
 	var count: int = mini(owned, world.window_count())
 	while _chips.size() < count:
 		var index := _chips.size()
@@ -220,6 +306,7 @@ func _draw_arrow(b: Button) -> void:
 func _process(_delta: float) -> void:
 	if world == null or world.camera == null:
 		return
+	_style_floor_bar()
 	var cam: Camera3D = world.camera
 	var bounds := Rect2(Vector2.ZERO, size).grow(-8.0)
 	for i in _chips.size():

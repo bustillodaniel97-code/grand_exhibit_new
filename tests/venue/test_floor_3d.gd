@@ -78,6 +78,47 @@ func run() -> void:
 	await process_frame
 	check(view._open_dept == "gallery", "dept_selected opens the gallery sheet")
 
+	# Upper floors: derelict until renovated, tappable, then revealed and reachable.
+	check(w.floors.size() == 2, "museum 1 shows two upper floors")
+	var f2: Dictionary = w.floors[0]
+	check(not bool(f2["open"]) and not (f2["tints"] as Array).is_empty(), "the 2F starts derelict (greyed)")
+	check((f2["derelict"] as Array).size() >= 4, "derelict dressing stands on the 2F")
+	check(not (f2["pieces"][0] as Node3D).visible, "2F exhibits wait under dust sheets")
+	var cam: Camera3D = w.camera
+	var r2: Rect2 = f2["rect"]
+	var mid := Vector3(r2.get_center().x, float(f2["y"]), r2.get_center().y)
+	var hit: Dictionary = w.pick(cam.unproject_position(mid))
+	check(str(hit.get("wing", "")) == "hall_of_giants" and not bool(hit.get("open", true)), "a tap on the 2F finds the derelict wing")
+	check(w.pick(cam.unproject_position(w.dept_center("gallery"))).get("dept", "") == "gallery", "ground taps still find departments")
+	var WS: GDScript = load("res://scripts/meta/wing_system.gd")
+	var ms_ids: Array = []
+	for m in dl.milestones.get(gs.current_venue, []):
+		ms_ids.append(str(m["id"]))
+	gs.venue_state(gs.current_venue)["milestones"] = ms_ids
+	gs.cash = BigNumber.from_parts(1.0, 40)
+	check(WS.renovate(gs.current_venue, "hall_of_giants"), "2F renovates")
+	await create_timer(1.6).timeout
+	check(bool(f2["open"]) and (f2["derelict"] as Array).is_empty(), "renovation clears the derelict dressing")
+	check((f2["pieces"][0] as Node3D).visible, "2F exhibits are revealed")
+	check((f2["tints"] as Array).is_empty(), "colour floods back (grey overrides removed)")
+	hit = w.pick(cam.unproject_position(mid))
+	check(str(hit.get("dept", "")) == "gallery" and bool(hit.get("open", false)), "an open 2F taps through to its department")
+	var shell: Node = w.get("_shell")
+	check((shell.find_child("grand_2", true, false) as Node3D).visible, "grandeur II dressing appears outside")
+	check(not (shell.find_child("grand_3", true, false) as Node3D).visible, "grandeur III waits for the next wing")
+	# A visitor rides the glass lift to the 2F.
+	var Npc: GDScript = load("res://scenes/venue3d/toy_npc.gd")
+	var rider: Node3D = w._spawn(w._look(), f2["enter"])
+	w._travel(rider, 0, 1)
+	var t0 := Time.get_ticks_msec()
+	while int(rider.get_meta("floor", 0)) != 1 and Time.get_ticks_msec() - t0 < 20000:
+		await process_frame
+	check(int(rider.get_meta("floor", 0)) == 1 and absf(rider.global_position.y - float(f2["y"])) < 0.2,
+		"a visitor rides the lift up to the 2F (y=%.2f)" % rider.global_position.y)
+	floor.go_to_floor(1)
+	await create_timer(1.0).timeout
+	check(absf(cam.focus.y - float(f2["y"])) < 0.3, "the floor selector lifts the camera to the 2F")
+
 	# Venues without 3D art keep the 2D floor.
 	var other := ""
 	for vid in dl.venues.keys():

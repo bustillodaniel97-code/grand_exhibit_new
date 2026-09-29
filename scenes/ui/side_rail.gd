@@ -27,6 +27,8 @@ const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 const DECOR_PATH := "res://scenes/meta/decor_screen.tscn"
 const PRESTIGE_PATH := "res://scenes/meta/prestige_screen.tscn"
 const STATISTICS_PATH := "res://scenes/meta/statistics_screen.tscn"
+const WINGS_PATH := "res://scenes/meta/wings_screen.tscn"
+const WingSystem := preload("res://scripts/meta/wing_system.gd")
 
 const TILE := 72          # wide enough for the longest caption, still a 52px target
 const TILE_HEIGHT := 52
@@ -39,6 +41,7 @@ const FALLBACK_TOP := 210
 
 var _col: VBoxContainer
 var _prestige_item: Control
+var _floors_item: Control
 var _strip: Control          # QuestsBar, when it exists
 var _timer: Timer
 var _celebrated: Dictionary = {}
@@ -60,6 +63,8 @@ func _ready() -> void:
 
 	_col.add_child(_rail_item("Stats", "disc", Chrome.TEAL, _on_stats_pressed))
 	_col.add_child(_rail_item("Decor", "star", Chrome.TEAL, _on_decor_pressed))
+	_floors_item = _rail_item("Floors", "home", Chrome.BRASS, _on_floors_pressed)
+	_col.add_child(_floors_item)
 	_prestige_item = _rail_item("Next Museum", "trophy", Chrome.BRASS, _on_prestige_pressed)
 	_col.add_child(_prestige_item)
 
@@ -160,6 +165,10 @@ func refresh() -> void:
 	if _prestige_item.visible != show_prestige:
 		_prestige_item.visible = show_prestige
 		_reposition()
+	# The Floors tile glows while a wing is ready to renovate.
+	var nxt: Dictionary = WingSystem.next_wing(GameState.current_venue)
+	var ready: bool = not nxt.is_empty() and WingSystem.status(GameState.current_venue, str(nxt["id"])) == WingSystem.STATUS_READY
+	(_floors_item.get_child(0) as CanvasItem).modulate = Color(1.3, 1.15, 0.6) if ready else Color.WHITE
 	if show_prestige and not bool(_celebrated.get(GameState.current_venue, false)) \
 			and not Popups.is_open():
 		_celebrated[GameState.current_venue] = true
@@ -178,6 +187,9 @@ func _on_decor_pressed() -> void:
 
 func _on_stats_pressed() -> void:
 	Popups.open(STATISTICS_PATH)
+
+func _on_floors_pressed() -> void:
+	Popups.open(WINGS_PATH, {"focus": str(WingSystem.next_wing(GameState.current_venue).get("id", ""))})
 
 func _on_prestige_pressed() -> void:
 	Popups.open(PRESTIGE_PATH)

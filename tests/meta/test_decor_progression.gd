@@ -6,12 +6,17 @@ func _initialize() -> void:call_deferred("run")
 func run() -> void:
  root.get_node("SaveSystem").set_process(false)
  var gs: Node=root.get_node("GameState");var dl: Node=root.get_node("DataLoader")
- var ps=load("res://scripts/meta/prestige_system.gd");var ds=load("res://scripts/meta/decor_system.gd")
+ var ps=load("res://scripts/meta/prestige_system.gd");var ds=load("res://scripts/meta/decor_system.gd");var ws=load("res://scripts/meta/wing_system.gd")
  for vid in dl.venue_order():
   gs.reset_to_new_game();gs.current_venue=vid;gs.cash=BigNumber.from_parts(9.99,300);gs.gems=0
   var vs: Dictionary=gs.venue_state(vid)
   for ms in dl.milestones[vid]:vs.milestones.append(ms.id)
   for track in ps.core_tracks():gs.set_dept_level(vid,track[0],track[1],int(dl.get_venue(vid).track_level_cap))
+  # Wings open, so furnishing is the one requirement left (reputation from
+  # renovating can grant gems; the no-gems check below is about decor).
+  while not ws.next_wing(vid).is_empty():
+   if not ws.renovate(vid,str(ws.next_wing(vid)["id"])):break
+  gs.gems=0
   check(not ps.gate_met(vid),str(vid)+" completed operations cannot bypass empty decor")
   check(not ps.graduate(),str(vid)+" move rejected before furnishing")
   check(ps.readiness_progress(vid)<1,str(vid)+" HUD cannot read complete")

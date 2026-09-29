@@ -57,6 +57,7 @@ extends RefCounted
 
 const QuestSystem = preload("res://scripts/meta/quest_system.gd")
 const DecorSystem = preload("res://scripts/meta/decor_system.gd")
+const WingSystem = preload("res://scripts/meta/wing_system.gd")
 
 static func config() -> Dictionary:
 	return DataLoader.core.get("venue_progression", {})
@@ -137,10 +138,18 @@ static func decor_summary(venue_id: String) -> String:
 static func readiness_progress(venue_id: String) -> float:
 	var partial := clampf(float(GameState.venue_state(venue_id).get("progress", 0.0)), 0, 1)
 	var milestones := clampf((float(milestones_done(venue_id)) + partial) / maxf(milestones_required(venue_id), 1), 0, 1)
-	return (milestones + operations_progress(venue_id) + decor_progress(venue_id)) / 3.0
+	var parts := milestones + operations_progress(venue_id) + decor_progress(venue_id)
+	var wings: int = WingSystem.wings(venue_id).size()
+	if wings == 0:
+		return parts / 3.0
+	return (parts + float(WingSystem.open_count(venue_id)) / float(wings)) / 4.0
+
+## Every wing (upper floors, gilded facade) renovated: the building is complete.
+static func wings_met(venue_id: String) -> bool:
+	return WingSystem.all_open(venue_id)
 
 static func gate_met(venue_id: String) -> bool:
-	return milestone_gate_met(venue_id) and operations_met(venue_id) and decor_met(venue_id)
+	return milestone_gate_met(venue_id) and operations_met(venue_id) and decor_met(venue_id) and wings_met(venue_id)
 
 ## "" when the player may move on, otherwise the player-facing reason.
 static func block_reason() -> String:
@@ -155,6 +164,9 @@ static func block_reason() -> String:
 					int(round(operations_progress(vid) * 100.0)), str(track[2]), cap]
 	if not decor_met(vid):
 		return "Furnish this museum: " + decor_summary(vid)
+	if not wings_met(vid):
+		return "Renovate %s (%d / %d wings open)" % [str(WingSystem.next_wing(vid).get("name", "")),
+			WingSystem.open_count(vid), WingSystem.wings(vid).size()]
 	if next_venue_id() == "":
 		return "This is the final museum"
 	return ""

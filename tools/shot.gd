@@ -20,6 +20,11 @@ extends SceneTree
 ##   venue=ID        switch to a venue (unlocks it first) — for previewing themes
 ##   open=RES_PATH   open a popup screen after warm-up
 ##   tap=X,Y         click at design-space (720x1280) coords after warm-up
+##   wings=N         complete this museum's milestones and renovate its first N
+##                   wings (floors / facade) before warm-up; with reveal=1 the
+##                   renovations happen at capture time instead, to catch the
+##                   renovation moment
+##   floor=I         glide the 3D camera to floor I (0 = ground) before capture
 
 const MAIN := "res://scenes/main.tscn"
 const DESIGN := Vector2i(720, 1280)
@@ -112,6 +117,8 @@ func _seed() -> void:
 			for track in ["staff", "speed", "value"]:
 				gs.set_dept_level(venue, dept, track,
 					gs.dept_level(venue, dept, track) + lv)
+	if _args.has("wings") and not bool(int(_args.get("reveal", "0"))):
+		_renovate(int(_args["wings"]))
 	if _args.has("sim"):
 		var preview_floor: Node = _find_floor(root)
 		var economy: Node = root.get_node_or_null("Economy")
@@ -119,6 +126,24 @@ func _seed() -> void:
 			preview_floor.set_rates(economy.venue_rates(gs.current_venue))
 			preview_floor.advance_sim(maxf(0.0,float(_args["sim"])))
 			print("PREVIEW_SIM accelerated floor seconds=",_args["sim"])
+
+
+func _renovate(n: int) -> void:
+	var gs: Node = root.get_node("GameState")
+	var dl: Node = root.get_node("DataLoader")
+	var ws: GDScript = load("res://scripts/meta/wing_system.gd")
+	var BigNumber: GDScript = load("res://scripts/core/big_number.gd")
+	var vid: String = gs.current_venue
+	var ids: Array = []
+	for ms in dl.milestones.get(vid, []):
+		ids.append(str(ms["id"]))
+	gs.venue_state(vid)["milestones"] = ids
+	for _i in n:
+		var w: Dictionary = ws.next_wing(vid)
+		if w.is_empty():
+			break
+		gs.add_cash(ws.price(vid, str(w["id"])).add(BigNumber.from_float(1.0)))
+		print("SHOT renovate ", w["id"], " ok=", ws.renovate(vid, str(w["id"])))
 
 
 func _find_floor(n: Node) -> Node:
@@ -170,6 +195,12 @@ func _fire_open() -> void:
 			Popups.close_top()
 	if _args.has("open"):
 		Popups.open(String(_args["open"]), {})
+	if _args.has("wings") and bool(int(_args.get("reveal", "0"))):
+		_renovate(int(_args["wings"]))
+	if _args.has("floor"):
+		var fl: Node = _find_floor(root)
+		if fl != null and fl.has_method("go_to_floor"):
+			fl.go_to_floor(int(_args["floor"]))
 
 
 ## Drive the venue camera through the REAL input path, not by poking the field.

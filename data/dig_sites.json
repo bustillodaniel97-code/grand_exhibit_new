@@ -1,0 +1,121 @@
+{
+  "_doc": [
+    "Dig Site: the excavation mini game. Each museum has its own site whose",
+    "artifacts fit its collection. Read by scripts/digsite/dig_system.gd.",
+    "",
+    "  grid        cols x rows cells, each covered by `layers` of soil.",
+    "  tools       pick clears 2 layers (fast) but cracks an artifact it breaks",
+    "              through onto; brush clears 1 layer and is always safe. Rock",
+    "              cells take pick hits only.",
+    "  energy      every swing costs 1. Regenerates over time; ads and gems refill.",
+    "  artifacts   `cells` is the footprint on the grid (the model is built to",
+    "              fit it), `shape` the art3d/artifacts model, `colors` its main",
+    "              and accent paint. A recovered artifact joins that museum's",
+    "              collection: income_bonus x quality (1-3 stars / 3).",
+    "  set_bonus   extra museum income once all five are in the collection."
+  ],
+  "grid": {"cols": 7, "rows": 9, "layers": 3},
+  "tools": {"pick": {"depth": 2, "cost": 1}, "brush": {"depth": 1, "cost": 1}},
+  "energy": {"max": 30, "regen_seconds": 150, "ad_refill": 15, "gem_refill_cost": 20, "start": 30},
+  "finds": {"coins": 4, "gems": 1, "crystals": 1, "rocks": 5, "survey_flags": 2,
+    "coin_income_seconds": 30, "gem_amount": [1, 3], "crystal_energy": 3},
+  "rewards": {"income_bonus": 0.04, "set_bonus": 0.15, "gems_by_rarity": {"common": 5, "rare": 10, "epic": 20}},
+  "sites": {
+    "whispering_pines": {"name": "Pinewood Fossil Beds", "soil": ["#D9B27A", "#B98A57", "#8E6440"], "rock": "#9A9486",
+      "artifacts": [
+        {"id": "trex_skull", "name": "T. rex Skull", "shape": "skull", "cells": [[0,0],[1,0],[2,0],[0,1],[1,1],[2,1]], "rarity": "epic", "colors": ["#F3E6C4", "#6B4A2E"]},
+        {"id": "ammonite", "name": "Giant Ammonite", "shape": "shell", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "rare", "colors": ["#C9A36A", "#7A5A3A"]},
+        {"id": "trilobite", "name": "Trilobite", "shape": "bug", "cells": [[0,0],[0,1]], "rarity": "common", "colors": ["#6E6258", "#A89A8A"]},
+        {"id": "raptor_claw", "name": "Raptor Claw", "shape": "claw", "cells": [[0,0],[0,1]], "rarity": "common", "colors": ["#F3E6C4", "#8A6A4A"]},
+        {"id": "amber", "name": "Amber with Mosquito", "shape": "gem", "cells": [[0,0]], "rarity": "rare", "colors": ["#F2A93B", "#5A3A1A"]}
+      ]},
+    "copper_kettle": {"name": "Tidewater Shipwreck", "soil": ["#E8D6A8", "#C9B27E", "#8FA3A8"], "rock": "#7C8C94",
+      "artifacts": [
+        {"id": "ships_bell", "name": "Ship's Bell", "shape": "bell", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "rare", "colors": ["#D9A441", "#6B4A2E"]},
+        {"id": "anchor", "name": "Old Anchor", "shape": "anchor", "cells": [[0,0],[1,0],[0,1],[1,1],[0,2],[1,2]], "rarity": "epic", "colors": ["#5E6B75", "#8C4A2E"]},
+        {"id": "pearl_shell", "name": "Pearl Oyster", "shape": "shell", "cells": [[0,0]], "rarity": "common", "colors": ["#E9E3F2", "#C7B7DD"]},
+        {"id": "bottle", "name": "Message in a Bottle", "shape": "jar", "cells": [[0,0],[0,1]], "rarity": "common", "colors": ["#6FC2A8", "#F2E6C8"]},
+        {"id": "doubloons", "name": "Pirate Doubloons", "shape": "chest", "cells": [[0,0],[1,0],[2,0],[0,1],[1,1],[2,1]], "rarity": "epic", "colors": ["#8B5A2B", "#F2C14E"]}
+      ]},
+    "grand_river": {"name": "River Delta Ruins", "soil": ["#D8C39A", "#B8A077", "#8C7556"], "rock": "#B8B2A6",
+      "artifacts": [
+        {"id": "marble_bust", "name": "Marble Bust", "shape": "bust", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "epic", "colors": ["#F2EEE6", "#C9C2B4"]},
+        {"id": "amphora", "name": "Painted Amphora", "shape": "jar", "cells": [[0,0],[0,1]], "rarity": "rare", "colors": ["#C8663A", "#2B2245"]},
+        {"id": "laurel", "name": "Golden Laurel", "shape": "ring", "cells": [[0,0],[1,0]], "rarity": "rare", "colors": ["#E8B83A", "#8BC34A"]},
+        {"id": "coin_hoard", "name": "Silver Coin Hoard", "shape": "coins", "cells": [[0,0]], "rarity": "common", "colors": ["#C9CED6", "#8A8F99"]},
+        {"id": "capital", "name": "Ionic Capital", "shape": "slab", "cells": [[0,0],[1,0],[2,0]], "rarity": "common", "colors": ["#EDE7DA", "#B9AC90"]}
+      ]},
+    "sunspire": {"name": "Sunspire Dune Tomb", "soil": ["#F2D58E", "#E0B866", "#C08A44"], "rock": "#C9A77A",
+      "artifacts": [
+        {"id": "gold_mask", "name": "Golden Death Mask", "shape": "mask", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "epic", "colors": ["#E8B83A", "#2F6FB0"]},
+        {"id": "scarab", "name": "Lapis Scarab", "shape": "bug", "cells": [[0,0]], "rarity": "rare", "colors": ["#2F6FB0", "#E8B83A"]},
+        {"id": "canopic", "name": "Canopic Jar", "shape": "jar", "cells": [[0,0],[0,1]], "rarity": "common", "colors": ["#EDE3CC", "#3A7FA8"]},
+        {"id": "sun_disc", "name": "Sun Disc", "shape": "disc", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "rare", "colors": ["#F2C14E", "#D9413A"]},
+        {"id": "obelisk", "name": "Obelisk Shard", "shape": "slab", "cells": [[0,0],[0,1],[0,2]], "rarity": "common", "colors": ["#D8C39A", "#7A5A3A"]}
+      ]},
+    "cloudrest": {"name": "Cloudpeak Ice Cave", "soil": ["#EAF4FA", "#C6DDEB", "#93B4C9"], "rock": "#8FA0AE",
+      "artifacts": [
+        {"id": "sky_meteor", "name": "Sky-Stone Meteorite", "shape": "rock", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "epic", "colors": ["#4A4F5A", "#7FD4E8"]},
+        {"id": "geode", "name": "Crystal Geode", "shape": "gem", "cells": [[0,0],[1,0]], "rarity": "rare", "colors": ["#B58CE8", "#6B6B73"]},
+        {"id": "ice_axe", "name": "Explorer's Ice Axe", "shape": "tool", "cells": [[0,0],[0,1],[0,2]], "rarity": "common", "colors": ["#9AA8B8", "#8B5A2B"]},
+        {"id": "eagle_idol", "name": "Eagle Idol", "shape": "idol", "cells": [[0,0]], "rarity": "rare", "colors": ["#C9A36A", "#FFF4E0"]},
+        {"id": "yeti_tooth", "name": "Yeti Tooth", "shape": "claw", "cells": [[0,0],[0,1]], "rarity": "common", "colors": ["#FFF7E6", "#9AA8B8"]}
+      ]},
+    "aurora_world": {"name": "Aurora Stonefield", "soil": ["#9FB5A0", "#7C927E", "#56695A"], "rock": "#6F7680",
+      "artifacts": [
+        {"id": "runestone", "name": "Runestone", "shape": "slab", "cells": [[0,0],[1,0],[0,1],[1,1],[0,2],[1,2]], "rarity": "epic", "colors": ["#8A9099", "#7FE8C8"]},
+        {"id": "viking_helm", "name": "Viking Helm", "shape": "helm", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "rare", "colors": ["#9AA8B8", "#F3E6C4"]},
+        {"id": "torc", "name": "Silver Torc", "shape": "ring", "cells": [[0,0],[1,0]], "rarity": "common", "colors": ["#D8DDE3", "#7FE8C8"]},
+        {"id": "star_chart", "name": "Star Chart", "shape": "disc", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "rare", "colors": ["#2B2245", "#F2E6A0"]},
+        {"id": "aurora_crystal", "name": "Aurora Crystal", "shape": "gem", "cells": [[0,0]], "rarity": "common", "colors": ["#7FE8C8", "#B58CE8"]}
+      ]},
+    "celestial_conservatory": {"name": "Meteor Garden", "soil": ["#8A6A58", "#6B5040", "#4A3830"], "rock": "#5E5A66",
+      "artifacts": [
+        {"id": "meteorite", "name": "Iron Meteorite", "shape": "rock", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "rare", "colors": ["#5A5A62", "#C9CED6"]},
+        {"id": "astrolabe", "name": "Brass Astrolabe", "shape": "disc", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "epic", "colors": ["#D9A441", "#2B2245"]},
+        {"id": "seed_pod", "name": "Fossil Seed Pod", "shape": "shell", "cells": [[0,0],[0,1]], "rarity": "common", "colors": ["#8A9A5A", "#5A4A3A"]},
+        {"id": "comet_glass", "name": "Comet Glass", "shape": "gem", "cells": [[0,0],[0,1]], "rarity": "rare", "colors": ["#9FD3F0", "#FFFFFF"]},
+        {"id": "orrery_gear", "name": "Orrery Gear", "shape": "cog", "cells": [[0,0]], "rarity": "common", "colors": ["#D9A441", "#8A6A2A"]}
+      ]},
+    "ironwood_citadel": {"name": "Citadel Armory Vault", "soil": ["#A89A86", "#857866", "#5E5448"], "rock": "#6E6A66",
+      "artifacts": [
+        {"id": "knight_helm", "name": "Knight's Helm", "shape": "helm", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "rare", "colors": ["#B9C3CE", "#C0392B"]},
+        {"id": "longsword", "name": "Longsword", "shape": "sword", "cells": [[0,0],[0,1],[0,2]], "rarity": "rare", "colors": ["#D8DDE3", "#8B5A2B"]},
+        {"id": "crest_shield", "name": "Crest Shield", "shape": "disc", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "common", "colors": ["#2F6FB0", "#E8B83A"]},
+        {"id": "iron_crown", "name": "Iron Crown", "shape": "ring", "cells": [[0,0]], "rarity": "epic", "colors": ["#6E6A66", "#D9413A"]},
+        {"id": "war_chest", "name": "War Chest", "shape": "chest", "cells": [[0,0],[1,0],[2,0],[0,1],[1,1],[2,1]], "rarity": "epic", "colors": ["#5A3A22", "#B9C3CE"]}
+      ]},
+    "pelagic_crown": {"name": "Abyssal Reef", "soil": ["#E6D8C0", "#C4B294", "#6F8A99"], "rock": "#5E7A88",
+      "artifacts": [
+        {"id": "serpent_skull", "name": "Sea Serpent Skull", "shape": "skull", "cells": [[0,0],[1,0],[2,0],[0,1],[1,1],[2,1]], "rarity": "epic", "colors": ["#E8F0E6", "#2FA6A0"]},
+        {"id": "trident", "name": "Coral Trident", "shape": "tool", "cells": [[0,0],[0,1],[0,2]], "rarity": "rare", "colors": ["#E8B83A", "#E36F7A"]},
+        {"id": "nautilus", "name": "Pearl Nautilus", "shape": "shell", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "rare", "colors": ["#F2E6D8", "#D9905A"]},
+        {"id": "giant_pearl", "name": "Giant Pearl", "shape": "gem", "cells": [[0,0]], "rarity": "common", "colors": ["#F4F1FA", "#C7B7DD"]},
+        {"id": "coral_crown", "name": "Coral Crown", "shape": "ring", "cells": [[0,0],[1,0]], "rarity": "common", "colors": ["#E36F7A", "#F2C14E"]}
+      ]},
+    "chronos_spire": {"name": "Clockwork Catacombs", "soil": ["#B8A48A", "#96826A", "#6E5E4C"], "rock": "#7A7066",
+      "artifacts": [
+        {"id": "automaton", "name": "Automaton Head", "shape": "bust", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "epic", "colors": ["#D9A441", "#2FA6A0"]},
+        {"id": "great_cog", "name": "Great Cog", "shape": "cog", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "rare", "colors": ["#C9A36A", "#6B4A2E"]},
+        {"id": "hourglass", "name": "Hourglass", "shape": "jar", "cells": [[0,0],[0,1]], "rarity": "common", "colors": ["#F2E6C8", "#8B5A2B"]},
+        {"id": "pocket_watch", "name": "Pocket Watch", "shape": "disc", "cells": [[0,0]], "rarity": "common", "colors": ["#E8B83A", "#FFF4E0"]},
+        {"id": "pendulum", "name": "Pendulum", "shape": "tool", "cells": [[0,0],[0,1],[0,2]], "rarity": "rare", "colors": ["#D9A441", "#5A3A22"]}
+      ]},
+    "empyrean_palace": {"name": "Palace Treasury", "soil": ["#E6D3E0", "#C4A9BC", "#8E7488"], "rock": "#A6979E",
+      "artifacts": [
+        {"id": "jeweled_egg", "name": "Jeweled Egg", "shape": "egg", "cells": [[0,0]], "rarity": "epic", "colors": ["#D9413A", "#E8B83A"]},
+        {"id": "scepter", "name": "Royal Scepter", "shape": "tool", "cells": [[0,0],[0,1],[0,2]], "rarity": "rare", "colors": ["#E8B83A", "#7E5FC8"]},
+        {"id": "crown", "name": "Empyrean Crown", "shape": "ring", "cells": [[0,0],[1,0]], "rarity": "epic", "colors": ["#E8B83A", "#D9413A"]},
+        {"id": "silk_chest", "name": "Silk Chest", "shape": "chest", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "common", "colors": ["#7E5FC8", "#F2C14E"]},
+        {"id": "jade_seal", "name": "Jade Seal", "shape": "idol", "cells": [[0,0]], "rarity": "common", "colors": ["#4FB86A", "#E8B83A"]}
+      ]},
+    "infinite_museum": {"name": "Rift of Ages", "soil": ["#B8A8D8", "#8E7EB8", "#5E5088"], "rock": "#6A6480",
+      "artifacts": [
+        {"id": "world_egg", "name": "World Egg", "shape": "egg", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "epic", "colors": ["#7FE8C8", "#E8B83A"]},
+        {"id": "dragon_skull", "name": "Dragon Skull", "shape": "skull", "cells": [[0,0],[1,0],[2,0],[0,1],[1,1],[2,1]], "rarity": "epic", "colors": ["#5A4A7A", "#E36F7A"]},
+        {"id": "time_cog", "name": "Cog of Ages", "shape": "cog", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "rare", "colors": ["#B58CE8", "#E8B83A"]},
+        {"id": "star_shard", "name": "Star Shard", "shape": "gem", "cells": [[0,0]], "rarity": "rare", "colors": ["#FFF2B0", "#7FD4E8"]},
+        {"id": "first_mask", "name": "Mask of Firsts", "shape": "mask", "cells": [[0,0],[1,0],[0,1],[1,1]], "rarity": "common", "colors": ["#E8E4DC", "#2B2245"]}
+      ]}
+  }
+}

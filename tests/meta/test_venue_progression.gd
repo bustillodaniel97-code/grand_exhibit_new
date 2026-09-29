@@ -61,6 +61,13 @@ func _furnish(vid: String) -> void:
 		if int(def.get("cost_gems",0))>0 or bool(def.get("event_exclusive",false)):continue
 		if PS.decor_met(vid):break
 		DS.grant_event_decor(did,vid)
+	# A complete museum also has every wing (floor, facade) renovated. Cash
+	# neutral: the fixture grants exactly each price before paying it.
+	var ws: GDScript = load("res://scripts/meta/wing_system.gd")
+	while not ws.next_wing(vid).is_empty():
+		var nw: Dictionary = ws.next_wing(vid)
+		GS.add_cash(ws.price(vid, str(nw["id"])))
+		if not ws.renovate(vid, str(nw["id"])):break
 
 # ------------------------------------------------------------------- the gate
 
@@ -109,13 +116,16 @@ func _test_move_is_one_way() -> void:
 	GS.add_insight(BigNumber.from_float(500.0))
 	GS.pending_cash[from_vid] = BigNumber.from_float(2500.0)
 	var cash_pre: BigNumber = GS.cash.copy()
+	var gems_pre: int = GS.gems
 	check(PS.graduate(), "graduate() succeeded")
 	var to_vid: String = GS.current_venue
 	check(to_vid == "copper_kettle", "advanced to the next venue in order")
 	# Cash carries in FULL, floor included.
 	check(GS.cash.eq(cash_pre.add(BigNumber.from_float(2500.0))),
 		"pending floor cash swept into the vault instead of deleted")
-	check(GS.gems == 31 + 25, "gems untouched (25 starter + 31)")
+	# Measured just before the move: renovating the fixture's wings levels
+	# reputation, which pays gems of its own.
+	check(GS.gems == gems_pre and gems_pre >= 31 + 25, "gems untouched by the move (25 starter + 31 + rep rewards)")
 	check(GS.insight.eq(BigNumber.from_float(500.0)), "insight untouched")
 	# One-way.
 	check(GS.venue_is_closed(from_vid), "%s recorded closed" % from_vid)

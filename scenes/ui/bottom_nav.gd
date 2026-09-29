@@ -8,6 +8,9 @@ const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 
 const PATH_MANAGERS := "res://scenes/managers/managers_screen.tscn"
 const PATH_EXPEDITION := "res://scenes/events/expedition_screen.tscn"
+## The Expedition tab opens the Dig Site excavation game; the boss expedition
+## is one button inside it once Rep 7 unlocks it.
+const PATH_DIG := "res://scenes/digsite/dig_site_screen.tscn"
 const PATH_INSPECTION := "res://scenes/events/inspection_screen.tscn"
 const PATH_STORE := "res://scenes/store/store_screen.tscn"
 
@@ -48,7 +51,7 @@ func _ready() -> void:
 	_margin.add_child(row)
 	_add_nav_button(row, "museum", "Museum", "home")
 	_add_nav_button(row, "managers", "Managers", "medal")
-	_add_nav_button(row, "expedition", "Expedition", "arrow_right")
+	_add_nav_button(row, "expedition", "Dig Site", "arrow_right")
 	_add_nav_button(row, "event", "Event", "exclamation")
 	_add_nav_button(row, "store", "Store", "cart")
 
@@ -122,7 +125,7 @@ func _on_unlock_signal(_a: Variant = null, _b: Variant = null) -> void:
 func refresh_locks() -> void:
 	_set_lock("museum", true, "")
 	_set_lock("managers", GameState.feature_unlocked("managers"), "Rep %d" % _unlock_req("managers_rep", 3))
-	_set_lock("expedition", GameState.feature_unlocked("expedition"), "Rep %d" % _unlock_req("expedition_rep", 7))
+	_set_lock("expedition", GameState.feature_unlocked("dig"), "Rep %d" % _unlock_req("dig_rep", 2))
 	_set_lock("event", GameState.feature_unlocked("inspection"), "Day %d" % (_unlock_req("inspection_day", 1) + 1))
 	_set_lock("store", true, "")
 
@@ -166,10 +169,10 @@ func _on_nav_pressed(id: String) -> void:
 			else:
 				EventBus.toast_requested.emit("Unlocks at Rep %d" % _unlock_req("managers_rep", 3))
 		"expedition":
-			if GameState.feature_unlocked("expedition"):
-				_open(id, PATH_EXPEDITION)
+			if GameState.feature_unlocked("dig"):
+				_open(id, PATH_DIG)
 			else:
-				EventBus.toast_requested.emit("Unlocks at Rep %d" % _unlock_req("expedition_rep", 7))
+				EventBus.toast_requested.emit("Unlocks at Rep %d" % _unlock_req("dig_rep", 2))
 		"event":
 			if GameState.feature_unlocked("inspection"):
 				_open(id, PATH_INSPECTION)

@@ -208,6 +208,12 @@ func _test_quest_milestone_prestige() -> void:
 		var definition: Dictionary=DL.decor[did]
 		if int(definition.get("cost_gems",0))==0 and not bool(definition.get("event_exclusive",false)):
 			DS.grant_event_decor(did,vid)
+	# Every wing renovated too (cash neutral: grant each price, then pay it).
+	var ws: GDScript = load("res://scripts/meta/wing_system.gd")
+	while not ws.next_wing(vid).is_empty():
+		var nw: Dictionary = ws.next_wing(vid)
+		GS.add_cash(ws.price(vid, str(nw["id"])))
+		if not ws.renovate(vid, str(nw["id"])):break
 	check(PS.can_prestige(), "can_prestige() true after furnishing")
 	check(GS.feature_unlocked("prestige"), "feature_unlocked('prestige') true")
 	# Retention snapshot + the one-way move.

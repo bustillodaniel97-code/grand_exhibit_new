@@ -27,6 +27,10 @@ signal venue_progress_changed(venue_id: String, progress: float)
 signal prestige_available(venue_id: String)
 signal prestige_performed(from_venue: String, to_venue: String)
 signal decor_purchased(venue_id: String, decor_id: String)
+## A wing (a new floor, or the exterior) was renovated and is now open.
+signal wing_renovated(venue_id: String, wing_id: String)
+## The Dig Site recovered an artifact into a museum's collection (quality 1-3).
+signal artifact_recovered(venue_id: String, artifact_id: String, quality: int)
 ## Fired by the decor screen after dismissal, so the installation is visible.
 signal decor_focus_requested(venue_id: String, decor_id: String)
 signal unlock_changed(feature: String, unlocked: bool)

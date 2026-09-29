@@ -5,6 +5,8 @@ extends Node
 
 const DecorSystem := preload("res://scripts/meta/decor_system.gd")
 const ManagerSystem := preload("res://scripts/managers/manager_system.gd")
+const WingSystem := preload("res://scripts/meta/wing_system.gd")
+const DigSystem := preload("res://scripts/digsite/dig_system.gd")
 
 var _accum: float = 0.0
 var _signal_throttle: float = 0.0
@@ -127,7 +129,14 @@ func item_max_level() -> int:
 func track_max_level(venue_id: String, track: String) -> int:
 	if track == "staff":
 		return 99  # staff has a department-specific cap handled by purchase_upgrade
-	return maxi(int(DataLoader.get_venue(venue_id).get("track_level_cap", 100)), 1)
+	var cap := maxi(int(DataLoader.get_venue(venue_id).get("track_level_cap", 100)), 1)
+	# Renovated wings (new floors) raise the ceiling: more building, more to upgrade.
+	return cap + WingSystem.cap_bonus(venue_id, cap)
+
+## Most units a department may hold in this venue: the department's own cap
+## plus slots added by renovated wings.
+func max_staff(venue_id: String, dept_id: String) -> int:
+	return int(DataLoader.dept_def(dept_id).get("max_staff", 99)) + WingSystem.staff_bonus(venue_id, dept_id)
 
 ## Summed contribution of a department's items, in staff-units.
 ## venue_rates calls this four times and sits on a 10k-calls-in-2s perf budget,
@@ -310,6 +319,8 @@ func income_multiplier(venue_id: String) -> float:
 		var d: Dictionary = DataLoader.get_decor(str(vs["decor"][slot]))
 		mult *= float(d.get("income_mult", 1.0))
 	mult *= decor_set_multiplier()
+	mult *= WingSystem.income_mult(venue_id)
+	mult *= DigSystem.income_mult(venue_id)
 	mult *= GameState.income_boost_active()
 	for vid in GameState.venues_state.keys():
 		for ms_id in GameState.venues_state[vid].get("milestones", []):
@@ -427,9 +438,8 @@ func venue_rates(venue_id: String) -> Dictionary:
 func flow_track_maxed(venue_id: String, dept_id: String) -> bool:
 	if dept_id not in ["promotions", "ticket", "archive"]:
 		return false
-	var def: Dictionary = DataLoader.dept_def(dept_id)
 	var staff_maxed: bool = GameState.dept_level(venue_id, dept_id, "staff") \
-		>= int(def.get("max_staff", 99))
+		>= max_staff(venue_id, dept_id)
 	var speed_maxed: bool = GameState.dept_level(venue_id, dept_id, "speed") \
 		>= track_max_level(venue_id, "speed")
 	return staff_maxed and speed_maxed
@@ -679,7 +689,7 @@ func purchase_upgrade(venue_id: String, dept_id: String, track: String) -> bool:
 	if track == "staff":
 		# Buying "staff" places a new item on the floor at level 1.
 		var staff: int = GameState.dept_items(venue_id, dept_id).size()
-		if staff >= int(def.get("max_staff", 99)):
+		if staff >= max_staff(venue_id, dept_id):
 			return false
 		var cost_s: BigNumber = _cost(venue_id, dept_id, track, staff)
 		if not GameState.spend_cash(cost_s):

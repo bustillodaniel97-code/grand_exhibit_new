@@ -234,6 +234,7 @@
   "unlocks": {
     "managers_rep": 3,
     "expedition_rep": 7,
+    "dig_rep": 2,
     "inspection_day": 1,
     "decor_rep": 2
   },

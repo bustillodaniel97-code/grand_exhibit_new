@@ -254,8 +254,11 @@ def preview(path, target=(0, 0, 0), dist=20.0, tilt_deg=40.0, lens=50, res=(1080
         cd.dof.use_dof = True
         cd.dof.focus_distance = dist
         cd.dof.aperture_fstop = fstop
-    scene.render.engine = "BLENDER_EEVEE"
+    if scene.render.engine != "CYCLES":
+        scene.render.engine = "BLENDER_EEVEE"
     scene.eevee.taa_render_samples = 32
+    scene.cycles.samples = 24
+    scene.cycles.use_denoising = False
     scene.render.resolution_x, scene.render.resolution_y = res
     scene.view_settings.view_transform = "AgX"
     try:

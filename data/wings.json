@@ -1,0 +1,112 @@
+{
+  "_doc": [
+    "Wings: the parts of a museum that open WHILE you play it (IBT's derelict",
+    "rooms renovated in order). Read by scripts/meta/wing_system.gd.",
+    "",
+    "  floor          0 ground, 1 second floor, 2 third... label is what the floor",
+    "                 selector shows ('2F'). exterior wings dress the outside only.",
+    "  req_milestones this museum's goal milestones needed before it can be opened.",
+    "  price_seconds  price = max(min_cost x venue cost scale, banked income/s x",
+    "                 seconds): always about that many seconds of saving, in every",
+    "                 museum, without hand-tuning twelve economies. Cash carried",
+    "                 over from the last museum still makes it cheaper, as a reward.",
+    "  min_cost       [mantissa, exponent] in the venue's own cost units",
+    "                 (x venue.cost_mult x 10^venue.cost_exp).",
+    "  income_mult    permanent multiplier on this museum's income once renovated.",
+    "  staff_bonus    extra unit slots per department (raises max_staff).",
+    "  cap_bonus      extra levels on the speed/value tracks: new floors mean",
+    "                 new things to upgrade, so the museum never plateaus.",
+    "  layout         (3D) rect [gx, gy, w, h] in the venue grid, y = floor top,",
+    "                 lift = glass elevator linking it to the floor below, and the",
+    "                 exhibits/props/stations standing on it. Coordinates are",
+    "                 absolute grid points, like the venue theme's.",
+    "",
+    "Venues without an entry get automatic wings: one per upper storey found in",
+    "their theme (rooms with level >= 1), plus the gilded facade."
+  ],
+  "grandeur": [
+    {"name": "Humble", "blurb": "A modest hall with big ideas."},
+    {"name": "Restored", "blurb": "Banners up, hedges trimmed, doors polished."},
+    {"name": "Grand", "blurb": "Red carpet, spotlights and a line out the door."},
+    {"name": "Magnificent", "blurb": "Gold on the dome and statues in the square."},
+    {"name": "Legendary", "blurb": "Fireworks every night. The whole city comes."}
+  ],
+  "auto": {
+    "floor_names": ["Ground Floor", "Upper Galleries", "Grand Terrace", "Crown Level"],
+    "req_milestones_by_floor": [0, 1, 2, 3],
+    "price_seconds_by_floor": [0, 300, 600, 900],
+    "min_cost_by_floor": [[0, 0], [2, 3], [1, 6], [1, 8]],
+    "income_mult": 1.4,
+    "cap_bonus_frac": 0.25,
+    "staff_bonus": {"gallery": 2},
+    "facade": {"id": "gilded_facade", "name": "Gilded Facade", "floor": 0, "label": "★", "exterior": true,
+      "req_milestones": 3, "price_seconds": 900, "min_cost": [1, 8], "income_mult": 1.8, "cap_bonus_frac": 0.25,
+      "blurb": "Gild the columns, roll out the red carpet, light up the square."}
+  },
+  "venues": {
+    "whispering_pines": [
+      {
+        "id": "hall_of_giants", "name": "Hall of Giants", "floor": 1, "label": "2F", "dept": "gallery",
+        "req_milestones": 2, "price_seconds": 90, "min_cost": [2, 3],
+        "income_mult": 1.5, "staff_bonus": {"gallery": 3}, "cap_bonus": 5,
+        "blurb": "A second floor for the biggest bones in the collection: a woolly mammoth and a blue whale.",
+        "layout": {
+          "rect": [1, -10, 12, 10], "y": 2.95,
+          "floor": ["planks", "#EFC27E", "#E2B06A"], "wall": "#6FC7A6",
+          "lift": {"at": [8.45, 0.45], "enter": [8.45, 1.35], "exit": [8.45, -0.9]},
+          "exhibits": [
+            {"kind": "mammoth", "at": [1.8, -8.4], "size": [4.0, 2.2], "anchor": [3.8, -7.3],
+             "views": [[-1.4, 2.1], [0.2, 2.2], [1.8, 2.0], [2.6, 0.8]]},
+            {"kind": "whale", "at": [6.8, -8.8], "size": [6.0, 1.6], "anchor": [9.8, -8.0],
+             "views": [[-2.2, 1.9], [-0.6, 2.0], [0.9, 2.0], [2.4, 1.8]]},
+            {"kind": "case", "at": [2.2, -3.4], "size": [1.5, 0.7], "anchor": [2.95, -3.05],
+             "views": [[-0.3, 0.9], [0.9, 0.8]]},
+            {"kind": "statue", "at": [11.1, -4.4], "size": [1.0, 1.0], "anchor": [11.6, -3.9],
+             "views": [[-0.6, 1.0], [0.6, 1.0]]}
+          ],
+          "props": [
+            {"kind": "bench", "at": [5.2, -3.6], "len": 1.5, "axis": "x"},
+            {"kind": "bench", "at": [7.9, -3.6], "len": 1.5, "axis": "x"},
+            {"kind": "planter", "at": [1.45, -9.5]},
+            {"kind": "planter", "at": [12.55, -9.5]},
+            {"kind": "planter", "at": [1.45, -0.6]},
+            {"kind": "planter", "at": [12.55, -0.6]}
+          ],
+          "stations": [[6.2, -5.4], [12.2, -6.0]]
+        }
+      },
+      {
+        "id": "sky_terrace", "name": "Sky Terrace", "floor": 2, "label": "3F", "dept": "promotions",
+        "req_milestones": 3, "price_seconds": 180, "min_cost": [1.5, 4],
+        "income_mult": 1.4, "staff_bonus": {"promotions": 3, "ticket": 2}, "cap_bonus": 5,
+        "blurb": "A rooftop café under the dome, with a telescope and the best view in town. Members love it.",
+        "layout": {
+          "rect": [3, -17, 8, 7], "y": 5.95,
+          "floor": ["checker", "#FFF1D6", "#8FC6E8"], "wall": "#8FB8E8",
+          "lift": {"at": [6.3, -9.5], "enter": [6.3, -8.75], "exit": [6.3, -10.9]},
+          "exhibits": [
+            {"kind": "cafe_table", "at": [4.4, -12.4], "anchor": [4.4, -12.4], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "cafe_table", "at": [8.9, -12.4], "anchor": [8.9, -12.4], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "cafe_table", "at": [4.3, -14.8], "anchor": [4.3, -14.8], "views": [[0.8, 0.2]]},
+            {"kind": "telescope", "at": [9.6, -15.2], "anchor": [9.6, -15.2], "front": [0, 1], "views": [[0.0, 0.8]]}
+          ],
+          "props": [
+            {"kind": "topiary", "at": [3.5, -10.6]},
+            {"kind": "topiary", "at": [10.5, -10.6]},
+            {"kind": "topiary", "at": [10.5, -16.4]},
+            {"kind": "topiary", "at": [3.5, -16.4]},
+            {"kind": "kiosk", "at": [8.4, -16.2]}
+          ],
+          "marketer": [7.6, -11.2],
+          "dome": [7.0, -15.8]
+        }
+      },
+      {
+        "id": "gilded_facade", "name": "Gilded Facade", "floor": 0, "label": "★", "exterior": true,
+        "req_milestones": 4, "price_seconds": 300, "min_cost": [3, 4],
+        "income_mult": 2.0, "cap_bonus": 5,
+        "blurb": "Gild the columns, roll out the red carpet and put gold on the dome."
+      }
+    ]
+  }
+}

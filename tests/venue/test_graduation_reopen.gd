@@ -52,6 +52,9 @@ func run() -> void:
   var ids: Array = []
   for milestone in dl.milestones.get(current,[]):ids.append(str(milestone["id"]))
   gs.venue_state(current)["milestones"]=ids
+  # Open every wing first: renovated floors raise the track caps being maxed below.
+  gs.cash=BigNumber.from_parts(1.0,200)
+  furnish(gs,dl,current)
   for dept in DEPARTMENTS:
    for track in ["staff","speed","value"]:gs.set_dept_level(current,dept,track,8 if track=="staff" else ec.track_max_level(current,track))
    if gs.dept_items(current,dept).is_empty():gs.add_dept_item(current,dept)
@@ -97,9 +100,12 @@ func run_processes() -> void:
  print("graduation reopen campaign: %d failure(s)" % failures)
  quit(0 if failures==0 else 1)
 
-## The graduation gate also asks for a furnished museum; stand up the richest
-## pieces through the real shop path until it is met.
+## The graduation gate also asks for a furnished museum and every wing open;
+## meet both through the real shop and renovation paths.
 func furnish(gs: Node, dl: Node, vid: String) -> void:
+ var ws: GDScript = load("res://scripts/meta/wing_system.gd")
+ while not ws.next_wing(vid).is_empty():
+  if not ws.renovate(vid, str(ws.next_wing(vid)["id"])):break
  var ps: GDScript = load("res://scripts/meta/prestige_system.gd")
  var ds: GDScript = load("res://scripts/meta/decor_system.gd")
  gs.gems = 1 << 30

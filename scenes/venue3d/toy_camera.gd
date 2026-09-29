@@ -11,6 +11,10 @@ extends Camera3D
 var focus := Vector3.ZERO
 var dist := 40.0
 var bounds := Rect2(-2, -2, 18, 26)  # clamp for `focus` on the XZ plane
+## Optional: ground height under a focus z (upper floors). The focus eases to it,
+## so panning up the building rises with the floors instead of sinking into them.
+var height_at: Callable
+var _fly: Tween
 
 var _touches := {}
 var _pinch_start := 0.0
@@ -28,6 +32,22 @@ func frame(rect: Rect2, margin := 1.5) -> void:
 	focus = Vector3(rect.get_center().x, 0.0, rect.get_center().y)
 	dist = clampf((rect.size.x * 0.5 + margin) / tan(deg_to_rad(fov * 0.5)), min_dist, max_dist)
 	_apply()
+
+func _process(delta: float) -> void:
+	if height_at.is_valid():
+		var target := float(height_at.call(focus.z))
+		if absf(focus.y - target) > 0.001:
+			focus.y = lerpf(focus.y, target, minf(1.0, delta * 5.0))
+			_apply()
+
+## Glide the focus to a ground point (the floor selector).
+func fly_to(point: Vector3, secs := 0.6) -> void:
+	if _fly and _fly.is_valid():
+		_fly.kill()
+	_fly = create_tween()
+	_fly.tween_method(func(p: Vector3) -> void:
+		focus = p
+		_apply(), focus, point, secs).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 func _apply() -> void:
 	focus.x = clampf(focus.x, bounds.position.x, bounds.end.x)

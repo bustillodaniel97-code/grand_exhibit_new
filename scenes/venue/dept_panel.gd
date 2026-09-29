@@ -202,9 +202,8 @@ func _cost_for(track: String) -> BigNumber:
 		float(venue.get("cost_mult", 1.0)), int(venue.get("cost_exp", 0)))
 
 func _is_maxed(track: String) -> bool:
-	var def: Dictionary = DataLoader.dept_def(dept_id)
 	if track == "staff":
-		return GameState.dept_level(venue_id, dept_id, "staff") >= int(def.get("max_staff", 99))
+		return GameState.dept_level(venue_id, dept_id, "staff") >= Economy.max_staff(venue_id, dept_id)
 	return GameState.dept_level(venue_id, dept_id, track) >= Economy.track_max_level(venue_id, track)
 
 func refresh() -> void:

@@ -21,7 +21,7 @@ import bpy
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import toy  # noqa: E402
 import props  # noqa: E402
-from toy import box, cyl, sphere, mat, shade, g2b  # noqa: E402
+from toy import box, cyl, sphere, torus, mat, shade, g2b  # noqa: E402
 
 PLINTH_TOP = 0.12
 FLOOR_TOP = 0.17
@@ -46,6 +46,16 @@ STYLES = {
 }
 
 
+def load_wings(vid):
+    """Authored wings with a 3D layout (data/wings.json), in floor order."""
+    path = os.path.join(toy.ROOT, "data", "wings.json")
+    if not os.path.exists(path):
+        return []
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    return [w for w in data.get("venues", {}).get(vid, []) if "layout" in w]
+
+
 def load_venue(vid):
     with open(os.path.join(toy.ROOT, "data", "venues.json"), encoding="utf-8") as f:
         data = json.load(f)
@@ -63,9 +73,15 @@ class Builder:
         xs = [r["rect"][0] + r["rect"][2] for r in self.rooms]
         ys = [r["rect"][1] + r["rect"][3] for r in self.rooms]
         self.W, self.H = max(xs), max(ys)
-        self.groups = {"grounds": [], "building": [], "crown": []}
+        self.groups = {"grounds": [], "building": [], "crown": [], "dome": [],
+                       "grand_2": [], "grand_3": [], "grand_4": []}
+        self.wings = load_wings(venue["id"])
+        for w in self.wings:
+            self.groups["floor_" + w["id"]] = []
+            self.groups["lift_" + w["id"]] = []
 
     def add(self, group, objs):
+        self.groups.setdefault(group, [])
         self.groups[group] += objs if isinstance(objs, list) else [objs]
 
     # ------------------------------------------------------------ helpers
@@ -100,7 +116,7 @@ class Builder:
     # ------------------------------------------------------------ grounds
     def grounds(self):
         W, H = self.W, self.H
-        x0, x1, y0, y1 = -8.0, W + 8.0, -7.0, H + 11.0
+        x0, x1, y0, y1 = -8.0, W + 8.0, self.back_y() - 7.0, H + 11.0
         lawn = self.s["lawn"]
         band = 1.5  # mown stripes running across the view
         y = y0
@@ -135,10 +151,10 @@ class Builder:
         W, H = self.W, self.H
         r = random.Random(11)
         spots = []
-        for gy in range(-5, int(H) + 3, 2):  # flanks
+        for gy in range(int(self.back_y()) - 5, int(H) + 3, 2):  # flanks
             spots += [(-2.2 - r.uniform(0, 3.5), gy + r.uniform(-0.4, 0.4)), (W + 2.2 + r.uniform(0, 3.5), gy + r.uniform(-0.4, 0.4))]
         for gx in range(-2, int(W) + 3, 2):  # behind the building
-            spots.append((gx + r.uniform(-0.4, 0.4), -2.2 - r.uniform(0, 2.5)))
+            spots.append((gx + r.uniform(-0.4, 0.4), self.back_y() - 2.2 - r.uniform(0, 2.5)))
         for i, (gx, gy) in enumerate(spots):
             self.add("grounds", self.inst("tree", g2b(gx, gy), r.uniform(0, 6.3), r.uniform(1.0, 1.3), seed=i % 4))
         for gx in (-1.2, W + 1.2):  # plaza lamps and hedges
@@ -150,6 +166,10 @@ class Builder:
                 self.add("grounds", self.inst("bush", g2b(gx, H + 0.75), r.uniform(0, 6.3), 0.85, seed=i))
         self.add("grounds", self.inst("fountain", g2b(W - 3.0, H + 2.4)))
         self.add("grounds", self.inst("bus_stop", g2b(1.5, road_y - 0.55)))
+
+    def back_y(self):
+        """Grid y of the building's rearmost edge, upper floors included."""
+        return min([0.0] + [w["layout"]["rect"][1] for w in self.wings])
 
     def doorways(self):
         """Grid x of every opening in the building's front edge (entrance and exits)."""
@@ -253,11 +273,18 @@ class Builder:
                                      mat(col, 0.5)))
 
     def crown(self):
-        """Grand silhouette on the back wall: cornice, pediment, dome, flags, name."""
+        """Grand silhouette on the back wall: cornice, pediment, dome, flags, name.
+
+        With upper floors the crown rides the TOP floor's back wall instead: a
+        pediment on the ground floor's back wall would stand in front of the
+        second floor and hide it from the camera."""
         W = self.W
         ext, trim, acc = self.s["exterior"], self.s["trim"], self.s["accent"]
         top = FLOOR_TOP + H_BACK
         self.add("crown", box((W + 0.5, 0.5, 0.2), g2b(W / 2, -0.1, top + 0.1), mat(trim, 0.35), bev=0.05))
+        if self.wings:
+            self.upper_crown()
+            return
         gal = next((r for r in self.rooms if r.get("role") == "exhibit"), self.rooms[0])
         cx = gal["rect"][0] + gal["rect"][2] / 2
         self.add("crown", box((6.0, 0.4, 0.9), g2b(cx, -0.1, top + 0.65), mat(ext, 0.5), bev=0.05))
@@ -267,9 +294,9 @@ class Builder:
         for i in range(6):  # pilasters under the pediment
             self.add("crown", cyl(0.14, 0.9, g2b(cx - 2.5 + i, 0.12, top + 0.65), mat(trim, 0.4), bev=0.02))
         self.add("crown", [cyl(1.25, 0.7, g2b(cx, -1.2, top + 1.2), mat(ext, 0.5), bev=0.04),
-                           sphere(1.3, g2b(cx, -1.2, top + 1.55), mat(self.s["dome"], 0.3), scale=(1, 1, 0.9)),
                            cyl(0.08, 0.9, g2b(cx, -1.2, top + 3.0), mat("#2E3A4A", 0.35)),
                            sphere(0.14, g2b(cx, -1.2, top + 2.72), mat("#F2C14E", 0.25, metal=0.5))])
+        self.add("dome", sphere(1.3, g2b(cx, -1.2, top + 1.55), mat(self.s["dome"], 0.3, name="dome"), scale=(1, 1, 0.9)))
         for fx in (0.3, W - 0.3):  # corner flags
             self.add("crown", [cyl(0.05, 1.8, g2b(fx, -0.2, top + 0.9), mat("#2E3A4A", 0.35)),
                                box((0.6, 0.04, 0.35), g2b(fx + 0.32, -0.2, top + 1.6), mat(acc, 0.4), bev=0.02)])
@@ -285,6 +312,176 @@ class Builder:
         bpy.ops.object.convert(target="MESH")
         toy.set_mat(txt, mat("#5A3A1A", 0.4))
         self.add("crown", txt)
+
+    # ------------------------------------------------------------ upper floors
+    def upper_crown(self):
+        """Pediment, name, flags and the domed pavilion on the top floor."""
+        ext, trim, acc = self.s["exterior"], self.s["trim"], self.s["accent"]
+        w = self.wings[-1]
+        L = w["layout"]
+        x, y, wd, h = L["rect"]
+        base = L["y"]
+        cx = x + wd / 2
+        top = base + H_BACK
+        self.add("crown", box((wd + 0.5, 0.5, 0.2), g2b(cx, y - 0.1, top + 0.1), mat(trim, 0.35), bev=0.05))
+        self.add("crown", box((min(6.0, wd - 1.0), 0.4, 0.9), g2b(cx, y - 0.1, top + 0.65), mat(ext, 0.5), bev=0.05))
+        self.add("crown", toy.prism(min(6.6, wd - 0.4), 0.8, 1.2, g2b(cx, y - 0.1, top + 1.1), mat(acc, 0.3), bev=0.06))
+        for fx in (x + 0.3, x + wd - 0.3):
+            self.add("crown", [cyl(0.05, 1.8, g2b(fx, y - 0.2, top + 0.9), mat("#2E3A4A", 0.35)),
+                               box((0.6, 0.04, 0.35), g2b(fx + 0.32, y - 0.2, top + 1.6), mat(acc, 0.4), bev=0.02)])
+        dx, dy = L.get("dome", [cx, y + 1.5])
+        drum_h = 2.1
+        self.add("crown", [cyl(1.25, drum_h, g2b(dx, dy, base + drum_h / 2), mat(ext, 0.5), bev=0.04),
+                           torus(1.26, 0.08, g2b(dx, dy, base + drum_h), mat(trim, 0.35)),
+                           cyl(0.08, 0.9, g2b(dx, dy, base + drum_h + 2.0), mat("#2E3A4A", 0.35)),
+                           sphere(0.14, g2b(dx, dy, base + drum_h + 1.75), mat("#F2C14E", 0.25, metal=0.5))])
+        for i in range(8):  # arched windows round the drum
+            a = i / 8 * math.tau
+            px, py = dx + math.cos(a) * 1.24, dy + math.sin(a) * 1.24
+            self.add("crown", box((0.34, 0.06, 0.8), g2b(px, py, base + 1.1), mat("#9FD3F0", 0.15), bev=0.02,
+                                  rot=(0, 0, -a + math.pi / 2)))
+        self.add("dome", sphere(1.3, g2b(dx, dy, base + drum_h + 0.35), mat(self.s["dome"], 0.3, name="dome"), scale=(1, 1, 0.9)))
+        self.name_sign(cx, y + 0.35, top + 0.62)
+
+    def name_sign(self, cx, gy, z):
+        name = self.v.get("name", self.v["id"]).upper()
+        bpy.ops.object.text_add(location=g2b(cx, gy, z))
+        txt = bpy.context.active_object
+        txt.data.body = name
+        txt.data.align_x = "CENTER"
+        txt.data.align_y = "CENTER"
+        txt.data.size = 0.36
+        txt.data.extrude = 0.03
+        txt.rotation_euler = (math.pi / 2, 0, 0)
+        bpy.ops.object.convert(target="MESH")
+        toy.set_mat(txt, mat("#5A3A1A", 0.4))
+        self.add("crown", txt)
+
+    def upper_floors(self):
+        prev_top = FLOOR_TOP
+        for w in self.wings:
+            self.upper_floor(w, prev_top)
+            prev_top = w["layout"]["y"]
+
+    def upper_floor(self, w, below):
+        """One terraced storey: podium with windows, patterned floor, walls,
+        a balustrade with a gap where the lift lands, and the lift itself."""
+        g = "floor_" + w["id"]
+        L = w["layout"]
+        x, y, wd, h = L["rect"]
+        top = L["y"]
+        ext, trim = self.s["exterior"], self.s["trim"]
+        wall = L.get("wall", self.s["walls"]["shell"])
+        # podium: the storeys underneath, seen as a stone block with windows
+        self.add(g, box((wd, h, top - 0.05), g2b(x + wd / 2, y + h / 2, (top - 0.05) / 2), mat(ext, 0.5), bev=0.05))
+        self.add(g, box((wd + 0.16, h + 0.16, 0.14), g2b(x + wd / 2, y + h / 2, top - 0.12), mat(trim, 0.35), bev=0.04))
+        storeys = max(1, int(round(top / 2.9)))
+        for sx in (x - 0.03, x + wd + 0.03):  # windows on the exposed sides
+            for k in range(storeys):
+                zc = k * 2.9 + 1.5
+                for j in range(int(h // 1.6)):
+                    gy = y + 0.8 + j * 1.6
+                    self.add(g, box((0.06, 0.6, 0.9), g2b(sx, gy, zc), mat("#9FD3F0", 0.15), bev=0.02))
+                    self.add(g, box((0.08, 0.72, 0.08), g2b(sx, gy, zc - 0.5), mat(trim, 0.35), bev=0.02))
+        style, a, b = L.get("floor", ["planks", "#EFC27E", "#E2B06A"])
+        z = top - 0.025
+        if style == "checker":
+            for gx in range(int(x), int(x + wd)):
+                for gy in range(int(y), int(y + h)):
+                    self.add(g, box((1, 1, 0.05), g2b(gx + 0.5, gy + 0.5, z), mat(a if (gx + gy) % 2 else b, 0.25), bev=0.015, seg=1))
+        else:
+            n = int(round(h / 0.5))
+            for i in range(n):
+                self.add(g, box((wd, 0.5, 0.05), g2b(x + wd / 2, y + i * 0.5 + 0.25, z), mat(a if i % 2 else b, 0.3), bev=0.012, seg=1))
+        # walls: tall back, medium sides (room colour inside, stone outside)
+        def wall_seg(cx, cy, sx, sy, hh, inner_col, out):
+            half = WALL_T / 2
+            if sx > sy:
+                self.add(g, box((sx, half, hh), g2b(cx, cy - out * half / 2, top + hh / 2), mat(inner_col, 0.45), bev=0.03))
+                self.add(g, box((sx, half, hh), g2b(cx, cy + out * half / 2, top + hh / 2), mat(ext, 0.5), bev=0.03))
+            else:
+                self.add(g, box((half, sy, hh), g2b(cx - out * half / 2, cy, top + hh / 2), mat(inner_col, 0.45), bev=0.03))
+                self.add(g, box((half, sy, hh), g2b(cx + out * half / 2, cy, top + hh / 2), mat(ext, 0.5), bev=0.03))
+            self.add(g, box((sx + 0.06, sy + 0.06, 0.08), g2b(cx, cy, top + hh + 0.02), mat(trim, 0.35), bev=0.03))
+        wall_seg(x + wd / 2, y, wd + WALL_T, WALL_T, H_BACK, wall, -1)
+        wall_seg(x, y + h / 2, WALL_T, h, H_SIDE, wall, -1)
+        wall_seg(x + wd, y + h / 2, WALL_T, h, H_SIDE, wall, 1)
+        # front balustrade, open where the lift lands
+        lift = L.get("lift")
+        gap = (lift["at"][0] - 0.65, lift["at"][0] + 0.65) if lift else (1e9, 1e9)
+        fy = y + h
+        segs = [(x, gap[0]), (gap[1], x + wd)] if lift and x < gap[0] < x + wd else [(x, x + wd)]
+        for s0, s1 in segs:
+            if s1 - s0 < 0.1:
+                continue
+            self.add(g, box((s1 - s0, WALL_T * 0.7, 0.12), g2b((s0 + s1) / 2, fy, top + 0.06), mat(trim, 0.4), bev=0.02))
+            self.add(g, box((s1 - s0, WALL_T * 0.8, 0.08), g2b((s0 + s1) / 2, fy, top + 0.62), mat(trim, 0.35), bev=0.02))
+            px = s0 + 0.15
+            while px < s1 - 0.1:
+                self.add(g, cyl(0.045, 0.5, g2b(px, fy, top + 0.35), mat(ext, 0.45), r2=0.035, bev=0.01, verts=10))
+                px += 0.3
+        if lift:
+            self.lift(w, below, top)
+
+    def lift(self, w, bottom, top):
+        """Glass elevator: brass-framed shaft from `bottom` to above `top`, a
+        landing into the floor, and a separate cabin Godot moves."""
+        g = "lift_" + w["id"]
+        L = w["layout"]
+        ax, ay = L["lift"]["at"]
+        brass = mat("#E0B34A", 0.25, metal=0.6)
+        glass = mat("#BFE6FF", 0.05, alpha=0.28)
+        hgt = top - bottom + 2.1
+        for sx in (-0.55, 0.55):
+            for sy in (-0.5, 0.5):
+                self.add(g, cyl(0.05, hgt, g2b(ax + sx, ay + sy, bottom + hgt / 2), brass, bev=0))
+            self.add(g, box((0.04, 1.0, hgt - 0.2), g2b(ax + sx, ay, bottom + hgt / 2), glass))
+        self.add(g, box((1.26, 1.16, 0.12), g2b(ax, ay, bottom + hgt), mat(self.s["trim"], 0.35), bev=0.03))
+        self.add(g, sphere(0.22, g2b(ax, ay, bottom + hgt + 0.1), mat(self.s["accent"], 0.3), scale=(1, 1, 0.6)))
+        self.add(g, box((1.2, 1.1, 0.06), g2b(ax, ay, bottom + 0.03), mat("#2E3A4A", 0.4), bev=0.02))
+        # landing between the shaft and the floor's front edge
+        fx, fy, fw, fh = L["rect"]
+        front = fy + fh
+        near = ay - 0.5
+        y0, y1 = sorted((near, front - 0.4))
+        self.add(g, box((1.1, max(0.2, y1 - y0 + 0.4), 0.06), g2b(ax, (y0 + y1) / 2, top - 0.03), mat(self.s["trim"], 0.4), bev=0.02))
+        # the cabin, built round its own origin so Godot can slide it up and down
+        parts = [box((1.0, 0.9, 0.08), (0, 0, 0.04), mat("#2E3A4A", 0.4), bev=0.02),
+                 box((1.0, 0.9, 0.08), (0, 0, 1.36), brass, bev=0.02),
+                 sphere(0.09, (0, 0, 1.46), mat("#FFF2B0", 0.2, emit=2.0), seg=12)]
+        for sx in (-0.47, 0.47):
+            parts.append(box((0.04, 0.86, 1.24), (sx, 0, 0.7), glass))
+            for sy in (-0.43, 0.43):
+                parts.append(cyl(0.035, 1.3, (sx, sy, 0.7), brass, bev=0))
+        cab = toy.join(parts, "cabin_" + w["id"])
+        cab.location = g2b(ax, ay, bottom)
+        self.groups["cabin_" + w["id"]] = [cab]
+
+    # ------------------------------------------------------------ grandeur (exterior dressing by tier)
+    def grandeur(self, road_y):
+        W, H = self.W, self.H
+        dx = self.door_x()
+        # II  Restored: banners and topiaries
+        for bx in (dx - 2.3, dx + 2.3):
+            self.add("grand_2", self.inst("banner", g2b(bx, H + 1.35)))
+        for bx in (0.35, W - 0.35):
+            self.add("grand_2", self.inst("banner", g2b(bx, H + 0.55)))
+        for bx in (dx - 1.5, dx + 1.5):
+            self.add("grand_2", self.inst("topiary", g2b(bx, H + 1.25)))
+        # III Grand: red carpet to the pavement, velvet ropes, spotlights
+        c0, c1 = H + 0.95, road_y - 0.95
+        self.add("grand_3", box((1.7, c1 - c0, 0.03), g2b(dx, (c0 + c1) / 2, 0.095), mat("#E0B34A", 0.4)))
+        self.add("grand_3", box((1.4, c1 - c0, 0.035), g2b(dx, (c0 + c1) / 2, 0.1), mat("#B81E2E", 0.7)))
+        gy = c0 + 0.4
+        while gy < c1:
+            for side in (-1, 1):
+                self.add("grand_3", self.inst("rope_post", g2b(dx + side * 1.05, gy)))
+            gy += 1.1
+        for bx in (0.8, W - 0.8, dx - 3.2, dx + 3.2):
+            self.add("grand_3", self.inst("spotlight", g2b(bx, H + 0.62)))
+        # IV Magnificent: gilded statues in the square (the dome turns gold in Godot)
+        for bx in (dx - 3.6, dx + 3.6):
+            self.add("grand_4", self.inst("gold_statue", g2b(bx, H + 2.7)))
 
     # ------------------------------------------------------------ props (preview only)
     def place_props(self):
@@ -352,8 +549,10 @@ class Builder:
         self.floors()
         self.walls()
         self.wall_dressing()
+        self.upper_floors()
         self.crown()
         self.outdoors(road_y)
+        self.grandeur(road_y)
         out = {}
         for g, objs in self.groups.items():
             if objs:
