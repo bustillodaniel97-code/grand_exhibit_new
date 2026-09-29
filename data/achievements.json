@@ -1,0 +1,25 @@
+{
+  "_doc": [
+    "Achievements, tracked locally for every build and mirrored to the storefront",
+    "by autoload/platform_services.gd (Steam / Epic; Game Center and Play Games",
+    "plug into the same calls). `id` is also the API name to register in",
+    "Steamworks / the EOS dev portal. `on` is the EventBus signal that re-checks",
+    "it; `need` is the threshold for the counter named in `count`."
+  ],
+  "achievements": [
+    {"id": "FIRST_UPGRADE", "name": "Open for Business", "desc": "Buy your first upgrade.", "on": "department_upgraded", "count": "upgrades", "need": 1},
+    {"id": "HUNDRED_UPGRADES", "name": "Renovator", "desc": "Buy 100 upgrades.", "on": "department_upgraded", "count": "upgrades", "need": 100},
+    {"id": "FIRST_MILESTONE", "name": "Local Buzz", "desc": "Complete a museum goal milestone.", "on": "milestone_completed", "count": "milestones", "need": 1},
+    {"id": "SECOND_FLOOR", "name": "Going Up", "desc": "Renovate a second floor.", "on": "wing_renovated", "count": "wings", "need": 1},
+    {"id": "GRAND", "name": "Simply Grand", "desc": "Raise a museum to Grand.", "on": "wing_renovated", "count": "best_grandeur", "need": 3},
+    {"id": "MAGNIFICENT", "name": "Gold on the Dome", "desc": "Raise a museum to Magnificent.", "on": "wing_renovated", "count": "best_grandeur", "need": 4},
+    {"id": "FIRST_ARTIFACT", "name": "Dig It", "desc": "Recover an artifact at a dig site.", "on": "artifact_recovered", "count": "artifacts", "need": 1},
+    {"id": "PERFECT_DIG", "name": "Steady Hands", "desc": "Recover a three-star artifact.", "on": "artifact_recovered", "count": "perfect_artifacts", "need": 1},
+    {"id": "FULL_SET", "name": "Complete Collection", "desc": "Complete a museum's artifact collection.", "on": "artifact_recovered", "count": "sets", "need": 1},
+    {"id": "SECOND_MUSEUM", "name": "Moving Up", "desc": "Open your second museum.", "on": "prestige_performed", "count": "museums", "need": 2},
+    {"id": "SIXTH_MUSEUM", "name": "Curator of Wonders", "desc": "Open your sixth museum.", "on": "prestige_performed", "count": "museums", "need": 6},
+    {"id": "INFINITE", "name": "The Infinite Museum", "desc": "Open the final museum.", "on": "prestige_performed", "count": "museums", "need": 12},
+    {"id": "FIRST_MANAGER", "name": "Delegation", "desc": "Hire your first manager.", "on": "manager_obtained", "count": "managers", "need": 1},
+    {"id": "REP_TEN", "name": "Household Name", "desc": "Reach reputation 10.", "on": "reputation_level_up", "count": "rep", "need": 10}
+  ]
+}

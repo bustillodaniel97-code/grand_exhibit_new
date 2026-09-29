@@ -10,6 +10,8 @@ config_version=5
 
 [application]
 
+config/windows_native_icon="res://assets/desktop/icon.ico"
+config/macos_native_icon="res://assets/desktop/icon.icns"
 config/name="Grand Exhibit"
 config/description="Idle museum tycoon - build, staff, and prestige your museum empire."
 run/main_scene="res://scenes/main.tscn"
@@ -34,6 +36,7 @@ IAPService="*res://autoload/iap_service.gd"
 GameState="*res://autoload/game_state.gd"
 SaveSystem="*res://autoload/save_system.gd"
 Economy="*res://autoload/economy.gd"
+PlatformServices="*res://autoload/platform_services.gd"
 
 [debug]
 
@@ -48,6 +51,11 @@ window/size/viewport_width=720
 window/size/viewport_height=1280
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+; Desktop (Steam / Epic / Microsoft Store): open a portrait window that fits a
+; 1080p screen, and letterbox rather than stretch when the player makes it wide.
+window/size/window_width_override=540
+window/size/window_height_override=960
+window/stretch/aspect.pc="keep"
 window/handheld/orientation=1
 
 [rendering]
@@ -55,6 +63,8 @@ window/handheld/orientation=1
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
+; Desktop exports require S3TC/BPTC variants of any VRAM-compressed texture.
+textures/vram_compression/import_s3tc_bptc=true
 
 ; Smooth procedural architecture and minified Blender art at display resolution.
 ; Compatibility does not implement 2D MSAA. The world has its own edge pass.
