@@ -61,6 +61,57 @@ SURROUNDS = {
 }
 
 
+# Hand-authored toy palettes per museum: wall colours and four floor styles
+# (queue, exhibit, promo, lobby); link rooms cycle through all of them so a
+# big museum reads as many distinct rooms, not one beige plan.
+VENUE_PALETTES = {
+    "copper_kettle": {"walls": ["#2E8BC0", "#48B5A8", "#F28C6B", "#5FA8D3", "#F2C14E"],
+                      "floors": [("checker", "#EAF6FA", "#8FD0E8"), ("planks", "#E9D3A8", "#DCC296"),
+                                 ("carpet", "#2E8BC0", "#F2C14E"), ("checker", "#F4EBD8", "#F28C6B")],
+                      "exterior": "#EAF2F4", "accent": "#F28C6B", "dome": "#48B5A8"},
+    "grand_river": {"walls": ["#C8663A", "#3F6FB0", "#6FAE5A", "#E8D8B8", "#A8324A"],
+                    "floors": [("checker", "#F6F1E6", "#C8663A"), ("planks", "#E8C890", "#D8B47A"),
+                               ("carpet", "#A8324A", "#E8B83A"), ("checker", "#F6F1E6", "#9FB8C8")],
+                    "exterior": "#F4EEE2", "accent": "#A8324A", "dome": "#3F6FB0"},
+    "sunspire": {"walls": ["#E8A43A", "#2F6FB0", "#D9643A", "#F2D58E", "#3FA6A0"],
+                 "floors": [("checker", "#FFF3D6", "#2F6FB0"), ("planks", "#F2C878", "#E8B860"),
+                            ("carpet", "#D9643A", "#F2C14E"), ("checker", "#FFF3D6", "#E8A43A")],
+                 "exterior": "#F6E6C4", "accent": "#D9643A", "dome": "#F2C14E"},
+    "cloudrest": {"walls": ["#5FA8E8", "#2F7A4A", "#8FA0AE", "#E8F2FA", "#C0392B"],
+                  "floors": [("checker", "#F4FAFE", "#9FCCF0"), ("planks", "#D8B48A", "#C8A47A"),
+                             ("carpet", "#2F7A4A", "#EAF4FA"), ("checker", "#F4FAFE", "#8FA0AE")],
+                  "exterior": "#EEF4F8", "accent": "#3A78D8", "dome": "#9FD3F0"},
+    "aurora_world": {"walls": ["#3A3A8C", "#2FA67A", "#7E5FC8", "#C9CED6", "#1F8A9A"],
+                     "floors": [("checker", "#E8ECF8", "#3A3A8C"), ("planks", "#B8A4D8", "#A894C8"),
+                                ("carpet", "#2FA67A", "#B58CE8"), ("checker", "#E8ECF8", "#2FA67A")],
+                     "exterior": "#E4E8F2", "accent": "#7E5FC8", "dome": "#2FA67A"},
+    "celestial_conservatory": {"walls": ["#4FAE6A", "#8FB8E8", "#9F7ED8", "#F2EAD8", "#2FA6A0"],
+                               "floors": [("checker", "#F4FAF0", "#8BD06A"), ("planks", "#C8E0A8", "#B8D098"),
+                                          ("carpet", "#9F7ED8", "#DFF4FF"), ("checker", "#F4FAF0", "#8FB8E8")],
+                               "exterior": "#F2F6EE", "accent": "#9F7ED8", "dome": "#BFE6FF"},
+    "ironwood_citadel": {"walls": ["#8C8C94", "#B8322A", "#5A5A66", "#D8C8A8", "#2F5A8C"],
+                         "floors": [("checker", "#E8E4DC", "#8C8C94"), ("planks", "#A87E5A", "#98704E"),
+                                    ("carpet", "#B8322A", "#E8B83A"), ("checker", "#E8E4DC", "#B8322A")],
+                         "exterior": "#D8D4CC", "accent": "#B8322A", "dome": "#8C8C94"},
+    "pelagic_crown": {"walls": ["#1FAFC1", "#F07D78", "#2E5E9C", "#F4F1FA", "#F3C969"],
+                      "floors": [("checker", "#EFFAFC", "#1FAFC1"), ("planks", "#E8D8C0", "#DCC8B0"),
+                                 ("carpet", "#F07D78", "#F3C969"), ("checker", "#EFFAFC", "#F07D78")],
+                      "exterior": "#EEF6F8", "accent": "#F07D78", "dome": "#1FAFC1"},
+    "chronos_spire": {"walls": ["#C9963A", "#6B3A22", "#2F8C8C", "#F0E6D0", "#8C2F2F"],
+                      "floors": [("checker", "#F6EEDC", "#6B3A22"), ("planks", "#B87A48", "#A86A3A"),
+                                 ("carpet", "#2F8C8C", "#E8C35A"), ("checker", "#F6EEDC", "#C9963A")],
+                      "exterior": "#EEE4D0", "accent": "#8C2F2F", "dome": "#C9963A"},
+    "empyrean_palace": {"walls": ["#E86FA0", "#9F7ED8", "#E8B83A", "#FAF0F4", "#5FA8E8"],
+                        "floors": [("checker", "#FFF4F8", "#E86FA0"), ("planks", "#F2D0DC", "#E8C0D0"),
+                                   ("carpet", "#9F7ED8", "#FFE08A"), ("checker", "#FFF4F8", "#9F7ED8")],
+                        "exterior": "#FAF2F4", "accent": "#E86FA0", "dome": "#E8B83A"},
+    "infinite_museum": {"walls": ["#7E5FC8", "#2FA6A0", "#F28C3A", "#E86FA0", "#3A78D8"],
+                        "floors": [("checker", "#F6F2FE", "#7E5FC8"), ("planks", "#E8C890", "#D8B47A"),
+                                   ("carpet", "#2FA6A0", "#F2C14E"), ("checker", "#F6F2FE", "#F28C3A")],
+                        "exterior": "#F2EEFA", "accent": "#7E5FC8", "dome": "#F2C14E"},
+}
+
+
 def toyify(hexc, sat=1.9, val=1.12):
     """Push a muted theme colour toward the saturated toy palette."""
     import colorsys
@@ -101,9 +152,27 @@ def auto_style(venue, theme):
         else:
             floors[r["id"]] = ("checker", light, toyify(col("stone", "#D9C4A0"), 1.3, 1.1))
     lawn, paving, tree = SURROUNDS.get(theme.get("surround", "parkland"), SURROUNDS["parkland"])
-    return {"floors": floors, "walls": walls, "exterior": toyify(col("panel", "#EFE3CC"), 1.1, 1.0),
-            "trim": "#FFF7E6", "accent": toyify(col("carpet", "#D9413A"), 1.6, 1.1),
-            "dome": toyify(col("trim", "#5FB8A0"), 1.5, 1.1), "lawn": lawn, "paving": paving, "tree": tree}
+    style = {"floors": floors, "walls": walls, "exterior": toyify(col("panel", "#EFE3CC"), 1.1, 1.0),
+             "trim": "#FFF7E6", "accent": toyify(col("carpet", "#D9413A"), 1.6, 1.1),
+             "dome": toyify(col("trim", "#5FB8A0"), 1.5, 1.1), "lawn": lawn, "paving": paving, "tree": tree,
+             "surround": theme.get("surround", "parkland")}
+    vp = VENUE_PALETTES.get(venue["id"])
+    if vp:
+        role_floor = {"queue": 0, "exhibit": 1, "promo": 2, "lobby": 3}
+        wi = 0
+        for i, r in enumerate(theme.get("rooms", [])):
+            role = r.get("role", "link")
+            f = vp["floors"][role_floor[role]] if role in role_floor else vp["floors"][(i + 1) % len(vp["floors"])]
+            if role == "store":
+                f = ("planks", vp["walls"][0], shade(vp["walls"][0], 0.9))
+            floors[r["id"]] = f
+            c = vp["walls"][wi % len(vp["walls"])]
+            wi += 1
+            walls[r["id"]] = c
+            if r.get("dept"):
+                walls[r["dept"]] = c
+        style.update({k: vp[k] for k in ("exterior", "accent", "dome")})
+    return style
 
 
 def load_wings(vid):
@@ -218,6 +287,20 @@ class Builder:
                                     mat(lawn[i % 2], 0.6)))
             y, i = yb, i + 1
         road_y = H + 5.2
+        if self.s.get("surround") == "harbour":
+            # The sea behind the building: water, a sandy strand and a jetty.
+            sea0 = self.back_y() - 3.0
+            self.add("grounds", box((x1 - x0, sea0 - y0, 0.1), g2b((x0 + x1) / 2, (y0 + sea0) / 2, -0.02), mat("#2E9FD8", 0.15)))
+            self.add("grounds", box((x1 - x0, 1.2, 0.12), g2b((x0 + x1) / 2, sea0 + 0.6, -0.01), mat("#EBD9A8", 0.8)))
+            for k in range(6):
+                self.add("grounds", box((x1 - x0, 0.06, 0.02), g2b((x0 + x1) / 2, y0 + 1.5 + k * (sea0 - y0 - 2) / 6, 0.04),
+                                        mat("#BFE9FF", 0.3)))
+            jx = W * 0.7
+            self.add("grounds", box((1.2, 5.0, 0.12), g2b(jx, sea0 - 2.4, 0.12), mat("#B8783F", 0.6), bev=0.02))
+            for k in range(4):
+                for sx in (-0.5, 0.5):
+                    self.add("grounds", cyl(0.08, 0.6, g2b(jx + sx, sea0 - 0.6 - k * 1.3, 0.0), mat("#7A4A2A", 0.6), bev=0))
+            y0 = sea0
         self.add("grounds", [
             box((x1 - x0, 3.0, 0.06), g2b((x0 + x1) / 2, road_y + 1.5, 0.0), mat("#5B6573", 0.55)),
             box((x1 - x0, 0.9, 0.14), g2b((x0 + x1) / 2, road_y - 0.45, 0.0), mat("#D9D2C3", 0.5), bev=0.03),
@@ -244,8 +327,11 @@ class Builder:
         spots = []
         for gy in range(int(self.back_y()) - 5, int(H) + 3, 2):  # flanks
             spots += [(-2.2 - r.uniform(0, 3.5), gy + r.uniform(-0.4, 0.4)), (W + 2.2 + r.uniform(0, 3.5), gy + r.uniform(-0.4, 0.4))]
-        for gx in range(-2, int(W) + 3, 2):  # behind the building
-            spots.append((gx + r.uniform(-0.4, 0.4), self.back_y() - 2.2 - r.uniform(0, 2.5)))
+        if self.s.get("surround") != "harbour":  # a harbour museum backs onto the sea
+            for gx in range(-2, int(W) + 3, 2):  # behind the building
+                spots.append((gx + r.uniform(-0.4, 0.4), self.back_y() - 2.2 - r.uniform(0, 2.5)))
+        else:
+            spots = [(gx, gy) for gx, gy in spots if gy > self.back_y() - 2.5]
         # Trees and bushes are INSTANCED in Godot (one shared mesh, many
         # transforms): baked copies were two thirds of every shell's vertices.
         # Their spots ride on the grounds node as flat [gx, gy, rot, scale, ...].
