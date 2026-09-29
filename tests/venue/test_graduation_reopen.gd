@@ -74,6 +74,9 @@ func run() -> void:
    check(gs.item_level(next,dept,0)==2 and gs.dept_level(next,dept,"speed")==2, next+" "+dept+" upgrades independently before saving")
   check(ss.save_now(), "graduation and purchases persist to disk")
  view.queue_free();await process_frame
+ # Let the last button click finish: a playback still mixing at quit is
+ # reported as a leaked click.ogg, and this log is echoed by the parent.
+ await create_timer(0.8).timeout
  print("graduation reopen process %d: %d failure(s)" % [hop,failures])
  quit(0 if failures==0 else 1)
 
