@@ -127,11 +127,16 @@
           "y": 2.97,
           "floor": ["planks", "#CFE8F2", "#B8DCEB"],
           "wall": "#3F8FC6",
+          "rugs": [[4.8, -6.2, 8.4, 3.8, "#2F8FD8"]],
           "exhibits": [
             {"kind": "whale", "at": [2.0, -8.4], "size": [6.0, 1.6], "anchor": [5.0, -7.6], "views": [[-2.6, 1.7], [-0.87, 1.7], [0.87, 1.7], [2.6, 1.7]]},
             {"kind": "tank", "at": [10.4, -8.4], "size": [2.8, 1.2], "anchor": [11.8, -7.8], "views": [[-1.0, 1.5], [1.0, 1.5]]},
             {"kind": "coral", "at": [14.6, -8.2], "size": [1.7, 1.2], "anchor": [15.45, -7.6], "views": [[0.0, 1.5]]},
-            {"kind": "touch_pool", "at": [7.9, -4.6], "size": [2.2, 1.6], "anchor": [9.0, -3.8], "views": [[0.0, 1.7]]}
+            {"kind": "touch_pool", "at": [7.9, -4.6], "size": [2.2, 1.6], "anchor": [9.0, -3.8], "views": [[0.0, 1.7]]},
+            {"kind": "vitrine", "at": [1.35, -5.6], "size": [0.9, 1.6], "anchor": [1.8, -4.8], "views": [[0.0, 1.7]]},
+            {"kind": "vitrine", "at": [15.75, -5.6], "size": [0.9, 1.6], "anchor": [16.2, -4.8], "views": [[0.0, 1.7]]},
+            {"kind": "mural", "at": [3.9, -9.0], "len": 2.2},
+            {"kind": "mural", "at": [11.9, -9.0], "len": 2.2}
           ],
           "props": [
             {"kind": "planter", "at": [1.45, -8.55]},
@@ -139,7 +144,11 @@
             {"kind": "planter", "at": [1.45, -0.6]},
             {"kind": "planter", "at": [16.55, -0.6]},
             {"kind": "bench", "at": [4.0, -2.4], "len": 1.5, "axis": "x"},
-            {"kind": "bench", "at": [12.4, -2.4], "len": 1.5, "axis": "x"}
+            {"kind": "bench", "at": [12.4, -2.4], "len": 1.5, "axis": "x"},
+            {"kind": "planter", "at": [7.4, -0.6]},
+            {"kind": "planter", "at": [10.6, -0.6]},
+            {"kind": "rope_post", "at": [7.6, -5.0]},
+            {"kind": "rope_post", "at": [10.4, -5.0]}
           ],
           "stations": [[5.8, -5.6], [13.2, -5.6]],
           "lift": {"at": [12.0, 1.55], "enter": [12.0, 2.45], "exit": [12.0, -0.9]}
@@ -214,11 +223,16 @@
           "y": 2.97,
           "floor": ["planks", "#F3E3C3", "#E6D2AC"],
           "wall": "#C9A36A",
+          "rugs": [[4.8, -6.2, 8.4, 3.8, "#C0392B"]],
           "exhibits": [
             {"kind": "statue", "at": [2.4, -8.5], "size": [1.8, 1.8], "anchor": [3.3, -7.6], "views": [[0.0, 1.8]]},
             {"kind": "statue", "at": [13.8, -8.5], "size": [1.8, 1.8], "anchor": [14.7, -7.6], "views": [[0.0, 1.8]]},
             {"kind": "vitrine", "at": [10.6, -8.4], "size": [0.9, 1.8], "anchor": [11.05, -7.5], "views": [[0.0, 1.8]]},
-            {"kind": "case", "at": [7.9, -4.6], "size": [2.0, 0.9], "anchor": [8.9, -4.15], "views": [[0.0, 1.35]]}
+            {"kind": "case", "at": [7.9, -4.6], "size": [2.0, 0.9], "anchor": [8.9, -4.15], "views": [[0.0, 1.35]]},
+            {"kind": "vitrine", "at": [1.35, -5.6], "size": [0.9, 1.6], "anchor": [1.8, -4.8], "views": [[0.0, 1.7]]},
+            {"kind": "vitrine", "at": [15.75, -5.6], "size": [0.9, 1.6], "anchor": [16.2, -4.8], "views": [[0.0, 1.7]]},
+            {"kind": "mural", "at": [3.9, -9.0], "len": 2.2},
+            {"kind": "mural", "at": [11.9, -9.0], "len": 2.2}
           ],
           "props": [
             {"kind": "planter", "at": [1.45, -8.55]},
@@ -226,7 +240,11 @@
             {"kind": "planter", "at": [1.45, -0.6]},
             {"kind": "planter", "at": [16.55, -0.6]},
             {"kind": "bench", "at": [4.0, -2.4], "len": 1.5, "axis": "x"},
-            {"kind": "bench", "at": [12.4, -2.4], "len": 1.5, "axis": "x"}
+            {"kind": "bench", "at": [12.4, -2.4], "len": 1.5, "axis": "x"},
+            {"kind": "planter", "at": [7.4, -0.6]},
+            {"kind": "planter", "at": [10.6, -0.6]},
+            {"kind": "rope_post", "at": [7.6, -5.0]},
+            {"kind": "rope_post", "at": [10.4, -5.0]}
           ],
           "stations": [[5.8, -5.6], [13.2, -5.6]],
           "lift": {"at": [9.0, 3.55], "enter": [9.0, 4.45], "exit": [9.0, -0.9]}
@@ -301,11 +319,16 @@
           "y": 2.97,
           "floor": ["checker", "#EDE6FF", "#C9B8F0"],
           "wall": "#5B3F8C",
+          "rugs": [[5.3, -6.2, 8.4, 3.8, "#5B3F8C"]],
           "exhibits": [
             {"kind": "orrery", "at": [2.5, -8.6], "size": [2.4, 1.8], "anchor": [3.7, -7.7], "views": [[0.0, 1.8]]},
             {"kind": "clockwork", "at": [12.8, -8.5], "size": [1.8, 1.5], "anchor": [13.7, -7.75], "views": [[0.0, 1.65]]},
             {"kind": "vitrine", "at": [15.9, -8.3], "size": [0.9, 1.6], "anchor": [16.35, -7.5], "views": [[0.0, 1.7]]},
-            {"kind": "case", "at": [8.5, -4.6], "size": [2.0, 0.9], "anchor": [9.5, -4.15], "views": [[0.0, 1.35]]}
+            {"kind": "case", "at": [8.5, -4.6], "size": [2.0, 0.9], "anchor": [9.5, -4.15], "views": [[0.0, 1.35]]},
+            {"kind": "vitrine", "at": [1.35, -5.6], "size": [0.9, 1.6], "anchor": [1.8, -4.8], "views": [[0.0, 1.7]]},
+            {"kind": "vitrine", "at": [16.75, -5.6], "size": [0.9, 1.6], "anchor": [17.2, -4.8], "views": [[0.0, 1.7]]},
+            {"kind": "mural", "at": [4.15, -9.0], "len": 2.2},
+            {"kind": "mural", "at": [12.65, -9.0], "len": 2.2}
           ],
           "props": [
             {"kind": "planter", "at": [1.45, -8.55]},
@@ -313,7 +336,11 @@
             {"kind": "planter", "at": [1.45, -0.6]},
             {"kind": "planter", "at": [17.55, -0.6]},
             {"kind": "bench", "at": [4.5, -2.4], "len": 1.5, "axis": "x"},
-            {"kind": "bench", "at": [12.9, -2.4], "len": 1.5, "axis": "x"}
+            {"kind": "bench", "at": [12.9, -2.4], "len": 1.5, "axis": "x"},
+            {"kind": "planter", "at": [7.9, -0.6]},
+            {"kind": "planter", "at": [11.1, -0.6]},
+            {"kind": "rope_post", "at": [8.1, -5.0]},
+            {"kind": "rope_post", "at": [10.9, -5.0]}
           ],
           "stations": [[6.3, -5.6], [13.7, -5.6]],
           "lift": {"at": [9.8, 0.55], "enter": [9.8, 1.45], "exit": [9.8, -0.9]}
@@ -388,11 +415,16 @@
           "y": 2.97,
           "floor": ["planks", "#E6FAFF", "#BFEFF5"],
           "wall": "#2FB0B0",
+          "rugs": [[5.8, -6.2, 8.4, 3.8, "#FF7A6A"]],
           "exhibits": [
             {"kind": "whale", "at": [2.4, -8.4], "size": [6.0, 1.6], "anchor": [5.4, -7.6], "views": [[-2.6, 1.7], [-0.87, 1.7], [0.87, 1.7], [2.6, 1.7]]},
             {"kind": "throne", "at": [13.2, -8.5], "size": [1.8, 1.4], "anchor": [14.1, -7.8], "views": [[0.0, 1.6]]},
             {"kind": "coral", "at": [16.6, -8.2], "size": [1.7, 1.2], "anchor": [17.45, -7.6], "views": [[0.0, 1.5]]},
-            {"kind": "touch_pool", "at": [8.9, -4.6], "size": [2.2, 1.6], "anchor": [10.0, -3.8], "views": [[0.0, 1.7]]}
+            {"kind": "touch_pool", "at": [8.9, -4.6], "size": [2.2, 1.6], "anchor": [10.0, -3.8], "views": [[0.0, 1.7]]},
+            {"kind": "vitrine", "at": [1.35, -5.6], "size": [0.9, 1.6], "anchor": [1.8, -4.8], "views": [[0.0, 1.7]]},
+            {"kind": "vitrine", "at": [17.75, -5.6], "size": [0.9, 1.6], "anchor": [18.2, -4.8], "views": [[0.0, 1.7]]},
+            {"kind": "mural", "at": [4.4, -9.0], "len": 2.2},
+            {"kind": "mural", "at": [13.4, -9.0], "len": 2.2}
           ],
           "props": [
             {"kind": "planter", "at": [1.45, -8.55]},
@@ -400,7 +432,11 @@
             {"kind": "planter", "at": [1.45, -0.6]},
             {"kind": "planter", "at": [18.55, -0.6]},
             {"kind": "bench", "at": [5.0, -2.4], "len": 1.5, "axis": "x"},
-            {"kind": "bench", "at": [13.4, -2.4], "len": 1.5, "axis": "x"}
+            {"kind": "bench", "at": [13.4, -2.4], "len": 1.5, "axis": "x"},
+            {"kind": "planter", "at": [8.4, -0.6]},
+            {"kind": "planter", "at": [11.6, -0.6]},
+            {"kind": "rope_post", "at": [8.6, -5.0]},
+            {"kind": "rope_post", "at": [11.4, -5.0]}
           ],
           "stations": [[6.8, -5.6], [14.2, -5.6]],
           "lift": {"at": [14.5, 0.55], "enter": [14.5, 1.45], "exit": [14.5, -0.9]}
@@ -489,12 +525,15 @@
           "y": 5.77,
           "floor": ["checker", "#FFE9B8", "#E3A21A"],
           "wall": "#1F6FB0",
+          "rugs": [[7.7, -5.4, 5.2, 3.0, "#1F6FB0"]],
           "lift": {"at": [10.3, 0.45], "enter": [10.3, 1.35], "exit": [10.3, -0.9]},
           "exhibits": [
             {"kind": "cafe_table", "at": [7.1, -1.9], "anchor": [7.1, -1.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
             {"kind": "telescope", "at": [13.7, -1.7], "anchor": [13.7, -1.7], "views": [[0.0, 0.9]], "front": [0, 1]},
             {"kind": "casket", "at": [6.2, -7.2], "size": [1.4, 1.4], "anchor": [6.9, -6.5], "views": [[0.0, 1.6]]},
-            {"kind": "statue", "at": [12.6, -7.3], "size": [1.6, 1.6], "anchor": [13.4, -6.5], "views": [[0.0, 1.7]]}
+            {"kind": "statue", "at": [12.6, -7.3], "size": [1.6, 1.6], "anchor": [13.4, -6.5], "views": [[0.0, 1.7]]},
+            {"kind": "mural", "at": [6.4, -8.0], "len": 2.2},
+            {"kind": "mural", "at": [12.0, -8.0], "len": 2.2}
           ],
           "props": [
             {"kind": "topiary", "at": [5.75, -7.55]},
@@ -553,12 +592,15 @@
           "y": 5.77,
           "floor": ["checker", "#EAF4FF", "#8FB8E8"],
           "wall": "#3A78D8",
+          "rugs": [[3.0, -5.4, 5.2, 3.0, "#E0524A"]],
           "lift": {"at": [5.6, 0.45], "enter": [5.6, 1.35], "exit": [5.6, -0.9]},
           "exhibits": [
             {"kind": "cafe_table", "at": [2.4, -1.9], "anchor": [2.4, -1.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
             {"kind": "telescope", "at": [9.0, -1.7], "anchor": [9.0, -1.7], "views": [[0.0, 0.9]], "front": [0, 1]},
             {"kind": "orrery", "at": [1.5, -7.3], "size": [1.8, 1.4], "anchor": [2.4, -6.6], "views": [[0.0, 1.6]]},
-            {"kind": "statue", "at": [8.0, -7.3], "size": [1.4, 1.4], "anchor": [8.7, -6.6], "views": [[0.0, 1.6]]}
+            {"kind": "statue", "at": [8.0, -7.3], "size": [1.4, 1.4], "anchor": [8.7, -6.6], "views": [[0.0, 1.6]]},
+            {"kind": "mural", "at": [1.7, -8.0], "len": 2.2},
+            {"kind": "mural", "at": [7.3, -8.0], "len": 2.2}
           ],
           "props": [
             {"kind": "topiary", "at": [1.05, -7.55]},
@@ -617,12 +659,15 @@
           "y": 5.77,
           "floor": ["planks", "#F5E6C8", "#E6D2AC"],
           "wall": "#6A8FBF",
+          "rugs": [[10.9, -5.4, 5.2, 3.0, "#2FA6A0"]],
           "lift": {"at": [17.6, 0.45], "enter": [17.6, 1.35], "exit": [17.6, -0.9]},
           "exhibits": [
             {"kind": "cafe_table", "at": [10.3, -1.9], "anchor": [10.3, -1.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
             {"kind": "telescope", "at": [16.9, -1.7], "anchor": [16.9, -1.7], "views": [[0.0, 0.9]], "front": [0, 1]},
             {"kind": "armor", "at": [9.4, -7.3], "size": [1.5, 1.2], "anchor": [10.15, -6.7], "views": [[0.0, 1.5]]},
-            {"kind": "statue", "at": [15.9, -7.3], "size": [1.4, 1.4], "anchor": [16.6, -6.6], "views": [[0.0, 1.6]]}
+            {"kind": "statue", "at": [15.9, -7.3], "size": [1.4, 1.4], "anchor": [16.6, -6.6], "views": [[0.0, 1.6]]},
+            {"kind": "mural", "at": [9.6, -8.0], "len": 2.2},
+            {"kind": "mural", "at": [15.2, -8.0], "len": 2.2}
           ],
           "props": [
             {"kind": "topiary", "at": [8.95, -7.55]},
@@ -681,12 +726,15 @@
           "y": 5.77,
           "floor": ["checker", "#E6DCC4", "#B9AC90"],
           "wall": "#8A7A6A",
+          "rugs": [[6.9, -8.4, 5.2, 3.0, "#C0392B"]],
           "lift": {"at": [9.5, 0.45], "enter": [9.5, 1.35], "exit": [9.5, -3.9]},
           "exhibits": [
             {"kind": "cafe_table", "at": [6.3, -4.9], "anchor": [6.3, -4.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
             {"kind": "telescope", "at": [12.9, -4.7], "anchor": [12.9, -4.7], "views": [[0.0, 0.9]], "front": [0, 1]},
             {"kind": "throne", "at": [5.4, -10.3], "size": [1.8, 1.4], "anchor": [6.3, -9.6], "views": [[0.0, 1.6]]},
-            {"kind": "armor", "at": [11.7, -10.3], "size": [1.5, 1.2], "anchor": [12.45, -9.7], "views": [[0.0, 1.5]]}
+            {"kind": "armor", "at": [11.7, -10.3], "size": [1.5, 1.2], "anchor": [12.45, -9.7], "views": [[0.0, 1.5]]},
+            {"kind": "mural", "at": [5.6, -11.0], "len": 2.2},
+            {"kind": "mural", "at": [11.2, -11.0], "len": 2.2}
           ],
           "props": [
             {"kind": "topiary", "at": [4.95, -10.55]},
@@ -745,12 +793,15 @@
           "y": 5.77,
           "floor": ["checker", "#FFFFFF", "#E8C35A"],
           "wall": "#B45CF0",
+          "rugs": [[13.9, -5.4, 5.2, 3.0, "#B45CF0"]],
           "lift": {"at": [18.3, 0.45], "enter": [18.3, 1.35], "exit": [18.3, -0.9]},
           "exhibits": [
             {"kind": "cafe_table", "at": [13.3, -1.9], "anchor": [13.3, -1.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
             {"kind": "telescope", "at": [19.9, -1.7], "anchor": [19.9, -1.7], "views": [[0.0, 0.9]], "front": [0, 1]},
             {"kind": "throne", "at": [12.4, -7.3], "size": [1.9, 1.4], "anchor": [13.35, -6.6], "views": [[0.0, 1.6]]},
-            {"kind": "statue", "at": [18.8, -7.3], "size": [1.5, 1.5], "anchor": [19.55, -6.55], "views": [[0.0, 1.65]]}
+            {"kind": "statue", "at": [18.8, -7.3], "size": [1.5, 1.5], "anchor": [19.55, -6.55], "views": [[0.0, 1.65]]},
+            {"kind": "mural", "at": [12.6, -8.0], "len": 2.2},
+            {"kind": "mural", "at": [18.2, -8.0], "len": 2.2}
           ],
           "props": [
             {"kind": "topiary", "at": [11.95, -7.55]},

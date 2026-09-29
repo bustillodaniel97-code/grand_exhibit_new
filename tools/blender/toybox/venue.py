@@ -613,6 +613,11 @@ class Builder:
             n = int(round(h / 0.5))
             for i in range(n):
                 self.add(g, box((wd, 0.5, 0.05), g2b(x + wd / 2, y + i * 0.5 + 0.25, z), mat(a if i % 2 else b, 0.3), bev=0.012, seg=1))
+        # rugs: [x, y, w, h, colour] with a trim border, the room's hue on the floor
+        for rx, ry, rw, rh, rc in L.get("rugs", []):
+            self.add(g, box((rw + 0.24, rh + 0.24, 0.02), g2b(rx + rw / 2, ry + rh / 2, top + 0.01), mat(trim, 0.4), bev=0.01, seg=1))
+            self.add(g, box((rw, rh, 0.03), g2b(rx + rw / 2, ry + rh / 2, top + 0.02), mat(rc, 0.6), bev=0.01, seg=1))
+            self.add(g, box((rw - 0.5, rh - 0.5, 0.032), g2b(rx + rw / 2, ry + rh / 2, top + 0.021), mat(shade(rc, 1.18), 0.6), bev=0.01, seg=1))
         # walls: tall back, medium sides (room colour inside, stone outside)
         def wall_seg(cx, cy, sx, sy, hh, inner_col, out):
             half = WALL_T / 2
