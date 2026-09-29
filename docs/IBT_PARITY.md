@@ -5,6 +5,10 @@ IBT is **mechanics-and-polish inspiration only**. No copied expression, art,
 copy, character design or naming. Everything we ship is original work.
 
 Gameplay-loop parity is tracked separately in `IBT_PARITY_AUDIT_2026-07-29.md`.
+The 3D toy-diorama overhaul (floors and grandeur, Dig Site, themed decor,
+platforms) has its own feature scorecard: `IBT_PARITY_SCORECARD.md`. Rows
+below that describe the 2D isometric floor now describe the fallback floor;
+every museum ships the 3D floor.
 This file covers how the game READS and what the player taps.
 
 Re-audited **2026-07-30** against the running build. Every row below was checked
