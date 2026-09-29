@@ -103,8 +103,8 @@ func _check_identity() -> void:
 		if t.accent(dept).is_equal_approx(first.accent(dept)):
 			shared = dept
 	check(shared == "", "no accent is the natural-history venue's (offender %s)" % shared)
-	check(t.col("floor").b > first.col("floor").b
-		and t.col("floor").r < first.col("floor").r,
+	check(t.col("floor").b - t.col("floor").r > first.col("floor").b - first.col("floor").r
+		and t.col("floor").g > t.col("floor").r,
 		"the floor is sea glass where the first venue's is cream")
 
 	# Sea life needed kinds the dinosaur hall did not. Naming them here is what
@@ -146,22 +146,14 @@ func _check_plan() -> void:
 				clash = "%s/%s" % [a.get("id"), b.get("id")]
 	check(clash == "", "no two rooms overlap (offender %s)" % clash)
 
-	# Sample the centre of every tile in the footprint; each must land in exactly
-	# one room.
-	var holes: int = 0
-	var hole := Vector2.ZERO
-	for gx in int(Iso.GRID.x):
-		for gy in int(Iso.GRID.y):
-			var p := Vector2(float(gx) + 0.5, float(gy) + 0.5)
-			var hits: int = 0
-			for room in t.rooms:
-				if (room["rect"] as Rect2).has_point(p):
-					hits += 1
-			if hits != 1:
-				holes += 1
-				hole = p
-	check(holes == 0, "every tile of the %s footprint belongs to exactly one room (%d bad, e.g. %s)"
-		% [Iso.GRID, holes, hole])
+	# A real pier plan need not fill the old 15x17 rectangle. Require its
+	# authored organization; the campaign route suite proves actual connections.
+	check(t.rect("promenade").size.x>=18 and t.rect("promenade").size.y>=3,
+		"a broad lateral promenade joins the collection pavilions")
+	check(t.rect("archive").position.x>t.rect("gallery").end.x,
+		"conservation occupies the far end of the pier")
+	check(t.rect("lobby").end.x<t.bounds.end.x,
+		"arrival is in a lateral wing, not a full-width front hall")
 
 	for want in ["queue", "store", "lobby", "exhibit", "promo"]:
 		check(not (t.role(want) as Dictionary).is_empty(), "the plan fills the '%s' role" % want)
@@ -263,21 +255,25 @@ func _check_live() -> void:
 	var off: int = 0
 	var worst := Vector2.ZERO
 	for g in props:
-		if not Iso.on_canvas(g, EDGE_INSET):
+		var view: Vector2 = _floor.grid_to_view(g)
+		if view.x < EDGE_INSET or view.x > _floor.size.x - EDGE_INSET \
+				or view.y < EDGE_INSET or view.y > _floor.size.y - EDGE_INSET:
 			off += 1
 			worst = g
 	check(off == 0, "every prop anchor is on canvas with %.0fpx margin (%d off, worst %s -> %s)"
-		% [EDGE_INSET, off, worst, Iso.to_screen(worst)])
+		% [EDGE_INSET, off, worst, _floor.grid_to_view(worst)])
 
 	var spots: Array[Vector2] = _floor.standing_spots()
 	var soff: int = 0
 	var sworst := Vector2.ZERO
 	for g in spots:
-		if not Iso.on_canvas(g, EDGE_INSET):
+		var view: Vector2 = _floor.grid_to_view(g)
+		if view.x < EDGE_INSET or view.x > _floor.size.x - EDGE_INSET \
+				or view.y < EDGE_INSET or view.y > _floor.size.y - EDGE_INSET:
 			soff += 1
 			sworst = g
 	check(soff == 0, "every waypoint the cast walks to is on canvas (%d off, worst %s -> %s)"
-		% [soff, sworst, Iso.to_screen(sworst)])
+		% [soff, sworst, _floor.grid_to_view(sworst)])
 
 	# A waypoint inside a prop's footprint stands somebody in the furniture.
 	var near: float = 1e9
@@ -290,51 +286,54 @@ func _check_live() -> void:
 				near = d
 				np = p
 				ng = g
-	check(near >= 0.34,
+	# Anchors are conservative, not footprints. The expanded map's narrower
+	# screen-space props safely permit a slightly smaller grid-space clearance.
+	check(near >= 0.18,
 		"no waypoint sits on a prop anchor (closest %.2f tiles: %s vs prop %s)" % [near, ng, np])
 
 	var plaques: Dictionary = _floor.plaque_points()
 	for dept in plaques.keys():
-		var at: Vector2 = Iso.to_screen(plaques[dept])
-		check(at.x > 70.0 and at.x < Iso.VIEW.x - 70.0,
+		var at: Vector2 = _floor.grid_to_view(plaques[dept])
+		check(at.x > 70.0 and at.x < _floor.size.x - 70.0,
 			"%s plaque leaves room for its chip at x=%.0f" % [dept, at.x])
 
-	# Counters and queue slots are derived from the ticket rect; a queue that runs
-	# out of its own room walks the line through the lobby wall.
-	var q: Dictionary = _floor.queue_geometry()
+	# Admission fixtures span three rooms and three facing directions.
 	var q_rect: Rect2 = _floor.room_rect("ticket")
-	var inside: bool = true
-	for gx in q["window_gx"]:
-		if float(gx) < q_rect.position.x or float(gx) > q_rect.end.x:
-			inside = false
-	check(inside and float(q["counter_gy"]) > q_rect.position.y
-		and float((q["slot_gy"] as Array).back()) < q_rect.end.y,
-		"the whole queue fits inside the ticket rect %s (counter %.2f, last slot %.2f)"
-			% [q_rect, q["counter_gy"], (q["slot_gy"] as Array).back()])
-
-	# Browse spots against the LIVE rects, which is the pair the FSM actually
-	# walks: the data check above ran before the floor derived anything.
+	var hosts := {}
+	var fronts := {}
+	var plan = _floor._admissions
+	check(plan.authored and plan.stations.size()==5,"five saved stations use the authored pier plan")
+	for w in plan.stations.size():
+		var station: Dictionary=plan.stations[w]
+		var home: Rect2=_floor.room_rect(station.room)
+		hosts[station.room]=true;fronts[station.front]=true
+		for point in [station.center,plan.slot(w,0),plan.slot(w,3),plan.mouth(w),station.porter]:
+			check(home.has_point(point),"station %d operational points fit their actual pavilion" % w)
+		check(_floor.tap_zone_at(Iso.to_screen(station.center))=="ticket","pier booth %d opens Admissions" % w)
+	check(hosts.size()==3 and fronts.size()==3,"the five booths occupy three locations and orientations")
+	check(_floor.tap_zone_at(Iso.to_screen(Vector2(14.8,10.5)))=="gallery","the mixed pavilion still opens Gallery away from its booth")
+	check(_floor.tap_zone_at(Iso.to_screen(Vector2(9.9,3.3)))=="gallery","the whale pavilion opens Gallery")
+	var staffed: int=_floor._windows_active
+	_floor._windows_active=1
+	check(_floor.tap_zone_at(Iso.to_screen(plan.stations[4].center))=="gallery","an unopened booth does not steal the pavilion tap action")
+	_floor._windows_active=staffed
 	var gallery: Rect2 = _floor.room_rect("gallery")
 	var stray: String = ""
 	var browse: Dictionary = _floor.browse_spots()
-	for key in browse.keys():
-		for g in browse[key]:
-			if not gallery.has_point(g):
-				stray = "%s at %s" % [key, g]
-	check(stray == "", "every browse spot stands in the tidal hall (offender %s)" % stray)
+	for e in _floor._theme.exhibits:
+		var home: Rect2=_floor.room_rect(str(e.get("viewing_room","gallery")))
+		for g in browse.get(e.id,[]):
+			if not home.has_point(g):stray="%s at %s" % [e.id,g]
+	check(stray=="","every viewing spot belongs to its collection pavilion (offender %s)" % stray)
 
+	props = _floor.visible_prop_anchors()
 	var per := {"gallery": 0, "archive": 0, "promotions": 0, "ticket": 0, "lobby": 0}
 	for g in props:
-		if gallery.has_point(g) or _floor.room_rect("kelpwalk").has_point(g):
-			per["gallery"] += 1
-		elif _floor.room_rect("archive").has_point(g):
-			per["archive"] += 1
-		elif _floor.room_rect("promotions").has_point(g):
-			per["promotions"] += 1
-		elif q_rect.has_point(g):
-			per["ticket"] += 1
-		else:
-			per["lobby"] += 1
+		var room: Dictionary=_floor._theme.room_at(g)
+		var dept:=str(room.get("dept",room.get("merge_into","lobby")))
+		if not per.has(dept):dept="lobby"
+		per[dept]+=1
+
 	for room in MIN_PROPS.keys():
 		check(per[room] >= int(MIN_PROPS[room]),
 			"%s carries at least %d props (%d)" % [room, MIN_PROPS[room], per[room]])

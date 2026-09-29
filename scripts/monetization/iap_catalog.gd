@@ -23,15 +23,15 @@ extends RefCounted
 const MonoClock := preload("res://scripts/monetization/mono_clock.gd")
 const Entitlements := preload("res://scripts/monetization/entitlements.gd")
 
-## Redeemed-token ring. Bounded because it rides in the save file; a real client
-## only needs enough history to cover the store's re-delivery window.
+## Durable receipt history. Do not evict old tokens: an unresolved store
+## delivery can outlive any arbitrary number of newer purchases.
 const RECEIPTS_KEY := "_iap_receipts"
-const RECEIPTS_MAX := 64
 
 static var _connected: bool = false
 ## product_id -> true while a purchase is in flight. Claimed synchronously in
 ## purchase(), which is what makes repeat taps inside the round trip a no-op.
 static var _in_flight: Dictionary = {}
+static var _unsaved_deliveries: Dictionary = {}
 
 static func _ensure_connected() -> void:
 	if _connected:
@@ -76,6 +76,11 @@ static func blocked_reason(product_id: String) -> String:
 		return "owned"
 	if purchases_left_today(product_id) == 0:
 		return "daily_limit"
+	# Real-billing builds only offer products Play actually reported. Selling
+	# through an unverified price would charge a live sheet from a fabricated
+	# fallback, so unavailable stays blocked here (not only in the UI label).
+	if IAPService.using_real_billing() and not IAPService.is_available(product_id):
+		return "unavailable"
 	return ""
 
 static func blocked_message(product_id: String) -> String:
@@ -86,6 +91,8 @@ static func blocked_message(product_id: String) -> String:
 			return "You already own this"
 		"daily_limit":
 			return "Daily purchase limit reached — back tomorrow"
+		"unavailable":
+			return "Not available in your store right now"
 		_:
 			return ""
 
@@ -127,18 +134,32 @@ static func _on_iap_result(product_id: String, success: bool, receipt: Dictionar
 		Analytics.iap_funnel("failed", product_id, {"reason": str(receipt.get("reason", "unknown"))})
 		EventBus.toast_requested.emit("Purchase failed — please try again")
 		return
-	var token: String = str(receipt.get("purchase_token", ""))
-	if not _redeem_receipt(token):
-		# Re-delivery of something already granted. Acknowledge, grant nothing.
-		Analytics.iap_funnel("duplicate_receipt", product_id, {"token": token})
+	# Store reconnect can precede profile loading. Leave the receipt outstanding
+	# so the service retries after startup rather than granting into a blank save.
+	if not GameState.ready_flag:
 		return
-	var grants: Dictionary = apply_grants(product_id)
-	if grants.is_empty() and str(DataLoader.get_iap(product_id).get("entitlement", "")) == "":
-		_release_slot(product_id)
-		return  # unknown product; nothing granted, nothing counted
-	Entitlements.record_purchase(product_id)
-	EventBus.iap_completed.emit(product_id)
-	Analytics.iap_funnel("complete", product_id, {"order": str(receipt.get("order_id", ""))})
+	if DataLoader.get_iap(product_id).is_empty():
+		Analytics.iap_funnel("delivery_blocked", product_id, {"reason": "unknown_product"})
+		return
+	var token: String = str(receipt.get("purchase_token", ""))
+	if token.is_empty():
+		Analytics.iap_funnel("delivery_blocked", product_id, {"reason": "missing_token"})
+		return
+	var first_delivery := _redeem_receipt(token)
+	if first_delivery:
+		apply_grants(product_id)
+		Entitlements.record_purchase(product_id)
+		_unsaved_deliveries[token] = true
+	# Retry persists the same in-memory grant; never roll another box or grant
+	# currency twice. After process death the store can re-deliver the receipt.
+	if not SaveSystem.save_now():
+		EventBus.toast_requested.emit("Purchase received. Saving will retry — please keep your progress on this device.")
+		return
+	IAPService.confirm_delivery(token)
+	if _unsaved_deliveries.has(token):
+		_unsaved_deliveries.erase(token)
+		EventBus.iap_completed.emit(product_id)
+		Analytics.iap_funnel("complete", product_id)
 
 ## True the first time a purchase token is seen. An empty token (a direct
 ## apply_grants call, or a stub with no receipt) is always allowed through — the
@@ -154,8 +175,6 @@ static func _redeem_receipt(token: String) -> bool:
 	if token in arr:
 		return false
 	arr.append(token)
-	while arr.size() > RECEIPTS_MAX:
-		arr.remove_at(0)
 	return true
 
 static func _on_restore_completed(product_ids: Array) -> void:

@@ -11,7 +11,18 @@ extends SceneTree
 
 var failures: int = 0
 
-const SAVE_FILE := "user://grand_exhibit_save.json"
+## Resolved through SaveSystem rather than hardcoded. This suite deletes and
+## corrupts the save on purpose, and on a developer box the literal path is
+## the live player profile; SaveSystem.save_path() redirects into a throwaway
+## subdirectory whenever the main loop is a res://tests/ script.
+var _save_file_cache: String = ""
+func save_file() -> String:
+	if _save_file_cache.is_empty():
+		# load() not preload(): under -s the main script compiles before autoload
+		# names are bound, and save_system.gd names them. Resolving at runtime
+		# sidesteps that. save_path() is static, so no instance is needed.
+		_save_file_cache = load("res://autoload/save_system.gd").save_path()
+	return _save_file_cache
 
 func check(cond: bool, msg: String) -> void:
 	if cond:
@@ -21,12 +32,12 @@ func check(cond: bool, msg: String) -> void:
 		printerr("  FAIL ", msg)
 
 func cleanup() -> void:
-	for p in [SAVE_FILE, SAVE_FILE + ".bak"]:
+	for p in [save_file(), save_file() + ".bak", save_file() + ".corrupt", save_file() + ".tmp", save_file() + ".bak.tmp"]:
 		if FileAccess.file_exists(p):
 			DirAccess.remove_absolute(p)
 
 func write_envelope(env: Dictionary) -> void:
-	var f := FileAccess.open(SAVE_FILE, FileAccess.WRITE)
+	var f := FileAccess.open(save_file(), FileAccess.WRITE)
 	f.store_string(JSON.stringify(env))
 	f.close()
 
@@ -47,7 +58,7 @@ func run() -> void:
 	GS.gems = 77
 	SS.save_now()
 	check(SS.has_save(), "baseline v3 save written")
-	var env: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAVE_FILE))
+	var env: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(save_file()))
 	check(int(env.get("version", 0)) == SS.SAVE_VERSION, "baseline envelope is current SAVE_VERSION")
 	var v1_state: Dictionary = env["state"].duplicate(true)
 	v1_state.erase("expedition_state")
@@ -75,7 +86,7 @@ func run() -> void:
 	check(typeof(GS.venues_closed) == TYPE_ARRAY, "migrated venues_closed is an Array")
 	# Migrated state must survive a v3 round-trip (save + load again).
 	SS.save_now()
-	var env2: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAVE_FILE))
+	var env2: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(save_file()))
 	check(int(env2.get("version", 0)) == SS.SAVE_VERSION, "re-save upgrades envelope to current SAVE_VERSION")
 	GS.reset_to_new_game()
 	check(SS.load_game() == true and GS.cash.eq(BigNumber.from_parts(1.5, 4)),
@@ -91,7 +102,7 @@ func run() -> void:
 	GS.current_venue = "grand_river"
 	GS.cash = BigNumber.from_parts(6.6, 7)
 	SS.save_now()
-	var v3_env: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAVE_FILE))
+	var v3_env: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(save_file()))
 	var v2_state: Dictionary = v3_env["state"].duplicate(true)
 	v2_state.erase("venues_closed")
 	var v2_payload: String = JSON.stringify(v2_state)
@@ -114,7 +125,7 @@ func run() -> void:
 	GS.reset_to_new_game()
 	GS.ready_flag = true
 	SS.save_now()
-	var first_env: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAVE_FILE))
+	var first_env: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(save_file()))
 	var first_state: Dictionary = first_env["state"].duplicate(true)
 	first_state.erase("venues_closed")
 	var first_payload: String = JSON.stringify(first_state)
@@ -128,17 +139,17 @@ func run() -> void:
 	check(SS.load_game() == true, "load_game() true on a first-venue v2 envelope")
 	check(GS.venues_closed.is_empty(), "a player who never moved has closed nothing")
 
-	print("-- checksum tamper -> .bak + false + fresh boot survives --")
+	print("-- checksum tamper -> .corrupt + false + fresh boot survives --")
 	cleanup()
 	GS.reset_to_new_game()
 	GS.ready_flag = true
 	GS.cash = BigNumber.from_parts(9.9, 3)
 	SS.save_now()
-	var tampered: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAVE_FILE))
+	var tampered: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(save_file()))
 	tampered["state"]["gems"] = 999999  # tamper WITHOUT recomputing checksum
 	write_envelope(tampered)
 	check(SS.load_game() == false, "load_game() false on checksum mismatch")
-	check(FileAccess.file_exists(SAVE_FILE + ".bak"), "tampered save renamed to .bak")
+	check(FileAccess.file_exists(save_file() + ".corrupt"), "tampered save quarantined as .corrupt")
 	check(not SS.has_save(), "tampered save removed from live path")
 	# Boot path per main.gd: load fails -> reset_to_new_game -> game runs.
 	GS.reset_to_new_game()

@@ -16,6 +16,18 @@ var venues_unlocked: Array = ["whispering_pines"]
 ## would otherwise silently re-open a building the player already left behind.
 var venues_closed: Array = []
 var venues_state: Dictionary = {}
+## Every decor design the player has EVER bought, in any museum.
+##
+## This is a historical record, not an entitlement. Buying is per venue —
+## venue_state[vid].decor_bought — because a new museum is a new setting and
+## stocks its own decor from scratch, the way Idle Bank Tycoon rebuilds a new
+## bank from nothing. What this list is for:
+##
+##   · cross-venue SET bonuses, which SPEC §7 defines over the collection rather
+##     than over one building;
+##   · telling the player "you had this in the Aquarium" so a re-purchase reads
+##     as restocking a new hall, not as being charged twice for the same thing.
+var decor_owned: Array = []
 var pending_cash: Dictionary = {}          # venue_id -> BigNumber
 var managers_state: Dictionary = {}
 var boosts: Dictionary = {"income_x2_until": 0}
@@ -39,6 +51,7 @@ func reset_to_new_game() -> void:
 	venues_state = {}
 	for vid in DataLoader.venue_order():
 		venues_state[vid] = _fresh_venue_state(vid)
+	decor_owned = []
 	pending_cash = {}
 	managers_state = {}
 	for mid in DataLoader.managers.keys():
@@ -69,7 +82,13 @@ func _fresh_venue_state(venue_id: String) -> Dictionary:
 		# "staff" stays as a mirror of items.size(): plenty of code and tests read
 		# the raw dict, and a stale count is worse than a redundant one.
 		depts[dept_id] = {"staff": items.size(), "items": items, "speed": 1, "value": 1}
-	return {"depts": depts, "decor": {}, "milestones": [], "progress": 0.0, "active_quests": [],
+	# decor_bought: designs PAID FOR in this museum. Separate from `decor`
+	# (what is currently standing) so a piece put in storage can be stood back up
+	# for free here, while the next museum still stocks its own shelves from
+	# scratch. Idle Bank Tycoon does the same — a new bank is rebuilt from
+	# nothing — and it is what makes each venue feel like a new setting rather
+	# than a reskin of the last one.
+	return {"depts": depts, "decor": {}, "decor_bought": [], "milestones": [], "progress": 0.0, "active_quests": [],
 		"served_total": BigNumber.zero().to_save(), "earned_total": BigNumber.zero().to_save()}
 
 func venue_state(venue_id: String) -> Dictionary:
@@ -186,6 +205,9 @@ func feature_unlocked(feature: String) -> bool:
 		"prestige", "graduation":
 			var need: int = int(DataLoader.core.get("venue_progression", {})
 				.get("milestones_required", 8))
+			var authored: int = (DataLoader.milestones.get(current_venue, []) as Array).size()
+			if authored > 0:
+				need = mini(need, authored)
 			return venue_state(current_venue).get("milestones", []).size() >= need
 	return false
 
@@ -256,7 +278,7 @@ func to_save_dict() -> Dictionary:
 		"cash": cash.to_save(), "gems": gems, "insight": insight.to_save(),
 		"reputation_xp": reputation_xp.to_save(), "current_venue": current_venue,
 		"venues_unlocked": venues_unlocked, "venues_closed": venues_closed,
-		"venues_state": venues_state,
+		"venues_state": venues_state, "decor_owned": decor_owned,
 		"pending_cash": pending_save, "managers_state": managers_state,
 		"boosts": boosts, "rv_state": rv_state, "daily_deals": daily_deals,
 		"expedition_state": expedition_state, "event_state": event_state,
@@ -291,6 +313,12 @@ func from_save_dict(d: Dictionary) -> void:
 				for tk in saved_dept.keys():
 					merged["depts"][dept_id][tk] = saved_dept[tk]
 		venues_state[vid] = merged
+	# A pre-v5 save records ownership only by placement. SaveSystem.migrate
+	# derives the design list; deriving here too keeps a hand-edited or partial
+	# dict loadable without silently confiscating the player's collection.
+	decor_owned = (d.get("decor_owned", []) as Array).duplicate()
+	if decor_owned.is_empty():
+		decor_owned = _derive_decor_owned()
 	pending_cash = {}
 	for vid in d.get("pending_cash", {}).keys():
 		pending_cash[vid] = BigNumber.from_save(d["pending_cash"][vid])
@@ -307,3 +335,23 @@ func from_save_dict(d: Dictionary) -> void:
 	last_seen_unix = int(d.get("last_seen_unix", last_seen_unix))
 	offer_state = d.get("offer_state", offer_state)
 	settings = d.get("settings", settings)
+
+## Every design standing on any floor was, by definition, paid for. Used to
+## reconstruct decor_owned for saves written before ownership went global.
+func _derive_decor_owned() -> Array:
+	var out: Array = []
+	for vid in venues_state.keys():
+		if typeof(venues_state[vid]) != TYPE_DICTIONARY:
+			continue
+		for did in (venues_state[vid] as Dictionary).get("decor", {}).values():
+			if str(did) != "" and str(did) not in out:
+				out.append(str(did))
+	return out
+
+## True when the player has unlocked this design anywhere, ever.
+func owns_decor_design(decor_id: String) -> bool:
+	return decor_id in decor_owned
+
+func unlock_decor_design(decor_id: String) -> void:
+	if decor_id != "" and decor_id not in decor_owned:
+		decor_owned.append(decor_id)

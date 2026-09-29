@@ -162,6 +162,9 @@ func _test_collect_item_once() -> void:
 	check(absf(pending_before.to_float_approx() - pending_after.to_float_approx()
 		- amount.to_float_approx()) < 0.001, "venue pending dropped by the same amount")
 	check(got.size() == 1 and got[0][0] == 0, "item_collected fired for the station")
+	var remaining: int = EC.item_collect_remaining(V, "ticket", 0)
+	check(remaining >= 119 and remaining <= 120,
+		"station zero enters its saved two-minute recharge (%ds)" % remaining)
 	check(EC.collect_item(V, "ticket", 0).is_zero(), "second collect yields zero — no double grant")
 
 func _test_manual_collect_drains_ledger() -> void:

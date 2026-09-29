@@ -42,6 +42,8 @@ const LEVEL_H := 74.0
 ## y, so each level claims a band and the cast (0), cash floats (1) and room
 ## plaques (2) sit inside their own level's band.
 const LEVEL_Z := 8
+## Smaller risers keep feet close to the continuously interpolated stair surface.
+const STAIR_TREADS := 14
 
 ## Screen offset of a storey. Negative because up is -y in canvas space.
 static func level_lift(level: int) -> float:
@@ -55,8 +57,112 @@ static func level_lift(level: int) -> float:
 ## replaced eyeballing it, and tests/venue/test_geometry.gd holds the line.
 const VIEW := Vector2(720.0, 760.0)
 
+## The colour unlit faces tint TOWARD.
+##
+## `Color.darkened()` multiplies toward BLACK, so every shadowed face in the game
+## slides toward grey mud on the way there — a crimson carpet's dark side and a
+## teal wall's dark side converge on nearly the same colour, and the whole diorama
+## reads as flat shapes that are merely dimmer rather than lit. Real shadow is lit
+## by the ambient: a night sky, a daylit street. Shading toward that instead keeps
+## the hue alive in the darks, and it is the cheapest single change that makes
+## these polygons look lit — no shader, no extra draw calls, no new assets.
+##
+## A static because exactly one venue is ever on screen; VenueFloor sets it from
+## that venue's own shell colour when the theme is built, so the ambient always
+## belongs to the building it is shading.
+static var shade_ambient: Color = Color("#1E2138")
+
+## Shade a face by `amount`, toward the ambient rather than toward black.
+static func shade(col: Color, amount: float) -> Color:
+	return col.lerp(shade_ambient, amount)
+
+## Ground-plane rotation, applied inside the projection.
+##
+## Every painter in the game builds its shape from grid-space points and hands
+## them to `to_screen`. Rotating there rotates the piece — the whole piece, walls
+## and lids and rope posts included — without any painter knowing it happened.
+## The alternative was teaching thirty-odd painters to compute rotated corners
+## individually, which is the answer I wrongly gave first.
+##
+## Rotation is on the GROUND PLANE, about a pivot in grid space, so a turned
+## bench stays flat on the floor instead of spinning against the screen the way
+## a node rotation would.
+##
+## Guarded by a bool because this is the hottest function in the renderer —
+## thousands of calls a frame — and the untransformed path has to stay free.
+static var _rot_on := false
+static var _rot_pivot := Vector2.ZERO
+static var _rot_cos := 1.0
+static var _rot_sin := 0.0
+static var _rot_stack: Array = []
+
+## Turn everything drawn until the matching pop by `radians` about `pivot`.
+static func push_rotation(pivot: Vector2, radians: float) -> void:
+	_rot_stack.push_back([_rot_on, _rot_pivot, _rot_cos, _rot_sin])
+	_rot_on = not is_zero_approx(radians)
+	_rot_pivot = pivot
+	_rot_cos = cos(radians)
+	_rot_sin = sin(radians)
+
+static func pop_rotation() -> void:
+	if _rot_stack.is_empty():
+		_rot_on = false
+		return
+	var prev: Array = _rot_stack.pop_back()
+	_rot_on = bool(prev[0])
+	_rot_pivot = prev[1]
+	_rot_cos = float(prev[2])
+	_rot_sin = float(prev[3])
+
+## Reflection on the ground plane, about a line through a pivot.
+##
+## A MIRROR IS NOT A ROTATION. No angle turns a left-handed arrangement into a
+## right-handed one, which is why an L of benches could never be matched on the
+## opposite side of a room by spinning the pieces — the shape needed reflecting,
+## and nothing in the renderer could reflect.
+##
+## `axis` is the line the reflection happens ACROSS, in grid space: "x" mirrors
+## gy about the pivot (a north-south flip), "y" mirrors gx (east-west), and "d"
+## mirrors about the diagonal by swapping gx and gy, which is the one that reads
+## as a left-right mirror on an isometric screen.
+static var _mir_on := false
+static var _mir_pivot := Vector2.ZERO
+static var _mir_axis := "y"
+static var _mir_stack: Array = []
+
+static func push_mirror(pivot: Vector2, axis: String) -> void:
+	_mir_stack.push_back([_mir_on, _mir_pivot, _mir_axis])
+	_mir_on = axis != ""
+	_mir_pivot = pivot
+	_mir_axis = axis
+
+static func pop_mirror() -> void:
+	if _mir_stack.is_empty():
+		_mir_on = false
+		return
+	var prev: Array = _mir_stack.pop_back()
+	_mir_on = bool(prev[0])
+	_mir_pivot = prev[1]
+	_mir_axis = str(prev[2])
+
+static func mirror_point(g: Vector2, pivot: Vector2, axis: String) -> Vector2:
+	match axis:
+		"x": return Vector2(g.x, 2.0 * pivot.y - g.y)
+		"y": return Vector2(2.0 * pivot.x - g.x, g.y)
+		"d":
+			var d: Vector2 = g - pivot
+			return pivot + Vector2(d.y, d.x)
+	return g
+
 static func to_screen(g: Vector2) -> Vector2:
-	return ORIGIN + Vector2((g.x - g.y) * TILE.x * 0.5, (g.x + g.y) * TILE.y * 0.5)
+	var p := g
+	if _mir_on:
+		p = mirror_point(p, _mir_pivot, _mir_axis)
+	if _rot_on:
+		var d: Vector2 = p - _rot_pivot
+		p = _rot_pivot + Vector2(d.x * _rot_cos - d.y * _rot_sin,
+			d.x * _rot_sin + d.y * _rot_cos)
+	return ORIGIN + Vector2((p.x - p.y) * TILE.x * 0.5, (p.x + p.y) * TILE.y * 0.5)
 
 ## Inverse projection — canvas point back to grid coords (used by tap routing).
 static func to_grid(s: Vector2) -> Vector2:
@@ -93,7 +199,7 @@ static func gx_window(gy: float, inset: float = 0.0) -> Vector2:
 ## widths.
 static func stroke(ci: CanvasItem, pts: PackedVector2Array, col: Color, w: float) -> void:
 	for i in range(1, pts.size()):
-		ci.draw_line(pts[i - 1], pts[i], col, w)
+		ci.draw_line(pts[i - 1], pts[i], col, w, true)
 
 ## A small round-reading blob built from two crossed rects, for the same reason:
 ## draw_circle costs a draw call apiece and there are dozens of 3-5px highlights
@@ -112,11 +218,35 @@ static func quad(g: Vector2, size: Vector2) -> PackedVector2Array:
 		to_screen(g + Vector2(0.0, size.y)),
 	])
 
+## Three/four-point convex faces use the renderer's batchable primitives.
+## Larger or concave shapes retain Godot's polygon triangulation. Color, alpha,
+## vertex positions, draw order and the current draw transform are unchanged.
+## Diagnostic switch supports same-scene pixel/performance comparison.
+static var batch_simple_faces := true
+static func fill(ci: CanvasItem, points: PackedVector2Array, color: Color) -> void:
+	var simple := points.size() == 3
+	if points.size() == 4:
+		var sign_value := 0.0
+		simple = true
+		for i in range(4):
+			var cross := (points[(i+1)%4]-points[i]).cross(points[(i+2)%4]-points[(i+1)%4])
+			if is_zero_approx(cross):
+				simple = false
+				break
+			if sign_value != 0.0 and cross * sign_value < 0.0:
+				simple = false
+				break
+			sign_value = cross
+	if batch_simple_faces and simple:
+		ci.draw_primitive(points, PackedColorArray([color]), PackedVector2Array())
+	else:
+		ci.draw_colored_polygon(points, color)
+
 ## Filled floor patch with an optional darker seam around it.
 static func floor_patch(ci: CanvasItem, g: Vector2, size: Vector2,
 		col: Color, seam: Color = Color(0, 0, 0, 0)) -> void:
 	var q := quad(g, size)
-	ci.draw_colored_polygon(q, col)
+	fill(ci, q, col)
 	if seam.a > 0.0:
 		var ring := q.duplicate()
 		ring.append(q[0])
@@ -132,23 +262,31 @@ static func floor_tiles(ci: CanvasItem, g: Vector2, size: Vector2, seam: Color) 
 ## An extruded box: two lit side faces plus a top. The workhorse for counters,
 ## desks, plinths, shelving and benches — everything solid on the floor.
 static func box(ci: CanvasItem, g: Vector2, size: Vector2, height: float,
-		col: Color, outline: Color = Color(0, 0, 0, 0.30)) -> void:
+		col: Color, outline: Color = Color(0, 0, 0, 0.14)) -> void:
 	var back := to_screen(g)
 	var right := to_screen(g + Vector2(size.x, 0.0))
 	var front := to_screen(g + size)
 	var left := to_screen(g + Vector2(0.0, size.y))
 	var up := Vector2(0.0, -height)
-	# Left face is turned away from the key light, right face catches it.
-	ci.draw_colored_polygon(PackedVector2Array([left, front, front + up, left + up]),
-		col.darkened(0.30))
-	ci.draw_colored_polygon(PackedVector2Array([front, right, right + up, front + up]),
-		col.darkened(0.14))
-	ci.draw_colored_polygon(PackedVector2Array([back + up, right + up, front + up, left + up]), col)
+	# Shaded primitives preserve batching and the exact authored silhouette.
+	# The contact end is darker; broad highlights match the rendered prop kit.
+	ci.draw_primitive(PackedVector2Array([left, front, front + up, left + up]),
+		PackedColorArray([shade(col,.37),shade(col,.40),shade(col,.26),shade(col,.23)]),PackedVector2Array())
+	ci.draw_primitive(PackedVector2Array([front, right, right + up, front + up]),
+		PackedColorArray([shade(col,.22),shade(col,.19),shade(col,.07),shade(col,.11)]),PackedVector2Array())
+	ci.draw_primitive(PackedVector2Array([back + up, right + up, front + up, left + up]),
+		PackedColorArray([col.lightened(.12),col.lightened(.06),col,col.lightened(.04)]),PackedVector2Array())
+	if height >= 4.0 and minf(size.x,size.y) >= .18:
+		var edge:=Vector2(0,minf(.85,height*.10))
+		ci.draw_primitive(PackedVector2Array([left+up,front+up,front+up+edge,left+up+edge]),
+			PackedColorArray([col, col, shade(col,.26), shade(col,.23)]),PackedVector2Array())
+		ci.draw_primitive(PackedVector2Array([front+up,right+up,right+up+edge,front+up+edge]),
+			PackedColorArray([col.lightened(.08), col.lightened(.12), shade(col,.07), shade(col,.11)]),PackedVector2Array())
 	if outline.a > 0.0:
 		stroke(ci, PackedVector2Array([
 			left + up, back + up, right + up, front + up, left + up, left, front, right]),
-			outline, 1.4)
-		ci.draw_line(front, front + up, outline, 1.4)
+			outline, 1.0)
+		ci.draw_line(front, front + up, outline, 1.0, true)
 
 ## A wall running along one grid edge, extruded upward. `axis` is "x" for a wall
 ## spanning the x direction (the north/back wall) or "y" for the west wall.
@@ -159,14 +297,53 @@ static func wall(ci: CanvasItem, g: Vector2, length: float, axis: String,
 	var up := Vector2(0.0, -height)
 	# Face, with a gradient so the wall reads as lit from above.
 	ci.draw_polygon(PackedVector2Array([a + up, b + up, b, a]),
-		PackedColorArray([col.darkened(0.30), col.darkened(0.30), col, col]))
+		PackedColorArray([col.lightened(.06), col.lightened(.06), shade(col,.22), shade(col,.22)]))
 	# Cap rail along the top edge.
 	ci.draw_line(a + up, b + up, col.lightened(0.28), 2.4)
-	ci.draw_line(a, b, col.darkened(0.45), 1.6)
+	ci.draw_line(a, b, shade(col, 0.52), 1.6)
+
+## A GLAZED screen where a wall would go — frame, mullions, and a pane you see
+## through on purpose.
+##
+## Glass walls are authored transparent boundaries. Opaque walls that must
+## interleave with moving actors use the segmented Y-sorted path in
+## wall_occlusion.gd; glazing is never a substitute for actor/wall depth.
+static func glass_wall(ci: CanvasItem, g: Vector2, length: float, axis: String,
+		col: Color, height: float = WALL_H) -> void:
+	var step := Vector2(length, 0.0) if axis == "x" else Vector2(0.0, length)
+	var a := to_screen(g)
+	var b := to_screen(g + step)
+	var up := Vector2(0.0, -height)
+	# The pane. Low alpha and a cool tint so it reads as glazing rather than as a
+	# wall someone forgot to finish.
+	var pane := Color(col.lightened(0.55), 0.26)
+	fill(ci, PackedVector2Array([a + up, b + up, b, a]), pane)
+	# Mullions every ~1.1 tiles, plus the two ends, so the run reads as glazed
+	# bays rather than one sheet of tint.
+	var bays: int = maxi(1, int(round(length / 1.1)))
+	var frame: Color = col.darkened(0.10)
+	for i in bays + 1:
+		var t: float = float(i) / float(bays)
+		var foot: Vector2 = a.lerp(b, t)
+		ci.draw_line(foot, foot + up, frame, 2.0)
+	# Head and sill rails, and a highlight raking across the glass.
+	ci.draw_line(a + up, b + up, col.lightened(0.34), 2.6)
+	ci.draw_line(a, b, shade(col, 0.52), 1.8)
+	ci.draw_line(a + up * 0.72, b + up * 0.34, Color(1, 1, 1, 0.16), 2.0)
 
 ## Soft contact shadow on the floor plane, shaped as a squashed iso diamond.
 static func shadow(ci: CanvasItem, g: Vector2, size: Vector2, alpha: float = 0.16) -> void:
-	ci.draw_colored_polygon(quad(g, size), Color(0.10, 0.06, 0.18, alpha))
+	# Feather into the same authored footprint instead of a hard ink diamond.
+	var outer:=quad(g,size)
+	var inset:=minf(.10,minf(size.x,size.y)*.18)
+	var inner:=quad(g+Vector2.ONE*inset,size-Vector2.ONE*inset*2)
+	var dark:=Color(.10,.12,.16,alpha)
+	var clear:=Color(dark,0)
+	fill(ci,inner,dark)
+	for i in 4:
+		var j: int=(i+1)%4
+		ci.draw_primitive(PackedVector2Array([outer[i],outer[j],inner[j],inner[i]]),
+			PackedColorArray([clear,clear,dark,dark]),PackedVector2Array())
 
 ## Upright flat panel standing on a wall — paintings, poster boards, signage.
 ## Drawn in the plane of the given axis so it sits flush against the wall face.
@@ -177,7 +354,7 @@ static func panel(ci: CanvasItem, g: Vector2, length: float, axis: String,
 	var lo := Vector2(0.0, -bottom)
 	var hi := Vector2(0.0, -top)
 	var poly := PackedVector2Array([a + hi, b + hi, b + lo, a + lo])
-	ci.draw_colored_polygon(poly, col)
+	fill(ci, poly, col)
 	if outline.a > 0.0:
 		var ring := poly.duplicate()
 		ring.append(poly[0])
@@ -202,11 +379,39 @@ static func picture(ci: CanvasItem, g: Vector2, length: float, axis: String,
 ## Occludes nothing, so it lives in the ground canvas item and costs no node.
 static func rug(ci: CanvasItem, g: Vector2, size: Vector2, col: Color,
 		border: Color = Color(0, 0, 0, 0)) -> void:
-	ci.draw_colored_polygon(quad(g, size), col)
+	fill(ci, quad(g, size), col)
 	if border.a > 0.0:
 		var ring := quad(g + Vector2(0.16, 0.16), size - Vector2(0.32, 0.32))
 		ring.append(ring[0])
 		stroke(ci, ring, border, 2.0)
+
+## A thin round slab held at `height` — a tabletop, a drum lid, a column cap.
+##
+## `cyl` extrudes from the floor, so asking it for a tabletop gives a barrel the
+## full height of the table: a café table drawn that way reads as a pale drum,
+## which is what the lounge furniture looked like. This draws only the top face
+## plus a shallow edge band, so the top floats on whatever pedestal is drawn
+## under it and the silhouette is a table.
+static func disc(ci: CanvasItem, g: Vector2, r: float, height: float,
+		col: Color, edge: float = 3.0) -> void:
+	var c := to_screen(g)
+	var rx: float = r * TILE.x
+	var ry: float = r * TILE.y
+	var up := Vector2(0.0, -height)
+	# Front edge band: the near half of the rim, dropped by `edge`.
+	var band := PackedVector2Array()
+	for i in 13:
+		var an: float = PI * float(i) / 12.0
+		band.append(c + Vector2(cos(an) * rx, sin(an) * ry) + up)
+	for i in range(12, -1, -1):
+		var an: float = PI * float(i) / 12.0
+		band.append(c + Vector2(cos(an) * rx, sin(an) * ry) + up + Vector2(0.0, edge))
+	fill(ci, band, shade(col, 0.34))
+	var top := PackedVector2Array()
+	for i in 24:
+		var an: float = TAU * float(i) / 24.0
+		top.append(c + Vector2(cos(an) * rx, sin(an) * ry) + up)
+	fill(ci, top, col)
 
 ## Upright cylinder — bins, urns, columns, drums. `r` is a radius in tiles, so
 ## the footprint stays a proper iso ellipse instead of a screen-space circle.
@@ -215,19 +420,22 @@ static func cyl(ci: CanvasItem, g: Vector2, r: float, height: float, col: Color)
 	var rx: float = r * TILE.x
 	var ry: float = r * TILE.y
 	var up := Vector2(0.0, -height)
-	var side := PackedVector2Array()
-	for i in 13:
-		var an: float = PI * float(i) / 12.0
-		side.append(c + Vector2(cos(an) * rx, sin(an) * ry))
-	for i in range(12, -1, -1):
-		var an: float = PI * float(i) / 12.0
-		side.append(c + Vector2(cos(an) * rx, sin(an) * ry) + up)
-	ci.draw_colored_polygon(side, col.darkened(0.24))
+	# Smooth normals across the side make bins and columns read as round solids.
+	# These strips are ordinary batchable quads, with no new nodes or textures.
+	for i in 16:
+		var a:=PI*float(i)/16.0
+		var b:=PI*float(i+1)/16.0
+		var pa:=c+Vector2(cos(a)*rx,sin(a)*ry)
+		var pb:=c+Vector2(cos(b)*rx,sin(b)*ry)
+		var ca:=shade(col,.12+.24*pow(sin(a*.75),2.0))
+		var cb:=shade(col,.12+.24*pow(sin(b*.75),2.0))
+		ci.draw_primitive(PackedVector2Array([pa,pb,pb+up,pa+up]),
+			PackedColorArray([ca.darkened(.05),cb.darkened(.05),cb.lightened(.07),ca.lightened(.07)]),PackedVector2Array())
 	var top := PackedVector2Array()
-	for i in 24:
-		var an: float = TAU * float(i) / 24.0
+	for i in 32:
+		var an: float = TAU * float(i) / 32.0
 		top.append(c + Vector2(cos(an) * rx, sin(an) * ry) + up)
-	ci.draw_colored_polygon(top, col)
+	fill(ci, top, col.lightened(.06))
 
 ## Bunting strung between two points at wall-top height, sagging in between.
 ## The reference hangs these across every room; they are the cheapest thing on
@@ -244,6 +452,6 @@ static func bunting(ci: CanvasItem, a: Vector2, b: Vector2, height: float,
 	for i in flags:
 		var t: float = (float(i) + 0.5) / float(flags)
 		var p: Vector2 = pa.lerp(pb, t) + Vector2(0.0, sin(t * PI) * sag)
-		ci.draw_colored_polygon(PackedVector2Array([
+		fill(ci, PackedVector2Array([
 			p + Vector2(-4.6, 0.0), p + Vector2(4.6, 0.0), p + Vector2(0.0, 11.5)]),
 			cols[i % cols.size()])

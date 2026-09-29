@@ -124,6 +124,8 @@ func _process(delta: float) -> bool:
 		7:
 			if _phase_t >= 0.4:  # wait out the sheet open tween before aiming
 				check(_vv._open_dept == "ticket", "ticket sheet re-opened for purchase")
+				check(_sheet.size.y <= _sheet.get_combined_minimum_size().y + 1.0,
+					"settled sheet fits its content without stale blank space")
 				root.get_node("GameState").add_cash(BigNumber.from_float(1000))
 				var panel: Node = _find_visible_panel()
 				check(panel != null and panel.dept_id == "ticket", "visible panel is ticket")

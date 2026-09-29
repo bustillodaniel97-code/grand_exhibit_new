@@ -1,7 +1,10 @@
 ; Engine configuration file.
-; Grand Exhibit — idle museum tycoon. Godot 4.4, portrait mobile.
-; The old "DO NOT edit" rule here was a merge-conflict guard for the parallel
-; six-agent build; single-owner now, so it is lifted. Autoloads stay registered.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
 
@@ -10,6 +13,13 @@ config_version=5
 config/name="Grand Exhibit"
 config/description="Idle museum tycoon - build, staff, and prestige your museum empire."
 run/main_scene="res://scenes/main.tscn"
+; A phone idle game must not render flat out. Uncapped, this renders as fast as
+; the GPU allows — on desktop that pins a core and a GPU for a game that shows a
+; handful of walking sprites, and on a handset it is a battery and thermal
+; problem long before it is a frame-rate one. 60 is the panel rate on the
+; overwhelming majority of Android hardware; the simulation is delta-timed, so
+; capping the frame rate does not slow the economy.
+run/max_fps=60
 config/features=PackedStringArray("4.4", "GL Compatibility")
 boot_splash/bg_color=Color(0.2, 0.18, 0.16, 1)
 
@@ -25,14 +35,18 @@ GameState="*res://autoload/game_state.gd"
 SaveSystem="*res://autoload/save_system.gd"
 Economy="*res://autoload/economy.gd"
 
+[debug]
+
+gdscript/warnings/untyped_declaration=1
+
 [display]
 
+; Vsync on: without it the cap above is the only limiter, and a frame delivered
+; early is a frame of power spent for nothing.
+window/vsync/vsync_mode=1
 window/size/viewport_width=720
 window/size/viewport_height=1280
 window/stretch/mode="canvas_items"
-; "expand" not "keep": real phones are 19.5:9 / 20:9, so "keep" letterboxed the
-; game with black bars top and bottom. Expanding hands the extra height to the
-; layout (the venue row is the expanding child) instead of wasting it.
 window/stretch/aspect="expand"
 window/handheld/orientation=1
 
@@ -41,11 +55,12 @@ window/handheld/orientation=1
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
-; No msaa_2d here on purpose: the mobile/compatibility renderer is GLES3, which
-; does not implement 2D MSAA (it warns and ignores the setting). Smooth edges
-; come from the `antialiased` flag on the line/arc/polyline strokes that outline
-; every procedural shape instead.
 
-[debug]
-
-gdscript/warnings/untyped_declaration=1
+; Smooth procedural architecture and minified Blender art at display resolution.
+; Compatibility does not implement 2D MSAA. The world has its own edge pass.
+anti_aliasing/quality/msaa_2d=0
+quality/world_edge_smoothing=true
+textures/default_filters/use_nearest_mipmap_filter=false
+; Project defaults use Viewport's enum: 2 = linear with mipmaps, 3 = nearest.
+; Keep props and vehicles as smooth as the cast's explicit CanvasItem override.
+textures/canvas_textures/default_texture_filter=2

@@ -1,31 +1,31 @@
 extends Node2D
-## Character — the procedural chibi cast. Original design, no texture assets.
-##
-## Two render paths, one body of drawing code:
-##   · SPRITE (normal play) — CharacterBaker rasterises this figure once at 4x
-##     and box-filters it down; _draw then blits a single textured quad. Every
-##     edge is supersampled, and a figure costs 1 draw call instead of ~18.
-##   · PAINTER / fallback — draws the primitives directly. Used inside the
-##     baker's SubViewport, and as the fallback under --headless where there is
-##     no rendering context to bake with (the test suites run this path).
-##
-## Because the sprite path pays for detail exactly once, the shading here is far
-## heavier than a per-frame budget would allow: layered skin tones, a rim light
-## along the key side, contact occlusion under the chin and at the waist, banded
-## hair with a highlight, and stroked silhouettes on every major mass.
-##
-## Looks are quantised to LOOK_COUNT slots so the bake cache stays bounded. One
-## slot is a whole appearance — palette, hair style and build — because the bake
-## is keyed on the slot; see look_for_slot for why the axes are strided rather
-## than drawn from one RNG stream.
-##
+## Character — original museum crowd with role-specific offline sprite pools.
+## Normal visitors use directional walking/idle art, a seated pose and an
+## on-demand public feeding action. Adult staff use separate role assets.
+## Ellis is reserved for the host. Editable Blender sources live in
+## art/npc-locomotion and art/npc-activities at project root.
+## The procedural figure/baker below remains the fallback, not the live art source.
 ## Public API: set_look_slot / randomize_look / set_uniform / walking / facing /
 ## with_cart / holding_sign / carry_stack.
 
+const MotionSprites := preload("res://scripts/characters/motion_sprites.gd")
+const ActivitySprites := preload("res://scripts/characters/activity_sprites.gd")
+const SeatingSprites := preload("res://scripts/characters/seating_sprites.gd")
+const CartSprites := preload("res://scripts/characters/cart_sprites.gd")
 const UI := preload("res://scripts/ui/ui_kit.gd")
+const StaffSprites := preload("res://scripts/characters/staff_sprites.gd")
+const VisitorSprites := preload("res://scripts/characters/visitor_sprites.gd")
 const Baker := preload("res://scenes/venue/floor/character_baker.gd")
 
+const Roster := preload("res://scripts/characters/npc_roster.gd")
+var actor_role: String = ""
+var identity: Dictionary = {}
+
 const WALK_FPS := 10.0
+const STOP_DEBOUNCE := 0.08
+## Ignore tiny steering corrections around a 45-degree sprite boundary. This
+## changes only the displayed heading, never routes, speed or distance phase.
+const HEADING_HYSTERESIS := PI / 36.0
 const OUTLINE := Color("#3A2A1F")
 const OUTLINE_W := 1.8
 ## Eyes are inked a shade lighter than the silhouette stroke. At the size the
@@ -133,14 +133,46 @@ const CAP_PEAK_Y := Vector2(-8.2, -5.4)
 
 var is_staff: bool = false
 var uniform_color: Color = Color("#C4703F")
-var with_cart: bool = false        # porter: pushes a docent cart w/ artifact crate
+var with_cart: bool = false:
+	set(value):
+		with_cart=value
+		# A loaded cart uses its own steering bank. Do not retain or decode
+		# ordinary heading textures until the actor walks without the cart.
+		_heading_set={} if value else MotionSprites.direction_set(identity,_motion_heading)
+		if _frame>=0 and not _motion_set.is_empty():_sync_motion_frame()
+		queue_redraw()
 var holding_sign: bool = false     # promoter: holds an exhibit sign
-var walking: bool = false
+var walking: bool = false:
+	set(value):
+		if walking == value:
+			return
+		walking = value
+		_stop_elapsed = 0.0
+		queue_redraw()
+var walk_backwards := false
+## Native seating follows the measured furniture contact and animated action.
+var seated: bool = false
+## Legacy primitive fallback only; native poses use SeatingSprites.SEAT_HEIGHT.
+const SEAT_LIFT := 6.5
 var facing: int = 1                # 1 = right, -1 = left
-var carry_stack: int = 0           # visual crate count carried (porter)
+var carry_stack: int = 0:
+	set(value):
+		carry_stack=maxi(value,0)
+		queue_redraw()
+var manager_rank: int = 0          # 0 ordinary staff; 1..10 assigned manager
+var reaction: String = "":
+	set(value):
+		reaction = value
+		queue_redraw()
 
 ## Set by CharacterBaker: freeze on one walk pose and always draw primitives.
 var bake_pose: int = -1
+## Set by PortraitBaker. The walking figure is drawn in three-quarter profile
+## facing +x, and the cap peak's geometry is authored for exactly that: it juts
+## forward, far to the right of the head centre. A portrait frames the same head
+## near front-on, where that identical wedge reads as a pale bar lying sideways
+## across the crown. Front-on framing gets a symmetric, foreshortened brim.
+var portrait_mode: bool = false
 
 var _skin: Color = SKIN_TONES[0]
 var _hair: Color = HAIR_COLORS[0]
@@ -154,6 +186,103 @@ var _is_painter: bool = false
 var _bob_t: float = 0.0
 var _frame: int = 0
 var _frames: Array = []
+var _approved_seated: Texture2D = null
+var _uses_approved_art := false
+var _motion_set: Dictionary = {}
+var _cart_set: Dictionary = {}
+var _cart_heading := Vector2.DOWN
+var _cart_turn: Dictionary = {}
+var _cart_turn_frames: Array = []
+var _view_back := false
+## Match legacy initial right/front facing until movement or a station supplies a heading.
+var _motion_heading := 0
+var _heading_set: Dictionary = {}
+var _cycle_phase := 0.0
+var _cycle_rate := 1.8
+var _distance_driven := false
+## Render-only micro-wait debounce. Logical phase remains driven exclusively by
+## record_motion; a sustained stop still uses the rig's dedicated idle pose.
+var _stop_elapsed := 0.0
+var _feeding_frames: Array[Texture2D] = []
+var _feeding_frame := -1
+var _seating_frames: Array[Texture2D] = []
+var _seating_active := false
+var _seating_progress := 0.0
+var _seating_ground_offset := Vector2.ZERO
+var _seating_height := SeatingSprites.SEAT_HEIGHT
+
+func prepare_seating() -> void:
+	if actor_role != "visitor" or _seating_frames.size()>=SeatingSprites.frame_count()*2:return
+	var texture := SeatingSprites.frame(identity,_seating_frames.size())
+	if texture != null:_seating_frames.append(texture)
+
+func begin_seating(front: Vector2, ground_offset: Vector2, height: float = SeatingSprites.SEAT_HEIGHT) -> bool:
+	if actor_role != "visitor":return false
+	while _seating_frames.size()<SeatingSprites.frame_count()*2:
+		var previous := _seating_frames.size()
+		prepare_seating()
+		if previous==_seating_frames.size():return false
+	walking=false
+	set_motion_vector(front,0)
+	_seating_progress=0
+	_seating_ground_offset=ground_offset
+	_seating_height=height
+	_seating_active=true
+	seated=true
+	queue_redraw()
+	return true
+
+func advance_seating(delta: float, sit_down: bool) -> bool:
+	if not _seating_active:return true
+	_seating_progress=move_toward(_seating_progress,1.0 if sit_down else 0.0,delta/SeatingSprites.DURATION)
+	queue_redraw()
+	return _seating_progress>=1.0 if sit_down else _seating_progress<=0.0
+
+func end_seating() -> void:
+	seated=false
+	_seating_active=false
+	_seating_progress=0
+	_seating_frames.clear()
+	queue_redraw()
+
+func seating_foot_distance() -> float:
+	return float(_motion_set.get("seating_foot_grid",.189))*absf(scale.y)
+
+func prepare_bird_feeding() -> void:
+	if actor_role != "visitor" or _feeding_frames.size()>=ActivitySprites.frame_count():return
+	var texture := ActivitySprites.feeding_frame(identity,_feeding_frames.size())
+	if texture != null:_feeding_frames.append(texture)
+
+func set_bird_feeding(active: bool, elapsed: float = 0.0) -> void:
+	if not active or actor_role != "visitor" or seated or walking:
+		if _feeding_frame >= 0:
+			_feeding_frame = -1
+			_feeding_frames.clear()
+			queue_redraw()
+		return
+	if _feeding_frames.size()!=ActivitySprites.frame_count():_feeding_frames = ActivitySprites.feeding_frames(identity)
+	if _feeding_frames.is_empty():return
+	var frame := int(fposmod(elapsed,ActivitySprites.DURATION)/ActivitySprites.DURATION*ActivitySprites.frame_count())
+	if frame != _feeding_frame:
+		_feeding_frame = frame
+		queue_redraw()
+
+## Projected directly from the Blender wrist; use the current mirror and scale
+## explicitly because the plaza and Character may update in either scene order.
+func public_hand_position(release: bool = false) -> Vector2:
+	var feeding := _feeding_frame >= 0
+	# Directional walking is not mirrored art. Use the wrist from the exact
+	# displayed pose, including a brief blocked pose, rather than legacy anchors
+	# from a different camera angle or an eight-frame index wrapped twice.
+	if not feeding and not seated and _heading_set.has("idle_hand"):
+		var grip: Vector2=_heading_set.idle_hand if _frame<0 else _heading_set.walk_hands[clampi(_frame,0,_heading_set.walk_hands.size()-1)]
+		return position+grip*Vector2(absf(scale.x),scale.y)
+	# The public-action anchors are an independent eight-phase bank. An ordinary
+	# 16/24/32-frame walk must sample them by cycle phase, not wrap its own index.
+	var frame := ActivitySprites.release_frame() if release and feeding else _feeding_frame if feeding else MotionSprites.phase_frame(_cycle_phase,MotionSprites.WALK_FRAMES)
+	var point := ActivitySprites.hand(identity,_view_back,walking,frame,feeding)
+	var mirror := (1.0 if _view_back and not seated else -1.0) if _uses_approved_art else 1.0
+	return position + point * Vector2(absf(scale.x)*facing*mirror,scale.y)
 
 func _ready() -> void:
 	# Trilinear on the node, mipmaps on the texture: both halves are needed, and
@@ -180,21 +309,27 @@ func set_painter_mode(on: bool) -> void:
 static func look_for_slot(slot: int) -> Dictionary:
 	var s: int = posmod(slot, LOOK_COUNT)
 	var tier: int = s / HAIR_STYLES        # which build band this slot sits in
+	var demographic: Dictionary = Roster.visitor(s)
 	return {
 		"skin": SKIN_TONES[(s * 5) % SKIN_TONES.size()],
-		"hair": HAIR_COLORS[(s * 3) % HAIR_COLORS.size()],
+		"hair": Color("#B5AFA8") if demographic.age_group == "elder" else HAIR_COLORS[(s * 3) % HAIR_COLORS.size()],
 		"shirt": SHIRT_COLORS[(s + 3 * tier) % SHIRT_COLORS.size()],
 		"pants": PANTS_COLORS[(s + tier) % PANTS_COLORS.size()],
 		"hair_style": s % HAIR_STYLES,
 		"build": BUILDS[tier % BUILDS.size()],
 		"is_staff": false,
 		"uniform": Color("#C4703F"),
+		"role": "visitor", "age_group": demographic.age_group, "gender": demographic.gender,
 	}
 
 ## Adopt a specific look slot. The floor deals slots rather than rolling them:
 ## with 24 slots and twenty people on screen, independent random picks put three
 ## visitors in the same face by the birthday paradox alone.
 func set_look_slot(slot: int) -> void:
+	if actor_role not in ["", "visitor"]:
+		return
+	actor_role = "visitor"
+	identity = Roster.visitor(slot)
 	_look_slot = posmod(slot, LOOK_COUNT)
 	apply_look(look_for_slot(_look_slot))
 	_look_key = "v%d" % _look_slot
@@ -202,6 +337,11 @@ func set_look_slot(slot: int) -> void:
 	queue_redraw()
 
 ## Which look slot this figure wears, or -1 for staff and unassigned figures.
+func age_scale() -> float:
+	if identity.get("age_group", "") != "child":return 1.0
+	# The approved child mesh is already shorter; avoid applying the old full reduction twice.
+	return 0.90 if _approved_seated != null else 0.74
+
 func look_slot() -> int:
 	return _look_slot
 
@@ -215,7 +355,12 @@ func randomize_look(rng_seed: int) -> void:
 ## hair style and stature. Variants are capped at STAFF_LOOK_COUNT so a room full
 ## of staff costs a bounded number of bake slots; without it the five tellers
 ## behind the counters were one person copy-pasted five times.
-func set_uniform(dept_color: Color, variant: int = 0) -> void:
+func set_uniform(dept_color: Color, variant: int = 0, role: String = "employee") -> void:
+	var staff_identity: Dictionary = Roster.employee(role, variant)
+	if staff_identity.is_empty() or actor_role not in ["", role]:
+		return
+	actor_role = role
+	identity = staff_identity
 	var v: int = posmod(variant, STAFF_LOOK_COUNT)
 	is_staff = true
 	uniform_color = dept_color
@@ -241,9 +386,15 @@ func current_look() -> Dictionary:
 		"skin": _skin, "hair": _hair, "shirt": _shirt, "pants": _pants,
 		"hair_style": _hair_style, "build": _build,
 		"is_staff": is_staff, "uniform": uniform_color,
+		"role": actor_role, "age_group": identity.get("age_group", "middle_aged"),
+		"gender": identity.get("gender", "male"),
 	}
 
 func apply_look(look: Dictionary) -> void:
+	# Baker painters consume both pools; live actors cannot change roles via appearance.
+	if not _is_painter and actor_role != "":
+		if bool(look.get("is_staff", false)) != (actor_role != "visitor"):
+			return
 	_skin = look.get("skin", _skin)
 	_hair = look.get("hair", _hair)
 	_shirt = look.get("shirt", _shirt)
@@ -255,7 +406,21 @@ func apply_look(look: Dictionary) -> void:
 	queue_redraw()
 
 func _try_bake() -> void:
+	set_bird_feeding(false)
+	_feeding_frames.clear()
+	if _seating_active:end_seating()
+	else:_seating_frames.clear()
 	if _is_painter or _look_key == "":
+		return
+	_approved_seated = null
+	_uses_approved_art = false
+	_motion_set = MotionSprites.get_set(identity)
+	_heading_set = {} if with_cart else MotionSprites.direction_set(identity,_motion_heading)
+	_cart_set = CartSprites.get_set(identity)
+	if not _motion_set.is_empty():
+		_frames = _motion_set.back if _view_back else _motion_set.front
+		_approved_seated = _motion_set.get("seated", null)
+		_uses_approved_art = true
 		return
 	_frames = Baker.frames_for(_look_key)
 	if _frames.is_empty():
@@ -263,42 +428,267 @@ func _try_bake() -> void:
 
 # ------------------------------------------------------------------ tick
 
+## Cadence is expressed in complete left/right cycles per second. Deriving speed
+## from the rig stride prevents short children taking the same giant steps as adults.
+func walk_cadence() -> float:
+	var base: float={"child":1.70,"young_adult":1.45,"middle_aged":1.35,"elder":1.20}.get(str(identity.get("age_group","young_adult")),1.45)
+	return base+float(int(identity.get("variant",0))-1)*.04
+
+func preferred_walk_speed(cadence: float = -1.0) -> float:
+	return motion_stride() * age_scale() * (walk_cadence() if cadence<0 else cadence)
+
+## Pushing has its own planted-foot animation; a walking-art update must not
+## change cart speed or make the porter's feet slide against the handle rig.
+func motion_stride() -> float:
+	return float(_motion_set.get("cart_stride_grid" if with_cart else "stride_grid",.63))
+
+func set_motion_vector(grid_delta: Vector2, speed: float) -> void:
+	if grid_delta.length_squared() < 0.00000001:return
+	var heading:=MotionSprites.direction_index(grid_delta,_motion_heading,
+		HEADING_HYSTERESIS if not with_cart and speed>0.0 else 0.0)
+	if heading!=_motion_heading:
+		_motion_heading=heading
+		_heading_set={} if with_cart else MotionSprites.direction_set(identity,heading)
+		queue_redraw()
+	_cart_heading=grid_delta.normalized();_cart_turn={};_cart_turn_frames=[]
+	var projected := Vector2((grid_delta.x-grid_delta.y)*30.0,(grid_delta.x+grid_delta.y)*20.0)
+	if absf(projected.x)>0.0001:facing=1 if projected.x>0 else -1
+	var back := _view_back
+	if absf(projected.y)>0.0001:back=projected.y<0
+	if back!=_view_back:
+		_view_back=back
+		if not _motion_set.is_empty():_frames=_motion_set.back if back else _motion_set.front
+		queue_redraw()
+	_cycle_rate=maxf(speed/maxf(preferred_walk_speed(1.0),.01),0.0)
+	if with_cart:queue_redraw()
+
+## The floor supplies actual turn progress; rendering never advances it itself.
+## Load an arc when it begins, never from _draw. Ordinary movement clears it.
+func set_cart_turn(start: Vector2,end: Vector2,progress: float) -> void:
+	var t:=clampf(progress,0,1)
+	walking=false;walk_backwards=false
+	set_motion_vector(start.rotated(start.angle_to(end)*t),0.0)
+	var first:=CartSprites.Steering.direction_index(start)
+	var last:=CartSprites.Steering.direction_index(end)
+	var direction:=1 if posmod(last-first,4)==1 else -1
+	if t>0.0 and t<1.0:
+		_cart_turn_frames=CartSprites.Steering.turn_frames(identity,first,direction,carry_stack>0)
+	_cart_turn={"start":first,"end":last,"frame":roundi(t*CartSprites.Steering.turn_intervals())}
+	queue_redraw()
+
+func _steering_texture() -> Texture2D:
+	var packet: Dictionary=_cart_set["1" if carry_stack>0 else "0"]
+	var view:=CartSprites.Steering.direction_index(_cart_heading)
+	if not _cart_turn.is_empty():
+		var frame: int=_cart_turn.frame
+		var intervals := CartSprites.Steering.turn_intervals()
+		if frame>0 and frame<intervals and _cart_turn_frames.size()==intervals-1:return _cart_turn_frames[frame-1]
+		view=int(_cart_turn.start if frame==0 else _cart_turn.end)
+		return packet[str(view)].idle
+	var section: Dictionary=packet[str(view)]
+	return section.walk[clampi(_frame,0,section.walk.size()-1)] if walking else section.idle
+
+## Live movers submit the distance they actually travelled, including shortened
+## steps at corners. Rendering cannot add footsteps while the actor is blocked,
+## paused, or after a simulation catch-up. Timed previews retain their old API.
+func record_motion(grid_delta: Vector2, seconds: float, look: Vector2 = Vector2.ZERO) -> void:
+	_distance_driven=true
+	var distance:=grid_delta.length()
+	if distance<=0.000001:return
+	set_motion_vector(look if not look.is_zero_approx() else grid_delta,
+		distance/maxf(seconds,.000001))
+	var stride:=motion_stride()*maxf(absf(scale.y),.01)
+	_cycle_phase=fposmod(_cycle_phase+distance/stride*(-1.0 if walk_backwards else 1.0),1.0)
+	# A final short segment may stop before _process runs. Select its travelled
+	# pose now, so stop debounce retains that pose instead of the previous frame.
+	if not _motion_set.is_empty():_sync_motion_frame()
+
+func _walk_frame_count() -> int:
+	if with_cart:return int(_cart_set.get("walk_frames",MotionSprites.WALK_FRAMES))
+	if not _heading_set.is_empty():return _heading_set.walk.size()
+	return _frames.size() if not _frames.is_empty() else MotionSprites.WALK_FRAMES
+
+func _sync_motion_frame() -> void:
+	var next_frame:=MotionSprites.phase_frame(_cycle_phase,_walk_frame_count())
+	if next_frame!=_frame:
+		_frame=next_frame
+		queue_redraw()
+
 func _process(delta: float) -> void:
-	scale.x = absf(scale.x) * float(facing)
+	var mirror := (1.0 if _view_back and (not seated or _seating_active) else -1.0) if _uses_approved_art else 1.0
+	scale.x = absf(scale.x) * float(facing) * mirror
 	if _frames.is_empty() and not _is_painter and _look_key != "":
-		# The bake may have completed since the last tick.
 		_frames = Baker.frames_for(_look_key)
-		if not _frames.is_empty():
-			queue_redraw()
+		if not _frames.is_empty():queue_redraw()
 	if not walking:
-		if _frame != 0:
-			_frame = 0
-			_bob_t = 0.0
-			queue_redraw()
+		if _can_debounce_locomotion() and _frame >= 0:
+			_stop_elapsed += delta
+			if _stop_elapsed >= STOP_DEBOUNCE:
+				_frame = -1
+				_bob_t = 0.0
+				queue_redraw()
+		else:
+			if _frame != -1:
+				_frame = -1
+				_bob_t = 0.0
+				queue_redraw()
 		return
 	_bob_t += delta
-	var f: int = int(_bob_t * WALK_FPS) % Baker.FRAMES
+	var f: int
+	if not _motion_set.is_empty():
+		if not _distance_driven:
+			_cycle_phase=fposmod(_cycle_phase+delta*_cycle_rate*(-1.0 if walk_backwards else 1.0),1.0)
+		f=MotionSprites.phase_frame(_cycle_phase,_walk_frame_count())
+	else:f=int(_bob_t*WALK_FPS)%Baker.FRAMES
 	if f != _frame:
-		_frame = f
-		queue_redraw()
+		_frame=f;queue_redraw()
+
+func _can_debounce_locomotion() -> bool:
+	return not with_cart and not seated and not _seating_active \
+		and _feeding_frame < 0 and not _motion_set.is_empty()
 
 # ------------------------------------------------------------------ draw
 
 func _draw() -> void:
+	_draw_manager_aura()
+	if seated and _seating_active and _seating_frames.size()==SeatingSprites.frame_count()*2:
+		var frame := roundi(_seating_progress*(SeatingSprites.frame_count()-1))
+		if _view_back:frame+=SeatingSprites.frame_count()
+		# Keep the support contact in world space while the sprite itself mirrors.
+		var offset := _seating_ground_offset+Vector2(0,SeatingSprites.SEAT_HEIGHT*scale.y-_seating_height)
+		offset/=scale
+		draw_texture_rect(_seating_frames[frame],Rect2(MotionSprites.DRAW_RECT.position+offset,MotionSprites.DRAW_RECT.size),false)
+		_draw_reaction()
+		return
+	if _feeding_frame >= 0 and not seated and not walking:
+		draw_texture_rect(_feeding_frames[_feeding_frame],MotionSprites.DRAW_RECT,false)
+		_draw_reaction()
+		return
+	# Seating takes priority over ordinary standing/walking art.
+	if seated and _approved_seated != null and not _is_painter:
+		draw_texture_rect(_approved_seated, MotionSprites.seated_draw_rect(_approved_seated), false)
+		_draw_reaction()
+		return
+	if seated:
+		draw_set_transform(Vector2(0.0, -SEAT_LIFT))
+		_draw_figure()
+		draw_set_transform(Vector2.ZERO)
+		_draw_reaction()
+		return
 	# Sprite path: one quad, supersampled offline.
 	if not _is_painter and not _frames.is_empty():
-		var tex: Texture2D = _frames[clampi(_frame, 0, _frames.size() - 1)]
-		# Stored at 2x the design footprint, so it is blitted at half size.
-		draw_texture_rect(tex,
-			Rect2(-Baker.ANCHOR * 0.5, Vector2(Baker.SPRITE) * 0.5), false)
+		if with_cart and not _cart_set.is_empty():
+			if bool(_cart_set.get("steering",false)):
+				# True yaw views already include their orientation. Cancel the
+				# legacy actor reflection for this quad; retain its scale/anchor.
+				draw_set_transform(Vector2.ZERO,0.0,Vector2(-1 if scale.x<0 else 1,1))
+				draw_texture_rect(_steering_texture(),CartSprites.Steering.DRAW_RECT,false)
+				draw_set_transform(Vector2.ZERO)
+				_draw_reaction()
+				return
+			var packet: Dictionary=_cart_set["1" if carry_stack>0 else "0"]
+			var view:="back" if _view_back else "front"
+			var cart_texture: Texture2D=packet[view][clampi(_frame,0,packet[view].size()-1)] if walking else packet["idle_"+view]
+			# Body, hands and trolley share one native projection and depth pass.
+			# Mirror once with the actor; the old independent prop flip is bypassed.
+			draw_texture_rect(cart_texture,CartSprites.DRAW_RECT,false)
+			_draw_reaction()
+			return
+		var tex: Texture2D = _motion_set["idle_back" if _view_back else "idle_front"] if _frame < 0 and not _motion_set.is_empty() else _frames[clampi(_frame, 0, _frames.size() - 1)]
+		# The motion canvas includes extra foot clearance at the same pixel density.
+		var draw_rect := MotionSprites.DRAW_RECT if not _motion_set.is_empty() else Rect2(-Baker.ANCHOR * 0.5, Vector2(Baker.SPRITE) * 0.5)
+		# True yaw art already contains its orientation. Preserve the node
+		# mirror for legacy seated/feeding/props, cancelling it for this quad.
+		if not _heading_set.is_empty():
+			tex=_heading_set.idle if _frame<0 else _heading_set.walk[clampi(_frame,0,_heading_set.walk.size()-1)]
+			draw_set_transform(Vector2.ZERO,0.0,Vector2(-1 if scale.x<0 else 1,1))
+		draw_texture_rect(tex, draw_rect, false)
+		draw_set_transform(Vector2.ZERO)
 		# Props stay live: only a handful of characters carry one, so they are
 		# not worth multiplying the bake cache by.
+		if _uses_approved_art:
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2(1 if _view_back else -1,1))
 		if holding_sign:
-			_draw_sign(0.0)
+			if _heading_set.has("idle_hand"):
+				var grip: Vector2=_heading_set.idle_hand if _frame<0 else _heading_set.walk_hands[clampi(_frame,0,_heading_set.walk_hands.size()-1)]
+				var reflection:=Vector2(-1 if scale.x<0 else 1,1)
+				draw_set_transform((grip-Vector2(11,-20))*reflection,0.0,reflection)
+			_draw_sign(0.0,12.0 if _heading_set.has("idle_hand") else 0.0)
 		if with_cart:
 			_draw_cart(0.0)
+		draw_set_transform(Vector2.ZERO)
+		_draw_reaction()
 		return
 	_draw_figure()
+	_draw_reaction()
+
+## Assigned managers should be visible in the venue without another speech
+## bubble competing with visitor faces. A restrained floor halo plus a lapel
+## gem communicates seniority; rank changes brightness and adds up to five rays.
+func _draw_manager_aura() -> void:
+	if manager_rank <= 0:
+		return
+	var strength := clampf(float(manager_rank) / 10.0, 0.1, 1.0)
+	var glow := UI.BRASS.lightened(0.18 + strength * 0.18)
+	glow.a = 0.18 + strength * 0.16
+	draw_arc(Vector2(0.0, 1.0), 17.0 + strength * 2.5, 0.0, TAU, 24,
+		Color(glow.r, glow.g, glow.b, glow.a * 0.45), 5.5)
+	draw_arc(Vector2(0.0, 0.0), 15.5 + strength * 2.0, 0.0, TAU, 24, glow, 1.8)
+	var rays: int = mini(5, 1 + manager_rank / 2)
+	for i in rays:
+		var angle := -PI + TAU * float(i) / float(rays)
+		var ray_from := Vector2(cos(angle), sin(angle) * 0.45) * 19.0
+		var ray_to := Vector2(cos(angle), sin(angle) * 0.45) * (22.0 + strength * 3.0)
+		draw_line(ray_from, ray_to, glow, 1.5)
+	draw_circle(Vector2(-5.6, -21.0), 3.1, UI.BRASS.darkened(0.2))
+	draw_circle(Vector2(-5.6, -21.5), 2.0, glow.lightened(0.22))
+
+func _draw_reaction() -> void:
+	if reaction == "":
+		return
+	# Kept live above the baked character so temporary emotions do not multiply
+	# the sprite-cache variants.
+	if reaction == "angry" and _motion_set.is_empty():
+		_draw_angry_face_overlay()
+	var center := Vector2(0.0, -69.0)
+	draw_circle(center, 12.0, Color(0.10, 0.06, 0.16, 0.30))
+	draw_circle(center + Vector2(0.0, -1.5), 10.5, UI.PANEL)
+	draw_colored_polygon(PackedVector2Array([
+		center + Vector2(-3.0, 8.0), center + Vector2(1.0, 15.0),
+		center + Vector2(4.0, 7.0)]), UI.PANEL)
+	if reaction == "angry":
+		draw_line(center + Vector2(-5.0, -4.0), center + Vector2(-1.0, -2.0),
+			UI.CARPET_RED.darkened(0.18), 2.0)
+		draw_line(center + Vector2(5.0, -4.0), center + Vector2(1.0, -2.0),
+			UI.CARPET_RED.darkened(0.18), 2.0)
+		draw_arc(center + Vector2(0.0, 5.0), 4.5, 1.15 * PI, 1.85 * PI, 8,
+			UI.CARPET_RED.darkened(0.30), 1.8)
+
+## Replace the baked smile while an upset guest walks away. Emotions remain a
+## live overlay so every visitor look—and every venue—shares the same state
+## without multiplying the character bake cache.
+func _draw_angry_face_overlay() -> void:
+	var phase: float = TAU * float(_frame) / float(Baker.FRAMES)
+	var moving: bool = walking and _frame > 0
+	var bob: float = -absf(sin(phase)) * BOB_AMP if moving else 0.0
+	var swing: float = sin(phase) * 3.6 if moving else 0.0
+	var squash: float = 1.0 + (absf(sin(phase)) - 0.5) * SQUASH_AMP if moving else 1.0
+	var hc := Vector2(swing * 0.16, HEAD_Y * squash + bob * 0.8)
+	var mouth := hc + Vector2(FACE_CX + MOUTH_DX, 2.7)
+
+	# Skin patch erases the baked smile and its antialiased fringe.
+	draw_colored_polygon(_ellipse_poly(mouth, Vector2(4.0, 3.5), 16), _skin)
+	# Brows lean down toward the nose; the mouth arc is the inverse of the
+	# default smile. Both remain readable after the character is minified.
+	var angry_ink := EYE_INK.darkened(0.08)
+	for side in [-1.0, 1.0]:
+		var eye := hc + Vector2(FACE_CX + EYE_DX * side, -0.8)
+		draw_line(
+			eye + Vector2(-2.0 * side, -3.5),
+			eye + Vector2(1.4 * side, -2.0),
+			angry_ink, 1.7, true)
+	draw_arc(mouth + Vector2(0.0, 2.2), MOUTH_R + 0.4,
+		1.16 * PI, 1.84 * PI, 10, angry_ink, 1.5, true)
 
 ## Full primitive draw. Runs inside the baker, and as the headless fallback.
 func _draw_figure() -> void:
@@ -307,15 +697,26 @@ func _draw_figure() -> void:
 		phase = TAU * float(bake_pose) / float(Baker.FRAMES)
 	elif walking:
 		phase = float(int(_bob_t * WALK_FPS)) / WALK_FPS * TAU * 2.2
-	var moving: bool = bake_pose > 0 or (bake_pose < 0 and walking)
+	var moving: bool = not seated and (bake_pose > 0 or (bake_pose < 0 and walking))
 	var bob: float = -absf(sin(phase)) * BOB_AMP if moving else 0.0
+	# A sitter's torso settles ONTO the seat. Positive bob is downward here, so
+	# this drops the body and head relative to the hips; without it the figure
+	# keeps a standing spine and reads as hovering above the bench.
+	if seated:
+		bob = 5.4
 	var swing: float = sin(phase) * 3.6 if moving else 0.0
 	var squash: float = 1.0 + (absf(sin(phase)) - 0.5) * SQUASH_AMP if moving else 1.0
 	var w: float = _build / squash
 	var h: float = squash
 
-	_draw_contact_shadow(squash)
-	_draw_legs(bob, swing, w)
+	# A sitter's shadow belongs on the floor, not floating at seat height with the
+	# rest of the figure, and the bench already casts its own. Skip it.
+	if not seated:
+		_draw_contact_shadow(squash)
+	if seated:
+		_draw_legs_seated(w)
+	else:
+		_draw_legs(bob, swing, w)
 	_draw_arm(-1.0, bob, swing, w, h)      # far arm, behind the torso
 	_draw_body(bob, w, h)
 	_draw_head(bob, swing, w, h)
@@ -331,6 +732,34 @@ func _draw_contact_shadow(squash: float) -> void:
 	paint_ellipse(Rect2(-11.0 * spread, -4.0, 22.0 * spread, 8.0), Color(0.20, 0.13, 0.06, 0.13))
 	paint_ellipse(Rect2(-8.0 * spread, -3.0, 16.0 * spread, 6.0), Color(0.20, 0.13, 0.06, 0.16))
 	paint_ellipse(Rect2(-5.0 * spread, -2.2, 10.0 * spread, 4.4), Color(0.20, 0.13, 0.06, 0.18))
+
+## Legs for a sitter: SHINS ONLY, dropping from the seat to the floor.
+##
+## The first attempt drew a thigh as well and read as standing-but-ten-pixels-up,
+## which is exactly what it was. At this fixed camera angle a sitter's thigh runs
+## AWAY from the viewer and is hidden behind their own lap, so a thigh capsule
+## cannot read as horizontal — it only makes the leg longer, which is the one
+## thing that destroys the pose.
+##
+## What sells sitting at this size is the pair of short legs hanging off a seat
+## with the shoes on the ground, plus the torso sunk onto the seat (see the bob in
+## _draw_figure). The figure is already translated up by SEAT_LIFT, so the floor
+## is at +SEAT_LIFT in this local space and the shins have exactly that to cover —
+## which is why the seat height is one constant shared with the furniture painters
+## instead of a number guessed per pose.
+func _draw_legs_seated(w: float) -> void:
+	var shoe := Color("#3B2E26")
+	for side in [-1.0, 1.0]:
+		var x: float = (2.7 * side - 2.5) * w
+		# Starts at -5.0 so the thigh tucks UNDER the torso: _draw_body's lower edge
+		# sits at about -4.8 once the sitting bob is applied, and legs begun below
+		# that left a gap between body and knees that read as a floating figure.
+		_shape(_capsule(Rect2(x, -5.0, 4.8 * w, SEAT_LIFT + 5.0)), _pants)
+		# Inner shadow down the leg's far side, as standing legs get.
+		draw_colored_polygon(
+			_capsule(Rect2(x + 3.0 * w, -5.0, 1.6 * w, SEAT_LIFT + 5.0)),
+			_pants.darkened(0.22))
+		_shape(_capsule(Rect2(x - 0.5, SEAT_LIFT - 3.0, 5.6 * w, 3.6)), shoe)
 
 func _draw_legs(bob: float, swing: float, w: float) -> void:
 	var shoe := Color("#3B2E26")
@@ -470,14 +899,27 @@ func _draw_cap(hc: Vector2, r: float) -> void:
 		uniform_color.darkened(0.30))
 	# The peak clears the eyes by more than 2 design px and its lower edge carries
 	# no stroke, so it can no longer fuse with them into a sunglasses bar.
+	# Front-on, the brim is symmetric about the head and foreshortened, because a
+	# peak pointing at the camera is short. In profile it keeps its authored
+	# forward jut. Same wedge, two projections of it.
+	var px: Vector2 = CAP_PEAK_X
+	var py: Vector2 = CAP_PEAK_Y
+	if portrait_mode:
+		var half: float = (CAP_PEAK_X.y - CAP_PEAK_X.x) * 0.46
+		px = Vector2(-half, half)
+		py = Vector2(CAP_PEAK_Y.x + 0.5, CAP_PEAK_Y.y + 0.2)
 	var peak := PackedVector2Array([
-		Vector2(hc.x + CAP_PEAK_X.x, hc.y + CAP_PEAK_Y.x + 0.6),
-		Vector2(hc.x + CAP_PEAK_X.y, hc.y + CAP_PEAK_Y.x),
-		Vector2(hc.x + CAP_PEAK_X.y, hc.y + CAP_PEAK_Y.y),
-		Vector2(hc.x + CAP_PEAK_X.x, hc.y + CAP_PEAK_Y.y - 0.4),
+		Vector2(hc.x + px.x, hc.y + py.x + 0.6),
+		Vector2(hc.x + px.y, hc.y + py.x),
+		Vector2(hc.x + px.y, hc.y + py.y),
+		Vector2(hc.x + px.x, hc.y + py.y - 0.4),
 	])
 	draw_colored_polygon(peak, uniform_color.darkened(0.34))
-	draw_polyline(PackedVector2Array([peak[0], peak[1], peak[2]]), OUTLINE, OUTLINE_W)
+	# CLOSED outline. The open [0,1,2] path left the fourth edge undrawn, and at
+	# portrait magnification that unterminated stroke reads as a square bracket
+	# hanging off the end of the brim.
+	draw_polyline(PackedVector2Array([peak[0], peak[1], peak[2], peak[3], peak[0]]),
+		OUTLINE, OUTLINE_W)
 	draw_circle(hc + Vector2(-1.4, -9.6), 1.6, UI.BRASS)
 
 ## Furthest any of a style's hair reaches from the head centre, in design px at
@@ -518,9 +960,9 @@ static func face_extent() -> Vector2:
 	return Vector2(lo, hi)
 
 ## Museum exhibit board on a stick (promotions marketer).
-func _draw_sign(bob: float) -> void:
-	draw_line(Vector2(11, -44 + bob), Vector2(11, -20 + bob), UI.WALL_BROWN, 3.0)
-	var board := Rect2(1, -64 + bob, 30, 20)
+func _draw_sign(bob: float, raise_by: float = 0.0) -> void:
+	draw_line(Vector2(11, -44 + bob-raise_by), Vector2(11, -20 + bob), UI.WALL_BROWN, 3.0)
+	var board := Rect2(1, -64 + bob-raise_by, 30, 20)
 	_shape(_round_rect(board, 3.0), UI.PANEL)
 	draw_circle(board.get_center() + Vector2(-7, -1), 3.6, UI.ROOM_PROMO)
 	draw_line(board.get_center() + Vector2(-1, 3), board.get_center() + Vector2(11, 3),

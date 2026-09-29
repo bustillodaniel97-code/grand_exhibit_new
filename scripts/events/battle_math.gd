@@ -36,15 +36,11 @@ const REFERENCE_POWER := 100.0
 ## previous build shipped an Expedition boss at a damage/HP ratio of 0.098 that
 ## no level, rank or roster could clear.
 const MAX_BUDGET_SHARE := 0.95
+const ManagerCurve := preload("res://scripts/managers/manager_curve.gd")
 
 ## attack = battle_power * (1 + 0.12*(level-1)) * rank_mults[rank-1]
 static func manager_attack(def: Dictionary, state: Dictionary) -> float:
-	var base: float = float(def.get("battle_power", 10.0))
-	var level: int = maxi(int(state.get("level", 1)), 1)
-	var rank: int = clampi(int(state.get("rank", 1)), 1, 4)
-	var rank_mults: Array = def.get("rank_mults", [1.0, 1.5, 2.25, 3.5])
-	var rm: float = float(rank_mults[mini(rank, rank_mults.size()) - 1])
-	return base * (1.0 + 0.12 * float(level - 1)) * rm
+	return ManagerCurve.audit_efficiency(def, state)
 
 
 ## defs_states: Array of {"def": Dictionary, "state": Dictionary}.

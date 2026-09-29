@@ -48,11 +48,12 @@ CLIP_ROOM_MAX = 0.22
 # Kinds registered in scenes/venue/floor/exhibits.gd.
 KINDS = {
     "skeleton", "casket", "statue", "vitrine", "case", "tank", "hanging",
-    "hung_skeleton", "touch_pool", "mural", "plinth",
+    "hung_skeleton", "touch_pool", "mural", "plinth", "orrery", "armor",
+    "coral", "clockwork", "throne",
     "counter", "info_desk", "desk", "vault_door", "facade", "kiosk", "shelf",
     "rope_line",
-    "bench", "planter", "kelp", "bin", "rack", "cabinet", "crate", "trolley",
-    "machine", "banner", "balloons",
+    "bench", "cafe_table", "planter", "kelp", "bin", "rack", "cabinet", "crate", "trolley",
+    "machine", "banner", "balloons", "recycle_bin",
     "rug", "patch", "picture", "porthole", "notice", "poster", "bunting",
 }
 ROLES_REQUIRED = {"queue", "store", "promo", "exhibit", "lobby"}
@@ -68,7 +69,14 @@ def on_canvas(gx, gy, margin=10.0):
     return margin <= x <= VIEW[0] - margin and margin <= y <= VIEW[1] - margin
 
 
-def clip_fraction(rect):
+def framed_screen(gx, gy, spread=1.0, zoom=1.0, camera_offset=(0.0, 0.0)):
+    """Projected point after VenueFloor's per-venue spread and camera framing."""
+    sx, sy = screen(gx * spread, gy * spread)
+    return ((VIEW[0] - VIEW[0] * zoom) * 0.5 + (sx + camera_offset[0]) * zoom,
+            (VIEW[1] - VIEW[1] * zoom) * 0.5 + (sy + camera_offset[1]) * zoom)
+
+
+def clip_fraction(rect, spread=1.0, zoom=1.0, camera_offset=(0.0, 0.0)):
     """Fraction of a room's floor area falling off the canvas."""
     gx, gy, w, h = rect
     n = bad = 0
@@ -77,7 +85,9 @@ def clip_fraction(rect):
         xx = gx + 0.25
         while xx < gx + w:
             n += 1
-            if not on_canvas(xx, yy):
+            sx, sy = framed_screen(xx, yy, spread, zoom, camera_offset)
+            if not (10.0 <= sx <= VIEW[0] - 10.0 and
+                    10.0 <= sy <= VIEW[1] - 10.0):
                 bad += 1
             xx += 0.5
         yy += 0.5
@@ -90,6 +100,9 @@ def validate(vid, theme, strict=True):
     """Return warnings; raise on anything that would render wrong or not at all."""
     errs, warns = [], []
     rooms = theme.get("rooms", [])
+    spread = float(theme.get("layout_spread", 1.0))
+    zoom = float(theme.get("camera_zoom", 1.0))
+    camera_offset = theme.get("camera_offset", [0.0, 0.0])
 
     missing = ROLES_REQUIRED - {r.get("role") for r in rooms}
     if missing:
@@ -98,7 +111,7 @@ def validate(vid, theme, strict=True):
     total = bad = 0.0
     for r in rooms:
         gx, gy, w, h = r["rect"]
-        frac = clip_fraction(r["rect"])
+        frac = clip_fraction(r["rect"], spread, zoom, camera_offset)
         cells = w * h
         total += cells
         bad += cells * frac
@@ -154,16 +167,95 @@ def covered(rooms, gx, gy):
     return False
 
 
+def _level_span(room):
+    """The storeys a room occupies. A staircase occupies BOTH of its ends."""
+    lo = int(room.get("level", 0))
+    hi = int(room.get("rise_to", lo))
+    return (min(lo, hi), max(lo, hi))
+
+
+def joined_at(rooms, gx, gy, level):
+    """Is the room at this point walkable-into FROM `level`?
+
+    The distinction `covered` cannot make, and the reason a three-storey vault
+    shipped with a doorway cut through its floor edge.
+
+    Wall derivation calls a boundary "interior" whenever another room is on the
+    far side of it, then puts a partition there with a door through the middle.
+    That is right for two rooms on one storey and nonsense across a cliff: the
+    vault sits at level 3 with a ground-floor lounge directly south of it, so a
+    46px partition was emitted against a 222px drop — and then holed. It reads
+    exactly like a missing wall, because that is what it is.
+
+    A neighbour counts as joined only if its storey SPAN contains `level`, which
+    also gets stairs right for nothing: a flight from 0 to 1 occupies both, so it
+    joins the room below and the room above, and nothing else.
+    """
+    for r in rooms:
+        rx, ry, rw, rh = r["rect"]
+        if rx <= gx < rx + rw and ry <= gy < ry + rh:
+            lo, hi = _level_span(r)
+            return lo <= level <= hi
+    return False
+
+
 def bounds(rooms):
     xs = [r["rect"][0] for r in rooms] + [r["rect"][0] + r["rect"][2] for r in rooms]
     ys = [r["rect"][1] for r in rooms] + [r["rect"][1] + r["rect"][3] for r in rooms]
     return (min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys))
 
 
+def structural_signature(theme):
+    """Small, stable description of a venue's massing.
+
+    Palette, prop vocabulary and labels are deliberately excluded: two venues
+    with the same room arrangement are the same building even if one is blue
+    and filled with fish. Used by authoring checks and tests to prevent the
+    six-venue roster collapsing back into one four-room template.
+    """
+    rooms = theme.get("rooms", [])
+    bx, by, bw, bh = bounds(rooms)
+    roles = {}
+    levels = set()
+    for room in rooms:
+        role = room.get("role")
+        if role in ("exhibit", "store", "promo", "queue", "lobby"):
+            x, y, w, h = room["rect"]
+            roles[role] = (
+                round((x - bx) / max(bw, 1), 2),
+                round((y - by) / max(bh, 1), 2),
+                round(w / max(bw, 1), 2),
+                round(h / max(bh, 1), 2),
+                int(room.get("level", 0)),
+            )
+        levels.add(int(room.get("level", 0)))
+        levels.add(int(room.get("rise_to", room.get("level", 0))))
+    return {
+        "aspect": round(bw / max(bh, 1), 2),
+        "room_count": len(rooms),
+        "levels": tuple(sorted(levels)),
+        "roles": roles,
+    }
+
+
+def structural_distance(a, b):
+    """0 is the same plan; larger values mean visibly different massing."""
+    sa, sb = structural_signature(a), structural_signature(b)
+    score = abs(sa["aspect"] - sb["aspect"]) * 0.5
+    score += abs(sa["room_count"] - sb["room_count"]) * 0.12
+    score += len(set(sa["levels"]) ^ set(sb["levels"])) * 0.35
+    for role in set(sa["roles"]) | set(sb["roles"]):
+        if role not in sa["roles"] or role not in sb["roles"]:
+            score += 1.0
+            continue
+        score += sum(abs(x - y) for x, y in zip(sa["roles"][role], sb["roles"][role]))
+    return round(score, 3)
+
+
 # --- derivation ---------------------------------------------------------------
 
 def derive_walls(rooms, colour_of, partition="@partition",
-                 exterior_h=None, interior_h=46.0):
+                 exterior_h=None, interior_h=46.0, parapet_h=19.0):
     """A wall on EVERY room boundary, with doorways cut through the interior ones.
 
     THIS IS WHAT MAKES A VENUE READ AS A BUILDING. The previous rule only walled
@@ -186,7 +278,7 @@ def derive_walls(rooms, colour_of, partition="@partition",
     """
     walls = []
 
-    def emit(at, length, axis, interior):
+    def emit(at, length, axis, interior, height=None, level=0):
         if length <= 0:
             return
         # Exteriors take the room's own accent, shaded by which way the face
@@ -195,10 +287,18 @@ def derive_walls(rooms, colour_of, partition="@partition",
         col = partition if interior else colour_of_edge + shade
         entry = {"at": [round(at[0], 2), round(at[1], 2)],
                  "len": round(length, 2), "axis": axis, "col": col}
-        if interior:
+        if height is not None:
+            entry["h"] = height
+        elif interior:
             entry["h"] = interior_h
         elif exterior_h is not None:
             entry["h"] = exterior_h
+        # A south or east face is anchored on the room's FAR edge, so the
+        # renderer cannot recover its storey by sampling just inside the corner.
+        # Carry it explicitly. (North and west faces get it too, so every wall
+        # states its own storey rather than half of them relying on a probe.)
+        if level:
+            entry["level"] = int(level)
         walls.append(entry)
 
     def runs(edge_cells):
@@ -232,22 +332,49 @@ def derive_walls(rooms, colour_of, partition="@partition",
     for r in rooms:
         gx, gy, w, h = r["rect"]
         colour_of_edge = colour_of(r)
+        level = int(r.get("level", 0))
         # North face, cell by cell: is there a room on the far side of it?
-        cells = [(gx + i, covered(rooms, gx + i + 0.5, gy - 0.5)) for i in range(w)]
+        cells = [(gx + i, joined_at(rooms, gx + i + 0.5, gy - 0.5, level))
+                 for i in range(w)]
         for start, length, interior in runs(cells):
             if interior:
                 for s0, ln in with_doorway(start, length):
-                    emit((s0, gy), ln, "x", True)
+                    emit((s0, gy), ln, "x", True, level=level)
             else:
-                emit((start, gy), length, "x", False)
+                emit((start, gy), length, "x", False, level=level)
         # West face.
-        cells = [(gy + j, covered(rooms, gx - 0.5, gy + j + 0.5)) for j in range(h)]
+        cells = [(gy + j, joined_at(rooms, gx - 0.5, gy + j + 0.5, level))
+                 for j in range(h)]
         for start, length, interior in runs(cells):
             if interior:
                 for s0, ln in with_doorway(start, length):
-                    emit((gx, s0), ln, "y", True)
+                    emit((gx, s0), ln, "y", True, level=level)
             else:
-                emit((gx, start), length, "y", False)
+                emit((gx, start), length, "y", False, level=level)
+        # South and east EXTERIOR faces, as a low parapet.
+        #
+        # These were emitted nowhere. The original rule was that only north and
+        # west faces are drawn, on the grounds that a shared boundary is covered
+        # once because the southern room's north wall IS the northern room's south
+        # wall. True for a shared boundary — and silent about the building's
+        # PERIMETER, where there is no southern room to supply the wall. So every
+        # venue's south and east outside edges had no wall at all: the floor simply
+        # stopped. On a raised storey that reads as a hole punched in the building.
+        #
+        # Kept LOW (well under WALL_H) precisely because of the original concern:
+        # a full-height wall on the camera side would black out the room behind it.
+        # A parapet closes the shell and you still see over it, which is what the
+        # genre does.
+        for start, length, interior in runs(
+                [(gx + i, joined_at(rooms, gx + i + 0.5, gy + h + 0.5, level))
+                 for i in range(w)]):
+            if not interior:
+                emit((start, gy + h), length, "x", False, height=parapet_h, level=level)
+        for start, length, interior in runs(
+                [(gy + j, joined_at(rooms, gx + w + 0.5, gy + j + 0.5, level))
+                 for j in range(h)]):
+            if not interior:
+                emit((gx + w, start), length, "y", False, height=parapet_h, level=level)
 
     # Back to front. Walls are drawn in list order into one canvas item, so a
     # wall further from the camera has to be emitted first or it paints over the
@@ -321,6 +448,116 @@ def scatter_props(rooms, rng, vocab, blocked, count):
     return out
 
 
+def prop_palette(kind):
+    """Palette tokens a scattered prop needs so it takes the VENUE's colours.
+
+    A prop emitted as bare {kind, at} falls back to whatever its painter defaults
+    to, and most of those defaults are sensible neutrals — wood, foliage, slate.
+    `banner` is not: exhibits.gd defaults its cloth to UI.ROOM_PROMO, a global
+    interface accent. So every scattered banner came out the same hot magenta
+    regardless of the museum it stood in, which is exactly how twelve of them
+    looked in a wine-and-gold building. Anything else whose default is a UI
+    colour rather than a material belongs in this table too.
+    """
+    if kind == "banner":
+        return {"col": "@carpet", "field": "@panel", "motif": "@trim"}
+    return {}
+
+
+def stair_orientation(rooms, stair):
+    """Which way a flight climbs, derived from what it connects.
+
+    The renderer's fallback is "rise along the longer side", and for a staircase
+    that is backwards: a grand flight is WIDE and SHALLOW, so you climb it across
+    its short axis. Every stair in the roster is wider than it is deep, so every
+    one of them was rising sideways relative to the way you walk it — treads
+    presenting as one flat striped plane, and the storey lift ramping across the
+    direction of travel instead of along it.
+
+    The honest answer is not a heuristic about the rectangle. It is which
+    NEIGHBOUR is at the bottom and which is at the top: a flight climbs from the
+    face touching its low storey toward the face touching its high one.
+
+    Returns (axis, reverse), or None when the two ends are not on opposite faces —
+    an L-shaped route that a single-axis flight cannot express. The caller warns
+    rather than guessing, because a wrong axis here is invisible until someone
+    watches a visitor gain height sideways.
+    """
+    lo, hi = _level_span(stair)
+    if lo == hi:
+        return None
+    gx, gy, w, h = stair["rect"]
+    faces = {
+        "n": (gx + w * 0.5, gy - 0.5),
+        "s": (gx + w * 0.5, gy + h + 0.5),
+        "w": (gx - 0.5, gy + h * 0.5),
+        "e": (gx + w + 0.5, gy + h * 0.5),
+    }
+    low_faces, high_faces = [], []
+    for side, (px, py) in faces.items():
+        for r in rooms:
+            if r is stair:
+                continue
+            rx, ry, rw, rh = r["rect"]
+            if rx <= px < rx + rw and ry <= py < ry + rh:
+                rlo, rhi = _level_span(r)
+                if rlo <= lo <= rhi:
+                    low_faces.append(side)
+                if rlo <= hi <= rhi:
+                    high_faces.append(side)
+                break
+    for axis, neg, pos in (("y", "n", "s"), ("x", "w", "e")):
+        if neg in high_faces and pos in low_faces:
+            return (axis, True)      # climbs toward -axis
+        if pos in high_faces and neg in low_faces:
+            return (axis, False)     # climbs toward +axis
+    return None
+
+
+def bench_along_wall(rect, px, py, length, clear=0.34):
+    """Place a bench against the nearest wall of its room, running WITH that wall.
+
+    Furniture was scattered at free points with no notion of orientation, and a
+    bench is the one piece where that shows: its footprint has a long axis, so an
+    unoriented one ends up crossing a wall at right angles, jammed in a doorway, or
+    stranded in the middle of a floor where nobody would ever put a bench. Reported
+    as benches "literally in between walls" and one "attached to a wall".
+
+    Real seating hugs the perimeter, which also declutters the middle of the room —
+    the exact space visitors and exhibits need. Returns the overriding fields, or
+    None if the bench will not fit along the chosen wall.
+    """
+    gx, gy, w, h = rect
+    if w < length + 1.0 and h < length + 1.0:
+        return None
+    # Nearest wall wins, so the bench barely moves from where the scatter put it
+    # and the spread across the room is preserved.
+    sides = {
+        "n": py - gy, "s": (gy + h) - py,
+        "w": px - gx, "e": (gx + w) - px,
+    }
+    for side in sorted(sides, key=sides.get):
+        if side in ("n", "s"):
+            if w < length + 1.0:
+                continue
+            a = min(max(px - length * 0.5, gx + 0.5), gx + w - length - 0.5)
+            across = gy + clear if side == "n" else gy + h - clear - 0.55
+            at, axis = (a, across), "x"
+        else:
+            if h < length + 1.0:
+                continue
+            a = min(max(py - length * 0.5, gy + 0.5), gy + h - length - 0.5)
+            across = gx + clear if side == "w" else gx + w - clear - 0.55
+            at, axis = (across, a), "y"
+        # Both ends have to be on camera, not just the anchor: the projection
+        # shears x by -gy, so a bench can start on screen and finish off it.
+        far = (at[0] + length, at[1]) if axis == "x" else (at[0], at[1] + length)
+        if on_canvas(at[0], at[1], 22.0) and on_canvas(far[0], far[1], 22.0):
+            return {"at": [round(at[0], 2), round(at[1], 2)], "axis": axis,
+                    "len": round(length, 2)}
+    return None
+
+
 def terrace_props(rooms, rng, vocab, count, pad=1.0):
     """Furniture on the apron — paved ground inside the plinth but outside every
     room.
@@ -353,6 +590,14 @@ def terrace_props(rooms, rng, vocab, count, pad=1.0):
         prop = {"kind": kind, "at": [px, py]}
         if kind == "bench":
             prop["len"] = round(rng.uniform(1.5, 2.1), 2)
+            # Outdoor benches follow the apron they stand on: one on the north or
+            # south terrace runs east-west, one on a side terrace runs with the
+            # building. Without this they all ran x and the side aprons ended up
+            # with benches lying across them.
+            near_x = min(abs(px - bx), abs(px - (bx + bw)))
+            near_y = min(abs(py - by), abs(py - (by + bh)))
+            prop["axis"] = "y" if near_x < near_y else "x"
+        prop.update(prop_palette(kind))
         out.append(prop)
     return out
 
@@ -394,7 +639,11 @@ def scatter_weighted(rooms, rng, vocab, blocked, per_tile=0.16):
         kinds = vocab.get(role) or vocab.get("any")
         if not kinds or w < 2 or h < 2:
             continue
-        want = max(1, int(round(w * h * per_tile)))
+        # A room may ask for its own density. A lounge whose whole job is to look
+        # occupied cannot sit at the same per-tile budget as a gallery whose job is
+        # to leave sightlines to the exhibits: at the shared rate a 21-tile lounge
+        # got two pieces of furniture and read as bare floor.
+        want = max(1, int(round(w * h * float(r.get("prop_density", per_tile)))))
         attempts = 0
         placed = 0
         while placed < want and attempts < want * 50:
@@ -409,7 +658,13 @@ def scatter_weighted(rooms, rng, vocab, blocked, per_tile=0.16):
             kind = rng.choice(kinds)
             prop = {"kind": kind, "at": [px, py]}
             if kind == "bench":
-                prop["len"] = round(rng.uniform(1.4, 2.0), 2)
+                snapped = bench_along_wall(
+                    r["rect"], px, py, round(rng.uniform(1.4, 2.0), 2))
+                if snapped is None:
+                    continue          # no wall it fits along; spend the slot elsewhere
+                prop.update(snapped)
+                taken[-1] = (prop["at"][0], prop["at"][1])
+            prop.update(prop_palette(kind))
             out.append(prop)
             placed += 1
     return out

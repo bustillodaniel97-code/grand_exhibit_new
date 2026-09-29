@@ -40,7 +40,9 @@ func _init() -> void:
 func run() -> void:
 	_boot()
 	GameState.reset_to_new_game()
-	GameState.ready_flag = false  # Economy._process must not tick during tests
+	GameState.ready_flag = true
+	root.get_node("Economy").set_process(false)
+	root.get_node("SaveSystem").set_process(false)  # Economy._process must not tick during tests
 
 	_test_instant_cash_math()
 	_test_free_gems_cap()

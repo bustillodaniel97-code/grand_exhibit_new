@@ -89,8 +89,8 @@ func run() -> void:
 	check(ManagerSystem.rank_up("paleontologist_rex"), "rank_up to 3 (cost 4, keeps 1)")
 	check(ManagerSystem.cards("paleontologist_rex") == 1 and ManagerSystem.rank("paleontologist_rex") == 3,
 		"cards 5 -> 1, rank 3")
-	ManagerSystem.state("paleontologist_rex")["rank"] = 4
-	check(ManagerSystem.rank_up_cost("paleontologist_rex") == 0, "rank 4 is max")
+	ManagerSystem.state("paleontologist_rex")["rank"] = 10
+	check(ManagerSystem.rank_up_cost("paleontologist_rex") == 0, "rank 10 is max")
 	check(not ManagerSystem.rank_up("paleontologist_rex"), "rank_up refused at max rank")
 
 	# --- assign: specialty rule + one-per-dept -----------------------------------
@@ -100,6 +100,14 @@ func run() -> void:
 	check(ManagerSystem.assigned_to("docent_poppy") == "ticket", "assigned_to stored in state")
 	ManagerSystem.add_cards("usher_bram", 1)  # also ticket specialty
 	check(not ManagerSystem.assign("usher_bram", "ticket"), "one manager per dept enforced")
+	gs.reputation_xp = BigNumber.from_float(5000.0)
+	check(ManagerSystem.assignment_slots("ticket") >= 2,
+		"Reputation opens a second manager post")
+	check(ManagerSystem.assign("usher_bram", "ticket"),
+		"second specialist can fill the Reputation-unlocked post")
+	check(ManagerSystem.assigned_ids("ticket").size() == 2,
+		"department retains both assigned managers")
+	check(ManagerSystem.unassign("usher_bram"), "second post can stand down")
 	check(ManagerSystem.unassign("docent_poppy"), "unassign works")
 	check(ManagerSystem.assign("usher_bram", "ticket"), "dept free after unassign")
 
@@ -131,7 +139,8 @@ func run() -> void:
 	var atk1: float = ManagerSystem.battle_attack(nc_def, {"level": 1, "rank": 1})
 	check(absf(atk1 - 150.0) < 0.001, "battle_attack lvl1 rank1 = 150")
 	var atk2: float = ManagerSystem.battle_attack(nc_def, {"level": 11, "rank": 3})
-	check(absf(atk2 - 150.0 * 2.2 * 2.25) < 0.01, "battle_attack lvl11 rank3 = 742.5")
+	check(absf(atk2 - 150.0 * 2.2 * 1.7) < 0.01,
+		"battle_attack uses the ten-rank audit ladder")
 
 	_check_badge_data()
 	_check_portrait_looks()

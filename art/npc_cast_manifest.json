@@ -1,0 +1,1267 @@
+{
+  "version": 4,
+  "source": "art/npc-locomotion",
+  "motion_manifest": "res://art/npc_motion/motion.json",
+  "roster": [
+    {
+      "prefix": "cast_00",
+      "asset": "visitor_child_male",
+      "role": "visitor",
+      "age_group": "child",
+      "gender": "male",
+      "variant": 0,
+      "face_family": "oval",
+      "face_geometry_sha256": "9caeca2462f106eff5046005c8c07937f77f57bd5664041b8bf13cee2cbefb42",
+      "validation": {
+        "family": "oval",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5509588718414307,
+        "front_after": -0.5521759390830994,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "crop",
+        "outfit": "tee",
+        "shoulder_width": 0.94,
+        "hip_width": 1.0,
+        "stature": 0.98,
+        "skeleton": {
+          "hip_x": 0.2163,
+          "hip_z": 1.051344,
+          "knee_z": 0.59976,
+          "shoulder_x": 0.33886999999999995,
+          "shoulder_z": 1.714608,
+          "age_factor": 0.7056
+        },
+        "geometry_sha256": "fb645c89a54a0388dc8cb61bd93f898b2850737cadb4450f6089bf6858133e82"
+      },
+      "rig": "cast_00 rig",
+      "stride_grid": 0.4434973731602026
+    },
+    {
+      "prefix": "cast_01",
+      "asset": "visitor_child_female",
+      "role": "visitor",
+      "age_group": "child",
+      "gender": "female",
+      "variant": 0,
+      "face_family": "oval",
+      "face_geometry_sha256": "9caeca2462f106eff5046005c8c07937f77f57bd5664041b8bf13cee2cbefb42",
+      "validation": {
+        "family": "oval",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5569588541984558,
+        "front_after": -0.5521759390830994,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "bob",
+        "outfit": "dress",
+        "shoulder_width": 1.12,
+        "hip_width": 1.09,
+        "stature": 0.98,
+        "skeleton": {
+          "hip_x": 0.23576700000000003,
+          "hip_z": 1.051344,
+          "knee_z": 0.59976,
+          "shoulder_x": 0.40376,
+          "shoulder_z": 1.714608,
+          "age_factor": 0.7056
+        },
+        "geometry_sha256": "0345501bd553760e6c9aae3330666de971e00c278cbc485968474f0a105f2f13"
+      },
+      "rig": "cast_01 rig",
+      "stride_grid": 0.4434973731602026
+    },
+    {
+      "prefix": "cast_02",
+      "asset": "visitor_young_adult_male",
+      "role": "visitor",
+      "age_group": "young_adult",
+      "gender": "male",
+      "variant": 0,
+      "face_family": "oval",
+      "face_geometry_sha256": "c5013fc09c9f8026f64f11c5ee3738b09706f831d0bd7e4bc54448a8beeb1e90",
+      "validation": {
+        "family": "oval",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.6024479866027832,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "part",
+        "outfit": "tee",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "824f12d43d518cb0bc5efdff03238bc2e441f8e7a0baff8c61f861e41478db64"
+      },
+      "rig": "cast_02 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_03",
+      "asset": "visitor_young_adult_female",
+      "role": "visitor",
+      "age_group": "young_adult",
+      "gender": "female",
+      "variant": 0,
+      "face_family": "oval",
+      "face_geometry_sha256": "ec3476c0bd2f5f9c2d916b6cdfb40f9cd1022c60ddaccf5a7b86c68eba387ebb",
+      "validation": {
+        "family": "oval",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.6024479866027832,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "bob",
+        "outfit": "blouse",
+        "shoulder_width": 0.94,
+        "hip_width": 1.0,
+        "stature": 1.0,
+        "skeleton": {
+          "hip_x": 0.21,
+          "hip_z": 1.49,
+          "knee_z": 0.85,
+          "shoulder_x": 0.32899999999999996,
+          "shoulder_z": 2.43,
+          "age_factor": 1.0
+        },
+        "geometry_sha256": "79dc20b3c9a9764c04495edd4e008778e22f32f3df1258d6acb920115f4adffd"
+      },
+      "rig": "cast_03 rig",
+      "stride_grid": 0.6285393610547089
+    },
+    {
+      "prefix": "cast_04",
+      "asset": "visitor_middle_aged_male",
+      "role": "visitor",
+      "age_group": "middle_aged",
+      "gender": "male",
+      "variant": 0,
+      "face_family": "oval",
+      "face_geometry_sha256": "db176afe382f2dba3548fd3c0ff908a43f391c429184f07897a8357351b66961",
+      "validation": {
+        "family": "oval",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.6024479866027832,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "crop",
+        "outfit": "jacket",
+        "shoulder_width": 1.12,
+        "hip_width": 1.09,
+        "stature": 0.96,
+        "skeleton": {
+          "hip_x": 0.22890000000000002,
+          "hip_z": 1.4304,
+          "knee_z": 0.816,
+          "shoulder_x": 0.392,
+          "shoulder_z": 2.3328,
+          "age_factor": 0.96
+        },
+        "geometry_sha256": "41ec9ba7c32c4f0b137cc693410ee1c24a057ffec3c8f9c42667780810a4b4a3"
+      },
+      "rig": "cast_04 rig",
+      "stride_grid": 0.6033977866125205
+    },
+    {
+      "prefix": "cast_05",
+      "asset": "visitor_middle_aged_female",
+      "role": "visitor",
+      "age_group": "middle_aged",
+      "gender": "female",
+      "variant": 0,
+      "face_family": "oval",
+      "face_geometry_sha256": "c5013fc09c9f8026f64f11c5ee3738b09706f831d0bd7e4bc54448a8beeb1e90",
+      "validation": {
+        "family": "oval",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.6024479866027832,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "lob",
+        "outfit": "dress",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "bdcf7eca2819ef441991340778993267a69eccf7d062bfc6823fe3bda92e6b5f"
+      },
+      "rig": "cast_05 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_06",
+      "asset": "visitor_elder_male",
+      "role": "visitor",
+      "age_group": "elder",
+      "gender": "male",
+      "variant": 0,
+      "face_family": "oval",
+      "face_geometry_sha256": "ec3476c0bd2f5f9c2d916b6cdfb40f9cd1022c60ddaccf5a7b86c68eba387ebb",
+      "validation": {
+        "family": "oval",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5809587836265564,
+        "front_after": -0.6024479866027832,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "receding",
+        "outfit": "cardigan",
+        "shoulder_width": 0.94,
+        "hip_width": 1.0,
+        "stature": 1.0,
+        "skeleton": {
+          "hip_x": 0.21,
+          "hip_z": 1.49,
+          "knee_z": 0.85,
+          "shoulder_x": 0.32899999999999996,
+          "shoulder_z": 2.43,
+          "age_factor": 1.0
+        },
+        "geometry_sha256": "0215b395cfcac3659da982c591f33c82c480f465d00a3f493ff48c606c803268"
+      },
+      "rig": "cast_06 rig",
+      "stride_grid": 0.6285393610547089
+    },
+    {
+      "prefix": "cast_07",
+      "asset": "visitor_elder_female",
+      "role": "visitor",
+      "age_group": "elder",
+      "gender": "female",
+      "variant": 0,
+      "face_family": "oval",
+      "face_geometry_sha256": "db176afe382f2dba3548fd3c0ff908a43f391c429184f07897a8357351b66961",
+      "validation": {
+        "family": "oval",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5569588541984558,
+        "front_after": -0.6024479866027832,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "curly",
+        "outfit": "blouse",
+        "shoulder_width": 1.12,
+        "hip_width": 1.09,
+        "stature": 0.96,
+        "skeleton": {
+          "hip_x": 0.22890000000000002,
+          "hip_z": 1.4304,
+          "knee_z": 0.816,
+          "shoulder_x": 0.392,
+          "shoulder_z": 2.3328,
+          "age_factor": 0.96
+        },
+        "geometry_sha256": "aba60dcb12fc75eb99a7fbfa4daef046b018e5fcca4b5768ad58b445f7ab8903"
+      },
+      "rig": "cast_07 rig",
+      "stride_grid": 0.6033977866125205
+    },
+    {
+      "prefix": "cast_08",
+      "asset": "visitor_child_male-v1",
+      "role": "visitor",
+      "age_group": "child",
+      "gender": "male",
+      "variant": 1,
+      "face_family": "round",
+      "face_geometry_sha256": "0e7aa187204a83001e8bcf9eb5e551f923f979aaa986ced7db93940cb874065a",
+      "validation": {
+        "family": "round",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5509588718414307,
+        "front_after": -0.5491510629653931,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "curly",
+        "outfit": "hoodie",
+        "shoulder_width": 1.12,
+        "hip_width": 1.09,
+        "stature": 1.01,
+        "skeleton": {
+          "hip_x": 0.23576700000000003,
+          "hip_z": 1.083528,
+          "knee_z": 0.61812,
+          "shoulder_x": 0.40376,
+          "shoulder_z": 1.767096,
+          "age_factor": 0.7272
+        },
+        "geometry_sha256": "72863bda1c6be0d1cc1545fca0e67826516a46a080a823a1f83b64d5dfc13c5d"
+      },
+      "rig": "cast_08 rig",
+      "stride_grid": 0.4570738233589843
+    },
+    {
+      "prefix": "cast_09",
+      "asset": "visitor_child_female-v1",
+      "role": "visitor",
+      "age_group": "child",
+      "gender": "female",
+      "variant": 1,
+      "face_family": "round",
+      "face_geometry_sha256": "0e7aa187204a83001e8bcf9eb5e551f923f979aaa986ced7db93940cb874065a",
+      "validation": {
+        "family": "round",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5569588541984558,
+        "front_after": -0.5491510629653931,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "twintails",
+        "outfit": "tee",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.01,
+        "skeleton": {
+          "hip_x": 0.211974,
+          "hip_z": 1.083528,
+          "knee_z": 0.61812,
+          "shoulder_x": 0.320845,
+          "shoulder_z": 1.767096,
+          "age_factor": 0.7272
+        },
+        "geometry_sha256": "d0456c19063f07647935bb0f5a8a72ce5a5ce54b565552e10fbe91e6b32a1105"
+      },
+      "rig": "cast_09 rig",
+      "stride_grid": 0.4570738233589843
+    },
+    {
+      "prefix": "cast_10",
+      "asset": "visitor_young_adult_male-v1",
+      "role": "visitor",
+      "age_group": "young_adult",
+      "gender": "male",
+      "variant": 1,
+      "face_family": "round",
+      "face_geometry_sha256": "4d9746a8af2668ece2bd886434161535d739632081a80b082579be4cd69a309a",
+      "validation": {
+        "family": "round",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.5994230508804321,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "curly",
+        "outfit": "jacket",
+        "shoulder_width": 0.94,
+        "hip_width": 1.0,
+        "stature": 1.0,
+        "skeleton": {
+          "hip_x": 0.21,
+          "hip_z": 1.49,
+          "knee_z": 0.85,
+          "shoulder_x": 0.32899999999999996,
+          "shoulder_z": 2.43,
+          "age_factor": 1.0
+        },
+        "geometry_sha256": "a2ade269d8f90cd0db861a321ac16524d9aef49423fdb270189ae7118d958565"
+      },
+      "rig": "cast_10 rig",
+      "stride_grid": 0.6285393610547089
+    },
+    {
+      "prefix": "cast_11",
+      "asset": "visitor_young_adult_female-v1",
+      "role": "visitor",
+      "age_group": "young_adult",
+      "gender": "female",
+      "variant": 1,
+      "face_family": "round",
+      "face_geometry_sha256": "dad95fb40acf7601940916eaf14ef7fb49502c15479499670726fc5e6891586a",
+      "validation": {
+        "family": "round",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.5994230508804321,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "ponytail",
+        "outfit": "dress",
+        "shoulder_width": 1.12,
+        "hip_width": 1.09,
+        "stature": 0.96,
+        "skeleton": {
+          "hip_x": 0.22890000000000002,
+          "hip_z": 1.4304,
+          "knee_z": 0.816,
+          "shoulder_x": 0.392,
+          "shoulder_z": 2.3328,
+          "age_factor": 0.96
+        },
+        "geometry_sha256": "d829aadf5e2ad199020f6aad58667caae72819fb628817febfe6dd66dcd369fe"
+      },
+      "rig": "cast_11 rig",
+      "stride_grid": 0.6033977866125205
+    },
+    {
+      "prefix": "cast_12",
+      "asset": "visitor_middle_aged_male-v1",
+      "role": "visitor",
+      "age_group": "middle_aged",
+      "gender": "male",
+      "variant": 1,
+      "face_family": "round",
+      "face_geometry_sha256": "ccd14e9f74347e4f528fe2aafec5564d73ab5c85601083b0717ddda0aac26e67",
+      "validation": {
+        "family": "round",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.5994230508804321,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "part",
+        "outfit": "tee",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "e2cccd1228a83302d0498594d8398ae560e04fee51590851a24c3d7fa0275eec"
+      },
+      "rig": "cast_12 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_13",
+      "asset": "visitor_middle_aged_female-v1",
+      "role": "visitor",
+      "age_group": "middle_aged",
+      "gender": "female",
+      "variant": 1,
+      "face_family": "round",
+      "face_geometry_sha256": "4d9746a8af2668ece2bd886434161535d739632081a80b082579be4cd69a309a",
+      "validation": {
+        "family": "round",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.5994230508804321,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "bun",
+        "outfit": "blouse",
+        "shoulder_width": 0.94,
+        "hip_width": 1.0,
+        "stature": 1.0,
+        "skeleton": {
+          "hip_x": 0.21,
+          "hip_z": 1.49,
+          "knee_z": 0.85,
+          "shoulder_x": 0.32899999999999996,
+          "shoulder_z": 2.43,
+          "age_factor": 1.0
+        },
+        "geometry_sha256": "5086c676f9c47778beae4bc7d7e614055be9a61d3262e73d1726ef1052e0da7c"
+      },
+      "rig": "cast_13 rig",
+      "stride_grid": 0.6285393610547089
+    },
+    {
+      "prefix": "cast_14",
+      "asset": "visitor_elder_male-v1",
+      "role": "visitor",
+      "age_group": "elder",
+      "gender": "male",
+      "variant": 1,
+      "face_family": "round",
+      "face_geometry_sha256": "dad95fb40acf7601940916eaf14ef7fb49502c15479499670726fc5e6891586a",
+      "validation": {
+        "family": "round",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5809587836265564,
+        "front_after": -0.5994230508804321,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "back",
+        "outfit": "jacket",
+        "shoulder_width": 1.12,
+        "hip_width": 1.09,
+        "stature": 0.96,
+        "skeleton": {
+          "hip_x": 0.22890000000000002,
+          "hip_z": 1.4304,
+          "knee_z": 0.816,
+          "shoulder_x": 0.392,
+          "shoulder_z": 2.3328,
+          "age_factor": 0.96
+        },
+        "geometry_sha256": "2edffffb4c35ea82c164db76d4d8d3254c24f86abfd06cfec0c03b1e0e2a0ea5"
+      },
+      "rig": "cast_14 rig",
+      "stride_grid": 0.6033977866125205
+    },
+    {
+      "prefix": "cast_15",
+      "asset": "visitor_elder_female-v1",
+      "role": "visitor",
+      "age_group": "elder",
+      "gender": "female",
+      "variant": 1,
+      "face_family": "round",
+      "face_geometry_sha256": "ccd14e9f74347e4f528fe2aafec5564d73ab5c85601083b0717ddda0aac26e67",
+      "validation": {
+        "family": "round",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5569588541984558,
+        "front_after": -0.5994230508804321,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "bob",
+        "outfit": "dress",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "157e35798964a524a3d9a2b6ead7db50e77d211f8aaa3fa0c216222f0be4c93a"
+      },
+      "rig": "cast_15 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_16",
+      "asset": "visitor_child_male-v2",
+      "role": "visitor",
+      "age_group": "child",
+      "gender": "male",
+      "variant": 2,
+      "face_family": "soft_square",
+      "face_geometry_sha256": "f44e1660dc63a3188dd9439b1262078bf533d249010a46158b210b292d949b49",
+      "validation": {
+        "family": "soft_square",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5509588718414307,
+        "front_after": -0.5547278523445129,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "part",
+        "outfit": "cardigan",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 0.96,
+        "skeleton": {
+          "hip_x": 0.211974,
+          "hip_z": 1.029888,
+          "knee_z": 0.5875199999999999,
+          "shoulder_x": 0.320845,
+          "shoulder_z": 1.679616,
+          "age_factor": 0.6911999999999999
+        },
+        "geometry_sha256": "81950c6ef1e58140071f3404ad8bb841b2f20707d1dd690030e29ed664cb948c"
+      },
+      "rig": "cast_16 rig",
+      "stride_grid": 0.4344464063610148
+    },
+    {
+      "prefix": "cast_17",
+      "asset": "visitor_child_female-v2",
+      "role": "visitor",
+      "age_group": "child",
+      "gender": "female",
+      "variant": 2,
+      "face_family": "soft_square",
+      "face_geometry_sha256": "f44e1660dc63a3188dd9439b1262078bf533d249010a46158b210b292d949b49",
+      "validation": {
+        "family": "soft_square",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5569588541984558,
+        "front_after": -0.5547278523445129,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "curly",
+        "outfit": "hoodie",
+        "shoulder_width": 0.94,
+        "hip_width": 1.0,
+        "stature": 0.96,
+        "skeleton": {
+          "hip_x": 0.2163,
+          "hip_z": 1.029888,
+          "knee_z": 0.5875199999999999,
+          "shoulder_x": 0.33886999999999995,
+          "shoulder_z": 1.679616,
+          "age_factor": 0.6911999999999999
+        },
+        "geometry_sha256": "3a7ae65d415e00833efd227290ba19f46a3d3191a99431583325d526c7498d92"
+      },
+      "rig": "cast_17 rig",
+      "stride_grid": 0.4344464063610148
+    },
+    {
+      "prefix": "cast_18",
+      "asset": "visitor_young_adult_male-v2",
+      "role": "visitor",
+      "age_group": "young_adult",
+      "gender": "male",
+      "variant": 2,
+      "face_family": "soft_square",
+      "face_geometry_sha256": "a38fdecfde87b9cb6f44de22f7da7d7c7f3153cce663cacdfd6601e9417805cf",
+      "validation": {
+        "family": "soft_square",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.6049998998641968,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "close",
+        "outfit": "hoodie",
+        "shoulder_width": 1.12,
+        "hip_width": 1.09,
+        "stature": 0.96,
+        "skeleton": {
+          "hip_x": 0.22890000000000002,
+          "hip_z": 1.4304,
+          "knee_z": 0.816,
+          "shoulder_x": 0.392,
+          "shoulder_z": 2.3328,
+          "age_factor": 0.96
+        },
+        "geometry_sha256": "af3dd4389643d39f501e0a77c97d3748820acf875072aba4e2f77e8b58237a44"
+      },
+      "rig": "cast_18 rig",
+      "stride_grid": 0.6033977866125205
+    },
+    {
+      "prefix": "cast_19",
+      "asset": "visitor_young_adult_female-v2",
+      "role": "visitor",
+      "age_group": "young_adult",
+      "gender": "female",
+      "variant": 2,
+      "face_family": "soft_square",
+      "face_geometry_sha256": "541aa5312f8ae8c12960d3e4536477b7b55249c2e0520a09099e9758aa97d6f9",
+      "validation": {
+        "family": "soft_square",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.6049998998641968,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "lob",
+        "outfit": "jacket",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "3f001440241edee29892f7ffd7ddfec25c7ee9ae0968cbaeda427e873a283d50"
+      },
+      "rig": "cast_19 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_20",
+      "asset": "visitor_middle_aged_male-v2",
+      "role": "visitor",
+      "age_group": "middle_aged",
+      "gender": "male",
+      "variant": 2,
+      "face_family": "soft_square",
+      "face_geometry_sha256": "4dd7182f49723eae9f90eee9d2f9aea74790eb75fa2ae9ef30b75373d44db8f8",
+      "validation": {
+        "family": "soft_square",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.6049998998641968,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "receding",
+        "outfit": "cardigan",
+        "shoulder_width": 0.94,
+        "hip_width": 1.0,
+        "stature": 1.0,
+        "skeleton": {
+          "hip_x": 0.21,
+          "hip_z": 1.49,
+          "knee_z": 0.85,
+          "shoulder_x": 0.32899999999999996,
+          "shoulder_z": 2.43,
+          "age_factor": 1.0
+        },
+        "geometry_sha256": "ceddf99fcd0ba0324fd436a9a4c3c7cde0af27c6eba04b51007581067b6d0b94"
+      },
+      "rig": "cast_20 rig",
+      "stride_grid": 0.6285393610547089
+    },
+    {
+      "prefix": "cast_21",
+      "asset": "visitor_middle_aged_female-v2",
+      "role": "visitor",
+      "age_group": "middle_aged",
+      "gender": "female",
+      "variant": 2,
+      "face_family": "soft_square",
+      "face_geometry_sha256": "a38fdecfde87b9cb6f44de22f7da7d7c7f3153cce663cacdfd6601e9417805cf",
+      "validation": {
+        "family": "soft_square",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.6049998998641968,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "curly",
+        "outfit": "cardigan",
+        "shoulder_width": 1.12,
+        "hip_width": 1.09,
+        "stature": 0.96,
+        "skeleton": {
+          "hip_x": 0.22890000000000002,
+          "hip_z": 1.4304,
+          "knee_z": 0.816,
+          "shoulder_x": 0.392,
+          "shoulder_z": 2.3328,
+          "age_factor": 0.96
+        },
+        "geometry_sha256": "45c5ce6992ff041077418ee0564b3ef396dfd57dcc90946e8eaf12fbac7d6c78"
+      },
+      "rig": "cast_21 rig",
+      "stride_grid": 0.6033977866125205
+    },
+    {
+      "prefix": "cast_22",
+      "asset": "visitor_elder_male-v2",
+      "role": "visitor",
+      "age_group": "elder",
+      "gender": "male",
+      "variant": 2,
+      "face_family": "soft_square",
+      "face_geometry_sha256": "541aa5312f8ae8c12960d3e4536477b7b55249c2e0520a09099e9758aa97d6f9",
+      "validation": {
+        "family": "soft_square",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5809587836265564,
+        "front_after": -0.6049998998641968,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "crop",
+        "outfit": "tee",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "400e963b81ddb237c7cbaa609328196a900bec53d6042f70c73ec15ae252bf03"
+      },
+      "rig": "cast_22 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_23",
+      "asset": "visitor_elder_female-v2",
+      "role": "visitor",
+      "age_group": "elder",
+      "gender": "female",
+      "variant": 2,
+      "face_family": "soft_square",
+      "face_geometry_sha256": "4dd7182f49723eae9f90eee9d2f9aea74790eb75fa2ae9ef30b75373d44db8f8",
+      "validation": {
+        "family": "soft_square",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5569588541984558,
+        "front_after": -0.6049998998641968,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "bun",
+        "outfit": "cardigan",
+        "shoulder_width": 0.94,
+        "hip_width": 1.0,
+        "stature": 1.0,
+        "skeleton": {
+          "hip_x": 0.21,
+          "hip_z": 1.49,
+          "knee_z": 0.85,
+          "shoulder_x": 0.32899999999999996,
+          "shoulder_z": 2.43,
+          "age_factor": 1.0
+        },
+        "geometry_sha256": "976d7d0b08e7d01d4671a8b89310a117089eaccae237a7181b8c59a3ba98b553"
+      },
+      "rig": "cast_23 rig",
+      "stride_grid": 0.6285393610547089
+    },
+    {
+      "prefix": "cast_24",
+      "asset": "staff-ticket-0",
+      "role": "ticket",
+      "age_group": "young_adult",
+      "gender": "male",
+      "variant": 0,
+      "face_family": "oval",
+      "face_geometry_sha256": "c5013fc09c9f8026f64f11c5ee3738b09706f831d0bd7e4bc54448a8beeb1e90",
+      "validation": {
+        "family": "oval",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.6024479866027832,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "part",
+        "outfit": "staff_jacket",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "576f82200f0376c40c0bf9689f7443b7e951c7ae8c141287870b56026489cb3d"
+      },
+      "rig": "cast_24 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_25",
+      "asset": "staff-ticket-1",
+      "role": "ticket",
+      "age_group": "middle_aged",
+      "gender": "female",
+      "variant": 1,
+      "face_family": "round",
+      "face_geometry_sha256": "4d9746a8af2668ece2bd886434161535d739632081a80b082579be4cd69a309a",
+      "validation": {
+        "family": "round",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.5994230508804321,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "bun",
+        "outfit": "staff_blouse",
+        "shoulder_width": 0.94,
+        "hip_width": 1.0,
+        "stature": 1.0,
+        "skeleton": {
+          "hip_x": 0.21,
+          "hip_z": 1.49,
+          "knee_z": 0.85,
+          "shoulder_x": 0.32899999999999996,
+          "shoulder_z": 2.43,
+          "age_factor": 1.0
+        },
+        "geometry_sha256": "4137da792929c35d8fb59d831fe0de9347c951ac40d3de4715be5a3bdcba6712"
+      },
+      "rig": "cast_25 rig",
+      "stride_grid": 0.6285393610547089
+    },
+    {
+      "prefix": "cast_26",
+      "asset": "staff-ticket-2",
+      "role": "ticket",
+      "age_group": "elder",
+      "gender": "male",
+      "variant": 2,
+      "face_family": "soft_square",
+      "face_geometry_sha256": "541aa5312f8ae8c12960d3e4536477b7b55249c2e0520a09099e9758aa97d6f9",
+      "validation": {
+        "family": "soft_square",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5809587836265564,
+        "front_after": -0.6049998998641968,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "crop",
+        "outfit": "staff_jacket",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "ddbf42a05bbd91c39b072dbf8c8395ba903b9a8327d397c7c09186a91c2e8a12"
+      },
+      "rig": "cast_26 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_27",
+      "asset": "staff-docent-0",
+      "role": "docent",
+      "age_group": "young_adult",
+      "gender": "male",
+      "variant": 0,
+      "face_family": "oval",
+      "face_geometry_sha256": "c5013fc09c9f8026f64f11c5ee3738b09706f831d0bd7e4bc54448a8beeb1e90",
+      "validation": {
+        "family": "oval",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.6024479866027832,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "part",
+        "outfit": "staff_jacket",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "576f82200f0376c40c0bf9689f7443b7e951c7ae8c141287870b56026489cb3d"
+      },
+      "rig": "cast_27 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_28",
+      "asset": "staff-docent-1",
+      "role": "docent",
+      "age_group": "middle_aged",
+      "gender": "female",
+      "variant": 1,
+      "face_family": "round",
+      "face_geometry_sha256": "4d9746a8af2668ece2bd886434161535d739632081a80b082579be4cd69a309a",
+      "validation": {
+        "family": "round",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.5994230508804321,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "bun",
+        "outfit": "staff_blouse",
+        "shoulder_width": 0.94,
+        "hip_width": 1.0,
+        "stature": 1.0,
+        "skeleton": {
+          "hip_x": 0.21,
+          "hip_z": 1.49,
+          "knee_z": 0.85,
+          "shoulder_x": 0.32899999999999996,
+          "shoulder_z": 2.43,
+          "age_factor": 1.0
+        },
+        "geometry_sha256": "4137da792929c35d8fb59d831fe0de9347c951ac40d3de4715be5a3bdcba6712"
+      },
+      "rig": "cast_28 rig",
+      "stride_grid": 0.6285393610547089
+    },
+    {
+      "prefix": "cast_29",
+      "asset": "staff-docent-2",
+      "role": "docent",
+      "age_group": "elder",
+      "gender": "male",
+      "variant": 2,
+      "face_family": "soft_square",
+      "face_geometry_sha256": "541aa5312f8ae8c12960d3e4536477b7b55249c2e0520a09099e9758aa97d6f9",
+      "validation": {
+        "family": "soft_square",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5809587836265564,
+        "front_after": -0.6049998998641968,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "crop",
+        "outfit": "staff_jacket",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "ddbf42a05bbd91c39b072dbf8c8395ba903b9a8327d397c7c09186a91c2e8a12"
+      },
+      "rig": "cast_29 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_30",
+      "asset": "staff-promotions-0",
+      "role": "promotions",
+      "age_group": "young_adult",
+      "gender": "male",
+      "variant": 0,
+      "face_family": "oval",
+      "face_geometry_sha256": "c5013fc09c9f8026f64f11c5ee3738b09706f831d0bd7e4bc54448a8beeb1e90",
+      "validation": {
+        "family": "oval",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.6024479866027832,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "part",
+        "outfit": "staff_jacket",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "576f82200f0376c40c0bf9689f7443b7e951c7ae8c141287870b56026489cb3d"
+      },
+      "rig": "cast_30 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_31",
+      "asset": "staff-promotions-1",
+      "role": "promotions",
+      "age_group": "middle_aged",
+      "gender": "female",
+      "variant": 1,
+      "face_family": "round",
+      "face_geometry_sha256": "4d9746a8af2668ece2bd886434161535d739632081a80b082579be4cd69a309a",
+      "validation": {
+        "family": "round",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.5994230508804321,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "bun",
+        "outfit": "staff_blouse",
+        "shoulder_width": 0.94,
+        "hip_width": 1.0,
+        "stature": 1.0,
+        "skeleton": {
+          "hip_x": 0.21,
+          "hip_z": 1.49,
+          "knee_z": 0.85,
+          "shoulder_x": 0.32899999999999996,
+          "shoulder_z": 2.43,
+          "age_factor": 1.0
+        },
+        "geometry_sha256": "4137da792929c35d8fb59d831fe0de9347c951ac40d3de4715be5a3bdcba6712"
+      },
+      "rig": "cast_31 rig",
+      "stride_grid": 0.6285393610547089
+    },
+    {
+      "prefix": "cast_32",
+      "asset": "staff-promotions-2",
+      "role": "promotions",
+      "age_group": "elder",
+      "gender": "male",
+      "variant": 2,
+      "face_family": "soft_square",
+      "face_geometry_sha256": "541aa5312f8ae8c12960d3e4536477b7b55249c2e0520a09099e9758aa97d6f9",
+      "validation": {
+        "family": "soft_square",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5809587836265564,
+        "front_after": -0.6049998998641968,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "crop",
+        "outfit": "staff_jacket",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "ddbf42a05bbd91c39b072dbf8c8395ba903b9a8327d397c7c09186a91c2e8a12"
+      },
+      "rig": "cast_32 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_33",
+      "asset": "staff-porter-0",
+      "role": "porter",
+      "age_group": "young_adult",
+      "gender": "male",
+      "variant": 0,
+      "face_family": "oval",
+      "face_geometry_sha256": "c5013fc09c9f8026f64f11c5ee3738b09706f831d0bd7e4bc54448a8beeb1e90",
+      "validation": {
+        "family": "oval",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.6024479866027832,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "part",
+        "outfit": "staff_jacket",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "576f82200f0376c40c0bf9689f7443b7e951c7ae8c141287870b56026489cb3d"
+      },
+      "rig": "cast_33 rig",
+      "stride_grid": 0.6505382386916236
+    },
+    {
+      "prefix": "cast_34",
+      "asset": "staff-porter-1",
+      "role": "porter",
+      "age_group": "middle_aged",
+      "gender": "female",
+      "variant": 1,
+      "face_family": "round",
+      "face_geometry_sha256": "4d9746a8af2668ece2bd886434161535d739632081a80b082579be4cd69a309a",
+      "validation": {
+        "family": "round",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.7579951286315918,
+        "front_after": -0.5994230508804321,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "bun",
+        "outfit": "staff_blouse",
+        "shoulder_width": 0.94,
+        "hip_width": 1.0,
+        "stature": 1.0,
+        "skeleton": {
+          "hip_x": 0.21,
+          "hip_z": 1.49,
+          "knee_z": 0.85,
+          "shoulder_x": 0.32899999999999996,
+          "shoulder_z": 2.43,
+          "age_factor": 1.0
+        },
+        "geometry_sha256": "4137da792929c35d8fb59d831fe0de9347c951ac40d3de4715be5a3bdcba6712"
+      },
+      "rig": "cast_34 rig",
+      "stride_grid": 0.6285393610547089
+    },
+    {
+      "prefix": "cast_35",
+      "asset": "staff-porter-2",
+      "role": "porter",
+      "age_group": "elder",
+      "gender": "male",
+      "variant": 2,
+      "face_family": "soft_square",
+      "face_geometry_sha256": "541aa5312f8ae8c12960d3e4536477b7b55249c2e0520a09099e9758aa97d6f9",
+      "validation": {
+        "family": "soft_square",
+        "rebuilt_skin_vertices": 19360,
+        "front_before": -0.5809587836265564,
+        "front_after": -0.6049998998641968,
+        "enclosed_eye_surfaces": 2
+      },
+      "silhouette": {
+        "hairstyle": "crop",
+        "outfit": "staff_jacket",
+        "shoulder_width": 0.89,
+        "hip_width": 0.98,
+        "stature": 1.035,
+        "skeleton": {
+          "hip_x": 0.20579999999999998,
+          "hip_z": 1.54215,
+          "knee_z": 0.8797499999999999,
+          "shoulder_x": 0.3115,
+          "shoulder_z": 2.51505,
+          "age_factor": 1.035
+        },
+        "geometry_sha256": "ddbf42a05bbd91c39b072dbf8c8395ba903b9a8327d397c7c09186a91c2e8a12"
+      },
+      "rig": "cast_35 rig",
+      "stride_grid": 0.6505382386916236
+    }
+  ]
+}

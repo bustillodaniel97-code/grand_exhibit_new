@@ -70,10 +70,12 @@ func _run_checks() -> void:
 	check(main.find_child("PopupLayer", true, false) != null, "PopupLayer node exists")
 
 	gs.add_cash(BigNumber.from_float(100000.0))
+	gs.set_dept_level("whispering_pines", "ticket", "speed", 1)
+	var before: int = int(gs.dept_level("whispering_pines", "ticket", "speed"))
 	var bought: bool = economy.purchase_upgrade("whispering_pines", "ticket", "speed")
 	check(bought, "purchase_upgrade(whispering_pines, ticket, speed) succeeds with cash")
-	check(int(gs.dept_level("whispering_pines", "ticket", "speed")) == 2,
-		"ticket speed level is 2 after purchase")
+	check(int(gs.dept_level("whispering_pines", "ticket", "speed")) == before + 1,
+		"ticket speed level increases by one after purchase")
 
 	var got: Variant = economy.manual_collect("whispering_pines")
 	check(got is BigNumber and got.cmp(BigNumber.zero()) >= 0, "manual_collect returns >= 0")

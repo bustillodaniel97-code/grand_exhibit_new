@@ -70,6 +70,7 @@ var _team: Array = []        # [{"def":Dictionary, "state":Dictionary}]
 var _boss_hp := 1.0
 var _boss_hp_max := 1.0
 var _moves := 0
+var _initial_moves := 0
 var _over := false
 var _busy := false
 var _selected := Vector2i(-1, -1)
@@ -109,6 +110,7 @@ func setup_battle(cfg: Dictionary) -> void:
 	_boss_hp = maxf(float(cfg.get("boss_hp", 100.0)), 1.0)
 	_boss_hp_max = _boss_hp
 	_moves = int(cfg.get("moves", 20))
+	_initial_moves = _moves
 	var seed: int = int(cfg.get("seed", -1))
 	if seed < 0:
 		seed = int(randi())
@@ -133,6 +135,23 @@ func setup_battle(cfg: Dictionary) -> void:
 func battle_state() -> Dictionary:
 	return {"hp": _boss_hp, "hp_max": _boss_hp_max, "moves": _moves,
 		"over": _over, "focus": _engine.focus_type() if _engine != null else -1}
+
+
+## Resume the same failed attempt; retain board, damage and manager charges.
+func can_continue() -> bool:
+	return _over and _boss_hp > 0.0 and _moves <= 0 and not _busy
+
+func continue_battle(fraction: float) -> bool:
+	if not can_continue() or fraction <= 0.0 or fraction > 1.0:
+		return false
+	_moves = maxi(1, ceili(_initial_moves * fraction))
+	_over = false
+	_selected = Vector2i(-1,-1)
+	if _engine.is_deadlocked():
+		_engine.reshuffle()
+		_snap_board(_engine.grid())
+	_refresh_status()
+	return true
 
 
 func _build_ui(boss_name: String) -> void:

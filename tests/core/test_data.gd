@@ -123,6 +123,18 @@ func run() -> void:
 				cheapest = c
 	check(rate > 0.0, "fresh income rate > 0 (%f/s)" % rate)
 	check(cheapest / rate < 60.0, "first upgrade affordable in %.1fs (< 60s)" % (cheapest / rate))
+	var venue_caps: Array[int] = []
+	for venue_id in DataLoader.venue_order():
+		venue_caps.append(int(DataLoader.get_venue(venue_id).get("track_level_cap", 0)))
+	check(venue_caps[0] <= 20,
+		"intro venue is deliberately short (track cap %d <= 20)" % venue_caps[0])
+	check(venue_caps.max() <= 100,
+		"no venue asks for levels beyond the reference-style cap (max %d)" % venue_caps.max())
+	var caps_grow := true
+	for i in range(1, venue_caps.size()):
+		caps_grow = caps_grow and venue_caps[i] >= venue_caps[i - 1]
+	check(caps_grow and venue_caps.back() == 100,
+		"venue caps grow then hold the reference-style Lv.100 ceiling %s" % str(venue_caps))
 
 	print("RESULT: ", "ALL PASS" if failures == 0 else "%d FAILURES" % failures)
 	quit(0 if failures == 0 else 1)

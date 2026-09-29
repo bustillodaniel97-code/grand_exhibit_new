@@ -1,5 +1,12 @@
 # IBT MECHANICS AUDIT — Grand Exhibit vs *Idle Bank Tycoon: Money Empire*
 
+> **Historical snapshot:** the implementation verdicts below predate the parity
+> work and are preserved as research provenance, not current status. See
+> `docs/IBT_PARITY_AUDIT_2026-07-29.md` for the verified current matrix.
+> Individual station levels/piles and gated collection, the persistent boost
+> dock, ten manager ranks, statistics guidance, and six structurally authored
+> venues are now implemented.
+
 Date: 2026-07-25 · Scope: **core mechanics only** (not art, not polish — `docs/IBT_PARITY.md`
 already covers presentation). Method: primary-source research on IBT + read-only inspection of
 this repo. No code was changed.
@@ -141,7 +148,7 @@ manager team, and K3 did not invent it.**
 | **Tap-to-collect** | `Collect Reward` buttons over stations and seats; dark per-object value chips with green fill bars **[S-max, S-mid]** | `Economy.manual_collect()` exists and pays pending + 5% tip (`autoload/economy.gd:188-200`) but is a whole-venue tap; no per-station chips. Already self-reported at `docs/IBT_PARITY.md` §2 as "gap — major" | **MISSING** |
 | **Flow / choke chain** | marketing → service windows → vault carts **[PG]** | `promotions → ticket → archive`, `min(arrival, serve)` then `min(that, transport)`, with `choke_id` returned — `autoload/economy.gd:138-149` | **MATCHES** |
 | **Fourth room bonus** | Main Hall gives extra soft currency per customer **[PG]** | `gallery` dept adds `gallery_bonus` into `value_per_visitor` — `autoload/economy.gd:131-137` | **MATCHES** |
-| **Vault capacity** | Vault has an upgradeable **capacity** distinct from transporter speed **[LW]** | Archive is a pure *rate*; `archive.value` is per-cart capacity, not a storage ceiling. `pending_cash` accumulates unbounded — `autoload/economy.gd:37-40` | **MISSING** |
+| **Vault / cart split** | Vault upgrades deposit speed; cash-cart upgrades carrying capacity (official Help Center + **[FW]**) | `archive.speed` is deposit speed, independently levelled Archive items contribute cart capacity, and `archive.value` scales transport | **MATCHES** |
 | **Match-3 battler** | Audit Madness LTE (match-3 battler) + Business Mode (match-3, farms evolve currency) **[PG, AQ, FW]** | `scripts/events/match3_engine.gd` (8×8, 5 tile types, cascades, audit-focus mechanic) + `scripts/events/battle_math.gd` | **MATCHES** |
 | **LTE cadence** | Audit Madness from day 2, runs every two days **[AQ]** | `inspection_frenzy`: `unlock_day: 1`, `duration_hours: 48`, `cooldown_hours: 72` — `data/events.json` | **MATCHES** (cooldown slightly slacker) |
 | **Business Mode** | Unlocks at Reputation 7; invest soft currency → earn evolve currency + fight bosses **[PG]** | `expedition`: `unlock_rep: 7`, 5 invest stages paying insight, then a match-3 boss — `data/events.json`, `scenes/events/expedition_screen.gd` | **MATCHES** |

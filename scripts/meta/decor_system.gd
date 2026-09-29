@@ -1,12 +1,34 @@
 extends RefCounted
 ## DecorSystem — static decor purchase/grant/query logic (SPEC §6.3, §7). No class_name.
-## Pieces are placed into per-venue slot indices 0..venue.decor_slots-1, stored as
-## venue_state[vid].decor[str(slot)] = decor_id. Set bonuses (all pieces owned across
-## ALL venues) are computed by Economy.decor_set_multiplier() — we only manage ownership.
+##
+## BUYING IS PER MUSEUM. PLACING IS FREE ONCE BOUGHT, IN THAT MUSEUM.
+##
+##   · venue_state[vid].decor_bought — designs paid for in THIS building. A new
+##     museum starts empty and stocks its own shelves at its own prices. That is
+##     the genre convention (Idle Bank Tycoon rebuilds a new bank from nothing)
+##     and it is what makes each venue read as a new setting instead of a reskin.
+##   · venue_state[vid].decor[str(slot)] — what is currently STANDING, in slots
+##     0..venue.decor_slots-1. Putting a piece in storage frees its slot and
+##     costs nothing to undo, because you already paid for it here.
+##   · GameState.decor_owned — the historical record across all museums. Not an
+##     entitlement: it drives cross-venue SET bonuses (SPEC §7) and lets the shop
+##     say "you had this in the Aquarium" so a re-purchase reads as restocking a
+##     new hall rather than being charged twice for one object.
+##
+## The defect this replaced was worse than a pricing question: ownership used to
+## be implied by placement, so the next museum showed an empty floor AND a shop
+## that looked identical to the one you had just cleared, with no way to tell a
+## rule from a bug. Whatever the price rule, the screen has to say it out loud.
 
-## Buy a decor piece with cash or gems (per def). event_exclusive pieces are NOT
-## buyable — they arrive via grant_event_decor(). Returns false when unaffordable,
-## already owned in this venue, or all slots are full.
+## Buy a design for THIS museum and stand it up.
+##
+## Charges unless the player already bought this piece in this same building —
+## in which case it is in local storage and re-placing is free. A piece bought in
+## an EARLIER museum confers nothing here: the new hall stocks its own decor.
+## event_exclusive pieces are never buyable and arrive via grant_event_decor().
+##
+## Returns false when the id is unknown or event-exclusive, when the piece is
+## already standing here, when every slot is full, or when it cannot be afforded.
 static func buy_decor(venue_id: String, decor_id: String) -> bool:
 	var def: Dictionary = DataLoader.get_decor(decor_id)
 	if def.is_empty() or bool(def.get("event_exclusive", false)):
@@ -16,16 +38,49 @@ static func buy_decor(venue_id: String, decor_id: String) -> bool:
 	var slot: int = first_free_slot(venue_id)
 	if slot < 0:
 		return false
-	var gems_cost: int = int(def.get("cost_gems", 0))
-	if gems_cost > 0:
-		if not GameState.spend_gems(gems_cost):
-			return false
-	else:
-		var cost := BigNumber.from_parts(float(def.get("cost_cash_m", 0.0)), int(def.get("cost_cash_e", 0)))
-		if not GameState.spend_cash(cost):
-			return false
+	# Charge only if it was not already bought IN THIS MUSEUM. The slot check
+	# above stays FIRST so an unaffordable-or-full attempt never takes money.
+	if not bought_here(venue_id, decor_id):
+		var gems_cost: int = int(def.get("cost_gems", 0))
+		if gems_cost > 0:
+			if not GameState.spend_gems(gems_cost):
+				return false
+		else:
+			var cost := BigNumber.from_parts(float(def.get("cost_cash_m", 0.0)), int(def.get("cost_cash_e", 0)))
+			if not GameState.spend_cash(cost):
+				return false
 	_place(venue_id, slot, decor_id)
 	return true
+
+## Stand up a piece already bought in THIS museum — the storage round trip.
+## Free, because it was paid for here. Returns false if it was never bought in
+## this building, is already standing, or there is no free slot.
+static func place_decor(venue_id: String, decor_id: String) -> bool:
+	if not bought_here(venue_id, decor_id):
+		return false
+	if owned(venue_id, decor_id):
+		return false
+	var slot: int = first_free_slot(venue_id)
+	if slot < 0:
+		return false
+	_place(venue_id, slot, decor_id)
+	return true
+
+## Take a piece off this venue's floor, freeing its slot. The DESIGN stays owned
+## — no refund, no loss. Without this, free placement would be a one-way trap:
+## the first six designs a player placed would hold the slots forever.
+static func remove_decor(venue_id: String, decor_id: String) -> bool:
+	var vs: Dictionary = GameState.venue_state(venue_id)
+	var placed: Dictionary = vs.get("decor", {})
+	for key in placed.keys():
+		if str(placed[key]) == decor_id:
+			placed.erase(key)
+			vs["decor"] = placed
+			EventBus.decor_purchased.emit(venue_id, decor_id)
+			Analytics.log_event("decor_removed",
+				{"venue": venue_id, "decor": decor_id, "slot": int(key)})
+			return true
+	return false
 
 ## Grant an event_exclusive (or any) piece, bypassing cost. venue_id "" = current venue.
 static func grant_event_decor(decor_id: String, venue_id: String = "") -> bool:
@@ -47,8 +102,25 @@ static func _place(venue_id: String, slot: int, decor_id: String) -> void:
 	var placed: Dictionary = vs.get("decor", {})
 	placed[str(slot)] = decor_id
 	vs["decor"] = placed
+	# Anything standing here was, by definition, acquired here — including event
+	# grants. Recorded locally so storage can undo it for free, and globally so
+	# set bonuses and the "you had this before" hint keep working.
+	var bought: Array = vs.get("decor_bought", [])
+	if decor_id not in bought:
+		bought.append(decor_id)
+	vs["decor_bought"] = bought
+	GameState.unlock_decor_design(decor_id)
 	EventBus.decor_purchased.emit(venue_id, decor_id)
 	Analytics.log_event("decor_placed", {"venue": venue_id, "decor": decor_id, "slot": slot})
+
+## Paid for in THIS museum: it is either standing here or in local storage.
+static func bought_here(venue_id: String, decor_id: String) -> bool:
+	return decor_id in GameState.venue_state(venue_id).get("decor_bought", [])
+
+## Bought in some EARLIER museum but not this one — the shop shows this as a
+## familiar piece being restocked, not as a second charge for one object.
+static func owned_previously(venue_id: String, decor_id: String) -> bool:
+	return GameState.owns_decor_design(decor_id) and not bought_here(venue_id, decor_id)
 
 static func owned(venue_id: String, decor_id: String) -> bool:
 	for slot in GameState.venue_state(venue_id).get("decor", {}).values():
@@ -56,13 +128,124 @@ static func owned(venue_id: String, decor_id: String) -> bool:
 			return true
 	return false
 
-## Owned in ANY venue (set completion is cross-venue, SPEC §7).
+## Which slot this piece occupies in this venue, or -1.
+static func placed_slot(venue_id: String, decor_id: String) -> int:
+	var placed: Dictionary = GameState.venue_state(venue_id).get("decor", {})
+	for key in placed.keys():
+		if str(placed[key]) == decor_id:
+			return int(key)
+	return -1
+
+## The design is unlocked account-wide (set completion is cross-venue, SPEC §7).
+## Falls back to a placement scan so state written directly into venues_state —
+## legacy saves mid-migration, and tests that poke the dict — still reads as owned.
 static func owned_anywhere(decor_id: String) -> bool:
+	if GameState.owns_decor_design(decor_id):
+		return true
 	for vid in GameState.venues_state.keys():
 		for slot in GameState.venues_state[vid].get("decor", {}).values():
 			if str(slot) == decor_id:
 				return true
 	return false
+
+## slot_theme -> the venue roles its pieces may stand in, best first.
+##
+## VenueFloor._decor_room_anchors walks this same list and takes the first role
+## the venue actually has, so "gallery" falling through to "exhibit" happens in
+## exactly one place. Keeping the rule here is what lets the Decor screen promise
+## "this goes in the Grand Gallery" and be right — the old screen said nothing
+## about destination, and a piece that lands somewhere unexpected is
+## indistinguishable to the player from one that never spawned at all.
+static func destination_roles(slot_theme: String) -> Array:
+	match slot_theme:
+		"hall":
+			return ["gallery", "exhibit", "lobby"]
+		"entrance":
+			return ["lobby"]
+		"garden":
+			return ["lobby"]
+	return ["lobby"]
+
+## The room dict a piece will stand in, resolved against this venue's authored
+## rooms. Empty when the venue has none of the candidate roles.
+static func destination_room(venue_id: String, slot_theme: String) -> Dictionary:
+	var theme: Variant = DataLoader.get_venue(venue_id).get("theme", {})
+	if not (theme is Dictionary):
+		return {}
+	var rooms: Array = (theme as Dictionary).get("rooms", [])
+	for want in destination_roles(slot_theme):
+		for room in rooms:
+			if room is Dictionary and str((room as Dictionary).get("role", "")) == want:
+				return room as Dictionary
+	return {}
+
+## Player-facing destination for a piece in this venue — the authored room name
+## where the venue supplies one, and an honest label for the two lobby edges
+## where it does not. Entrance and garden pieces share the lobby room but occupy
+## its front and rear edges, so they are named apart rather than both reading
+## "Lobby" and looking like a bug.
+static func destination_room_name(venue_id: String, decor_id: String) -> String:
+	# The venue's authored anchor for THIS slot is where the piece actually goes,
+	# so the room is resolved from that point rather than from the slot_theme.
+	# Naming it any other way is a promise the floor does not keep, and a piece
+	# that turns up somewhere unexpected is indistinguishable from a bug.
+	var slot: int = placed_slot(venue_id, decor_id)
+	if slot < 0:
+		slot = first_free_slot(venue_id)
+	var by_anchor: String = _room_name_at_slot(venue_id, slot)
+	if by_anchor != "":
+		return by_anchor
+
+	var slot_theme: String = str(DataLoader.get_decor(decor_id).get("slot_theme", "hall"))
+	if slot_theme == "entrance":
+		return "Entrance"
+	if slot_theme == "garden":
+		return "Grounds"
+	var room: Dictionary = destination_room(venue_id, slot_theme)
+	var authored: String = str(room.get("name", ""))
+	if authored != "":
+		return authored.capitalize()
+	return "Grand Gallery"
+
+## Which authored room contains this venue's anchor for `slot`, by name.
+## "" when the venue authors no anchor for that slot, or no room covers it.
+static func _room_name_at_slot(venue_id: String, slot: int) -> String:
+	if slot < 0:
+		return ""
+	var theme: Variant = DataLoader.get_venue(venue_id).get("theme", {})
+	if not (theme is Dictionary):
+		return ""
+	var t: Dictionary = theme
+	var anchors: Array = t.get("decor_anchors", [])
+	if slot >= anchors.size():
+		return ""
+	var pt: Variant = anchors[slot]
+	if not (pt is Array) or (pt as Array).size() < 2:
+		return ""
+	var p := Vector2(float(pt[0]), float(pt[1]))
+	# Rects and anchors are both authored pre-`layout_spread`, so containment can
+	# be tested in raw grid space without reapplying the venue's expansion.
+	for entry in t.get("rooms", []):
+		if not (entry is Dictionary):
+			continue
+		var room: Dictionary = entry
+		var r: Array = room.get("rect", [])
+		if r.size() < 4:
+			continue
+		var rect := Rect2(float(r[0]), float(r[1]), float(r[2]), float(r[3]))
+		if not rect.has_point(p):
+			continue
+		var named: String = str(room.get("name", ""))
+		if named != "":
+			return named.capitalize()
+		match str(room.get("role", "")):
+			"lobby":
+				return "Entrance Hall"
+			"link":
+				continue  # a corridor is not a destination worth naming
+			_:
+				return str(room.get("role", "")).capitalize()
+	return ""
 
 static func set_progress(set_id: String) -> Dictionary:
 	var set_def: Dictionary = DataLoader.decor_sets.get(set_id, {})

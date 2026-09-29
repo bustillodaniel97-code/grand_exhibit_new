@@ -112,11 +112,12 @@ func _check_every_venue_resolves() -> void:
 func _check_natural_history_plan() -> void:
 	var t: Object = VF.VenueTheme.for_venue("whispering_pines")
 	check(t.surround == "parkland", "whispering_pines asks for the parkland surround")
-	for spec in [["gallery", Rect2(0, 0, 9, 8)], ["archive", Rect2(9, 0, 6, 5)],
-			["promotions", Rect2(9, 5, 6, 4)], ["ticket", Rect2(0, 9, 15, 5)],
-			["lobby", Rect2(0, 14, 15, 3)], ["corridor", Rect2(0, 8, 9, 1)]]:
-		var want: Rect2 = spec[1]
-		check(t.rect(str(spec[0])) == want, "%s keeps its rect %s" % [spec[0], want])
+	var all_ground := true
+	for room in t.rooms:
+		all_ground = all_ground and int(room.get("level",0))==0 and int(room.get("rise_to",0))==0
+	check(all_ground,"Pines is an accessible ground-level lodge without the repeated center stair")
+	check(t.rect("archive").end.x<=t.rect("gallery").position.x,"Pines conservation occupies its rear-left wing")
+	check(not t.rect("reception_court").size.is_zero_approx(),"Pines has a separate reception court for its second admission group")
 	# Rooms may not overlap: a tap lands in the first one that claims the tile,
 	# so an overlap makes a department unreachable without any error.
 	var clash: String = ""
@@ -169,16 +170,13 @@ func _check_natural_history_plan() -> void:
 func _check_derived_geometry() -> void:
 	var floor_node: Control = _floor
 	var q: Dictionary = floor_node.queue_geometry()
-	var q_rect: Rect2 = floor_node.room_rect("ticket")
-	var inside: bool = true
-	for gx in q["window_gx"]:
-		if float(gx) < q_rect.position.x or float(gx) > q_rect.end.x:
-			inside = false
-	var counter_gy: float = float(q["counter_gy"])
-	var last_slot: float = float((q["slot_gy"] as Array).back())
-	check(inside and counter_gy > q_rect.position.y and last_slot < q_rect.end.y,
-		"every counter and queue slot lands inside the ticket rect %s (counter gy %.2f, last slot %.2f)"
-			% [q_rect, counter_gy, last_slot])
+	var inside := true
+	for w in int(q.windows):
+		var station: Dictionary = q.stations[w]
+		var room: Rect2 = floor_node.room_rect(station.room)
+		inside = inside and room.has_point(station.center)
+		for j in int(q.slots):inside = inside and room.has_point(floor_node._slot_pos(w,j))
+	check(inside,"every counter and queue slot belongs to its authored admission room")
 	check(int(q["windows"]) == 5 and int(q["slots"]) == 6,
 		"queue derives 5 windows of 6 slots (%d x %d)" % [q["windows"], q["slots"]])
 
@@ -219,12 +217,24 @@ func _check_derived_geometry() -> void:
 	check(floor_node.get_alive_visitor_count() == 0,
 		"re-theming sends the old venue's visitors home")
 
+	# A venue's authored overview includes its zoom and framing offset. Retheme is
+	# the live prestige path, so it must apply both immediately rather than waiting
+	# for an unrelated window resize before the next museum is framed correctly.
+	floor_node.retheme("chronos_spire")
+	var authored_scale: float = floor_node._theme.camera_zoom
+	var centered: Vector2 = (floor_node.size - floor_node.FLOOR * authored_scale) * 0.5
+	check(is_equal_approx(floor_node._canvas.scale.x, authored_scale),
+		"retheme immediately applies the new venue's authored camera zoom")
+	check(floor_node._canvas.position.is_equal_approx(
+		centered + floor_node._theme.camera_offset * authored_scale),
+		"retheme immediately applies the new venue's authored framing offset")
+
 # --- palette ------------------------------------------------------------------
 
 func _check_colour_tokens() -> void:
 	var t: Object = VF.VenueTheme.for_venue("whispering_pines")
 	var trim: Color = t.col("trim")
-	check(trim.is_equal_approx(Color("#FFC53D")), "a palette key resolves to its literal")
+	check(trim.is_equal_approx(Color("#B39358")), "a palette key resolves to its literal")
 	check((t.resolve("@trim|d28") as Color).is_equal_approx(trim.darkened(0.28)),
 		"the |dNN modifier darkens by NN percent")
 	check((t.resolve("@trim|l12") as Color).is_equal_approx(trim.lightened(0.12)),
@@ -238,7 +248,7 @@ func _check_colour_tokens() -> void:
 		VF.VenueTheme.MISSING), "an unknown palette key resolves to the loud MISSING colour")
 	# roomfloor.<id> is computed, not authored, and the dressing leans on it.
 	check(t.col("roomfloor.gallery").is_equal_approx(
-		t.accent("gallery").lerp(t.col("floor"), 0.40)),
+		t.accent("gallery").lerp(t.col("floor"), float(t.by_id.gallery.floor_mix))),
 		"roomfloor.<room> is the room accent mixed toward the floor colour")
 
 # --- registry ------------------------------------------------------------------

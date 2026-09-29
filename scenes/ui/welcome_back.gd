@@ -4,6 +4,7 @@ extends Control
 ## Multipliers + gem cost come from balance_core.json monetization_tuning.
 
 const UI := preload("res://scripts/ui/ui_kit.gd")
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 const Popups := preload("res://scripts/ui/popup_manager.gd")
 
 var _amount: BigNumber = BigNumber.zero()
@@ -21,25 +22,23 @@ func _ready() -> void:
 	# keeps its minimum size in the top-left corner, so every centred label was
 	# centred inside a 245px box hugging the left edge and the three claim buttons
 	# came out a third of the sheet wide.
-	var pad := MarginContainer.new()
-	pad.set_anchors_preset(Control.PRESET_FULL_RECT)
-	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
-		pad.add_theme_constant_override(side, 22)
-	add_child(pad)
+	var scroll := UI.make_page_scroll(self, 24)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 14)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 18)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	pad.add_child(vbox)
+	scroll.add_child(vbox)
 
 	# No page fill of its own: this sheet sits straight on the popup frame, which
 	# is UI.PAGE. Every label therefore has to name a light colour explicitly —
 	# make_label still defaults to INK for the light surfaces that remain.
-	var title := UI.make_label("Welcome Back!", 34, UI.TEXT)
+	var title := UI.make_display_label("Welcome back", 34, UI.TEXT)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
 
-	var sub := UI.make_label("While you were away, your museum earned:", 20, UI.TEXT_DIM)
+	var sub := UI.make_label("Your museum kept earning while you were away.", 18, UI.TEXT_DIM)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(sub)
@@ -51,7 +50,7 @@ func _ready() -> void:
 	coin_row.add_child(UI.make_icon("cash", 56))
 
 	# Full-chroma green: the darkened variant was tuned to carry on cream stock.
-	_amount_lbl = UI.make_display_label("+$0", 40, UI.SAGE)
+	_amount_lbl = UI.make_display_label("+$0", 44, Chrome.TEAL)
 	_amount_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(_amount_lbl)
 
@@ -69,13 +68,16 @@ func _ready() -> void:
 	_claim_btn.icon = UI.icon_texture("check", 22)
 	_claim_btn.pressed.connect(_on_claim)
 	vbox.add_child(_claim_btn)
+	var optional := UI.make_label("Optional bonus", 15, Chrome.DIM)
+	optional.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(optional)
 
-	_ad_btn = UI.make_button("Watch Ad x%d" % int(ad_mult), UI.ACCENT)
+	_ad_btn = UI.make_button("Watch Ad x%d" % int(ad_mult), Chrome.PANEL)
 	_ad_btn.custom_minimum_size = Vector2(0, 56)
 	_ad_btn.pressed.connect(_on_watch_ad.bind(ad_mult))
 	vbox.add_child(_ad_btn)
 
-	_gem_btn = UI.make_button("%d Gems x%d" % [gem_cost, int(gem_mult)], UI.BRASS)
+	_gem_btn = UI.make_button("%d Gems x%d" % [gem_cost, int(gem_mult)], Chrome.PANEL)
 	_gem_btn.custom_minimum_size = Vector2(0, 56)
 	_gem_btn.icon = UI.icon_texture("gems", 22)
 	_gem_btn.pressed.connect(_on_gem_claim.bind(gem_mult, gem_cost))

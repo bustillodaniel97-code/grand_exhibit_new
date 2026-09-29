@@ -1,0 +1,1153 @@
+{
+  "source": "art/city-vehicles/city-fleet.blend",
+  "models": {
+    "lark_hatch": {
+      "id": "lark_hatch",
+      "root": "lark_hatch",
+      "body_length": 1.72,
+      "length": 1.794,
+      "width": 0.97,
+      "height": 1.0699999999999998,
+      "body_color": "32929A",
+      "kind": "hatch"
+    },
+    "morrow_sedan": {
+      "id": "morrow_sedan",
+      "root": "morrow_sedan",
+      "body_length": 1.88,
+      "length": 1.954,
+      "width": 0.99,
+      "height": 1.0,
+      "body_color": "C96946",
+      "kind": "sedan"
+    },
+    "grove_estate": {
+      "id": "grove_estate",
+      "root": "grove_estate",
+      "body_length": 1.88,
+      "length": 1.954,
+      "width": 1.01,
+      "height": 1.12,
+      "body_color": "668669",
+      "kind": "estate"
+    },
+    "parcel_van": {
+      "id": "parcel_van",
+      "root": "parcel_van",
+      "body_length": 1.88,
+      "length": 1.954,
+      "width": 1.01,
+      "height": 1.31,
+      "body_color": "C7B178",
+      "kind": "van"
+    },
+    "atlas_shuttle": {
+      "id": "atlas_shuttle",
+      "root": "atlas_shuttle",
+      "body_length": 2.72,
+      "length": 2.794,
+      "width": 1.05,
+      "height": 1.3399999999999999,
+      "body_color": "477B9C",
+      "kind": "shuttle"
+    },
+    "regent_coupe": {
+      "id": "regent_coupe",
+      "root": "regent_coupe",
+      "body_length": 1.82,
+      "length": 1.8940000000000001,
+      "width": 0.99,
+      "height": 1.04,
+      "body_color": "9E4F58",
+      "kind": "heritage"
+    }
+  },
+  "sprites": {
+    "lark_hatch:0:x_plus": {
+      "file": "lark_hatch-0-x_plus.png",
+      "offset": [
+        -39.526164213982405,
+        -51.06579902989601
+      ],
+      "size": [
+        78.30655174468212,
+        74.57766832826869
+      ],
+      "pixels": [
+        105,
+        100
+      ],
+      "sha256": "17024249387e6b762ad1da4bcfe1bdf7e721ec99813c00be419d306af39d895c"
+    },
+    "lark_hatch:0:x_minus": {
+      "file": "lark_hatch-0-x_minus.png",
+      "offset": [
+        -39.526164213982405,
+        -46.59113893019989
+      ],
+      "size": [
+        79.05232842796481,
+        70.10300822857256
+      ],
+      "pixels": [
+        106,
+        94
+      ],
+      "sha256": "1171bc89b3c791a5e600cb58ceba5119f007068a6e5aaeea833d73f272d7310c"
+    },
+    "lark_hatch:0:y_plus": {
+      "file": "lark_hatch-0-y_plus.png",
+      "offset": [
+        -39.526164213982405,
+        -51.06579902989601
+      ],
+      "size": [
+        78.30655174468212,
+        74.57766832826869
+      ],
+      "pixels": [
+        105,
+        100
+      ],
+      "sha256": "dce482d99e762ae6f81014a26f551c6ffac6ffe4515553798a8caf36e5f6e5b8"
+    },
+    "lark_hatch:0:y_minus": {
+      "file": "lark_hatch-0-y_minus.png",
+      "offset": [
+        -39.526164213982405,
+        -46.59113893019989
+      ],
+      "size": [
+        78.30655174468212,
+        70.10300822857256
+      ],
+      "pixels": [
+        105,
+        94
+      ],
+      "sha256": "7e806432dda139fb8e8f5912aa8601ca8264cfa75c3465aa90e3f8d71556c30d"
+    },
+    "lark_hatch:1:x_plus": {
+      "file": "lark_hatch-1-x_plus.png",
+      "offset": [
+        -39.526164213982405,
+        -51.06579902989601
+      ],
+      "size": [
+        78.30655174468212,
+        74.57766832826869
+      ],
+      "pixels": [
+        105,
+        100
+      ],
+      "sha256": "c2a55c86929e70ce8116da077cc8ae35799cba185df6c31f54eeddbc3dfef697"
+    },
+    "lark_hatch:1:x_minus": {
+      "file": "lark_hatch-1-x_minus.png",
+      "offset": [
+        -39.526164213982405,
+        -46.59113893019989
+      ],
+      "size": [
+        79.05232842796481,
+        70.10300822857256
+      ],
+      "pixels": [
+        106,
+        94
+      ],
+      "sha256": "bc9dae8b57074e0ddd9186ca55bbed676301aa3d1b0db12c461daccf38da4bdb"
+    },
+    "lark_hatch:1:y_plus": {
+      "file": "lark_hatch-1-y_plus.png",
+      "offset": [
+        -39.526164213982405,
+        -51.06579902989601
+      ],
+      "size": [
+        78.30655174468212,
+        74.57766832826869
+      ],
+      "pixels": [
+        105,
+        100
+      ],
+      "sha256": "52a02b5ab988381a28ef496d221b66fb76ca1c45ac71e99cd7d9e21326d888df"
+    },
+    "lark_hatch:1:y_minus": {
+      "file": "lark_hatch-1-y_minus.png",
+      "offset": [
+        -39.526164213982405,
+        -46.59113893019989
+      ],
+      "size": [
+        78.30655174468212,
+        70.10300822857256
+      ],
+      "pixels": [
+        105,
+        94
+      ],
+      "sha256": "5368f9578c2d4dd1e2c95155369e20847d020627631185e6bda410c7bb1a5771"
+    },
+    "morrow_sedan:0:x_plus": {
+      "file": "morrow_sedan-0-x_plus.png",
+      "offset": [
+        -41.76349426383047,
+        -45.845362246917205
+      ],
+      "size": [
+        83.52698852766093,
+        70.84878491185525
+      ],
+      "pixels": [
+        112,
+        95
+      ],
+      "sha256": "486166ca4d9d17827883e71473333762474c16d8e7543db6f5c802e8149dff26"
+    },
+    "morrow_sedan:0:x_minus": {
+      "file": "morrow_sedan-0-x_minus.png",
+      "offset": [
+        -41.76349426383047,
+        -45.09958556363452
+      ],
+      "size": [
+        83.52698852766093,
+        70.10300822857256
+      ],
+      "pixels": [
+        112,
+        94
+      ],
+      "sha256": "3878754e7ac9ff64738e3cba1653303c44747098f678a223601d83c7bf780faf"
+    },
+    "morrow_sedan:0:y_plus": {
+      "file": "morrow_sedan-0-y_plus.png",
+      "offset": [
+        -41.76349426383047,
+        -45.845362246917205
+      ],
+      "size": [
+        83.52698852766093,
+        70.84878491185525
+      ],
+      "pixels": [
+        112,
+        95
+      ],
+      "sha256": "319dc48685ee6cc332db25eb84dc11778c9f70aee49ea6216ff9456aa7e62200"
+    },
+    "morrow_sedan:0:y_minus": {
+      "file": "morrow_sedan-0-y_minus.png",
+      "offset": [
+        -41.76349426383047,
+        -45.09958556363452
+      ],
+      "size": [
+        83.52698852766093,
+        70.10300822857256
+      ],
+      "pixels": [
+        112,
+        94
+      ],
+      "sha256": "3ba8f5b5079c6f79d46160d7e4b9ad73c0a04e842828f9d0d7a5281610f72bf1"
+    },
+    "morrow_sedan:1:x_plus": {
+      "file": "morrow_sedan-1-x_plus.png",
+      "offset": [
+        -41.76349426383047,
+        -45.845362246917205
+      ],
+      "size": [
+        83.52698852766093,
+        70.84878491185525
+      ],
+      "pixels": [
+        112,
+        95
+      ],
+      "sha256": "ff1dffe3dca6453aab675e19e89e4c172425749036c847d25c732ec59be6620d"
+    },
+    "morrow_sedan:1:x_minus": {
+      "file": "morrow_sedan-1-x_minus.png",
+      "offset": [
+        -41.76349426383047,
+        -45.09958556363452
+      ],
+      "size": [
+        83.52698852766093,
+        70.10300822857256
+      ],
+      "pixels": [
+        112,
+        94
+      ],
+      "sha256": "04169de837ea52d859f195e1a4294cf49d7c518a01b5dc483e94b7e1f5849e18"
+    },
+    "morrow_sedan:1:y_plus": {
+      "file": "morrow_sedan-1-y_plus.png",
+      "offset": [
+        -41.76349426383047,
+        -45.845362246917205
+      ],
+      "size": [
+        83.52698852766093,
+        70.84878491185525
+      ],
+      "pixels": [
+        112,
+        95
+      ],
+      "sha256": "697579b25184b0d46be705e2107a83fde67d18210be23b75db088c1f594d2ad8"
+    },
+    "morrow_sedan:1:y_minus": {
+      "file": "morrow_sedan-1-y_minus.png",
+      "offset": [
+        -41.76349426383047,
+        -45.09958556363452
+      ],
+      "size": [
+        83.52698852766093,
+        70.10300822857256
+      ],
+      "pixels": [
+        112,
+        94
+      ],
+      "sha256": "65e9cc89536b90879022ed7e1dd728e2949b1dc18e82b3a45e4efcf260391cbc"
+    },
+    "grove_estate:0:x_plus": {
+      "file": "grove_estate-0-x_plus.png",
+      "offset": [
+        -41.76349426383047,
+        -54.04890576302676
+      ],
+      "size": [
+        83.52698852766093,
+        79.05232842796481
+      ],
+      "pixels": [
+        112,
+        106
+      ],
+      "sha256": "0d2aaff34be2a7261eda140db40946be1673a9ebcc8b59e7b88986d7bad6c670"
+    },
+    "grove_estate:0:x_minus": {
+      "file": "grove_estate-0-x_minus.png",
+      "offset": [
+        -41.76349426383047,
+        -49.574245663330636
+      ],
+      "size": [
+        83.52698852766093,
+        74.57766832826869
+      ],
+      "pixels": [
+        112,
+        100
+      ],
+      "sha256": "79f2fc377fece8b6ea1a5a07abb8f26d043d48477dfdb17e25fcfe856b464085"
+    },
+    "grove_estate:0:y_plus": {
+      "file": "grove_estate-0-y_plus.png",
+      "offset": [
+        -41.76349426383047,
+        -54.04890576302676
+      ],
+      "size": [
+        84.27276521094362,
+        79.05232842796481
+      ],
+      "pixels": [
+        113,
+        106
+      ],
+      "sha256": "fe08b43e2b93de93350ff6c534a5ee253e7334853602e2c7d01b3178fbcce8e6"
+    },
+    "grove_estate:0:y_minus": {
+      "file": "grove_estate-0-y_minus.png",
+      "offset": [
+        -41.76349426383047,
+        -49.574245663330636
+      ],
+      "size": [
+        84.27276521094362,
+        74.57766832826869
+      ],
+      "pixels": [
+        113,
+        100
+      ],
+      "sha256": "b299fc5a217c94b39980986ee4e2cc6f84422b70ee3873e568d73ae9912c0f50"
+    },
+    "grove_estate:1:x_plus": {
+      "file": "grove_estate-1-x_plus.png",
+      "offset": [
+        -41.76349426383047,
+        -54.04890576302676
+      ],
+      "size": [
+        83.52698852766093,
+        79.05232842796481
+      ],
+      "pixels": [
+        112,
+        106
+      ],
+      "sha256": "29ac99ec7935bea963d181fc18cbd5e4101bbd52125b65c800891628ec752dc6"
+    },
+    "grove_estate:1:x_minus": {
+      "file": "grove_estate-1-x_minus.png",
+      "offset": [
+        -41.76349426383047,
+        -49.574245663330636
+      ],
+      "size": [
+        83.52698852766093,
+        74.57766832826869
+      ],
+      "pixels": [
+        112,
+        100
+      ],
+      "sha256": "c2e0f94acc401d38b6e45971c7b6e7c027381669474e2be5754652862ffff873"
+    },
+    "grove_estate:1:y_plus": {
+      "file": "grove_estate-1-y_plus.png",
+      "offset": [
+        -41.76349426383047,
+        -54.04890576302676
+      ],
+      "size": [
+        84.27276521094362,
+        79.05232842796481
+      ],
+      "pixels": [
+        113,
+        106
+      ],
+      "sha256": "3b6ff744830fef17cc84479f8f24ec4bf8341102d646488a83b2600afeb80f0a"
+    },
+    "grove_estate:1:y_minus": {
+      "file": "grove_estate-1-y_minus.png",
+      "offset": [
+        -41.76349426383047,
+        -49.574245663330636
+      ],
+      "size": [
+        84.27276521094362,
+        74.57766832826869
+      ],
+      "pixels": [
+        113,
+        100
+      ],
+      "sha256": "82a9f6e68b087e04ed35b7b670e9a3b7bd274c25f9c689d56874342e5c6ef089"
+    },
+    "parcel_van:0:x_plus": {
+      "file": "parcel_van-0-x_plus.png",
+      "offset": [
+        -41.76349426383047,
+        -65.23555601226707
+      ],
+      "size": [
+        83.52698852766093,
+        90.23897867720511
+      ],
+      "pixels": [
+        112,
+        121
+      ],
+      "sha256": "21048e1f998da3a592070abe8f8234fdc3bd0e26d000736399da387002ffb38d"
+    },
+    "parcel_van:0:x_minus": {
+      "file": "parcel_van-0-x_minus.png",
+      "offset": [
+        -41.76349426383047,
+        -62.998225962419
+      ],
+      "size": [
+        83.52698852766093,
+        88.00164862735706
+      ],
+      "pixels": [
+        112,
+        118
+      ],
+      "sha256": "d84c1e120611b252dc16bc0535a191e6916359f3dddf9e0121f4115b9a7b4dc5"
+    },
+    "parcel_van:0:y_plus": {
+      "file": "parcel_van-0-y_plus.png",
+      "offset": [
+        -41.76349426383047,
+        -65.98133269554975
+      ],
+      "size": [
+        84.27276521094362,
+        90.9847553604878
+      ],
+      "pixels": [
+        113,
+        122
+      ],
+      "sha256": "e7a3354d55540113d37317a1e73333d7a39af10e5274585798696f6a7566fe61"
+    },
+    "parcel_van:0:y_minus": {
+      "file": "parcel_van-0-y_minus.png",
+      "offset": [
+        -41.76349426383047,
+        -62.998225962419
+      ],
+      "size": [
+        84.27276521094362,
+        88.00164862735706
+      ],
+      "pixels": [
+        113,
+        118
+      ],
+      "sha256": "4a1eb13343c552d981f60db77e9588d7d7b346d9361deb0ed6d34f07bd3109fc"
+    },
+    "parcel_van:1:x_plus": {
+      "file": "parcel_van-1-x_plus.png",
+      "offset": [
+        -41.76349426383047,
+        -65.23555601226707
+      ],
+      "size": [
+        83.52698852766093,
+        90.23897867720511
+      ],
+      "pixels": [
+        112,
+        121
+      ],
+      "sha256": "ca7f8f47362a247d34ff8319198304e30312181bcc3835884e8380d0883a01d5"
+    },
+    "parcel_van:1:x_minus": {
+      "file": "parcel_van-1-x_minus.png",
+      "offset": [
+        -41.76349426383047,
+        -62.998225962419
+      ],
+      "size": [
+        83.52698852766093,
+        88.00164862735706
+      ],
+      "pixels": [
+        112,
+        118
+      ],
+      "sha256": "fa2acbfef8fdc19a0777f3e46ae1f0dcf97bddaa1c384fd931091ed8b7f1e711"
+    },
+    "parcel_van:1:y_plus": {
+      "file": "parcel_van-1-y_plus.png",
+      "offset": [
+        -41.76349426383047,
+        -65.98133269554975
+      ],
+      "size": [
+        84.27276521094362,
+        90.9847553604878
+      ],
+      "pixels": [
+        113,
+        122
+      ],
+      "sha256": "09aff6cb43eeef2ff9c23d23f20bfe21cfbbc373193729666bef10946384eb27"
+    },
+    "parcel_van:1:y_minus": {
+      "file": "parcel_van-1-y_minus.png",
+      "offset": [
+        -41.76349426383047,
+        -62.998225962419
+      ],
+      "size": [
+        84.27276521094362,
+        88.00164862735706
+      ],
+      "pixels": [
+        113,
+        118
+      ],
+      "sha256": "77e84c6af58e8215769696c1ab44c0282a851143fe973dd1c1dba4a9f13fb210"
+    },
+    "atlas_shuttle:0:x_plus": {
+      "file": "atlas_shuttle-0-x_plus.png",
+      "offset": [
+        -55.18747456291883,
+        -74.1848762116593
+      ],
+      "size": [
+        110.37494912583766,
+        104.40873565957617
+      ],
+      "pixels": [
+        148,
+        140
+      ],
+      "sha256": "a77aaf5c29eab2a21cc2ceeb70430414bef1f2c2d8e8e3dd781d3a749f00eea7"
+    },
+    "atlas_shuttle:0:x_minus": {
+      "file": "atlas_shuttle-0-x_minus.png",
+      "offset": [
+        -55.18747456291883,
+        -71.20176947852856
+      ],
+      "size": [
+        110.37494912583766,
+        101.42562892644541
+      ],
+      "pixels": [
+        148,
+        136
+      ],
+      "sha256": "2e9a5616db95d638381e53959d7b1a04401d50e9b0154b1fcf5ddb7ff4970c73"
+    },
+    "atlas_shuttle:0:y_plus": {
+      "file": "atlas_shuttle-0-y_plus.png",
+      "offset": [
+        -55.18747456291883,
+        -74.1848762116593
+      ],
+      "size": [
+        110.37494912583766,
+        104.40873565957617
+      ],
+      "pixels": [
+        148,
+        140
+      ],
+      "sha256": "5318e6a3a72a6299a940f7ad48db64a2d6adf2795c0091f3c4212034821d352f"
+    },
+    "atlas_shuttle:0:y_minus": {
+      "file": "atlas_shuttle-0-y_minus.png",
+      "offset": [
+        -55.18747456291883,
+        -71.20176947852856
+      ],
+      "size": [
+        110.37494912583766,
+        101.42562892644541
+      ],
+      "pixels": [
+        148,
+        136
+      ],
+      "sha256": "f66fc4835a87e817404fbf3122fd3a0fb99fa2592db006a46d73f879796248c8"
+    },
+    "atlas_shuttle:1:x_plus": {
+      "file": "atlas_shuttle-1-x_plus.png",
+      "offset": [
+        -55.18747456291883,
+        -74.1848762116593
+      ],
+      "size": [
+        110.37494912583766,
+        104.40873565957617
+      ],
+      "pixels": [
+        148,
+        140
+      ],
+      "sha256": "5d4f72dac128cfe3c467bb7f4729cae3949f8604cd643f6dfed3c4334e8bbcef"
+    },
+    "atlas_shuttle:1:x_minus": {
+      "file": "atlas_shuttle-1-x_minus.png",
+      "offset": [
+        -55.18747456291883,
+        -71.20176947852856
+      ],
+      "size": [
+        110.37494912583766,
+        101.42562892644541
+      ],
+      "pixels": [
+        148,
+        136
+      ],
+      "sha256": "6e4c5e7f2da3b5f682e5871bfc53e4d0f466fedf46f82e8bb5aeb809ff1e8db8"
+    },
+    "atlas_shuttle:1:y_plus": {
+      "file": "atlas_shuttle-1-y_plus.png",
+      "offset": [
+        -55.18747456291883,
+        -74.1848762116593
+      ],
+      "size": [
+        110.37494912583766,
+        104.40873565957617
+      ],
+      "pixels": [
+        148,
+        140
+      ],
+      "sha256": "2160244142794c3c94be5f76d9984a881b0a16bebc58cef0d507cad15011b64f"
+    },
+    "atlas_shuttle:1:y_minus": {
+      "file": "atlas_shuttle-1-y_minus.png",
+      "offset": [
+        -55.18747456291883,
+        -71.20176947852856
+      ],
+      "size": [
+        110.37494912583766,
+        101.42562892644541
+      ],
+      "pixels": [
+        148,
+        136
+      ],
+      "sha256": "28fd911923088adea842550cf06daaa48a903229f63112cf272bec9639aa275b"
+    },
+    "regent_coupe:0:x_plus": {
+      "file": "regent_coupe-0-x_plus.png",
+      "offset": [
+        -41.017717580547775,
+        -46.59113893019989
+      ],
+      "size": [
+        82.03543516109555,
+        70.84878491185525
+      ],
+      "pixels": [
+        110,
+        95
+      ],
+      "sha256": "e7f906acfaac4e2aab7c41b2f75ada48916bc577e35972ebea095bf21005255e"
+    },
+    "regent_coupe:0:x_minus": {
+      "file": "regent_coupe-0-x_minus.png",
+      "offset": [
+        -41.017717580547775,
+        -44.35380888035183
+      ],
+      "size": [
+        82.03543516109555,
+        68.6114548620072
+      ],
+      "pixels": [
+        110,
+        92
+      ],
+      "sha256": "88653b2bd6beb6149f6679815ef0e4c5f4f6f852920a0e0635ed0bf20efa9808"
+    },
+    "regent_coupe:0:y_plus": {
+      "file": "regent_coupe-0-y_plus.png",
+      "offset": [
+        -41.017717580547775,
+        -46.59113893019989
+      ],
+      "size": [
+        82.03543516109555,
+        70.84878491185525
+      ],
+      "pixels": [
+        110,
+        95
+      ],
+      "sha256": "9786e7548b1021387754c7d5fb8e2cb1784d921de76cb6f2a55c5b2bf9c65513"
+    },
+    "regent_coupe:0:y_minus": {
+      "file": "regent_coupe-0-y_minus.png",
+      "offset": [
+        -41.017717580547775,
+        -44.35380888035183
+      ],
+      "size": [
+        82.03543516109555,
+        68.6114548620072
+      ],
+      "pixels": [
+        110,
+        92
+      ],
+      "sha256": "72d6fb8db4caeaf2582cf06671df4feb89ca336804d5cc2bfe510227dca121da"
+    },
+    "regent_coupe:1:x_plus": {
+      "file": "regent_coupe-1-x_plus.png",
+      "offset": [
+        -41.017717580547775,
+        -46.59113893019989
+      ],
+      "size": [
+        82.03543516109555,
+        70.84878491185525
+      ],
+      "pixels": [
+        110,
+        95
+      ],
+      "sha256": "9584ff2142b1fc009d52156188b7104d0c95540f36bf592b5176685329c57799"
+    },
+    "regent_coupe:1:x_minus": {
+      "file": "regent_coupe-1-x_minus.png",
+      "offset": [
+        -41.017717580547775,
+        -44.35380888035183
+      ],
+      "size": [
+        82.03543516109555,
+        68.6114548620072
+      ],
+      "pixels": [
+        110,
+        92
+      ],
+      "sha256": "6b58243634e179b9cf3d6dba6333b31fd040abde2d8a392c1992dcd6a8282fda"
+    },
+    "regent_coupe:1:y_plus": {
+      "file": "regent_coupe-1-y_plus.png",
+      "offset": [
+        -41.017717580547775,
+        -46.59113893019989
+      ],
+      "size": [
+        82.03543516109555,
+        70.84878491185525
+      ],
+      "pixels": [
+        110,
+        95
+      ],
+      "sha256": "e45209aaeedf217eebc27531ee01fe2279221bfb6c859e8d336cf22d82c734c9"
+    },
+    "regent_coupe:1:y_minus": {
+      "file": "regent_coupe-1-y_minus.png",
+      "offset": [
+        -41.017717580547775,
+        -44.35380888035183
+      ],
+      "size": [
+        82.03543516109555,
+        68.6114548620072
+      ],
+      "pixels": [
+        110,
+        92
+      ],
+      "sha256": "2a32c49ff5972e0c532411cbbeb9f8cfe796622f259840b1a3e1b1848e7fe8c3"
+    }
+  },
+  "profiles": {
+    "whispering_pines": [
+      [
+        "grove_estate",
+        0
+      ],
+      [
+        "lark_hatch",
+        0
+      ],
+      [
+        "parcel_van",
+        0
+      ],
+      [
+        "regent_coupe",
+        0
+      ],
+      [
+        "grove_estate",
+        1
+      ],
+      [
+        "morrow_sedan",
+        1
+      ]
+    ],
+    "copper_kettle": [
+      [
+        "parcel_van",
+        1
+      ],
+      [
+        "morrow_sedan",
+        0
+      ],
+      [
+        "grove_estate",
+        1
+      ],
+      [
+        "lark_hatch",
+        1
+      ],
+      [
+        "parcel_van",
+        0
+      ],
+      [
+        "morrow_sedan",
+        1
+      ]
+    ],
+    "grand_river": [
+      [
+        "morrow_sedan",
+        1
+      ],
+      [
+        "lark_hatch",
+        0
+      ],
+      [
+        "regent_coupe",
+        0
+      ],
+      [
+        "parcel_van",
+        0
+      ],
+      [
+        "morrow_sedan",
+        0
+      ],
+      [
+        "atlas_shuttle",
+        0
+      ]
+    ],
+    "sunspire": [
+      [
+        "regent_coupe",
+        0
+      ],
+      [
+        "morrow_sedan",
+        0
+      ],
+      [
+        "parcel_van",
+        0
+      ],
+      [
+        "lark_hatch",
+        1
+      ],
+      [
+        "grove_estate",
+        1
+      ],
+      [
+        "atlas_shuttle",
+        1
+      ]
+    ],
+    "cloudrest": [
+      [
+        "grove_estate",
+        0
+      ],
+      [
+        "lark_hatch",
+        0
+      ],
+      [
+        "parcel_van",
+        1
+      ],
+      [
+        "grove_estate",
+        1
+      ],
+      [
+        "morrow_sedan",
+        1
+      ],
+      [
+        "parcel_van",
+        0
+      ]
+    ],
+    "aurora_world": [
+      [
+        "morrow_sedan",
+        1
+      ],
+      [
+        "lark_hatch",
+        0
+      ],
+      [
+        "parcel_van",
+        1
+      ],
+      [
+        "lark_hatch",
+        1
+      ],
+      [
+        "morrow_sedan",
+        0
+      ],
+      [
+        "atlas_shuttle",
+        0
+      ]
+    ],
+    "celestial_conservatory": [
+      [
+        "grove_estate",
+        0
+      ],
+      [
+        "lark_hatch",
+        1
+      ],
+      [
+        "parcel_van",
+        0
+      ],
+      [
+        "regent_coupe",
+        1
+      ],
+      [
+        "grove_estate",
+        1
+      ],
+      [
+        "parcel_van",
+        1
+      ]
+    ],
+    "ironwood_citadel": [
+      [
+        "regent_coupe",
+        0
+      ],
+      [
+        "parcel_van",
+        0
+      ],
+      [
+        "grove_estate",
+        0
+      ],
+      [
+        "morrow_sedan",
+        1
+      ],
+      [
+        "regent_coupe",
+        1
+      ],
+      [
+        "parcel_van",
+        1
+      ]
+    ],
+    "pelagic_crown": [
+      [
+        "morrow_sedan",
+        0
+      ],
+      [
+        "grove_estate",
+        1
+      ],
+      [
+        "lark_hatch",
+        0
+      ],
+      [
+        "parcel_van",
+        1
+      ],
+      [
+        "lark_hatch",
+        1
+      ],
+      [
+        "atlas_shuttle",
+        0
+      ]
+    ],
+    "chronos_spire": [
+      [
+        "regent_coupe",
+        0
+      ],
+      [
+        "regent_coupe",
+        1
+      ],
+      [
+        "morrow_sedan",
+        1
+      ],
+      [
+        "parcel_van",
+        0
+      ],
+      [
+        "regent_coupe",
+        0
+      ],
+      [
+        "parcel_van",
+        1
+      ]
+    ],
+    "empyrean_palace": [
+      [
+        "regent_coupe",
+        0
+      ],
+      [
+        "morrow_sedan",
+        1
+      ],
+      [
+        "regent_coupe",
+        1
+      ],
+      [
+        "grove_estate",
+        1
+      ],
+      [
+        "morrow_sedan",
+        0
+      ],
+      [
+        "atlas_shuttle",
+        1
+      ]
+    ],
+    "infinite_museum": [
+      [
+        "morrow_sedan",
+        1
+      ],
+      [
+        "lark_hatch",
+        0
+      ],
+      [
+        "parcel_van",
+        1
+      ],
+      [
+        "grove_estate",
+        1
+      ],
+      [
+        "parcel_van",
+        0
+      ],
+      [
+        "atlas_shuttle",
+        0
+      ]
+    ]
+  },
+  "budget": {
+    "images": 48,
+    "decoded_mip_bytes": 3256984
+  }
+}

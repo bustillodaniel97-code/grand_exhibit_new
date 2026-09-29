@@ -72,17 +72,17 @@ func _test_data_integrity() -> void:
 	var types: Dictionary = {}
 	for qid in DL.quests.keys():
 		types[DL.quests[qid]["type"]] = true
-	for t in ["upgrade_count", "earn_total", "serve_total", "buy_decor", "own_managers"]:
+	for t in ["upgrade_count", "item_level", "earn_total", "serve_total", "buy_decor", "own_managers"]:
 		check(types.has(t), "quest pool covers type %s" % t)
 	var order: Array = DL.venue_order()
-	check(order.size() == 6, "6 venues in order")
+	check(order.size() == 12, "12 venues in order")
 	for vid in order:
 		var defs: Array = DL.milestones.get(vid, [])
-		check(defs.size() == 8, "venue %s has 8 milestones" % vid)
-		if defs.size() == 8:
-			check("(PRESTIGE)" in str(defs[7].get("name", "")), "venue %s m8 is PRESTIGE-named" % vid)
+		var expected: int = 4 if vid == "whispering_pines" else 8
+		check(defs.size() == expected, "venue %s has %d milestones" % [vid, expected])
+		if defs.size() == expected:
 			var growing: bool = true
-			for i in range(1, 8):
+			for i in range(1, expected):
 				var mv: float = float(defs[i]["global_income_mult"])
 				var pv: float = float(defs[i - 1]["global_income_mult"])
 				if mv <= pv or mv < 1.05 or mv > 1.25:
@@ -178,26 +178,37 @@ func _test_quest_milestone_prestige() -> void:
 	GS.set_dept_level(vid, "promotions", "speed", 3)
 	QS.evaluate(vid)
 	check("q_prom_speed_3" in quest_events, "q_prom_speed_3 completed via simulated stat")
-	check(absf(float(vs["progress"]) - 0.08) < 0.001, "progress += 0.08 (got %f)" % float(vs["progress"]))
+	check(absf(float(vs["progress"]) - 0.24) < 0.001,
+		"intro quest progress applies the 3x pace (got %f)" % float(vs["progress"]))
 	check(vs["active_quests"].size() == 3, "replacement quest drawn")
 	check("q_prom_speed_3" not in vs["active_quests"], "completed quest removed from active")
 	check("q_gallery_value_3" in vs["active_quests"], "next pool quest drew in (q_gallery_value_3)")
-	# Drive the whole venue chain: force-complete actives until all 8 milestones done.
+	# Drive the whole introductory venue chain.
 	var gems_before_chain: int = GS.gems
 	var cards_before_chain: int = _total_cards()
 	var guard: int = 0
-	while GS.venue_state(vid).get("milestones", []).size() < 8 and guard < 400:
+	var need: int = DL.milestones.get(vid, []).size()
+	while GS.venue_state(vid).get("milestones", []).size() < need and guard < 400:
 		_force_complete_active(vid)
 		QS.evaluate(vid)
 		guard += 1
 	var done_ms: Array = GS.venue_state(vid).get("milestones", [])
-	check(done_ms.size() == 8, "all 8 milestones completed (in %d batches)" % guard)
-	check("wp_m1" in done_ms and "wp_m8" in done_ms, "milestone ids wp_m1..wp_m8 recorded")
-	check(milestone_events.size() == 8, "8 milestone_completed signals")
-	check(GS.gems == gems_before_chain + 360, "milestone gems granted (10+20+...+80 = 360)")
+	check(done_ms.size() == 4, "all 4 intro milestones completed (in %d batches)" % guard)
+	check("wp_m1" in done_ms and "wp_m4" in done_ms, "milestone ids wp_m1..wp_m4 recorded")
+	check(milestone_events.size() == 4, "4 milestone_completed signals")
+	check(GS.gems == gems_before_chain + 120, "intro milestone gems granted (10+20+30+60 = 120)")
 	check(_total_cards() > cards_before_chain, "milestone box cards granted")
-	check(vid in prestige_available_events, "prestige_available emitted after 8th")
-	check(PS.can_prestige(), "can_prestige() true")
+	check(vid in prestige_available_events, "prestige_available emitted after 4th")
+	var venue_cap: int = int(DL.get_venue(vid).get("track_level_cap", 100))
+	for spec in [["promotions", "speed"], ["ticket", "speed"],
+			["archive", "speed"], ["gallery", "value"]]:
+		GS.set_dept_level(vid, str(spec[0]), str(spec[1]), venue_cap)
+	for did in DL.decor:
+		if PS.decor_met(vid):break
+		var definition: Dictionary=DL.decor[did]
+		if int(definition.get("cost_gems",0))==0 and not bool(definition.get("event_exclusive",false)):
+			DS.grant_event_decor(did,vid)
+	check(PS.can_prestige(), "can_prestige() true after furnishing")
 	check(GS.feature_unlocked("prestige"), "feature_unlocked('prestige') true")
 	# Retention snapshot + the one-way move.
 	GS.add_cash(BigNumber.from_parts(7.0, 5))
@@ -205,7 +216,7 @@ func _test_quest_milestone_prestige() -> void:
 	GS.add_insight(BigNumber.from_float(4242.0))
 	GS.pending_cash[vid] = BigNumber.from_float(999.0)
 	GS.venue_state(vid)["decor"]["0"] = "oak_bench"
-	GS.set_dept_level(vid, "promotions", "speed", 9)
+	GS.set_dept_level(vid, "promotions", "speed", venue_cap)
 	var cash_pre: BigNumber = GS.cash.copy()
 	var gems_pre: int = GS.gems
 	var insight_pre: BigNumber = GS.insight.copy()
@@ -222,8 +233,9 @@ func _test_quest_milestone_prestige() -> void:
 	check(_total_cards() == cards_pre, "MANAGERS carried over")
 	# The old museum is FROZEN, not wiped — it is a record, never revisited.
 	var old_vs: Dictionary = GS.venue_state(vid)
-	check(GS.dept_level(vid, "promotions", "speed") == 9, "old venue dept levels frozen as built")
-	check(old_vs["milestones"].size() == 8, "old venue milestones kept")
+	check(GS.dept_level(vid, "promotions", "speed") == venue_cap,
+		"old venue dept levels frozen as built")
+	check(old_vs["milestones"].size() == 4, "old venue milestones kept")
 	check(str(old_vs["decor"].get("0", "")) == "oak_bench", "old venue keeps its installed decor")
 	check(not GS.pending_cash.has(vid), "old venue pending cash cleared after the sweep")
 	# One-way: the venue left behind is recorded closed and never comes back.
@@ -255,6 +267,12 @@ func _force_complete_active(vid: String) -> void:
 			"upgrade_count":
 				GS.set_dept_level(vid, str(qdef.get("dept", "")), str(qdef.get("track", "")),
 					int(target.to_float_approx()))
+			"item_level":
+				var dept: String = str(qdef.get("dept", ""))
+				var index: int = int(qdef.get("item", 0))
+				if GS.dept_items(vid, dept).size() <= index:
+					GS.set_dept_level(vid, dept, "staff", index + 1)
+				GS.set_item_level(vid, dept, index, int(target.to_float_approx()))
 			"earn_total":
 				vs["earned_total"] = target.to_save()
 			"serve_total":

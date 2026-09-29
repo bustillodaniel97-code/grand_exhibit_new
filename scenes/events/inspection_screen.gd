@@ -13,18 +13,21 @@ extends Control
 
 const BattleView = preload("res://scenes/events/battle_view.gd")
 const BattleMath = preload("res://scripts/events/battle_math.gd")
+const ManagerPortrait = preload("res://scenes/managers/manager_portrait.gd")
 
 # Palette from ui_kit; these were private copies of the retired muted scheme.
 const UI := preload("res://scripts/ui/ui_kit.gd")
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
+const TeamCard := preload("res://scripts/ui/event_team_card.gd")
 # Popup CONTENT on a DARK page: the department hues on the manager cards and the
 # stage buttons are the colour here, so the ground stays deep and the ink light.
 const BG := UI.PAGE
 const INK := UI.TEXT
 const DIM := UI.TEXT_DIM
 const PANEL := UI.CARD
-const ACCENT := UI.ACCENT
-const BRASS := UI.BRASS
-const SAGE := UI.SAGE
+const ACCENT := Chrome.TEAL
+const BRASS := Chrome.BRASS
+const SAGE := Chrome.TEAL
 const SPEC_GLYPH := {"promotions": "P", "ticket": "T", "archive": "A", "gallery": "G"}
 const SPEC_COLOR := UI.DEPT_COLORS
 const MAX_TEAM := 3
@@ -35,10 +38,16 @@ var _selected: Array = []       # manager ids (max MAX_TEAM)
 var _battle: Control = null
 var _outcome: Control = null
 var _scroll: ScrollContainer
+var _roster_scroll: ScrollContainer
+var _scroll_position := 0
+var _roster_position := 0
 var _status_label: Label
 var _start_button: Button
 var _timer: Timer
 var _outcome_timer: Timer
+var _continue_pending := false
+var _continue_stage := -1
+var _premium_continues := 0
 
 
 func setup(payload: Dictionary) -> void:
@@ -47,6 +56,8 @@ func setup(payload: Dictionary) -> void:
 
 func _ready() -> void:
 	_event = DataLoader.get_event("inspection_frenzy")
+	AdService.ad_result.connect(_on_continue_ad)
+	AdService.request_load("inspection_continue")
 	_timer = Timer.new()
 	_timer.wait_time = 1.0
 	_timer.autostart = true
@@ -99,6 +110,8 @@ func _selected_team_power() -> float:
 
 
 func _build() -> void:
+	if is_instance_valid(_scroll): _scroll_position = _scroll.scroll_vertical
+	if is_instance_valid(_roster_scroll): _roster_position = _roster_scroll.scroll_horizontal
 	for c in get_children():
 		if c != _timer and c != _outcome_timer:
 			c.queue_free()
@@ -109,24 +122,37 @@ func _build() -> void:
 	add_child(bg_panel)
 
 	if not GameState.feature_unlocked("inspection"):
-		var lock := _center_label("Inspection Frenzy\n\nUnlocks on Day 2")
-		add_child(lock)
+		var locked_scroll := UI.make_page_scroll(self)
+		var column := VBoxContainer.new()
+		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		column.add_theme_constant_override("separation", 18)
+		locked_scroll.add_child(column)
+		column.add_child(UI.make_display_label("Inspection Frenzy", 32, INK))
+		var preview := PanelContainer.new()
+		preview.add_theme_stylebox_override("panel", UI.make_dark_card())
+		column.add_child(preview)
+		var details := VBoxContainer.new()
+		details.add_theme_constant_override("separation", 16)
+		preview.add_child(details)
+		details.add_child(UI.make_icon("medal", 64, BRASS))
+		details.add_child(UI.make_display_label("Assemble your inspection team", 24, INK))
+		var pitch := UI.make_label("Choose up to three managers, match their department colours, and clear six inspections to earn cases, gems, and insight.", 18, DIM)
+		pitch.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		details.add_child(pitch)
+		details.add_child(UI.make_display_label("Available on Day 2", 20, BRASS))
 		return
 
 	_prune_selection()
-	_scroll = ScrollContainer.new()
-	_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(_scroll)
+	_scroll = UI.make_page_scroll(self)
+	_scroll.set_deferred("scroll_vertical", _scroll_position)
 	var root := VBoxContainer.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root.add_theme_constant_override("separation", 12)
+	root.add_theme_constant_override("separation", 16)
 	_scroll.add_child(root)
-	var pad := MarginContainer.new()
-	root.add_child(pad)
 
 	var title := UI.make_display_label(str(_event.get("name", "Inspection Frenzy")),
 		UI.TYPE_DISPLAY, INK)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	root.add_child(title)
 
 	_status_label = UI.make_label("", UI.TYPE_BODY, DIM)
@@ -147,10 +173,19 @@ func _build() -> void:
 		var team_head := UI.make_display_label(
 			"Your team  %d/%d" % [_selected.size(), MAX_TEAM], UI.TYPE_HEADING, INK)
 		root.add_child(team_head)
-		var flow := HFlowContainer.new()
-		flow.add_theme_constant_override("h_separation", 10)
-		flow.add_theme_constant_override("v_separation", 10)
-		root.add_child(flow)
+		# The roster scrolls sideways like a hand of staff passes. A wrapping grid
+		# made ten managers consume nearly two entire phone screens and buried the
+		# actual event stages—the reason the player opened this menu.
+		var roster_scroll := ScrollContainer.new()
+		_roster_scroll = roster_scroll
+		roster_scroll.set_deferred("scroll_horizontal", _roster_position)
+		roster_scroll.custom_minimum_size = Vector2(0, 164)
+		roster_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		roster_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		root.add_child(roster_scroll)
+		var flow := HBoxContainer.new()
+		flow.add_theme_constant_override("separation", 10)
+		roster_scroll.add_child(flow)
 		for pair in owned:
 			flow.add_child(_manager_card(pair))
 
@@ -192,7 +227,7 @@ func _rules_card() -> Control:
 	var body := UI.make_label(
 		"Match your managers' colours to charge them. The inspector audits one "
 		+ "department at a time — clearing THAT colour charges far faster, and the "
-		+ "audit moves as soon as you satisfy it.", UI.TYPE_LABEL, DIM)
+		+ "audit moves as soon as you satisfy it.", UI.TYPE_BODY, DIM)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_child(body)
 	return card
@@ -212,27 +247,7 @@ func _prune_selection() -> void:
 func _manager_card(pair: Dictionary) -> Control:
 	var mid: String = str(pair["id"])
 	var def: Dictionary = pair["def"]
-	var st: Dictionary = pair["state"]
-	var on: bool = _selected.has(mid)
-	var spec: String = str(def.get("specialty", ""))
-	var col: Color = SPEC_COLOR.get(spec, BRASS)
-	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(212, 96)
-	btn.add_theme_stylebox_override("normal", _style(col if on else PANEL, 12, INK if on else col))
-	btn.add_theme_stylebox_override("hover", _style(col if on else PANEL.lightened(0.03), 12, col))
-	btn.add_theme_stylebox_override("pressed", _style(col.darkened(0.1), 12, INK))
-	# White on the gold department card is a 1.26:1 label; pick the ink that wins
-	# on whichever hue this manager carries. UI.INK, not the screen's INK alias — a
-	# SELECTED card is a light saturated fill and still wants the dark ink, while an
-	# unselected one is the dark CARD and wants the light one.
-	btn.add_theme_color_override("font_color",
-		(UI.INK if col.get_luminance() > 0.45 else Color.WHITE) if on else INK)
-	btn.add_theme_font_size_override("font_size", UI.TYPE_LABEL)
-	var atk: float = BattleMath.manager_attack(def, st)
-	btn.text = "%s %s\nLv %d · Rank %d · Power %d\n%s" % [
-		str(SPEC_GLYPH.get(spec, "?")), str(def.get("name", mid)),
-		int(st.get("level", 1)), int(st.get("rank", 1)), int(round(atk)),
-		"IN TEAM" if on else "tap to add"]
+	var btn := TeamCard.make(pair, _selected.has(mid))
 	# A fourth pick used to disable every other card. Nothing here refuses a tap:
 	# picking past the cap rotates the oldest manager out.
 	btn.pressed.connect(func() -> void:
@@ -250,18 +265,20 @@ func _manager_card(pair: Dictionary) -> Control:
 
 
 func _stage_row(i: int, stage: Dictionary, es: Dictionary) -> Control:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", UI.make_dark_card())
 	var row := HBoxContainer.new()
+	card.add_child(row)
 	row.add_theme_constant_override("separation", 12)
 	var unlocked: bool = i <= int(es.get("stage", 0))
 	var cleared: bool = i < int(es.get("stage", 0)) or es.get("completed", []).has(i)
 	var btn := UI.make_button(("Cleared" if cleared else "Stage %d" % (i + 1)),
-		SAGE if cleared else ACCENT)
+		ACCENT if unlocked and not cleared else Chrome.PANEL)
 	btn.custom_minimum_size = Vector2(160, UI.TOUCH_MIN + 4)
 	# Only an already-cleared stage is inert, and that is a state rather than a
 	# blocker. Locked / no-team / closed-window all stay tappable and explain.
 	btn.disabled = cleared
 	btn.pressed.connect(_on_play_stage.bind(i))
-	row.add_child(btn)
 	var power: float = _selected_team_power()
 	var hp: float = BattleMath.stage_boss_hp(_event, i, power)
 	var odds := "pick a team to see the odds"
@@ -270,11 +287,12 @@ func _stage_row(i: int, stage: Dictionary, es: Dictionary) -> Control:
 	elif not unlocked:
 		odds = "clear stage %d first" % i
 	var info := UI.make_label("%s\n%s" % [_rewards_preview(stage.get("rewards", {})), odds],
-		UI.TYPE_LABEL, DIM)
+		UI.TYPE_BODY, DIM)
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(info)
-	return row
+	row.add_child(btn)
+	return card
 
 
 func _rewards_preview(rewards: Dictionary) -> String:
@@ -352,6 +370,9 @@ func _on_play_stage(stage_index: int) -> void:
 
 
 func _open_battle(stage_index: int, team: Array, moves: int) -> void:
+	_continue_pending = false
+	_continue_stage = stage_index
+	_premium_continues = 0
 	if _scroll != null and is_instance_valid(_scroll):
 		_scroll.visible = false  # nothing of the host can bleed past the board
 	_battle = BattleView.new()
@@ -363,14 +384,14 @@ func _open_battle(stage_index: int, team: Array, moves: int) -> void:
 		"moves": moves,
 		"team": team,
 	})
-	_battle.battle_finished.connect(_on_battle_finished.bind(stage_index), CONNECT_ONE_SHOT)
+	_battle.battle_finished.connect(_on_battle_finished.bind(stage_index))
 
 
 func _on_battle_finished(result: String, stage_index: int) -> void:
 	Analytics.log_event("inspection_stage", {"stage": stage_index, "result": result})
 	if result != "win":
-		_queue_outcome("Inspection failed", "The inspectors ran out of patience.\n"
-			+ "Chase the audit colour — it charges 1.8x — or bring stronger managers.",
+		_queue_outcome("Out of moves", "Continue with your board and damage intact,\n"
+			+ "or retry this stage for free with a stronger team.",
 			UI.DANGER, stage_index)
 		return
 	var es: Dictionary = _es()
@@ -462,10 +483,9 @@ func _show_outcome(title: String, body: String, tint: Color, stage_index: int) -
 	# A win and a loss have to be unmistakable from across the room: a full-width
 	# colour band, not two lines of body copy on the same cream card.
 	var band := PanelContainer.new()
-	band.add_theme_stylebox_override("panel", UI.make_panel(tint, 14, 0))
-	var band_l := UI.make_display_label(title.to_upper(), UI.TYPE_HERO, Color.WHITE)
+	band.add_theme_stylebox_override("panel", Chrome.panel(14, Chrome.RAISED))
+	var band_l := UI.make_display_label(title.to_upper(), UI.TYPE_DISPLAY, tint.lerp(Chrome.INK, 0.3))
 	band_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UI.add_text_halo(band_l)
 	band.add_child(band_l)
 	v.add_child(band)
 
@@ -474,6 +494,14 @@ func _show_outcome(title: String, body: String, tint: Color, stage_index: int) -
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(l)
 
+	var cleared_state: bool = _es().get("completed", []).has(stage_index)
+	if not cleared_state and is_instance_valid(_battle):
+		var ad := UI.make_button("Watch ad · restore 50% moves", ACCENT)
+		ad.pressed.connect(_request_continue_ad)
+		v.add_child(ad)
+		var gems := UI.make_button("30 gems · full moves (%d left)" % maxi(0,5-_premium_continues), BRASS)
+		gems.pressed.connect(_continue_with_gems)
+		v.add_child(gems)
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 12)
@@ -484,10 +512,55 @@ func _show_outcome(title: String, body: String, tint: Color, stage_index: int) -
 		retry.custom_minimum_size = Vector2(180, UI.TOUCH_MIN + 8)
 		retry.pressed.connect(_on_retry.bind(stage_index))
 		row.add_child(retry)
-	var btn := UI.make_button("Continue", SAGE if cleared else UI.SLATE)
+	var btn := UI.make_button("Continue" if cleared else "End attempt", SAGE if cleared else UI.SLATE)
 	btn.custom_minimum_size = Vector2(180, UI.TOUCH_MIN + 8)
 	btn.pressed.connect(_close_battle)
 	row.add_child(btn)
+
+
+func _can_continue_attempt() -> bool:
+	return not _continue_pending and is_instance_valid(_battle) \
+		and _battle.can_continue() and _window_active(ClockGuard.now()) \
+		and not _es().get("completed", []).has(_continue_stage)
+
+func _resume_attempt(fraction: float) -> bool:
+	if not is_instance_valid(_battle) or not _battle.continue_battle(fraction):return false
+	if is_instance_valid(_outcome_timer):_outcome_timer.stop()
+	if is_instance_valid(_outcome):_outcome.queue_free()
+	_outcome = null
+	return true
+
+func _continue_with_gems() -> void:
+	if not _can_continue_attempt():return
+	if _premium_continues >= 5:
+		_toast("No gem continuations remain. You can retry this stage for free.")
+		return
+	if GameState.gems < 30:
+		_toast("You need 30 gems to restore the full move allowance.")
+		return
+	if _resume_attempt(1.0):
+		GameState.spend_gems(30)
+		_premium_continues += 1
+		Analytics.log_event("inspection_continue", {"method":"gems","stage":_continue_stage})
+
+func _request_continue_ad() -> void:
+	if not _can_continue_attempt():return
+	if not AdService.is_ready("inspection_continue"):
+		_toast("No ad is ready yet. You can retry this stage for free.")
+		return
+	_continue_pending = true
+	AdService.show_rewarded("inspection_continue", {"battle_id":_battle.get_instance_id()})
+
+func _on_continue_ad(placement: String, success: bool, context: Dictionary) -> void:
+	if placement != "inspection_continue" or not _continue_pending:return
+	if not is_instance_valid(_battle) or int(context.get("battle_id",0)) != _battle.get_instance_id():return
+	_continue_pending = false
+	if not success:
+		_toast("The ad did not finish. Your attempt is still here.")
+		return
+	if not AdService.consume_reward_token(str(context.get("reward_token","")),placement):return
+	if _can_continue_attempt() and _resume_attempt(.5):
+		Analytics.log_event("inspection_continue", {"method":"ad","stage":_continue_stage})
 
 
 func _on_retry(stage_index: int) -> void:
@@ -509,6 +582,7 @@ func _on_retry(stage_index: int) -> void:
 
 
 func _close_battle() -> void:
+	_continue_pending = false
 	if _battle != null and is_instance_valid(_battle):
 		_battle.queue_free()
 	_battle = null
@@ -540,8 +614,7 @@ func _style(color: Color, radius: int, border := Color.TRANSPARENT) -> StyleBoxF
 	sb.bg_color = color
 	sb.set_corner_radius_all(radius)
 	if border != Color.TRANSPARENT:
-		sb.set_border_width_all(3)
-		sb.border_color = border
-	sb.content_margin_left = 12
-	sb.content_margin_right = 12
+		sb.set_border_width_all(1)
+		sb.border_color = border.lerp(Chrome.BORDER, 0.6)
+	sb.set_content_margin_all(16 if radius > 0 else 0)
 	return sb

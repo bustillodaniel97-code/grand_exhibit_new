@@ -10,16 +10,18 @@ const BattleMath = preload("res://scripts/events/battle_math.gd")
 
 # Palette from ui_kit; these were private copies of the retired muted scheme.
 const UI := preload("res://scripts/ui/ui_kit.gd")
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
+const TeamCard := preload("res://scripts/ui/event_team_card.gd")
 # Popup CONTENT on a DARK page: the dig-site track and the department cards carry
 # the colour, so the ground stays deep and the ink light.
 const BG := UI.PAGE
 const INK := UI.TEXT
 const DIM := UI.TEXT_DIM
 const PANEL := UI.CARD
-const ACCENT := UI.ACCENT
-const BRASS := UI.BRASS
-const SAGE := UI.SAGE
-const SLATE := UI.SLATE
+const ACCENT := Chrome.TEAL
+const BRASS := Chrome.BRASS
+const SAGE := Chrome.TEAL
+const SLATE := Color("#96c8df")
 const SPEC_GLYPH := {"promotions": "P", "ticket": "T", "archive": "A", "gallery": "G"}
 const SPEC_COLOR := UI.DEPT_COLORS
 
@@ -30,6 +32,9 @@ var _selected: Array = []       # manager ids for the boss fight (max 3)
 var _battle: Control = null
 var _outcome: Control = null
 var _scroll: ScrollContainer
+var _roster_scroll: ScrollContainer
+var _scroll_position := 0
+var _roster_position := 0
 var _outcome_timer: Timer
 var _storage_bar: ProgressBar
 var _storage_label: Label
@@ -73,6 +78,8 @@ func _owned_pairs() -> Array:
 
 
 func _build() -> void:
+	if is_instance_valid(_scroll): _scroll_position = _scroll.scroll_vertical
+	if is_instance_valid(_roster_scroll): _roster_position = _roster_scroll.scroll_horizontal
 	for c in get_children():
 		if c != _timer and c != _outcome_timer:
 			c.queue_free()
@@ -83,30 +90,22 @@ func _build() -> void:
 	add_child(bg_panel)
 
 	if not GameState.feature_unlocked("expedition"):
-		var lock := Label.new()
-		lock.text = "Expedition Mode\n\nUnlocks at Rep 7"
-		lock.set_anchors_preset(Control.PRESET_FULL_RECT)
-		lock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lock.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lock.add_theme_font_size_override("font_size", 28)
-		lock.add_theme_color_override("font_color", INK)
-		add_child(lock)
+		_build_locked_preview()
 		return
 
 	if _selected.is_empty():
 		_auto_pick_team()
 
-	_scroll = ScrollContainer.new()
-	_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(_scroll)
+	_scroll = UI.make_page_scroll(self)
+	_scroll.set_deferred("scroll_vertical", _scroll_position)
 	var root := VBoxContainer.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root.add_theme_constant_override("separation", 12)
+	root.add_theme_constant_override("separation", 16)
 	_scroll.add_child(root)
 
 	var title := Label.new()
-	title.text = "Expedition Mode · Cycle %d" % (_cycle() + 1)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.text = "Expedition · Cycle %d" % (_cycle() + 1)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	title.add_theme_font_size_override("font_size", 32)
 	title.add_theme_color_override("font_color", INK)
 	root.add_child(title)
@@ -115,6 +114,72 @@ func _build() -> void:
 	_build_invest_track(root)
 	_build_boss_section(root)
 	_refresh_storage()
+
+
+func _build_locked_preview() -> void:
+	# A locked feature is still a promise. The old two-line empty page looked
+	# unfinished and gave the player no reason to care about reaching Rep 7.
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 28)
+	margin.add_theme_constant_override("margin_right", 28)
+	margin.add_theme_constant_override("margin_top", 70)
+	margin.add_theme_constant_override("margin_bottom", 70)
+	add_child(margin)
+	var center := CenterContainer.new()
+	margin.add_child(center)
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(0, 560)
+	card.add_theme_stylebox_override("panel", _style(PANEL, 22, BRASS))
+	center.add_child(card)
+	var v := VBoxContainer.new()
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_theme_constant_override("separation", 18)
+	card.add_child(v)
+	var icon_wrap := CenterContainer.new()
+	v.add_child(icon_wrap)
+	icon_wrap.add_child(UI.make_icon("star", 86, BRASS))
+	var title := UI.make_display_label("THE EXPEDITION AWAITS", 30, INK)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	v.add_child(title)
+	var pitch := UI.make_label(
+		"Fund a five-stage dig, assemble your best three managers, and uncover "
+		+ "rare decor that cannot be bought in the shop.", UI.TYPE_BODY, DIM)
+	pitch.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	pitch.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(pitch)
+	var rewards := HBoxContainer.new()
+	rewards.alignment = BoxContainer.ALIGNMENT_CENTER
+	rewards.add_theme_constant_override("separation", 12)
+	v.add_child(rewards)
+	for reward in [["star", "INSIGHT", SLATE], ["medal", "CASES", ACCENT],
+			["home", "RARE DECOR", SAGE]]:
+		var chip := PanelContainer.new()
+		chip.add_theme_stylebox_override("panel", _style(PANEL.lightened(0.08), 12,
+			reward[2]))
+		var col := VBoxContainer.new()
+		col.alignment = BoxContainer.ALIGNMENT_CENTER
+		chip.add_child(col)
+		col.add_child(UI.make_icon(reward[0], 28, reward[2]))
+		var lab := UI.make_label(reward[1], UI.TYPE_CAPTION, INK)
+		lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		col.add_child(lab)
+		rewards.add_child(chip)
+	var progress := ProgressBar.new()
+	progress.custom_minimum_size = Vector2(0, 20)
+	progress.max_value = 1.0
+	progress.value = GameState.rep_progress()
+	progress.show_percentage = false
+	progress.add_theme_stylebox_override("background", _style(BG, 10))
+	progress.add_theme_stylebox_override("fill", _style(BRASS, 10))
+	v.add_child(progress)
+	var lock := UI.make_display_label("UNLOCKS AT REP 7", 20, BRASS)
+	lock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(lock)
+	var current := UI.make_label("Currently Rep %d" % GameState.rep_level(),
+		UI.TYPE_LABEL, DIM)
+	current.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(current)
 
 
 ## --- Insight idle panel -----------------------------------------------------
@@ -127,15 +192,15 @@ func _build_insight_panel(root: VBoxContainer) -> void:
 	v.add_theme_constant_override("separation", 8)
 	panel.add_child(v)
 	var head := Label.new()
-	head.text = "Insight Field Lab (idle)"
+	head.text = "Insight field lab"
 	head.add_theme_font_size_override("font_size", 20)
 	head.add_theme_color_override("font_color", INK)
 	v.add_child(head)
 	_storage_bar = ProgressBar.new()
-	_storage_bar.custom_minimum_size = Vector2(0, 22)
+	_storage_bar.custom_minimum_size = Vector2(0, 10)
 	_storage_bar.show_percentage = false
-	_storage_bar.add_theme_stylebox_override("background", _style(BG, 8))
-	_storage_bar.add_theme_stylebox_override("fill", _style(SLATE, 8))
+	_storage_bar.add_theme_stylebox_override("background", Chrome.channel(BG))
+	_storage_bar.add_theme_stylebox_override("fill", Chrome.channel(SAGE))
 	v.add_child(_storage_bar)
 	_storage_label = Label.new()
 	_storage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -238,26 +303,29 @@ func _build_invest_track(root: VBoxContainer) -> void:
 	var stages: Array = _event.get("stages", [])
 	for i in stages.size():
 		var s: Dictionary = stages[i]
+		var card := PanelContainer.new()
+		card.add_theme_stylebox_override("panel", UI.make_dark_card())
 		var row := HBoxContainer.new()
+		card.add_child(row)
 		row.add_theme_constant_override("separation", 12)
 		var done: bool = i < stage
 		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(170, 52)
+		btn.custom_minimum_size = Vector2(170, 56)
 		var cost: BigNumber = BigNumber.from_parts(
 			float(s.get("invest_cost_m", 1.0)), int(s.get("invest_cost_e", 0)))
 		btn.text = "Funded" if done else "Invest " + cost.to_notation()
-		_style_button(btn, SAGE if done else (ACCENT if i == stage else SLATE))
+		_style_button(btn, SAGE if done else (ACCENT if i == stage else Chrome.PANEL))
 		# Only a funded step is inert. "Too expensive" and "not your turn" are
 		# explained by _on_invest's toasts, never by a dead tap.
 		btn.disabled = done
 		btn.pressed.connect(_on_invest.bind(i))
-		row.add_child(btn)
 		var info := UI.make_label("%s — +%s insight" % [
-			str(s.get("name", "Site")), str(s.get("insight_reward", 0))], UI.TYPE_LABEL, DIM)
+			str(s.get("name", "Site")), str(s.get("insight_reward", 0))], UI.TYPE_BODY, INK)
 		info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(info)
-		root.add_child(row)
+		row.add_child(btn)
+		root.add_child(card)
 
 
 func _on_invest(i: int) -> void:
@@ -308,13 +376,18 @@ func _build_boss_section(root: VBoxContainer) -> void:
 		return
 	# Team picker for the boss fight.
 	var team_head := Label.new()
-	team_head.text = "Boss team (up to 3):"
+	team_head.text = "Your team: %d/3 selected" % _selected.size()
 	team_head.add_theme_color_override("font_color", INK)
 	root.add_child(team_head)
-	var flow := HFlowContainer.new()
-	flow.add_theme_constant_override("h_separation", 10)
-	flow.add_theme_constant_override("v_separation", 10)
-	root.add_child(flow)
+	var roster := ScrollContainer.new()
+	_roster_scroll = roster
+	roster.set_deferred("scroll_horizontal", _roster_position)
+	roster.custom_minimum_size.y = 164
+	roster.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	root.add_child(roster)
+	var flow := HBoxContainer.new()
+	flow.add_theme_constant_override("separation", 12)
+	roster.add_child(flow)
 	var owned: Array = _owned_pairs()
 	for pair in owned:
 		flow.add_child(_manager_card(pair))
@@ -330,7 +403,8 @@ func _build_boss_section(root: VBoxContainer) -> void:
 	info.text = "HP ~%d · %d moves · team power %d\nRewards: %s" % [
 		int(round(hp)), int(boss.get("moves", 24)), int(round(power)),
 		_rewards_preview(boss.get("rewards", {}))]
-	info.add_theme_color_override("font_color", INK)
+	info.add_theme_color_override("font_color", DIM)
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	root.add_child(info)
 	var btn := Button.new()
 	btn.text = "Fight the Guardian"
@@ -370,31 +444,11 @@ func _team_power_selected() -> float:
 func _manager_card(pair: Dictionary) -> Control:
 	var mid: String = str(pair["id"])
 	var def: Dictionary = pair["def"]
-	var st: Dictionary = pair["state"]
-	var btn := Button.new()
-	btn.toggle_mode = true
-	btn.custom_minimum_size = Vector2(210, 92)
-	btn.button_pressed = _selected.has(mid)
-	var spec: String = str(def.get("specialty", ""))
-	var col: Color = SPEC_COLOR.get(spec, BRASS)
-	btn.add_theme_stylebox_override("normal", _style(PANEL, 12, col))
-	btn.add_theme_stylebox_override("pressed", _style(col, 12, INK))
-	btn.add_theme_stylebox_override("disabled", _style(PANEL.darkened(0.1), 12))
-	# Explicit, because the two states sit on opposite grounds: unpicked is the
-	# dark CARD and wants light ink, picked is a light saturated fill (gold is the
-	# case that breaks white) and wants whichever ink measures better on it.
-	btn.add_theme_color_override("font_color", INK)
-	btn.add_theme_color_override("font_pressed_color",
-		UI.INK if col.get_luminance() > 0.45 else Color.WHITE)
-	btn.add_theme_color_override("font_hover_color", INK)
-	btn.text = "%s %s\nLv %d · Rank %d\nPower %d" % [
-		str(SPEC_GLYPH.get(spec, "?")), str(def.get("name", mid)),
-		int(st.get("level", 1)), int(st.get("rank", 1)),
-		int(round(BattleMath.manager_attack(def, st)))]
+	var btn := TeamCard.make(pair, _selected.has(mid))
 	# A fourth pick used to silently snap back to unpressed. Nothing refuses a
 	# tap: picking past the cap rotates the oldest manager out of the team.
-	btn.toggled.connect(func(on: bool) -> void:
-		if on:
+	btn.pressed.connect(func() -> void:
+		if not _selected.has(mid):
 			if _selected.size() >= 3:
 				var dropped: String = str(_selected.pop_front())
 				_toast("%s stepped aside for %s" % [
@@ -511,10 +565,9 @@ func _show_outcome(title: String, body: String, tint: Color, hp: float) -> void:
 	# A win and a loss have to be unmistakable from across the room: a full-width
 	# colour band, not two lines of body copy on the same card.
 	var band := PanelContainer.new()
-	band.add_theme_stylebox_override("panel", UI.make_panel(tint, 14, 0))
-	var band_l := UI.make_display_label(title.to_upper(), UI.TYPE_HERO, Color.WHITE)
+	band.add_theme_stylebox_override("panel", Chrome.panel(14, Chrome.RAISED))
+	var band_l := UI.make_display_label(title.to_upper(), UI.TYPE_DISPLAY, tint.lerp(Chrome.INK, 0.3))
 	band_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UI.add_text_halo(band_l)
 	band.add_child(band_l)
 	v.add_child(band)
 
@@ -592,17 +645,13 @@ func _style(color: Color, radius: int, border := Color.TRANSPARENT) -> StyleBoxF
 	sb.bg_color = color
 	sb.set_corner_radius_all(radius)
 	if border != Color.TRANSPARENT:
-		sb.set_border_width_all(3)
-		sb.border_color = border
-	sb.content_margin_left = 12
-	sb.content_margin_right = 12
+		sb.set_border_width_all(1)
+		sb.border_color = border.lerp(Chrome.BORDER, 0.6)
+	sb.set_content_margin_all(16 if radius > 0 else 0)
 	return sb
 
 
 func _style_button(btn: Button, color: Color) -> void:
-	btn.add_theme_stylebox_override("normal", _style(color, 12))
-	btn.add_theme_stylebox_override("hover", _style(color.lightened(0.08), 12))
-	btn.add_theme_stylebox_override("pressed", _style(color.darkened(0.1), 12))
-	btn.add_theme_stylebox_override("disabled", _style(color.darkened(0.35), 12))
-	btn.add_theme_color_override("font_color", Color.WHITE)
-	btn.add_theme_font_size_override("font_size", 20)
+	UI.skin_button(btn, color)
+	btn.custom_minimum_size.y = maxf(btn.custom_minimum_size.y, 52)
+	btn.add_theme_font_size_override("font_size", 18)

@@ -5,3 +5,15 @@
 export_presets.cfg
 builds/
 .DS_Store
+
+# Signing material. A keystore or its password inside the worktree is one
+# `git add -A` away from being published; tools/build_android.sh refuses to
+# build if the keystore path resolves inside the repository.
+*.keystore
+*.jks
+*.keystore.properties
+keystore.properties
+# Generated from export_presets.template.cfg by tools/build_android.sh.
+# The TEMPLATE is the tracked source of truth; this file is not.
+build/
+__pycache__/

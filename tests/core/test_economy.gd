@@ -139,5 +139,63 @@ func run() -> void:
 	Economy.tick_insight_storage(ClockGuard.now())
 	check(BigNumber.from_save(GameState.expedition_state["insight_stored"]).is_zero(), "no insight accrues while locked")
 
+	_test_takings_land_on_busy_windows(GameState, Economy)
+
 	print("RESULT: ", "ALL PASS" if failures == 0 else "%d FAILURES" % failures)
 	quit(0 if failures == 0 else 1)
+
+## A till must not count money with nobody standing at it.
+##
+## The economy is rate-based and books takings every tick whether or not the
+## floor exists, which is correct — offline earnings depend on it. What was wrong
+## was WHERE: the gain was split evenly across every window, so an empty one
+## climbed exactly as fast as a busy one. VenueFloor now reports which windows
+## have a customer and the gain follows. The total is untouched, which is the
+## property that keeps every balance number in the game valid.
+func _test_takings_land_on_busy_windows(GameState: Node, Economy: Node) -> void:
+	print("-- takings land on the windows actually serving --")
+	GameState.reset_to_new_game()
+	GameState.ready_flag = true
+	var vid: String = GameState.current_venue
+	GameState.set_dept_level(vid, "ticket", "staff", 3)
+	var items: Array = GameState.dept_items(vid, "ticket")
+	check(items.size() == 3, "three ticket windows (%d)" % items.size())
+	for it in items:
+		it["pending"] = BigNumber.zero().to_save()
+
+	var gained := BigNumber.from_parts(3.0, 3)
+
+	# Only window 1 has anyone at it.
+	Economy.set_busy_stations(vid, PackedInt32Array([1]))
+	Economy._allocate_item_pending(vid, gained, BigNumber.zero())
+	var p0: float = Economy.item_pending(vid, "ticket", 0).to_float_approx()
+	var p1: float = Economy.item_pending(vid, "ticket", 1).to_float_approx()
+	var p2: float = Economy.item_pending(vid, "ticket", 2).to_float_approx()
+	check(p0 == 0.0 and p2 == 0.0,
+		"the two idle windows took nothing (%.0f, %.0f)" % [p0, p2])
+	check(p1 > 0.0, "the serving window took the lot (%.0f)" % p1)
+	check(is_equal_approx(p0 + p1 + p2, gained.to_float_approx()),
+		"and the TOTAL is unchanged — allocation moved, the economy did not")
+
+	# No floor reporting (offline, headless): fall back to an even split, or
+	# takings would vanish whenever nobody is watching.
+	for it in items:
+		it["pending"] = BigNumber.zero().to_save()
+	Economy._busy_stations.clear()
+	Economy._allocate_item_pending(vid, gained, BigNumber.zero())
+	var q0: float = Economy.item_pending(vid, "ticket", 0).to_float_approx()
+	var q1: float = Economy.item_pending(vid, "ticket", 1).to_float_approx()
+	var q2: float = Economy.item_pending(vid, "ticket", 2).to_float_approx()
+	check(q0 > 0.0 and q1 > 0.0 and q2 > 0.0,
+		"with no floor reporting, every window still earns (%.0f/%.0f/%.0f)" % [q0, q1, q2])
+	check(is_equal_approx(q0 + q1 + q2, gained.to_float_approx()),
+		"and that total is unchanged too")
+
+	# A stale hint must not pin takings to windows nobody is watching.
+	for it in items:
+		it["pending"] = BigNumber.zero().to_save()
+	Economy.set_busy_stations(vid, PackedInt32Array([2]))
+	(Economy._busy_stations[vid] as Dictionary)["t"] = -9999.0
+	Economy._allocate_item_pending(vid, gained, BigNumber.zero())
+	check(Economy.item_pending(vid, "ticket", 0).to_float_approx() > 0.0,
+		"a stale hint expires back to the even split")

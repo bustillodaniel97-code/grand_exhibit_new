@@ -22,13 +22,13 @@
     },
     {
       "id": "q_archive_speed_3",
-      "desc": "Upgrade Archive Speed to Lv.3",
+      "desc": "Hire a second Archive porter",
       "type": "upgrade_count",
-      "target_m": 3.0,
+      "target_m": 2.0,
       "target_e": 0,
       "progress_reward": 0.08,
       "dept": "archive",
-      "track": "speed"
+      "track": "staff"
     },
     {
       "id": "q_gallery_value_3",
@@ -39,6 +39,36 @@
       "progress_reward": 0.08,
       "dept": "gallery",
       "track": "value"
+    },
+    {
+      "id": "q_ticket_station_1_lv3",
+      "desc": "Upgrade Ticket Station 1 to Lv.3",
+      "type": "item_level",
+      "target_m": 3.0,
+      "target_e": 0,
+      "progress_reward": 0.09,
+      "dept": "ticket",
+      "item": 0
+    },
+    {
+      "id": "q_ticket_station_2_lv3",
+      "desc": "Upgrade Ticket Station 2 to Lv.3",
+      "type": "item_level",
+      "target_m": 3.0,
+      "target_e": 0,
+      "progress_reward": 0.09,
+      "dept": "ticket",
+      "item": 1
+    },
+    {
+      "id": "q_ticket_station_1_lv8",
+      "desc": "Upgrade Ticket Station 1 to Lv.8",
+      "type": "item_level",
+      "target_m": 8.0,
+      "target_e": 0,
+      "progress_reward": 0.11,
+      "dept": "ticket",
+      "item": 0
     },
     {
       "id": "q_prom_staff_5",
@@ -316,59 +346,19 @@
       {
         "id": "wp_m4",
         "venue_id": "whispering_pines",
-        "name": "Curator's Pick",
-        "reward": {
-          "gems": 40,
-          "box": "specialist_case"
-        },
-        "global_income_mult": 1.13
-      },
-      {
-        "id": "wp_m5",
-        "venue_id": "whispering_pines",
-        "name": "Regional Draw",
-        "reward": {
-          "gems": 50,
-          "box": "specialist_case"
-        },
-        "global_income_mult": 1.15
-      },
-      {
-        "id": "wp_m6",
-        "venue_id": "whispering_pines",
-        "name": "Star Attraction",
+        "name": "Hall Complete",
         "reward": {
           "gems": 60,
           "box": "executive_case"
         },
-        "global_income_mult": 1.18
-      },
-      {
-        "id": "wp_m7",
-        "venue_id": "whispering_pines",
-        "name": "Must-See Hall",
-        "reward": {
-          "gems": 70,
-          "box": "executive_case"
-        },
         "global_income_mult": 1.2
-      },
-      {
-        "id": "wp_m8",
-        "venue_id": "whispering_pines",
-        "name": "Whispering Legend (PRESTIGE)",
-        "reward": {
-          "gems": 80,
-          "box": "executive_case"
-        },
-        "global_income_mult": 1.25
       }
     ],
     "copper_kettle": [
       {
         "id": "ck_m1",
         "venue_id": "copper_kettle",
-        "name": "Factory Floor",
+        "name": "First Tide",
         "reward": {
           "gems": 15,
           "box": "field_case"
@@ -378,7 +368,7 @@
       {
         "id": "ck_m2",
         "venue_id": "copper_kettle",
-        "name": "Brass & Steam",
+        "name": "Living Reef",
         "reward": {
           "gems": 30,
           "box": "field_case"
@@ -388,7 +378,7 @@
       {
         "id": "ck_m3",
         "venue_id": "copper_kettle",
-        "name": "City Spotlight",
+        "name": "Harbor Favorite",
         "reward": {
           "gems": 45,
           "box": "specialist_case"
@@ -398,7 +388,7 @@
       {
         "id": "ck_m4",
         "venue_id": "copper_kettle",
-        "name": "Industrial Icon",
+        "name": "Ocean Showcase",
         "reward": {
           "gems": 60,
           "box": "specialist_case"
@@ -408,7 +398,7 @@
       {
         "id": "ck_m5",
         "venue_id": "copper_kettle",
-        "name": "Engine Room",
+        "name": "Deepwater Gallery",
         "reward": {
           "gems": 75,
           "box": "specialist_case"
@@ -418,7 +408,7 @@
       {
         "id": "ck_m6",
         "venue_id": "copper_kettle",
-        "name": "Patent Wall",
+        "name": "Coral Conservatory",
         "reward": {
           "gems": 90,
           "box": "executive_case"
@@ -428,7 +418,7 @@
       {
         "id": "ck_m7",
         "venue_id": "copper_kettle",
-        "name": "Kettle Crown",
+        "name": "Tidewater Crown",
         "reward": {
           "gems": 105,
           "box": "executive_case"
@@ -438,7 +428,7 @@
       {
         "id": "ck_m8",
         "venue_id": "copper_kettle",
-        "name": "Copper Dynasty (PRESTIGE)",
+        "name": "Aquarium Complete",
         "reward": {
           "gems": 120,
           "box": "executive_case"
@@ -772,6 +762,498 @@
           "box": "executive_case"
         },
         "global_income_mult": 1.25
+      }
+    ],
+    "celestial_conservatory": [
+      {
+        "id": "cc_m1",
+        "venue_id": "celestial_conservatory",
+        "name": "First Light",
+        "reward": {
+          "gems": 700,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.065
+      },
+      {
+        "id": "cc_m2",
+        "venue_id": "celestial_conservatory",
+        "name": "Living Orbit",
+        "reward": {
+          "gems": 1400,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.09
+      },
+      {
+        "id": "cc_m3",
+        "venue_id": "celestial_conservatory",
+        "name": "Moon Salon",
+        "reward": {
+          "gems": 2100,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.115
+      },
+      {
+        "id": "cc_m4",
+        "venue_id": "celestial_conservatory",
+        "name": "Star Vault",
+        "reward": {
+          "gems": 2800,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.14
+      },
+      {
+        "id": "cc_m5",
+        "venue_id": "celestial_conservatory",
+        "name": "Glasshouse Gala",
+        "reward": {
+          "gems": 3500,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.165
+      },
+      {
+        "id": "cc_m6",
+        "venue_id": "celestial_conservatory",
+        "name": "Constellation Wing",
+        "reward": {
+          "gems": 4200,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.19
+      },
+      {
+        "id": "cc_m7",
+        "venue_id": "celestial_conservatory",
+        "name": "Celestial Laurels",
+        "reward": {
+          "gems": 4900,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.215
+      },
+      {
+        "id": "cc_m8",
+        "venue_id": "celestial_conservatory",
+        "name": "Grand Alignment (COMPLETE)",
+        "reward": {
+          "gems": 5600,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.24
+      }
+    ],
+    "ironwood_citadel": [
+      {
+        "id": "ic_m1",
+        "venue_id": "ironwood_citadel",
+        "name": "Open the Gates",
+        "reward": {
+          "gems": 800,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.065
+      },
+      {
+        "id": "ic_m2",
+        "venue_id": "ironwood_citadel",
+        "name": "Armory Muster",
+        "reward": {
+          "gems": 1600,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.09
+      },
+      {
+        "id": "ic_m3",
+        "venue_id": "ironwood_citadel",
+        "name": "Keep Feast",
+        "reward": {
+          "gems": 2400,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.115
+      },
+      {
+        "id": "ic_m4",
+        "venue_id": "ironwood_citadel",
+        "name": "Treasury Seal",
+        "reward": {
+          "gems": 3200,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.14
+      },
+      {
+        "id": "ic_m5",
+        "venue_id": "ironwood_citadel",
+        "name": "Citadel Court",
+        "reward": {
+          "gems": 4000,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.165
+      },
+      {
+        "id": "ic_m6",
+        "venue_id": "ironwood_citadel",
+        "name": "Royal Standard",
+        "reward": {
+          "gems": 4800,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.19
+      },
+      {
+        "id": "ic_m7",
+        "venue_id": "ironwood_citadel",
+        "name": "Mountain Crown",
+        "reward": {
+          "gems": 5600,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.215
+      },
+      {
+        "id": "ic_m8",
+        "venue_id": "ironwood_citadel",
+        "name": "Ironwood Ascendant (COMPLETE)",
+        "reward": {
+          "gems": 6400,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.24
+      }
+    ],
+    "pelagic_crown": [
+      {
+        "id": "pc_m1",
+        "venue_id": "pelagic_crown",
+        "name": "First Dive",
+        "reward": {
+          "gems": 900,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.065
+      },
+      {
+        "id": "pc_m2",
+        "venue_id": "pelagic_crown",
+        "name": "Coral Procession",
+        "reward": {
+          "gems": 1800,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.09
+      },
+      {
+        "id": "pc_m3",
+        "venue_id": "pelagic_crown",
+        "name": "Pearl Reserve",
+        "reward": {
+          "gems": 2700,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.115
+      },
+      {
+        "id": "pc_m4",
+        "venue_id": "pelagic_crown",
+        "name": "Abyssal Court",
+        "reward": {
+          "gems": 3600,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.14
+      },
+      {
+        "id": "pc_m5",
+        "venue_id": "pelagic_crown",
+        "name": "Tidal Festival",
+        "reward": {
+          "gems": 4500,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.165
+      },
+      {
+        "id": "pc_m6",
+        "venue_id": "pelagic_crown",
+        "name": "Leviathan Wing",
+        "reward": {
+          "gems": 5400,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.19
+      },
+      {
+        "id": "pc_m7",
+        "venue_id": "pelagic_crown",
+        "name": "Ocean Crown",
+        "reward": {
+          "gems": 6300,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.215
+      },
+      {
+        "id": "pc_m8",
+        "venue_id": "pelagic_crown",
+        "name": "Sovereign of the Deep (COMPLETE)",
+        "reward": {
+          "gems": 7200,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.24
+      }
+    ],
+    "chronos_spire": [
+      {
+        "id": "cs_m1",
+        "venue_id": "chronos_spire",
+        "name": "First Chime",
+        "reward": {
+          "gems": 1000,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.065
+      },
+      {
+        "id": "cs_m2",
+        "venue_id": "chronos_spire",
+        "name": "Pendulum Hall",
+        "reward": {
+          "gems": 2000,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.09
+      },
+      {
+        "id": "cs_m3",
+        "venue_id": "chronos_spire",
+        "name": "Century Club",
+        "reward": {
+          "gems": 3000,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.115
+      },
+      {
+        "id": "cs_m4",
+        "venue_id": "chronos_spire",
+        "name": "Clockwork Reserve",
+        "reward": {
+          "gems": 4000,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.14
+      },
+      {
+        "id": "cs_m5",
+        "venue_id": "chronos_spire",
+        "name": "Age Gallery",
+        "reward": {
+          "gems": 5000,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.165
+      },
+      {
+        "id": "cs_m6",
+        "venue_id": "chronos_spire",
+        "name": "Millennium Bell",
+        "reward": {
+          "gems": 6000,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.19
+      },
+      {
+        "id": "cs_m7",
+        "venue_id": "chronos_spire",
+        "name": "Chronos Crown",
+        "reward": {
+          "gems": 7000,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.215
+      },
+      {
+        "id": "cs_m8",
+        "venue_id": "chronos_spire",
+        "name": "Master of Ages (COMPLETE)",
+        "reward": {
+          "gems": 8000,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.24
+      }
+    ],
+    "empyrean_palace": [
+      {
+        "id": "ep_m1",
+        "venue_id": "empyrean_palace",
+        "name": "Palace Doors",
+        "reward": {
+          "gems": 1100,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.065
+      },
+      {
+        "id": "ep_m2",
+        "venue_id": "empyrean_palace",
+        "name": "Royal Salon",
+        "reward": {
+          "gems": 2200,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.09
+      },
+      {
+        "id": "ep_m3",
+        "venue_id": "empyrean_palace",
+        "name": "Crown Treasury",
+        "reward": {
+          "gems": 3300,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.115
+      },
+      {
+        "id": "ep_m4",
+        "venue_id": "empyrean_palace",
+        "name": "State Procession",
+        "reward": {
+          "gems": 4400,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.14
+      },
+      {
+        "id": "ep_m5",
+        "venue_id": "empyrean_palace",
+        "name": "Celestial Court",
+        "reward": {
+          "gems": 5500,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.165
+      },
+      {
+        "id": "ep_m6",
+        "venue_id": "empyrean_palace",
+        "name": "Empyrean Gala",
+        "reward": {
+          "gems": 6600,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.19
+      },
+      {
+        "id": "ep_m7",
+        "venue_id": "empyrean_palace",
+        "name": "Cloud Throne",
+        "reward": {
+          "gems": 7700,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.215
+      },
+      {
+        "id": "ep_m8",
+        "venue_id": "empyrean_palace",
+        "name": "Palace Eternal (COMPLETE)",
+        "reward": {
+          "gems": 8800,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.24
+      }
+    ],
+    "infinite_museum": [
+      {
+        "id": "im_m1",
+        "venue_id": "infinite_museum",
+        "name": "Open the Gate",
+        "reward": {
+          "gems": 1200,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.065
+      },
+      {
+        "id": "im_m2",
+        "venue_id": "infinite_museum",
+        "name": "Realm One",
+        "reward": {
+          "gems": 2400,
+          "box": "field_case"
+        },
+        "global_income_mult": 1.09
+      },
+      {
+        "id": "im_m3",
+        "venue_id": "infinite_museum",
+        "name": "Eternity Lounge",
+        "reward": {
+          "gems": 3600,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.115
+      },
+      {
+        "id": "im_m4",
+        "venue_id": "infinite_museum",
+        "name": "Singularity Vault",
+        "reward": {
+          "gems": 4800,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.14
+      },
+      {
+        "id": "im_m5",
+        "venue_id": "infinite_museum",
+        "name": "Mirror Worlds",
+        "reward": {
+          "gems": 6000,
+          "box": "specialist_case"
+        },
+        "global_income_mult": 1.165
+      },
+      {
+        "id": "im_m6",
+        "venue_id": "infinite_museum",
+        "name": "Infinite Rotunda",
+        "reward": {
+          "gems": 7200,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.19
+      },
+      {
+        "id": "im_m7",
+        "venue_id": "infinite_museum",
+        "name": "All Ages United",
+        "reward": {
+          "gems": 8400,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.215
+      },
+      {
+        "id": "im_m8",
+        "venue_id": "infinite_museum",
+        "name": "The Endless Exhibition (COMPLETE)",
+        "reward": {
+          "gems": 9600,
+          "box": "executive_case"
+        },
+        "global_income_mult": 1.24
       }
     ]
   }

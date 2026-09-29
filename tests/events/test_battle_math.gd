@@ -65,10 +65,10 @@ func _test_manager_attack() -> void:
 		"attack level1/rank1 = battle_power")
 	check(is_equal_approx(BattleMath.manager_attack(def, {"level": 5, "rank": 1}), bp * 1.48),
 		"attack level5 = battle_power * 1.48")
-	check(is_equal_approx(BattleMath.manager_attack(def, {"level": 1, "rank": 2}), bp * 1.5),
-		"attack rank2 = battle_power * 1.5")
-	check(is_equal_approx(BattleMath.manager_attack(def, {"level": 5, "rank": 4}), bp * 1.48 * 3.5),
-		"attack level5/rank4 = battle_power * 1.48 * 3.5")
+	check(is_equal_approx(BattleMath.manager_attack(def, {"level": 1, "rank": 2}), bp * 1.3),
+		"attack rank2 uses the ten-rank ladder")
+	check(is_equal_approx(BattleMath.manager_attack(def, {"level": 5, "rank": 4}), bp * 1.48 * 2.2),
+		"attack level5/rank4 uses Audit Efficiency")
 	# Tolerant of junk state.
 	check(BattleMath.manager_attack(def, {}) > 0.0, "attack tolerates empty state")
 

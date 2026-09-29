@@ -1,37 +1,20 @@
 extends Control
-## QuestsBar — the venue strip: rating chip + segmented venue-progress bar on one
-## 48dp row, then the three objective chips.
-##
-## This used to be three bands (rating sentence in the HUD, "Venue Progress"
-## title + 8 star pips + fat bar, then 84px chips). The rework, IBT-style:
-##
-##   · The milestone pips ARE the bar. A thin 8-segment channel where each
-##     segment is one milestone — gold once earned, green while filling — says
-##     everything the separate pip row said, in a strip 12px tall with no title.
-##   · Rating collapsed from a prose sentence to a chip (stars + value + income
-##     multiplier). The full breakdown already lives in the decor screen, which
-##     is where the chip taps through to, so the HUD only needs the state.
-##   · Objective chips lost 20px of padding they were not using.
-##
-## The chips are real Buttons: each presses, routes to whatever screen or room
-## can advance it, and shows an icon tile, 15px copy (13px is under the mobile
-## legibility floor) and a filled channel carrying the fraction.
-
+## Museum identity, progress and one legible objective with manual browsing.
 const QuestSystem = preload("res://scripts/meta/quest_system.gd")
 const MilestoneSystem = preload("res://scripts/meta/milestone_system.gd")
+const PrestigeSystem = preload("res://scripts/meta/prestige_system.gd")
 const UI = preload("res://scripts/ui/ui_kit.gd")
+const Chrome = preload("res://scripts/ui/museum_chrome.gd")
 const Popups = preload("res://scripts/ui/popup_manager.gd")
 
-# Palette aliases (ui_kit is the single source — SPEC §2).
-const BRASS := UI.BRASS
-const SAGE := UI.SAGE
+# Shared museum-shell colors.
+const BRASS := Chrome.BRASS
+const SAGE := Chrome.TEAL
 
 const MILESTONE_COUNT := 8
 const CHIP_COUNT := 3
-## 84 -> 68. Exactly what the chip draws: two lines of 15px copy beside a 30px
-## icon tile, a 14px channel, 4px of pad. The other 16px was air, and air at the
-## top of the screen is museum the player never gets to see.
-const CHIP_HEIGHT := 68
+## Full-width objective copy, a slim progress line and its count.
+const CHIP_HEIGHT := 64
 const HEAD_HEIGHT := 48   # one 48dp row carrying both the rating chip and the bar
 
 const PATH_MANAGERS := "res://scenes/managers/managers_screen.tscn"
@@ -41,6 +24,7 @@ const PATH_DECOR := "res://scenes/meta/decor_screen.tscn"
 ## upgrade objective points at the room it belongs to without reading its label.
 const TYPE_ICONS := {
 	"upgrade_count": "arrow_up",
+	"item_level": "arrow_up",
 	"earn_total": "cash",
 	"serve_total": "home",
 	"buy_decor": "gems",
@@ -58,11 +42,10 @@ const TYPE_TINTS := {
 const PRECOLORED_ICONS := ["cash", "gems"]
 
 
-## Venue progress drawn as MILESTONE_COUNT segments instead of a solid bar with a
-## separate row of star pips above it. One widget, one row, same two facts:
-## how far along the venue is, and how many milestones are banked.
+## Overall readiness includes milestone work, core operations and furnishing.
+## Segments remain a compact visual treatment; milestone rewards live in Goals.
 class SegBar extends Control:
-	const K = preload("res://scripts/ui/ui_kit.gd")
+	const K = preload("res://scripts/ui/museum_chrome.gd")
 	const GAP := 4.0
 
 	var segments: int = 8
@@ -74,7 +57,7 @@ class SegBar extends Control:
 	# exactly the churn _set_skin was written to avoid.
 	var _trough: StyleBoxFlat = _box(Color(1, 1, 1, 0.14), Color(0, 0, 0, 0.35))
 	var _gold: StyleBoxFlat = _box(K.BRASS)
-	var _green: StyleBoxFlat = _box(K.SAGE)
+	var _green: StyleBoxFlat = _box(K.TEAL)
 
 	static func _box(fill: Color, rim: Color = Color(0, 0, 0, 0)) -> StyleBoxFlat:
 		var sb := StyleBoxFlat.new()
@@ -113,6 +96,11 @@ class SegBar extends Control:
 			draw_style_box(box, Rect2(x + 1.0, 1.0, maxf((w - 2.0) * f, 3.0), size.y - 2.0))
 
 
+var _cycle_btn: Button
+var _shown_index := 0
+var _shown_qid := ""
+var _shown_venue := ""
+var _venue_label: Label
 var _seg: SegBar
 var _pct_label: Label
 var _chips: Array = []  # Array of {btn, tile, icon, desc, bar, frac, quest_id, skin}
@@ -132,8 +120,8 @@ func _ready() -> void:
 func _build_ui() -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_right", 14)
 	margin.add_theme_constant_override("margin_top", 4)
 	margin.add_theme_constant_override("margin_bottom", 6)
 	add_child(margin)
@@ -156,71 +144,50 @@ func _build_ui() -> void:
 	vbox.add_child(chip_row)
 	for i in range(CHIP_COUNT):
 		chip_row.add_child(_build_chip(i))
+	_cycle_btn=Button.new();_cycle_btn.custom_minimum_size=Vector2(76,CHIP_HEIGHT)
+	_cycle_btn.add_theme_font_override("font",UI.font())
+	_cycle_btn.add_theme_font_size_override("font_size",13)
+	Chrome.button(_cycle_btn)
+	_cycle_btn.tooltip_text="Show the next objective"
+	_cycle_btn.pressed.connect(_cycle_objective)
+	chip_row.add_child(_cycle_btn)
 
 ## Rating as a chip: five stars, the score, and the income multiplier it is
 ## worth. The sentence that used to sit here ("The halls look bare — 0 of 30
 ## decor points") is the decor screen's job; the HUD needs the state and a way in.
 func _build_rating_chip() -> Button:
-	_rating_btn = Button.new()
-	_rating_btn.custom_minimum_size = Vector2(202, HEAD_HEIGHT)
-	_glass_button_skin(_rating_btn, 16)
-	_rating_btn.pressed.connect(_on_rating_pressed)
-
-	var row := HBoxContainer.new()
-	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = 11
-	row.offset_right = -11
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 4)
-	_rating_btn.add_child(row)
-
+	_rating_btn=Button.new();_rating_btn.custom_minimum_size=Vector2(156,HEAD_HEIGHT)
+	_glass_button_skin(_rating_btn,12);_rating_btn.pressed.connect(_on_rating_pressed)
+	_rating_btn.tooltip_text="Visitor rating and its income multiplier · Decor"
+	var col:=VBoxContainer.new();col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	col.offset_left=10;col.offset_right=-10;col.offset_top=7;col.offset_bottom=-6
+	col.add_theme_constant_override("separation",3);_rating_btn.add_child(col)
+	var stars:=HBoxContainer.new();stars.add_theme_constant_override("separation",3);col.add_child(stars)
 	_rating_stars.clear()
-	for i in range(5):
-		var s: TextureRect = UI.make_icon("star", 15, BRASS)
-		_rating_stars.append(s)
-		row.add_child(s)
-
-	_rating_value = UI.make_display_label("0.0", UI.TYPE_LABEL, Color.WHITE)
-	_rating_value.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_rating_value.custom_minimum_size = Vector2(30, 0)
-	row.add_child(_rating_value)
-
-	_rating_mult = UI.make_display_label("x1.00", UI.TYPE_LABEL, SAGE)
-	_rating_mult.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_rating_mult.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_rating_mult.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	row.add_child(_rating_mult)
-
-	_ignore_mouse(row)
+	for i in 5:
+		var star:=UI.make_icon("star",12,BRASS);_rating_stars.append(star);stars.add_child(star)
+	var row:=HBoxContainer.new();col.add_child(row)
+	_rating_value=UI.make_display_label("0.0",15,Chrome.INK);row.add_child(_rating_value)
+	_rating_mult=UI.make_display_label("x1.00 income",12,Chrome.TEAL)
+	_rating_mult.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	_rating_mult.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT;row.add_child(_rating_mult)
+	_ignore_mouse(col)
 	return _rating_btn
 
 func _build_progress_pill() -> PanelContainer:
-	var pill := PanelContainer.new()
-	pill.add_theme_stylebox_override("panel", _pill_box(16))
-	pill.custom_minimum_size = Vector2(0, HEAD_HEIGHT)
-	pill.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	pill.add_child(row)
-
-	row.add_child(UI.make_icon("trophy", 20, BRASS))
-
-	_seg = SegBar.new()
-	_seg.segments = MILESTONE_COUNT
-	_seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_seg.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(_seg)
-
-	_pct_label = UI.make_display_label("0%", UI.TYPE_LABEL, BRASS)
-	_pct_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_pct_label.custom_minimum_size = Vector2(44, 0)
-	_pct_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	row.add_child(_pct_label)
+	var pill:=PanelContainer.new();pill.add_theme_stylebox_override("panel",_pill_box(12))
+	pill.custom_minimum_size=Vector2(0,HEAD_HEIGHT);pill.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	var col:=VBoxContainer.new();col.add_theme_constant_override("separation",5);pill.add_child(col)
+	var title_row:=HBoxContainer.new();col.add_child(title_row)
+	_venue_label=UI.make_display_label("",14,Chrome.INK)
+	_venue_label.size_flags_horizontal=Control.SIZE_EXPAND_FILL;_venue_label.clip_text=true
+	title_row.add_child(_venue_label)
+	_pct_label=UI.make_display_label("0%",12,BRASS);title_row.add_child(_pct_label)
+	_seg=SegBar.new();_seg.segments=MILESTONE_COUNT
+	_seg.custom_minimum_size=Vector2(80,6);col.add_child(_seg)
 	return pill
 
-## One objective chip: a Button wearing a glass pill, with an icon tile, wrapped
-## copy and a fraction-carrying progress channel laid over it.
+## One objective card. Only the selected card is visible; Goals cycles manually.
 func _build_chip(index: int) -> Button:
 	var btn := Button.new()
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -262,7 +229,7 @@ func _build_chip(index: int) -> Button:
 	head.add_child(tile)
 
 	var desc := UI.make_label("", UI.TYPE_LABEL)
-	desc.add_theme_color_override("font_color", Color.WHITE)
+	desc.add_theme_color_override("font_color", Chrome.INK)
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# Two lines is what the chip is tall enough to hold. The content is an overlay
 	# on a Button, which reports no minimum size for it, so a third line would
@@ -274,24 +241,24 @@ func _build_chip(index: int) -> Button:
 	desc.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	head.add_child(desc)
 
+	var footer:=HBoxContainer.new();footer.add_theme_constant_override("separation",10)
+	col.add_child(footer)
 	var prog := ProgressBar.new()
 	prog.min_value = 0.0
 	prog.max_value = 1.0
 	prog.step = 0.001
 	prog.show_percentage = false
-	prog.custom_minimum_size = Vector2(0, 14)
-	prog.add_theme_stylebox_override("background", UI.make_channel())
-	prog.add_theme_stylebox_override("fill", UI.make_bar_fill("blue"))
-	col.add_child(prog)
+	prog.custom_minimum_size = Vector2(0, 4)
+	prog.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	prog.size_flags_vertical=Control.SIZE_SHRINK_CENTER
+	prog.add_theme_stylebox_override("background", Chrome.channel(Chrome.BG))
+	prog.add_theme_stylebox_override("fill", Chrome.channel(Chrome.TEAL))
+	footer.add_child(prog)
 
-	# The fraction rides ON the channel: at three chips across a 720 canvas there
-	# is no width to spare for a column beside it.
-	var frac := UI.make_display_label("", UI.TYPE_CAPTION, Color.WHITE)
-	frac.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	frac.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	frac.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	UI.add_text_halo(frac, Color(0, 0, 0, 0.6), 3)
-	prog.add_child(frac)
+	var frac:=UI.make_display_label("",12,Chrome.DIM)
+	frac.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
+	frac.vertical_alignment=VERTICAL_ALIGNMENT_CENTER
+	footer.add_child(frac)
 
 	_ignore_mouse(pad)
 	_chips.append({
@@ -303,7 +270,7 @@ func _build_chip(index: int) -> Button:
 # --- Skinning ------------------------------------------------------------------
 
 func _pill_box(radius: int) -> StyleBoxFlat:
-	var sb := UI.make_glass(radius)
+	var sb := Chrome.panel(radius)
 	sb.content_margin_left = 11
 	sb.content_margin_right = 11
 	sb.content_margin_top = 4
@@ -311,19 +278,17 @@ func _pill_box(radius: int) -> StyleBoxFlat:
 	return sb
 
 func _glass_button_skin(b: Button, radius: int) -> void:
-	b.add_theme_stylebox_override("normal", UI.make_glass(radius))
-	b.add_theme_stylebox_override("hover", UI.make_glass(radius, 0.92, Color(1, 1, 1, 0.28)))
-	b.add_theme_stylebox_override("pressed", UI.make_glass(radius, 0.96, Color(1, 1, 1, 0.34)))
-	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	UI.add_press_squish(b)
+	Chrome.button(b,false,radius)
 
 func _tile_box(tint: Color, inverted: bool = false) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = tint.darkened(0.62) if inverted else tint
+	sb.bg_color = Chrome.BG
+	sb.border_color=tint.lerp(Chrome.BORDER,.5)
+	sb.set_border_width_all(1)
 	sb.set_corner_radius_all(9)
 	sb.set_content_margin_all(4)
 	if inverted:
-		sb.set_border_width_all(2)
+		sb.set_border_width_all(1)
 		sb.border_color = tint
 	return sb
 
@@ -344,6 +309,7 @@ func _connect_signals() -> void:
 	EventBus.prestige_performed.connect(func(_f, _t): refresh())
 	# Stat signals: evaluate quests for the current venue, then refresh.
 	EventBus.department_upgraded.connect(func(_v, _d, _t, _l): _evaluate_current())
+	EventBus.item_upgraded.connect(func(_v, _d, _i, _l): _evaluate_current())
 	EventBus.cash_banked.connect(func(_a): _evaluate_current())
 	EventBus.decor_purchased.connect(func(_v, _d): _evaluate_current())
 	EventBus.manager_obtained.connect(func(_m, _c): _evaluate_current())
@@ -356,12 +322,23 @@ func refresh() -> void:
 	if not is_inside_tree():
 		return
 	var vid: String = GameState.current_venue
+	if _shown_venue!=vid:
+		_shown_venue=vid;_shown_qid="";_shown_index=0
+	_venue_label.text=str(DataLoader.get_venue(vid).get("name",vid.capitalize()))
+	_seg.segments = maxi((DataLoader.milestones.get(vid, []) as Array).size(), 1)
 	QuestSystem.ensure_active_quests(vid)
 	var vs: Dictionary = GameState.venue_state(vid)
-	var progress: float = clampf(float(vs.get("progress", 0.0)), 0.0, 1.0)
-	var done_count: int = vs.get("milestones", []).size()
-	_seg.set_state(progress, done_count)
-	_pct_label.text = "%d%%" % int(round(progress * 100.0))
+	var chain_complete: bool = MilestoneSystem.all_complete(vid)
+	var progress: float = PrestigeSystem.readiness_progress(vid)
+	_seg.set_state(progress, 0)
+	if PrestigeSystem.gate_met(vid):
+		_pct_label.text = "READY"
+	elif chain_complete and not PrestigeSystem.operations_met(vid):
+		_pct_label.text = "BUILD %d%%" % int(floor(PrestigeSystem.operations_progress(vid) * 100.0))
+	elif chain_complete and not PrestigeSystem.decor_met(vid):
+		_pct_label.text = "DECOR %d%%" % int(floor(PrestigeSystem.decor_progress(vid) * 100.0))
+	else:
+		_pct_label.text = "%d%%" % mini(99, int(floor(progress * 100.0)))
 	_refresh_rating()
 	var active: Array = vs.get("active_quests", [])
 	for i in range(_chips.size()):
@@ -369,6 +346,29 @@ func refresh() -> void:
 			_paint_chip(_chips[i], vid, str(active[i]))
 		else:
 			_paint_done(_chips[i])
+	_show_objective()
+
+func _cycle_objective() -> void:
+	var count:=_objective_count()
+	_shown_index=(_shown_index+1)%count
+	_shown_qid=str(_chips[_shown_index].quest_id)
+	_show_objective()
+
+func _objective_count() -> int:
+	var count:=0
+	for chip in _chips:
+		if str(chip.quest_id)!="":count+=1
+	return maxi(count,1)
+
+func _show_objective() -> void:
+	var count:=_objective_count()
+	for i in _chips.size():
+		if _shown_qid!="" and str(_chips[i].quest_id)==_shown_qid:_shown_index=i
+	_shown_index=clampi(_shown_index,0,count-1)
+	_shown_qid=str(_chips[_shown_index].quest_id)
+	for i in _chips.size():_chips[i].btn.visible=i==_shown_index
+	_cycle_btn.visible=count>1
+	_cycle_btn.text="Goals\n%d / %d  ›"%[_shown_index+1,count]
 
 func _refresh_rating() -> void:
 	if _rating_value == null:
@@ -376,22 +376,22 @@ func _refresh_rating() -> void:
 	var sat: Dictionary = Economy.venue_satisfaction(GameState.current_venue)
 	var stars: float = float(sat["stars_rounded"])
 	for i in range(_rating_stars.size()):
-		var tint: Color = UI.LOCKED
+		var tint: Color = Chrome.BORDER
 		if stars >= float(i) + 1.0:
 			tint = BRASS
 		elif stars >= float(i) + 0.5:
-			tint = BRASS.lerp(UI.LOCKED, 0.5)  # half star, without a second texture
+			tint = BRASS.lerp(Chrome.BORDER, 0.5)
 		_rating_stars[i].modulate = tint
 	_rating_value.text = "%.1f" % float(sat["stars"])
 	var mult: float = float(sat["income_mult"])
-	_rating_mult.text = "x%.2f" % mult
-	_rating_mult.add_theme_color_override("font_color", SAGE if mult >= 1.0 else UI.DANGER)
+	_rating_mult.text = "x%.2f income" % mult
+	_rating_mult.add_theme_color_override("font_color", SAGE if roundf(mult*100.0)>=100.0 else Chrome.DANGER)
 
 func _paint_chip(chip: Dictionary, vid: String, qid: String) -> void:
 	var qdef: Dictionary = DataLoader.quests[qid]
 	chip["quest_id"] = qid
 	(chip["btn"] as Button).visible = true
-	(chip["desc"] as Label).text = str(qdef.get("desc", qid))
+	(chip["desc"] as Label).text = _venue_quest_text(qdef)
 	var qtype: String = str(qdef.get("type", ""))
 	var cur: BigNumber = QuestSystem.current_value(vid, qdef)
 	var tgt: BigNumber = QuestSystem.target_value(qdef)
@@ -407,9 +407,10 @@ func _paint_chip(chip: Dictionary, vid: String, qid: String) -> void:
 
 func _paint_done(chip: Dictionary) -> void:
 	chip["quest_id"] = ""
-	(chip["desc"] as Label).text = "All objectives cleared"
-	_set_skin(chip, "check", SAGE, "green")
-	(chip["bar"] as ProgressBar).value = 1.0
+	(chip["desc"] as Label).text = "Museum ready — view completion" if PrestigeSystem.gate_met(GameState.current_venue) else PrestigeSystem.block_reason()
+	var ready:=PrestigeSystem.gate_met(GameState.current_venue)
+	_set_skin(chip, "check" if ready else "star", SAGE, "green")
+	(chip["bar"] as ProgressBar).value = PrestigeSystem.readiness_progress(GameState.current_venue)
 	(chip["frac"] as Label).text = ""
 
 ## Icon, tile and fill colour, applied only when they actually change. refresh()
@@ -423,10 +424,10 @@ func _set_skin(chip: Dictionary, icon_name: String, tint: Color, fill: String) -
 	(chip["icon"] as TextureRect).texture = UI.icon_texture(icon_name, 20)
 	(chip["tile"] as PanelContainer).add_theme_stylebox_override("panel",
 		_tile_box(tint, icon_name in PRECOLORED_ICONS))
-	(chip["bar"] as ProgressBar).add_theme_stylebox_override("fill", UI.make_bar_fill(fill))
+	(chip["bar"] as ProgressBar).add_theme_stylebox_override("fill", Chrome.channel(Chrome.BRASS if fill=="green" else Chrome.TEAL))
 
 func _tile_tint(qdef: Dictionary, qtype: String) -> Color:
-	if qtype == "upgrade_count":
+	if qtype in ["upgrade_count", "item_level"]:
 		return UI.DEPT_COLORS.get(str(qdef.get("dept", "")), UI.SLATE)
 	return TYPE_TINTS.get(qtype, UI.SLATE)
 
@@ -459,32 +460,60 @@ func _on_chip_pressed(index: int) -> void:
 		return
 	var qid: String = str(_chips[index].get("quest_id", ""))
 	if qid == "" or not DataLoader.quests.has(qid):
-		EventBus.toast_requested.emit("Every objective here is done — prestige when you are ready")
+		if PrestigeSystem.operations_met(GameState.current_venue) and not PrestigeSystem.decor_met(GameState.current_venue):
+			Popups.open(PATH_DECOR)
+		else:
+			Popups.open("res://scenes/meta/prestige_screen.tscn")
 		return
 	var qdef: Dictionary = DataLoader.quests[qid]
 	match str(qdef.get("type", "")):
 		"upgrade_count":
-			_open_dept(str(qdef.get("dept", "")))
+			_open_dept(str(qdef.get("dept", "")),str(qdef.get("track","")))
+		"item_level":
+			_open_item(str(qdef.get("dept", "")), int(qdef.get("item", 0)))
 		"own_managers":
 			if GameState.feature_unlocked("managers"):
 				Popups.open(PATH_MANAGERS)
 			else:
-				EventBus.toast_requested.emit(str(qdef.get("desc", "")))
+				EventBus.toast_requested.emit(_venue_quest_text(qdef))
 		"buy_decor":
 			if GameState.feature_unlocked("decor"):
 				Popups.open(PATH_DECOR)
 			else:
-				EventBus.toast_requested.emit(str(qdef.get("desc", "")))
+				EventBus.toast_requested.emit(_venue_quest_text(qdef))
 		_:
-			EventBus.toast_requested.emit("%s — keep the museum running" % str(qdef.get("desc", "")))
+			EventBus.toast_requested.emit("%s — keep the museum running" %
+				_venue_quest_text(qdef))
+
+func _venue_quest_text(qdef: Dictionary) -> String:
+	var text := str(qdef.get("desc", ""))
+	var dept := str(qdef.get("dept", ""))
+	if dept != "":
+		var authored := DataLoader.venue_dept_name(GameState.current_venue, dept)
+		var generic := str(DataLoader.dept_def(dept).get("name", dept.capitalize()))
+		text = text.replace(generic, authored)
+		# Older quest copy used the shorter economic-role name.
+		if dept == "promotions":
+			text = text.replace("Promotions", authored)
+	return text
 
 ## Ask the floor to select the room, which is what a tap on that room does. The
 ## floor's dept_selected is the public, already-wired route: VenueView owns the
 ## upgrade sheet and this widget must not reach into it.
-func _open_dept(dept_id: String) -> void:
-	var dept_name: String = str(DataLoader.dept_def(dept_id).get("name", dept_id.capitalize()))
+func _open_dept(dept_id: String,track: String="") -> void:
+	var dept_name: String = DataLoader.venue_dept_name(
+		GameState.current_venue, dept_id)
 	var floor_node: Node = get_tree().root.find_child("VenueFloor", true, false)
 	if floor_node != null and floor_node.has_signal("dept_selected"):
 		floor_node.dept_selected.emit(dept_id)
+		var view: Node=get_tree().root.find_child("VenueView",true,false)
+		if view!=null and view.has_method("focus_upgrade_track"):view.focus_upgrade_track(dept_id,track)
 	else:
 		EventBus.toast_requested.emit("Tap %s on the floor to upgrade it" % dept_name)
+
+func _open_item(dept_id: String, index: int) -> void:
+	var floor_node: Node = get_tree().root.find_child("VenueFloor", true, false)
+	if floor_node != null and floor_node.has_signal("item_selected"):
+		floor_node.item_selected.emit(dept_id, index)
+	else:
+		EventBus.toast_requested.emit("Tap station %d on the floor to upgrade it" % (index + 1))

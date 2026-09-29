@@ -1,0 +1,3618 @@
+{
+  "whispering_pines": {
+    "name": "Pine & Alder town",
+    "identity": "village",
+    "ground": "#8b9879",
+    "paving": "#b8ad96",
+    "brick": "#785b43",
+    "roads": [
+      [
+        -22,
+        -4.3,
+        58,
+        2.3
+      ],
+      [
+        -4.7,
+        -4.3,
+        2.3,
+        25.55
+      ]
+    ],
+    "buildings": [
+      {
+        "rect": [
+          -8.3,
+          -0.5,
+          2.5,
+          2.25
+        ],
+        "kind": "cottage",
+        "floors": 1,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -8.9,
+          3.0,
+          3.1,
+          2.6
+        ],
+        "kind": "shop",
+        "floors": 1,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -8.600000000000001,
+          7.4,
+          2.8,
+          2.4
+        ],
+        "kind": "lodge",
+        "floors": 1,
+        "face": "east",
+        "tone": 2
+      },
+      {
+        "rect": [
+          -8.3,
+          11.1,
+          2.5,
+          2.25
+        ],
+        "kind": "cottage",
+        "floors": 1,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          0,
+          -7.6499999999999995,
+          2.55,
+          2.3
+        ],
+        "kind": "shop",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.2,
+          -8.0,
+          3.15,
+          2.65
+        ],
+        "kind": "lodge",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          7.1,
+          -7.6499999999999995,
+          2.8,
+          2.3
+        ],
+        "kind": "cottage",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          11.2,
+          -8.0,
+          2.55,
+          2.65
+        ],
+        "kind": "shop",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -10.2,
+          -15.100000000000001,
+          3.0,
+          2.15
+        ],
+        "kind": "cottage",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -1.5,
+          -15.100000000000001,
+          3.5,
+          2.15
+        ],
+        "kind": "shop",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -15.100000000000001,
+          3.0,
+          2.15
+        ],
+        "kind": "lodge",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.2,
+          -15.100000000000001,
+          3.5,
+          2.15
+        ],
+        "kind": "cottage",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.6,
+          -15.100000000000001,
+          3.0,
+          2.15
+        ],
+        "kind": "shop",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          22.1,
+          5.5,
+          2.6,
+          3.0
+        ],
+        "kind": "shop",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          23.1,
+          12.0,
+          3.1,
+          2.3
+        ],
+        "kind": "lodge",
+        "floors": 1,
+        "face": "south",
+        "tone": 2
+      }
+    ],
+    "north_axis": -4.3,
+    "west_axis": -4.7,
+    "network": "west",
+    "features": [
+      {
+        "kind": "grove",
+        "rect": [
+          17.5,
+          2.6,
+          3.4,
+          12.5
+        ]
+      }
+    ],
+    "gardens": [
+      [
+        -1.7,
+        -2.0,
+        4.2,
+        0.7
+      ],
+      [
+        7.2,
+        -2.0,
+        5.5,
+        0.7
+      ],
+      [
+        16.8,
+        2.0,
+        0.7,
+        6.0
+      ]
+    ],
+    "walkers": [
+      {
+        "a": [
+          -1.0,
+          -4.82
+        ],
+        "b": [
+          15.8,
+          -4.82
+        ],
+        "slot": 2
+      },
+      {
+        "a": [
+          -1.0,
+          -4.82
+        ],
+        "b": [
+          15.8,
+          -4.82
+        ],
+        "slot": 13
+      }
+    ],
+    "traffic": [
+      {
+        "a": [
+          -20,
+          -3.65
+        ],
+        "b": [
+          35,
+          -3.65
+        ],
+        "speed": 1.0,
+        "offset": 0.41,
+        "points": [
+          [
+            -20,
+            -3.65
+          ],
+          [
+            35,
+            -3.65
+          ]
+        ]
+      },
+      {
+        "a": [
+          35,
+          -2.65
+        ],
+        "b": [
+          -20,
+          -2.65
+        ],
+        "speed": 0.9,
+        "offset": 0.54,
+        "points": [
+          [
+            35,
+            -2.65
+          ],
+          [
+            -20,
+            -2.65
+          ]
+        ]
+      }
+    ]
+  },
+  "copper_kettle": {
+    "name": "Tidewater working quay",
+    "identity": "quay",
+    "ground": "#667f86",
+    "paving": "#b4b0a0",
+    "brick": "#8d5f4c",
+    "roads": [
+      [
+        -5.3,
+        -5.8,
+        41.3,
+        2.3
+      ],
+      [
+        -5.3,
+        -5.8,
+        2.3,
+        27.05
+      ]
+    ],
+    "buildings": [
+      {
+        "rect": [
+          -9.5,
+          0,
+          3.1,
+          2.25
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -9.2,
+          4.0,
+          2.8,
+          2.6
+        ],
+        "kind": "shop",
+        "floors": 2,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -8.9,
+          8.8,
+          2.5,
+          2.4
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 2
+      },
+      {
+        "rect": [
+          -9.5,
+          13.0,
+          3.1,
+          2.25
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -1,
+          -9.149999999999999,
+          3.15,
+          2.3
+        ],
+        "kind": "shop",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.5,
+          -9.5,
+          2.8,
+          2.65
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          8.6,
+          -9.149999999999999,
+          2.55,
+          2.3
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          13.0,
+          -9.5,
+          3.15,
+          2.65
+        ],
+        "kind": "shop",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -10.8,
+          -16.6,
+          3.0,
+          2.15
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -2.0999999999999996,
+          -16.6,
+          3.5,
+          2.15
+        ],
+        "kind": "shop",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -16.6,
+          3.0,
+          2.15
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.2,
+          -16.6,
+          3.5,
+          2.15
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.6,
+          -16.6,
+          3.0,
+          2.15
+        ],
+        "kind": "shop",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          22.135,
+          6.5,
+          2.6,
+          3.0
+        ],
+        "kind": "townhouse",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          23.135,
+          11.0,
+          3.1,
+          2.3
+        ],
+        "kind": "warehouse",
+        "floors": 1,
+        "face": "south",
+        "tone": 2
+      }
+    ],
+    "north_axis": -5.8,
+    "west_axis": -5.3,
+    "network": "west",
+    "features": [
+      {
+        "kind": "water",
+        "rect": [
+          17.5,
+          1.0,
+          3.4,
+          15.6
+        ]
+      }
+    ],
+    "gardens": [
+      [
+        -1.7,
+        -2.0,
+        4.2,
+        0.7
+      ],
+      [
+        7.2,
+        -2.0,
+        5.5,
+        0.7
+      ],
+      [
+        16.8,
+        2.0,
+        0.7,
+        6.0
+      ]
+    ],
+    "walkers": [
+      {
+        "a": [
+          -1.0,
+          -6.32
+        ],
+        "b": [
+          15.8,
+          -6.32
+        ],
+        "slot": 2
+      },
+      {
+        "a": [
+          -1.0,
+          -6.32
+        ],
+        "b": [
+          15.8,
+          -6.32
+        ],
+        "slot": 13
+      }
+    ],
+    "traffic": [
+      {
+        "a": [
+          -20,
+          -5.1499999999999995
+        ],
+        "b": [
+          35,
+          -5.1499999999999995
+        ],
+        "speed": 1.0,
+        "offset": 0.41,
+        "points": [
+          [
+            -28,
+            19.52
+          ],
+          [
+            -4.6499999999999995,
+            19.52
+          ],
+          [
+            -4.6499999999999995,
+            -5.1499999999999995
+          ],
+          [
+            35,
+            -5.1499999999999995
+          ]
+        ]
+      },
+      {
+        "a": [
+          35,
+          -4.15
+        ],
+        "b": [
+          -20,
+          -4.15
+        ],
+        "speed": 0.9,
+        "offset": 0.54,
+        "points": [
+          [
+            35,
+            -4.15
+          ],
+          [
+            -3.65,
+            -4.15
+          ],
+          [
+            -3.65,
+            20.62
+          ],
+          [
+            -28,
+            20.62
+          ]
+        ]
+      }
+    ]
+  },
+  "grand_river": {
+    "name": "Riverside book quarter",
+    "identity": "civic",
+    "ground": "#90918a",
+    "paving": "#c2b8a1",
+    "brick": "#895b50",
+    "roads": [
+      [
+        -22,
+        -4.9,
+        58,
+        2.3
+      ],
+      [
+        -5.1,
+        -18,
+        2.3,
+        39.25
+      ],
+      [
+        18.37,
+        -18,
+        2.3,
+        39.25
+      ],
+      [
+        -22,
+        -12.4,
+        58,
+        2.0
+      ]
+    ],
+    "buildings": [
+      {
+        "rect": [
+          -9.0,
+          -1,
+          2.8,
+          2.25
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -8.7,
+          2.5,
+          2.5,
+          2.6
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -9.299999999999999,
+          6.0,
+          3.1,
+          2.4
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "east",
+        "tone": 2
+      },
+      {
+        "rect": [
+          -9.0,
+          10.2,
+          2.8,
+          2.25
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -8.7,
+          14.0,
+          2.5,
+          2.6
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -1,
+          -8.25,
+          2.8,
+          2.3
+        ],
+        "kind": "arcade",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          2.4,
+          -8.6,
+          2.55,
+          2.65
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          6.2,
+          -8.25,
+          3.15,
+          2.3
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          10.0,
+          -8.6,
+          2.8,
+          2.65
+        ],
+        "kind": "arcade",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          13.6,
+          -8.25,
+          2.55,
+          2.3
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          -10.6,
+          -15.700000000000001,
+          3.0,
+          2.15
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -1.8999999999999995,
+          -15.700000000000001,
+          3.5,
+          2.15
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -15.700000000000001,
+          3.0,
+          2.15
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.2,
+          -15.700000000000001,
+          3.5,
+          2.15
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.6,
+          -15.700000000000001,
+          3.0,
+          2.15
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      }
+    ],
+    "north_axis": -4.9,
+    "west_axis": -5.1,
+    "network": "both",
+    "features": [
+      {
+        "kind": "reading_square",
+        "rect": [
+          22.5,
+          3,
+          7.5,
+          10
+        ]
+      }
+    ],
+    "gardens": [
+      [
+        -1.7,
+        -2.0,
+        4.2,
+        0.7
+      ],
+      [
+        7.2,
+        -2.0,
+        5.5,
+        0.7
+      ],
+      [
+        16.8,
+        2.0,
+        0.7,
+        6.0
+      ]
+    ],
+    "walkers": [
+      {
+        "a": [
+          -1.0,
+          -5.42
+        ],
+        "b": [
+          15.8,
+          -5.42
+        ],
+        "slot": 2
+      },
+      {
+        "a": [
+          -1.0,
+          -5.42
+        ],
+        "b": [
+          15.8,
+          -5.42
+        ],
+        "slot": 13
+      }
+    ],
+    "traffic": [
+      {
+        "a": [
+          -20,
+          -4.25
+        ],
+        "b": [
+          35,
+          -4.25
+        ],
+        "speed": 1.0,
+        "offset": 0.41,
+        "points": [
+          [
+            -20,
+            -4.25
+          ],
+          [
+            35,
+            -4.25
+          ]
+        ]
+      },
+      {
+        "a": [
+          35,
+          -3.2500000000000004
+        ],
+        "b": [
+          -20,
+          -3.2500000000000004
+        ],
+        "speed": 0.9,
+        "offset": 0.54,
+        "points": [
+          [
+            35,
+            -3.2500000000000004
+          ],
+          [
+            -20,
+            -3.2500000000000004
+          ]
+        ]
+      }
+    ]
+  },
+  "sunspire": {
+    "name": "Saffron market district",
+    "identity": "market",
+    "ground": "#b7a487",
+    "paving": "#d2b995",
+    "brick": "#b98a64",
+    "roads": [
+      [
+        -22,
+        -5.1,
+        58,
+        2.3
+      ],
+      [
+        -5.7,
+        -18,
+        2.3,
+        39.25
+      ],
+      [
+        -14,
+        9.4,
+        8.3,
+        1.8
+      ]
+    ],
+    "buildings": [
+      {
+        "rect": [
+          -9.3,
+          -1.5,
+          2.5,
+          2.25
+        ],
+        "kind": "courtyard",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -9.9,
+          2.2,
+          3.1,
+          2.6
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -9.600000000000001,
+          6.0,
+          2.8,
+          2.4
+        ],
+        "kind": "shop",
+        "floors": 2,
+        "face": "east",
+        "tone": 2
+      },
+      {
+        "rect": [
+          -9.3,
+          13.4,
+          2.5,
+          2.25
+        ],
+        "kind": "courtyard",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -1,
+          -8.45,
+          2.55,
+          2.3
+        ],
+        "kind": "arcade",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.3,
+          -8.799999999999999,
+          3.15,
+          2.65
+        ],
+        "kind": "shop",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          7.7,
+          -8.45,
+          2.8,
+          2.3
+        ],
+        "kind": "courtyard",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          12.0,
+          -8.799999999999999,
+          2.55,
+          2.65
+        ],
+        "kind": "arcade",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -11.2,
+          -15.9,
+          3.0,
+          2.15
+        ],
+        "kind": "courtyard",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -2.5,
+          -15.9,
+          3.5,
+          2.15
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -15.9,
+          3.0,
+          2.15
+        ],
+        "kind": "shop",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.2,
+          -15.9,
+          3.5,
+          2.15
+        ],
+        "kind": "courtyard",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.6,
+          -15.9,
+          3.0,
+          2.15
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          22.205000000000002,
+          5.5,
+          2.6,
+          3.0
+        ],
+        "kind": "arcade",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          23.205000000000002,
+          11.0,
+          3.1,
+          2.3
+        ],
+        "kind": "shop",
+        "floors": 1,
+        "face": "south",
+        "tone": 2
+      }
+    ],
+    "north_axis": -5.1,
+    "west_axis": -5.7,
+    "network": "west",
+    "features": [
+      {
+        "kind": "market",
+        "rect": [
+          17.5,
+          2,
+          3.4,
+          13
+        ]
+      }
+    ],
+    "gardens": [
+      [
+        -1.7,
+        -2.0,
+        4.2,
+        0.7
+      ],
+      [
+        7.2,
+        -2.0,
+        5.5,
+        0.7
+      ],
+      [
+        16.8,
+        2.0,
+        0.7,
+        6.0
+      ]
+    ],
+    "walkers": [
+      {
+        "a": [
+          -1.0,
+          -5.619999999999999
+        ],
+        "b": [
+          15.8,
+          -5.619999999999999
+        ],
+        "slot": 2
+      },
+      {
+        "a": [
+          -1.0,
+          -5.619999999999999
+        ],
+        "b": [
+          15.8,
+          -5.619999999999999
+        ],
+        "slot": 13
+      }
+    ],
+    "traffic": [
+      {
+        "a": [
+          -20,
+          -4.449999999999999
+        ],
+        "b": [
+          35,
+          -4.449999999999999
+        ],
+        "speed": 1.0,
+        "offset": 0.41,
+        "points": [
+          [
+            -20,
+            -4.449999999999999
+          ],
+          [
+            35,
+            -4.449999999999999
+          ]
+        ]
+      },
+      {
+        "a": [
+          35,
+          -3.4499999999999997
+        ],
+        "b": [
+          -20,
+          -3.4499999999999997
+        ],
+        "speed": 0.9,
+        "offset": 0.54,
+        "points": [
+          [
+            35,
+            -3.4499999999999997
+          ],
+          [
+            -20,
+            -3.4499999999999997
+          ]
+        ]
+      }
+    ]
+  },
+  "cloudrest": {
+    "name": "Highline mountain town",
+    "identity": "ridge",
+    "ground": "#87978e",
+    "paving": "#b8b4a7",
+    "brick": "#7c6c5c",
+    "roads": [
+      [
+        -22,
+        -6.0,
+        58,
+        2.3
+      ],
+      [
+        -6.0,
+        -11,
+        2.3,
+        32.25
+      ],
+      [
+        -12.0,
+        -11,
+        8.3,
+        2.1
+      ]
+    ],
+    "buildings": [
+      {
+        "rect": [
+          -10.2,
+          -1,
+          3.1,
+          2.25
+        ],
+        "kind": "lodge",
+        "floors": 1,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -9.899999999999999,
+          3.8,
+          2.8,
+          2.6
+        ],
+        "kind": "cottage",
+        "floors": 1,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -9.6,
+          9.3,
+          2.5,
+          2.4
+        ],
+        "kind": "shop",
+        "floors": 1,
+        "face": "east",
+        "tone": 2
+      },
+      {
+        "rect": [
+          -10.2,
+          14.0,
+          3.1,
+          2.25
+        ],
+        "kind": "lodge",
+        "floors": 1,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          0,
+          -9.35,
+          3.15,
+          2.3
+        ],
+        "kind": "cottage",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          4.7,
+          -9.7,
+          2.8,
+          2.65
+        ],
+        "kind": "shop",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.4,
+          -9.35,
+          2.55,
+          2.3
+        ],
+        "kind": "lodge",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          13.6,
+          -9.7,
+          3.15,
+          2.65
+        ],
+        "kind": "cottage",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -11.5,
+          -16.8,
+          3.0,
+          2.15
+        ],
+        "kind": "lodge",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -2.8,
+          -16.8,
+          3.5,
+          2.15
+        ],
+        "kind": "cottage",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -16.8,
+          3.0,
+          2.15
+        ],
+        "kind": "shop",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.2,
+          -16.8,
+          3.5,
+          2.15
+        ],
+        "kind": "lodge",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.6,
+          -16.8,
+          3.0,
+          2.15
+        ],
+        "kind": "cottage",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          22.240000000000002,
+          6.5,
+          2.6,
+          3.0
+        ],
+        "kind": "shop",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          23.240000000000002,
+          12.0,
+          3.1,
+          2.3
+        ],
+        "kind": "lodge",
+        "floors": 1,
+        "face": "south",
+        "tone": 2
+      }
+    ],
+    "north_axis": -6.0,
+    "west_axis": -6.0,
+    "network": "west",
+    "features": [
+      {
+        "kind": "grove",
+        "rect": [
+          17.5,
+          2.6,
+          3.4,
+          12.5
+        ]
+      }
+    ],
+    "gardens": [
+      [
+        -1.7,
+        -2.0,
+        4.2,
+        0.7
+      ],
+      [
+        7.2,
+        -2.0,
+        5.5,
+        0.7
+      ],
+      [
+        16.8,
+        2.0,
+        0.7,
+        6.0
+      ]
+    ],
+    "walkers": [
+      {
+        "a": [
+          -1.0,
+          -6.52
+        ],
+        "b": [
+          15.8,
+          -6.52
+        ],
+        "slot": 2
+      },
+      {
+        "a": [
+          -1.0,
+          -6.52
+        ],
+        "b": [
+          15.8,
+          -6.52
+        ],
+        "slot": 13
+      }
+    ],
+    "traffic": [
+      {
+        "a": [
+          -20,
+          -5.35
+        ],
+        "b": [
+          35,
+          -5.35
+        ],
+        "speed": 1.0,
+        "offset": 0.41,
+        "points": [
+          [
+            -20,
+            -5.35
+          ],
+          [
+            35,
+            -5.35
+          ]
+        ]
+      },
+      {
+        "a": [
+          35,
+          -4.35
+        ],
+        "b": [
+          -20,
+          -4.35
+        ],
+        "speed": 0.9,
+        "offset": 0.54,
+        "points": [
+          [
+            35,
+            -4.35
+          ],
+          [
+            -20,
+            -4.35
+          ]
+        ]
+      }
+    ]
+  },
+  "aurora_world": {
+    "name": "Aurora observatory district",
+    "identity": "night",
+    "ground": "#596b77",
+    "paving": "#91a6aa",
+    "brick": "#637d8b",
+    "roads": [
+      [
+        -22,
+        -4.7,
+        58,
+        2.3
+      ],
+      [
+        -4.5,
+        -18,
+        2.3,
+        39.25
+      ],
+      [
+        18.475,
+        -18,
+        2.3,
+        39.25
+      ]
+    ],
+    "buildings": [
+      {
+        "rect": [
+          -8.399999999999999,
+          -0.3,
+          2.8,
+          2.25
+        ],
+        "kind": "glass",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -8.1,
+          4.8,
+          2.5,
+          2.6
+        ],
+        "kind": "terrace",
+        "floors": 2,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -8.7,
+          10.8,
+          3.1,
+          2.4
+        ],
+        "kind": "observatory",
+        "floors": 2,
+        "face": "east",
+        "tone": 2
+      },
+      {
+        "rect": [
+          -1,
+          -8.05,
+          2.8,
+          2.3
+        ],
+        "kind": "terrace",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.6,
+          -8.4,
+          2.55,
+          2.65
+        ],
+        "kind": "observatory",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          8.8,
+          -8.05,
+          3.15,
+          2.3
+        ],
+        "kind": "glass",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          13.0,
+          -8.4,
+          2.8,
+          2.65
+        ],
+        "kind": "terrace",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -10.0,
+          -15.5,
+          3.0,
+          2.15
+        ],
+        "kind": "glass",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -1.2999999999999998,
+          -15.5,
+          3.5,
+          2.15
+        ],
+        "kind": "terrace",
+        "floors": 3,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -15.5,
+          3.0,
+          2.15
+        ],
+        "kind": "observatory",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.2,
+          -15.5,
+          3.5,
+          2.15
+        ],
+        "kind": "glass",
+        "floors": 3,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.6,
+          -15.5,
+          3.0,
+          2.15
+        ],
+        "kind": "terrace",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      }
+    ],
+    "north_axis": -4.7,
+    "west_axis": -4.5,
+    "network": "both",
+    "features": [
+      {
+        "kind": "solar_square",
+        "rect": [
+          22.5,
+          3,
+          7,
+          11
+        ]
+      }
+    ],
+    "gardens": [
+      [
+        -1.7,
+        -2.0,
+        4.2,
+        0.7
+      ],
+      [
+        7.2,
+        -2.0,
+        5.5,
+        0.7
+      ],
+      [
+        16.8,
+        2.0,
+        0.7,
+        6.0
+      ]
+    ],
+    "walkers": [
+      {
+        "a": [
+          -1.0,
+          -5.220000000000001
+        ],
+        "b": [
+          15.8,
+          -5.220000000000001
+        ],
+        "slot": 2
+      },
+      {
+        "a": [
+          -1.0,
+          -5.220000000000001
+        ],
+        "b": [
+          15.8,
+          -5.220000000000001
+        ],
+        "slot": 13
+      }
+    ],
+    "traffic": [
+      {
+        "a": [
+          -20,
+          -4.05
+        ],
+        "b": [
+          35,
+          -4.05
+        ],
+        "speed": 1.0,
+        "offset": 0.41,
+        "points": [
+          [
+            -20,
+            -4.05
+          ],
+          [
+            35,
+            -4.05
+          ]
+        ]
+      },
+      {
+        "a": [
+          35,
+          -3.0500000000000003
+        ],
+        "b": [
+          -20,
+          -3.0500000000000003
+        ],
+        "speed": 0.9,
+        "offset": 0.54,
+        "points": [
+          [
+            35,
+            -3.0500000000000003
+          ],
+          [
+            -20,
+            -3.0500000000000003
+          ]
+        ]
+      }
+    ]
+  },
+  "celestial_conservatory": {
+    "name": "Verdant garden neighborhood",
+    "identity": "garden",
+    "ground": "#7d987e",
+    "paving": "#b2b99f",
+    "brick": "#978977",
+    "roads": [
+      [
+        -22,
+        -4.8,
+        58,
+        2.3
+      ],
+      [
+        18.51,
+        -18,
+        2.3,
+        39.25
+      ]
+    ],
+    "buildings": [
+      {
+        "rect": [
+          -9.4,
+          -1,
+          2.5,
+          2.25
+        ],
+        "kind": "greenhouse",
+        "floors": 1,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -10.0,
+          4.5,
+          3.1,
+          2.6
+        ],
+        "kind": "cottage",
+        "floors": 1,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -9.7,
+          10.0,
+          2.8,
+          2.4
+        ],
+        "kind": "terrace",
+        "floors": 1,
+        "face": "east",
+        "tone": 2
+      },
+      {
+        "rect": [
+          0,
+          -8.149999999999999,
+          2.55,
+          2.3
+        ],
+        "kind": "cottage",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          4.0,
+          -8.5,
+          3.15,
+          2.65
+        ],
+        "kind": "terrace",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          8.8,
+          -8.149999999999999,
+          2.8,
+          2.3
+        ],
+        "kind": "greenhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          13.4,
+          -8.5,
+          2.55,
+          2.65
+        ],
+        "kind": "cottage",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -11.3,
+          -15.600000000000001,
+          3.0,
+          2.15
+        ],
+        "kind": "greenhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -2.5999999999999996,
+          -15.600000000000001,
+          3.5,
+          2.15
+        ],
+        "kind": "cottage",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -15.600000000000001,
+          3.0,
+          2.15
+        ],
+        "kind": "terrace",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.2,
+          -15.600000000000001,
+          3.5,
+          2.15
+        ],
+        "kind": "greenhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.6,
+          -15.600000000000001,
+          3.0,
+          2.15
+        ],
+        "kind": "cottage",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      }
+    ],
+    "north_axis": -4.8,
+    "west_axis": -5.8,
+    "network": "east",
+    "features": [
+      {
+        "kind": "garden",
+        "rect": [
+          22.5,
+          3,
+          7,
+          11
+        ]
+      }
+    ],
+    "gardens": [
+      [
+        -1.7,
+        -2.0,
+        4.2,
+        0.7
+      ],
+      [
+        7.2,
+        -2.0,
+        5.5,
+        0.7
+      ],
+      [
+        16.8,
+        2.0,
+        0.7,
+        6.0
+      ]
+    ],
+    "walkers": [
+      {
+        "a": [
+          -1.0,
+          -5.32
+        ],
+        "b": [
+          15.8,
+          -5.32
+        ],
+        "slot": 2
+      },
+      {
+        "a": [
+          -1.0,
+          -5.32
+        ],
+        "b": [
+          15.8,
+          -5.32
+        ],
+        "slot": 13
+      }
+    ],
+    "traffic": [
+      {
+        "a": [
+          -20,
+          -4.1499999999999995
+        ],
+        "b": [
+          35,
+          -4.1499999999999995
+        ],
+        "speed": 1.0,
+        "offset": 0.41,
+        "points": [
+          [
+            -20,
+            -4.1499999999999995
+          ],
+          [
+            35,
+            -4.1499999999999995
+          ]
+        ]
+      },
+      {
+        "a": [
+          35,
+          -3.15
+        ],
+        "b": [
+          -20,
+          -3.15
+        ],
+        "speed": 0.9,
+        "offset": 0.54,
+        "points": [
+          [
+            35,
+            -3.15
+          ],
+          [
+            -20,
+            -3.15
+          ]
+        ]
+      }
+    ]
+  },
+  "ironwood_citadel": {
+    "name": "Ironwood canal ward",
+    "identity": "canal",
+    "ground": "#6d7c73",
+    "paving": "#a7a396",
+    "brick": "#876b5b",
+    "roads": [
+      [
+        -22,
+        -6.3,
+        58,
+        2.3
+      ],
+      [
+        -5.0,
+        -6.3,
+        2.3,
+        27.55
+      ]
+    ],
+    "buildings": [
+      {
+        "rect": [
+          -9.2,
+          -1.2,
+          3.1,
+          2.25
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -8.899999999999999,
+          3.3,
+          2.8,
+          2.6
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -8.6,
+          7.5,
+          2.5,
+          2.4
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "east",
+        "tone": 2
+      },
+      {
+        "rect": [
+          -9.2,
+          12.0,
+          3.1,
+          2.25
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -1,
+          -9.649999999999999,
+          3.15,
+          2.3
+        ],
+        "kind": "townhouse",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -10.0,
+          2.8,
+          2.65
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          8.1,
+          -9.649999999999999,
+          2.55,
+          2.3
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          12.8,
+          -10.0,
+          3.15,
+          2.65
+        ],
+        "kind": "townhouse",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -10.5,
+          -17.1,
+          3.0,
+          2.15
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -1.7999999999999998,
+          -17.1,
+          3.5,
+          2.15
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -17.1,
+          3.0,
+          2.15
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.2,
+          -17.1,
+          3.5,
+          2.15
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.6,
+          -17.1,
+          3.0,
+          2.15
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          22.345000000000002,
+          6.5,
+          2.6,
+          3.0
+        ],
+        "kind": "civic",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          23.345000000000002,
+          11.0,
+          3.1,
+          2.3
+        ],
+        "kind": "warehouse",
+        "floors": 1,
+        "face": "south",
+        "tone": 2
+      }
+    ],
+    "north_axis": -6.3,
+    "west_axis": -5.0,
+    "network": "west",
+    "features": [
+      {
+        "kind": "water",
+        "rect": [
+          17.6,
+          -3,
+          1.8,
+          19.4
+        ]
+      }
+    ],
+    "gardens": [
+      [
+        -1.7,
+        -2.0,
+        4.2,
+        0.7
+      ],
+      [
+        7.2,
+        -2.0,
+        5.5,
+        0.7
+      ],
+      [
+        16.8,
+        2.0,
+        0.7,
+        6.0
+      ]
+    ],
+    "walkers": [
+      {
+        "a": [
+          -1.0,
+          -6.82
+        ],
+        "b": [
+          15.8,
+          -6.82
+        ],
+        "slot": 2
+      },
+      {
+        "a": [
+          -1.0,
+          -6.82
+        ],
+        "b": [
+          15.8,
+          -6.82
+        ],
+        "slot": 13
+      }
+    ],
+    "traffic": [
+      {
+        "a": [
+          -20,
+          -5.6499999999999995
+        ],
+        "b": [
+          35,
+          -5.6499999999999995
+        ],
+        "speed": 1.0,
+        "offset": 0.41,
+        "points": [
+          [
+            -20,
+            -5.6499999999999995
+          ],
+          [
+            35,
+            -5.6499999999999995
+          ]
+        ]
+      },
+      {
+        "a": [
+          35,
+          -4.65
+        ],
+        "b": [
+          -20,
+          -4.65
+        ],
+        "speed": 0.9,
+        "offset": 0.54,
+        "points": [
+          [
+            35,
+            -4.65
+          ],
+          [
+            -20,
+            -4.65
+          ]
+        ]
+      }
+    ]
+  },
+  "pelagic_crown": {
+    "name": "Pelagic marina district",
+    "identity": "marina",
+    "ground": "#658c9a",
+    "paving": "#bdc7bb",
+    "brick": "#a8a190",
+    "roads": [
+      [
+        -22,
+        -5.5,
+        58,
+        2.3
+      ],
+      [
+        18.580000000000002,
+        -5.5,
+        2.3,
+        26.75
+      ]
+    ],
+    "buildings": [
+      {
+        "rect": [
+          -10.399999999999999,
+          0,
+          2.8,
+          2.25
+        ],
+        "kind": "terrace",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -10.1,
+          5.2,
+          2.5,
+          2.6
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -10.7,
+          11.6,
+          3.1,
+          2.4
+        ],
+        "kind": "glass",
+        "floors": 2,
+        "face": "east",
+        "tone": 2
+      },
+      {
+        "rect": [
+          0,
+          -8.85,
+          2.8,
+          2.3
+        ],
+        "kind": "arcade",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          4.3,
+          -9.2,
+          2.55,
+          2.65
+        ],
+        "kind": "glass",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.5,
+          -8.85,
+          3.15,
+          2.3
+        ],
+        "kind": "terrace",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.2,
+          -9.2,
+          2.8,
+          2.65
+        ],
+        "kind": "arcade",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -12.0,
+          -16.3,
+          3.0,
+          2.15
+        ],
+        "kind": "terrace",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -3.3,
+          -16.3,
+          3.5,
+          2.15
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -16.3,
+          3.0,
+          2.15
+        ],
+        "kind": "glass",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.2,
+          -16.3,
+          3.5,
+          2.15
+        ],
+        "kind": "terrace",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.6,
+          -16.3,
+          3.0,
+          2.15
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      }
+    ],
+    "north_axis": -5.5,
+    "west_axis": -6.5,
+    "network": "east",
+    "features": [
+      {
+        "kind": "water",
+        "rect": [
+          22,
+          2,
+          8.2,
+          13
+        ]
+      }
+    ],
+    "gardens": [
+      [
+        -1.7,
+        -2.0,
+        4.2,
+        0.7
+      ],
+      [
+        7.2,
+        -2.0,
+        5.5,
+        0.7
+      ],
+      [
+        16.8,
+        2.0,
+        0.7,
+        6.0
+      ]
+    ],
+    "walkers": [
+      {
+        "a": [
+          -1.0,
+          -6.02
+        ],
+        "b": [
+          15.8,
+          -6.02
+        ],
+        "slot": 2
+      },
+      {
+        "a": [
+          -1.0,
+          -6.02
+        ],
+        "b": [
+          15.8,
+          -6.02
+        ],
+        "slot": 13
+      }
+    ],
+    "traffic": [
+      {
+        "a": [
+          -20,
+          -4.85
+        ],
+        "b": [
+          35,
+          -4.85
+        ],
+        "speed": 1.0,
+        "offset": 0.41,
+        "points": [
+          [
+            -20,
+            -4.85
+          ],
+          [
+            35,
+            -4.85
+          ]
+        ]
+      },
+      {
+        "a": [
+          35,
+          -3.85
+        ],
+        "b": [
+          -20,
+          -3.85
+        ],
+        "speed": 0.9,
+        "offset": 0.54,
+        "points": [
+          [
+            35,
+            -3.85
+          ],
+          [
+            -20,
+            -3.85
+          ]
+        ]
+      }
+    ]
+  },
+  "chronos_spire": {
+    "name": "Clockmakers old town",
+    "identity": "clock",
+    "ground": "#868783",
+    "paving": "#b5a994",
+    "brick": "#94745b",
+    "roads": [
+      [
+        -22,
+        -5.4,
+        58,
+        2.3
+      ],
+      [
+        -4.9,
+        -18,
+        2.3,
+        39.25
+      ],
+      [
+        -22,
+        -12.9,
+        58,
+        2.0
+      ]
+    ],
+    "buildings": [
+      {
+        "rect": [
+          -8.5,
+          -1,
+          2.5,
+          2.25
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -9.1,
+          2.6,
+          3.1,
+          2.6
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -8.8,
+          6.7,
+          2.8,
+          2.4
+        ],
+        "kind": "clock",
+        "floors": 2,
+        "face": "east",
+        "tone": 2
+      },
+      {
+        "rect": [
+          -8.5,
+          11.2,
+          2.5,
+          2.25
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -9.1,
+          14.8,
+          3.1,
+          2.6
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -1,
+          -8.75,
+          2.55,
+          2.3
+        ],
+        "kind": "warehouse",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          2.8,
+          -9.1,
+          3.15,
+          2.65
+        ],
+        "kind": "clock",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          6.9,
+          -8.75,
+          2.8,
+          2.3
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          11.0,
+          -9.1,
+          2.55,
+          2.65
+        ],
+        "kind": "warehouse",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          14.7,
+          -8.75,
+          3.15,
+          2.3
+        ],
+        "kind": "clock",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          -10.4,
+          -16.200000000000003,
+          3.0,
+          2.15
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -1.7000000000000002,
+          -16.200000000000003,
+          3.5,
+          2.15
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -16.200000000000003,
+          3.0,
+          2.15
+        ],
+        "kind": "clock",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.2,
+          -16.200000000000003,
+          3.5,
+          2.15
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.6,
+          -16.200000000000003,
+          3.0,
+          2.15
+        ],
+        "kind": "warehouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          22.415000000000003,
+          5.5,
+          2.6,
+          3.0
+        ],
+        "kind": "warehouse",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          23.415000000000003,
+          11.0,
+          3.1,
+          2.3
+        ],
+        "kind": "clock",
+        "floors": 1,
+        "face": "south",
+        "tone": 2
+      }
+    ],
+    "north_axis": -5.4,
+    "west_axis": -4.9,
+    "network": "west",
+    "features": [
+      {
+        "kind": "clock_square",
+        "rect": [
+          17.5,
+          2,
+          3.4,
+          13
+        ]
+      }
+    ],
+    "gardens": [
+      [
+        -1.7,
+        -2.0,
+        4.2,
+        0.7
+      ],
+      [
+        7.2,
+        -2.0,
+        5.5,
+        0.7
+      ],
+      [
+        16.8,
+        2.0,
+        0.7,
+        6.0
+      ]
+    ],
+    "walkers": [
+      {
+        "a": [
+          -1.0,
+          -5.92
+        ],
+        "b": [
+          15.8,
+          -5.92
+        ],
+        "slot": 2
+      },
+      {
+        "a": [
+          -1.0,
+          -5.92
+        ],
+        "b": [
+          15.8,
+          -5.92
+        ],
+        "slot": 13
+      }
+    ],
+    "traffic": [
+      {
+        "a": [
+          -20,
+          -4.75
+        ],
+        "b": [
+          35,
+          -4.75
+        ],
+        "speed": 1.0,
+        "offset": 0.41,
+        "points": [
+          [
+            -20,
+            -4.75
+          ],
+          [
+            35,
+            -4.75
+          ]
+        ]
+      },
+      {
+        "a": [
+          35,
+          -3.7500000000000004
+        ],
+        "b": [
+          -20,
+          -3.7500000000000004
+        ],
+        "speed": 0.9,
+        "offset": 0.54,
+        "points": [
+          [
+            35,
+            -3.7500000000000004
+          ],
+          [
+            -20,
+            -3.7500000000000004
+          ]
+        ]
+      }
+    ]
+  },
+  "empyrean_palace": {
+    "name": "Royal arts boulevard",
+    "identity": "royal",
+    "ground": "#879680",
+    "paving": "#c8bea6",
+    "brick": "#af9a80",
+    "roads": [
+      [
+        -22,
+        -5.2,
+        58,
+        2.3
+      ],
+      [
+        18.650000000000002,
+        -5.2,
+        2.3,
+        26.45
+      ]
+    ],
+    "buildings": [
+      {
+        "rect": [
+          -10.4,
+          -1.2,
+          3.1,
+          2.25
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -10.100000000000001,
+          3.8,
+          2.8,
+          2.6
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -9.8,
+          9.0,
+          2.5,
+          2.4
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "east",
+        "tone": 2
+      },
+      {
+        "rect": [
+          -10.4,
+          13.8,
+          3.1,
+          2.25
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          0,
+          -8.55,
+          3.15,
+          2.3
+        ],
+        "kind": "civic",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          4.8,
+          -8.9,
+          2.8,
+          2.65
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.5,
+          -8.55,
+          2.55,
+          2.3
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.0,
+          -8.9,
+          3.15,
+          2.65
+        ],
+        "kind": "civic",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -11.7,
+          -16.0,
+          3.0,
+          2.15
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -3.0,
+          -16.0,
+          3.5,
+          2.15
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -16.0,
+          3.0,
+          2.15
+        ],
+        "kind": "townhouse",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.2,
+          -16.0,
+          3.5,
+          2.15
+        ],
+        "kind": "arcade",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.6,
+          -16.0,
+          3.0,
+          2.15
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      }
+    ],
+    "north_axis": -5.2,
+    "west_axis": -6.2,
+    "network": "east",
+    "features": [
+      {
+        "kind": "parterre",
+        "rect": [
+          22.5,
+          2,
+          7,
+          14
+        ]
+      }
+    ],
+    "gardens": [
+      [
+        -1.7,
+        -2.0,
+        4.2,
+        0.7
+      ],
+      [
+        7.2,
+        -2.0,
+        5.5,
+        0.7
+      ],
+      [
+        16.8,
+        2.0,
+        0.7,
+        6.0
+      ]
+    ],
+    "walkers": [
+      {
+        "a": [
+          -1.0,
+          -5.720000000000001
+        ],
+        "b": [
+          15.8,
+          -5.720000000000001
+        ],
+        "slot": 2
+      },
+      {
+        "a": [
+          -1.0,
+          -5.720000000000001
+        ],
+        "b": [
+          15.8,
+          -5.720000000000001
+        ],
+        "slot": 13
+      }
+    ],
+    "traffic": [
+      {
+        "a": [
+          -20,
+          -4.55
+        ],
+        "b": [
+          35,
+          -4.55
+        ],
+        "speed": 1.0,
+        "offset": 0.41,
+        "points": [
+          [
+            -20,
+            -4.55
+          ],
+          [
+            35,
+            -4.55
+          ]
+        ]
+      },
+      {
+        "a": [
+          35,
+          -3.5500000000000003
+        ],
+        "b": [
+          -20,
+          -3.5500000000000003
+        ],
+        "speed": 0.9,
+        "offset": 0.54,
+        "points": [
+          [
+            35,
+            -3.5500000000000003
+          ],
+          [
+            -20,
+            -3.5500000000000003
+          ]
+        ]
+      }
+    ]
+  },
+  "infinite_museum": {
+    "name": "Metropolitan culture district",
+    "identity": "metro",
+    "ground": "#7e9394",
+    "paving": "#b2bdba",
+    "brick": "#7d939b",
+    "roads": [
+      [
+        -22,
+        -6.1,
+        58,
+        2.3
+      ],
+      [
+        -4.6,
+        -18,
+        2.3,
+        39.25
+      ],
+      [
+        18.685000000000002,
+        -18,
+        2.3,
+        39.25
+      ],
+      [
+        -22,
+        -13.6,
+        58,
+        2.0
+      ]
+    ],
+    "buildings": [
+      {
+        "rect": [
+          -8.5,
+          -1,
+          2.8,
+          2.25
+        ],
+        "kind": "glass",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -8.2,
+          4.0,
+          2.5,
+          2.6
+        ],
+        "kind": "terrace",
+        "floors": 2,
+        "face": "east",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -8.799999999999999,
+          9.5,
+          3.1,
+          2.4
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "east",
+        "tone": 2
+      },
+      {
+        "rect": [
+          -8.5,
+          14.0,
+          2.8,
+          2.25
+        ],
+        "kind": "glass",
+        "floors": 2,
+        "face": "east",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -1,
+          -9.45,
+          2.8,
+          2.3
+        ],
+        "kind": "terrace",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -9.799999999999999,
+          2.55,
+          2.65
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          8.8,
+          -9.45,
+          3.15,
+          2.3
+        ],
+        "kind": "glass",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          13.8,
+          -9.799999999999999,
+          2.8,
+          2.65
+        ],
+        "kind": "terrace",
+        "floors": 1,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          -10.1,
+          -16.9,
+          3.0,
+          2.15
+        ],
+        "kind": "glass",
+        "floors": 2,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          -1.3999999999999995,
+          -16.9,
+          3.5,
+          2.15
+        ],
+        "kind": "terrace",
+        "floors": 3,
+        "face": "south",
+        "tone": 1
+      },
+      {
+        "rect": [
+          3.8,
+          -16.9,
+          3.0,
+          2.15
+        ],
+        "kind": "civic",
+        "floors": 2,
+        "face": "south",
+        "tone": 2
+      },
+      {
+        "rect": [
+          9.2,
+          -16.9,
+          3.5,
+          2.15
+        ],
+        "kind": "glass",
+        "floors": 3,
+        "face": "south",
+        "tone": 0
+      },
+      {
+        "rect": [
+          14.6,
+          -16.9,
+          3.0,
+          2.15
+        ],
+        "kind": "terrace",
+        "floors": 2,
+        "face": "south",
+        "tone": 1
+      }
+    ],
+    "north_axis": -6.1,
+    "west_axis": -4.6,
+    "network": "both",
+    "features": [
+      {
+        "kind": "sculpture_square",
+        "rect": [
+          22.5,
+          2.8,
+          7,
+          12
+        ]
+      }
+    ],
+    "gardens": [
+      [
+        -1.7,
+        -2.0,
+        4.2,
+        0.7
+      ],
+      [
+        7.2,
+        -2.0,
+        5.5,
+        0.7
+      ],
+      [
+        16.8,
+        2.0,
+        0.7,
+        6.0
+      ]
+    ],
+    "walkers": [
+      {
+        "a": [
+          -1.0,
+          -6.619999999999999
+        ],
+        "b": [
+          15.8,
+          -6.619999999999999
+        ],
+        "slot": 2
+      },
+      {
+        "a": [
+          -1.0,
+          -6.619999999999999
+        ],
+        "b": [
+          15.8,
+          -6.619999999999999
+        ],
+        "slot": 13
+      }
+    ],
+    "traffic": [
+      {
+        "a": [
+          -20,
+          -5.449999999999999
+        ],
+        "b": [
+          35,
+          -5.449999999999999
+        ],
+        "speed": 1.0,
+        "offset": 0.41,
+        "points": [
+          [
+            -20,
+            -5.449999999999999
+          ],
+          [
+            35,
+            -5.449999999999999
+          ]
+        ]
+      },
+      {
+        "a": [
+          35,
+          -4.449999999999999
+        ],
+        "b": [
+          -20,
+          -4.449999999999999
+        ],
+        "speed": 0.9,
+        "offset": 0.54,
+        "points": [
+          [
+            35,
+            -4.449999999999999
+          ],
+          [
+            -20,
+            -4.449999999999999
+          ]
+        ]
+      }
+    ]
+  }
+}

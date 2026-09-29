@@ -77,6 +77,18 @@ func get_event(id: String) -> Dictionary:
 func dept_def(dept_id: String) -> Dictionary:
 	return core.get("departments", {}).get(dept_id, {})
 
+## Player-facing department name for this venue.  The simulation deliberately
+## keeps stable ids such as "promotions", but authored venues are free to turn
+## that same economic role into a café, concierge desk, or outreach booth.
+func venue_dept_name(venue_id: String, dept_id: String) -> String:
+	var theme: Variant = get_venue(venue_id).get("theme", {})
+	if theme is Dictionary:
+		for room in (theme as Dictionary).get("rooms", []):
+			if room is Dictionary and str((room as Dictionary).get("dept", "")) == dept_id:
+				return str((room as Dictionary).get("name",
+					dept_def(dept_id).get("name", dept_id.capitalize()))).capitalize()
+	return str(dept_def(dept_id).get("name", dept_id.capitalize()))
+
 ## cost = base_cost * growth^level * venue_cost_mult * 10^venue_cost_exp
 ## venue_cost_exp defaulted so the SPEC §3 4-arg call form stays valid.
 func upgrade_cost(dept_id: String, track: String, level: int, venue_cost_mult: float, venue_cost_exp: int = 0) -> BigNumber:

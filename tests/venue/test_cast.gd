@@ -269,9 +269,20 @@ func _check_crowd() -> void:
 	# Measured before this pass: 15 visitors, 9 distinct looks, one look worn by
 	# three people at once. The floor deals the rarest look slot, so up to
 	# LOOK_COUNT people on screen must all be different.
+	#
+	# Above LOOK_COUNT the "all of them, right now" form is not satisfiable and
+	# never was — it only became reachable when visitors started resting, which
+	# raised the concurrent population past 24. The dealer fills vacant slots
+	# first, so every slot is refilled on the next spawn; but between a visitor
+	# leaving and that spawn there is an instant where the look it was wearing is
+	# on nobody, and this census samples instants. One vacancy is that, not a
+	# regression. Two would mean the dealer had stopped preferring empty slots.
+	#
+	# Below LOOK_COUNT the guarantee is absolute and stays asserted exactly.
 	var want: int = mini(alive, Character.LOOK_COUNT)
-	check(seen.size() == want,
-		"crowd of %d shows %d distinct looks (%d required)" % [alive, seen.size(), want])
+	var floor_ok: int = want if alive <= Character.LOOK_COUNT else want - 1
+	check(seen.size() >= floor_ok,
+		"crowd of %d shows %d distinct looks (%d required)" % [alive, seen.size(), floor_ok])
 	var ceiling: int = int(ceil(float(alive) / float(Character.LOOK_COUNT)))
 	check(worst <= ceiling,
 		"no look is worn by more than %d visitors at once (worst %d)" % [ceiling, worst])

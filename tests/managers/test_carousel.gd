@@ -69,8 +69,8 @@ func _check_sealed_treatment() -> void:
 	host.add_child(open)
 	open.setup(def, 120, true)
 	var open_text := _labels(open)
-	check(open_text.has(str(def.get("name", "")).substr(0, 1)),
-		"an issued file shows the manager's initial until the bake lands %s" % [open_text])
+	check(open._slot.get_child_count() == 1 and open._slot.get_child(0) is TextureRect,
+		"an issued file immediately shows its authored manager portrait")
 	check(not open_text.has("SEALED"), "an issued file is never stamped SEALED")
 
 	# The whole-card view of the same rule: no dark-silhouette variant survives.
@@ -81,7 +81,7 @@ func _check_sealed_treatment() -> void:
 	var card_text := _labels(card)
 	check(card_text.has("SEALED") and card_text.has("Personnel File Sealed"),
 		"a sealed pass says so on the photo AND in the name field")
-	check(card_text.has("DEPT") and card_text.has("—"),
+	check(card_text.has("PROD") and card_text.has("AUDIT") and card_text.has("—"),
 		"a sealed pass keeps the stat strip, dashed out, so the deck is one shape")
 	host.free()
 
@@ -242,8 +242,8 @@ func _check_carousel() -> void:
 	var MS: GDScript = load(MS_PATH)
 	screen.select_manager("barker_theo")      # sealed in this fixture
 	await _settle(screen)
-	check(_buttons(screen._actions).is_empty(),
-		"a sealed pass offers no actions, only the line saying where to find it")
+	check(_buttons(screen._actions).size() == 1 and _buttons(screen._actions)[0].text == "Open recruitment cases",
+		"a sealed pass offers recruitment instead of a dead end")
 	check(screen._actions.custom_minimum_size.y >= 3.0 * 48.0,
 		"the action bar holds its height either way, so the deck never shifts")
 	screen.select_manager("docent_poppy")     # issued, ticket specialty

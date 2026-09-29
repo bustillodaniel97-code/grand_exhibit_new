@@ -1,24 +1,9 @@
 extends MarginContainer
-## BoostDock — the persistent rewarded-video action row on the world view.
-##
-## IBT_PARITY.md priority 2: "the missing revenue loop". Every rewarded placement
-## we own used to be reachable from exactly one place — three cards at the bottom of
-## the store, roughly a screen below the fold — so the highest-margin surface in the
-## game was one the player had to go looking for. This dock puts them one tap away,
-## permanently, on the screen the player already stares at.
-##
-## Layout, not overlay, and deliberately so. It is a real row in main.gd's shell
-## VBox between the venue and the bottom nav, in the indigo band the world already
-## wastes. An overlay would have to dodge the HUD, the nav bar and the department
-## sheet that slides up from the bottom of the venue view — three moving targets on
-## a canvas where z_index is global. A layout row cannot overlap any of them by
-## construction.
-##
-## Buttons are never disabled. A capped or cooling-down placement stays tappable and
-## explains itself by toast (rv_placements.blocked_message); a disabled button
-## swallows the tap and reads as a broken game.
+## Persistent rewarded actions, styled as one museum control dock.
+## Reward gates, limits, grants, offer lifetimes and prestige ads stay in their systems.
 
 const UI := preload("res://scripts/ui/ui_kit.gd")
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 const Popups := preload("res://scripts/ui/popup_manager.gd")
 const RV := preload("res://scripts/monetization/rv_placements.gd")
 const Offers := preload("res://scripts/monetization/offer_system.gd")
@@ -27,14 +12,9 @@ const Art := preload("res://scripts/monetization/store_art.gd")
 
 const STORE_PATH := "res://scenes/store/store_screen.tscn"
 
-## Chip height. 64 rather than the 48dp floor: this row is the most-tapped control
-## in the game and it sits next to a 5-tab nav bar, so it has to win the thumb.
-## The side chips are square at that height on purpose — the nav below is a row of
-## 64px discs, so the two rows share one module size and read as a single bottom
-## system instead of two unrelated bars. Square also buys the wide BOOST pill ~100px
-## it did not have, which is where the eye should land.
-const CHIP_H := 64
-const SIDE_CHIP_W := 72
+## Keep every placement directly reachable without dominating the world.
+const CHIP_H := 56
+const SIDE_CHIP_W := 116
 ## Offers are re-evaluated here rather than on store open, so a timed offer's clock
 ## starts when the player could actually see it. The check is a loop over ~9 rows.
 const OFFER_POLL_SECONDS := 5.0
@@ -43,7 +23,6 @@ var _boost_btn: Button
 var _cash_btn: Button
 var _gems_btn: Button
 var _offer_btn: Button
-var _gems_badge: Label
 var _timer: Timer
 var _offer_elapsed: float = 0.0
 
@@ -58,27 +37,31 @@ func _ready() -> void:
 	add_theme_constant_override("margin_bottom", 2)
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
+	row.add_theme_constant_override("separation", 8)
 	add_child(row)
 
 	_gems_btn = _chip("gems", UI.BRASS, SIDE_CHIP_W)
 	_gems_btn.tooltip_text = "Watch an ad for free gems"
 	_gems_btn.pressed.connect(func() -> void: RV.free_gems())
-	row.add_child(_free_stack(_gems_btn))
+	row.add_child(_gems_btn)
 
 	_cash_btn = _chip("cash", UI.ACCENT, SIDE_CHIP_W)
 	_cash_btn.tooltip_text = "Watch an ad for instant cash"
 	_cash_btn.pressed.connect(func() -> void: RV.instant_cash())
 	row.add_child(_cash_btn)
 
-	_boost_btn = Art.make_boost_button("x2 BOOST", UI.SAGE)
+	_boost_btn = Button.new()
+	_boost_btn.custom_minimum_size=Vector2(184,CHIP_H)
+	_boost_btn.add_theme_font_override("font",UI.font())
+	_boost_btn.add_theme_font_size_override("font_size",15)
+	Chrome.button(_boost_btn,true)
 	_boost_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_boost_btn.icon = UI.icon_texture("arrow_up", 26)
 	_boost_btn.tooltip_text = "Watch an ad to double your income"
 	_boost_btn.pressed.connect(func() -> void: RV.income_x2())
 	row.add_child(_boost_btn)
 
-	_offer_btn = _chip("cart", UI.PLUM, SIDE_CHIP_W)
+	_offer_btn = _chip("cart", Chrome.BRASS, 96)
 	_offer_btn.tooltip_text = "A limited-time offer is waiting"
 	_offer_btn.pressed.connect(_on_offer_pressed)
 	_offer_btn.visible = false
@@ -109,44 +92,15 @@ func _apply_safe_area() -> void:
 	add_theme_constant_override("margin_left", 14 + int(inset["left"]))
 	add_theme_constant_override("margin_right", 14 + int(inset["right"]))
 
-func _chip(icon_name: String, color: Color, width: int) -> Button:
-	var b := UI.make_button("", color)
-	b.custom_minimum_size = Vector2(width, CHIP_H)
-	b.icon = UI.icon_texture(icon_name, 26)
-	# 11px, not TYPE_CAPTION: the chips are square now and "+CASH" at 13 clipped to
-	# "+CAS", which reads as a rendering fault rather than a tight fit.
-	b.add_theme_font_size_override("font_size", 11)
-	# Icon above the caption rather than beside it: at chip width a side-by-side icon
-	# and word leaves the word two letters wide.
-	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-	b.expand_icon = false
-	b.clip_text = true
+func _chip(icon_name: String, _color: Color, width: int) -> Button:
+	var b:=Button.new();Chrome.button(b)
+	b.custom_minimum_size=Vector2(width,CHIP_H)
+	b.add_theme_font_override("font",UI.font())
+	b.add_theme_font_size_override("font_size",12)
+	b.icon=UI.icon_texture(icon_name,20)
+	b.icon_alignment=HORIZONTAL_ALIGNMENT_LEFT
+	b.expand_icon=false;b.clip_text=true
 	return b
-
-## "FREE" flag over the gems chip — the same read as IBT's free-currency chip,
-## drawn as our own small ribbon rather than copied.
-func _free_stack(btn: Button) -> Control:
-	var holder := Control.new()
-	holder.custom_minimum_size = Vector2(SIDE_CHIP_W, CHIP_H)
-	btn.set_anchors_preset(Control.PRESET_FULL_RECT)
-	holder.add_child(btn)
-	var ribbon := Art.make_ribbon("FREE", UI.SAGE)
-	ribbon.position = Vector2(-2, -6)
-	holder.add_child(ribbon)
-	# Dark ink, not white: the counter prints on the gold chip face, where white
-	# measures under 2:1 and the halo was doing all the work.
-	_gems_badge = UI.make_display_label("", 11, Color("#4A2E05"))
-	_gems_badge.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	# Clear of the candy cap's bottom lip: sat on it, the descenders were cut and the
-	# counter read as a clipped label.
-	_gems_badge.offset_top = -26
-	_gems_badge.offset_bottom = -8
-	_gems_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_gems_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UI.add_text_halo(_gems_badge, Color(1, 0.93, 0.75, 0.65), 3)
-	holder.add_child(_gems_badge)
-	return holder
 
 # ---------------------------------------------------------------------- refresh
 
@@ -162,24 +116,22 @@ func refresh() -> void:
 		return
 	var remaining: int = RV.income_x2_remaining_seconds()
 	if RV.is_busy("income_x2"):
-		_boost_btn.text = "loading…"
+		_boost_btn.text = "Loading ad…"
 	elif remaining > 0:
-		_boost_btn.text = "x2  %s" % _fmt(remaining)
+		_boost_btn.text = "x2 active · %s\nWatch ad to extend" % _fmt(remaining)
 	else:
-		_boost_btn.text = "x2 BOOST"
-	UI.retint_button(_boost_btn, UI.SAGE if remaining <= 0 else UI.SAGE.darkened(0.12))
+		_boost_btn.text = "Double income\nWatch ad · x2"
 
-	_cash_btn.text = "loading…" if RV.is_busy("instant_cash") else "CASH"
-	# The gems chip already spends its caption line on the daily counter, so the word
-	# would land on top of it. FREE ribbon + gem icon + "3 left" says it without one.
-	_gems_badge.text = "loading…" if RV.is_busy("free_gems") else "%d left" % RV.remaining_free_gems()
+
+	_cash_btn.text="Loading…" if RV.is_busy("instant_cash") else "Instant cash\nWatch ad"
+	_gems_btn.text="Loading…" if RV.is_busy("free_gems") else "Free gems\n%d left · Ad"%RV.remaining_free_gems()
 
 	var offers: Array = Offers.active_offers()
 	_offer_btn.visible = not offers.is_empty()
 	if not offers.is_empty():
 		var oid: String = str(offers[0]["id"])
 		Offers.mark_seen(oid)
-		_offer_btn.text = _fmt_compact(Offers.seconds_left(oid)) if Offers.expires(oid) else "OFFER"
+		_offer_btn.text = "Offer\n"+_fmt_compact(Offers.seconds_left(oid)) if Offers.expires(oid) else "Offer"
 
 func _on_offer_pressed() -> void:
 	Analytics.store_open("world_offer_chip")

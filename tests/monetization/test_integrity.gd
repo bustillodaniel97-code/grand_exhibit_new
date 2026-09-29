@@ -46,7 +46,9 @@ func _init() -> void:
 func run() -> void:
 	_boot()
 	GameState.reset_to_new_game()
-	GameState.ready_flag = false
+	GameState.ready_flag = true
+	root.get_node("Economy").set_process(false)
+	root.get_node("SaveSystem").set_process(false)
 	EventBus.rv_reward_granted.connect(func(p: String, _c: Dictionary) -> void: _grants.append(p))
 	EventBus.toast_requested.connect(func(t: String) -> void: _toasts.append(t))
 	EventBus.iap_completed.connect(func(p: String) -> void: _completed.append(p))

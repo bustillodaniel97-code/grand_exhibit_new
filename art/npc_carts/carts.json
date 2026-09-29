@@ -1,0 +1,1495 @@
+{
+  "schema": 1,
+  "draw_rect": [
+    -42,
+    -66,
+    84,
+    84
+  ],
+  "sets": {
+    "staff-porter-0": {
+      "role": "porter",
+      "age_group": "young_adult",
+      "gender": "male",
+      "variant": 0,
+      "0": {
+        "front": {
+          "idle": {
+            "file": "staff-porter-0-front-idle-load0.png",
+            "canvas": [
+              336,
+              336
+            ],
+            "offset": [
+              64,
+              66
+            ],
+            "sha256": "acabd9ed89c3fdcb70b129d3d253aa28cef0d65255390e1dc9888b399f72c8c2",
+            "mip_bytes": 197528
+          },
+          "walk": [
+            {
+              "file": "staff-porter-0-front-0-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                73
+              ],
+              "sha256": "f8fe651304623b52544eaabf95cb4e1a12ef0892f8332ed80fcfcdfc4aad73d9",
+              "mip_bytes": 198028
+            },
+            {
+              "file": "staff-porter-0-front-1-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                74
+              ],
+              "sha256": "ac7ebdb9efea36e49dfafbe255e7c06ca1cfce1c43f444cac5bd06155fbbf133",
+              "mip_bytes": 203584
+            },
+            {
+              "file": "staff-porter-0-front-2-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                74
+              ],
+              "sha256": "453450a8e0919c10872e5cd05474075d1687ac66b54580acabe5c11251fdd59d",
+              "mip_bytes": 191580
+            },
+            {
+              "file": "staff-porter-0-front-3-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                74
+              ],
+              "sha256": "156c0378a87d26a91f051b21d8a06a7fff7c190ac25d97cca676bd8c972789b1",
+              "mip_bytes": 191580
+            },
+            {
+              "file": "staff-porter-0-front-4-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                73
+              ],
+              "sha256": "09aa0a92be0b7e3e6aca4cdf25203a4f05218b7f487be5b7bfe3807c3acf5d39",
+              "mip_bytes": 192420
+            },
+            {
+              "file": "staff-porter-0-front-5-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                74
+              ],
+              "sha256": "fef745aeb3a58778108f88f4048bac393cd62eebe7686e9483a777c1b2e929b9",
+              "mip_bytes": 191580
+            },
+            {
+              "file": "staff-porter-0-front-6-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                74
+              ],
+              "sha256": "d6320b8ace9568dd383a4c6d39c3a52ddc8cc384588b812d18a1dc4057e02dd2",
+              "mip_bytes": 191580
+            },
+            {
+              "file": "staff-porter-0-front-7-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                74
+              ],
+              "sha256": "0af63cc7f017ae686c5b38a9723c21ad9bf8b97968f5c2ae71d0ab93a6f2c549",
+              "mip_bytes": 191580
+            }
+          ]
+        },
+        "back": {
+          "idle": {
+            "file": "staff-porter-0-back-idle-load0.png",
+            "canvas": [
+              252,
+              252
+            ],
+            "offset": [
+              98,
+              49
+            ],
+            "sha256": "d3df329cd2ad71d5c8d2779beb0f84c9b1247772e4eecdd2c5d1d2b766b9688a",
+            "mip_bytes": 91380
+          },
+          "walk": [
+            {
+              "file": "staff-porter-0-back-0-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                95,
+                55
+              ],
+              "sha256": "872ad046ccff5172c90fbb89ca2a90c9044e983b46eda03cf85f154d37132406",
+              "mip_bytes": 91276
+            },
+            {
+              "file": "staff-porter-0-back-1-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                92,
+                55
+              ],
+              "sha256": "97beba8636d967ccc436c8b2fdf0f3985595fa0226b7562390cd6e8f11af619a",
+              "mip_bytes": 93728
+            },
+            {
+              "file": "staff-porter-0-back-2-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                56
+              ],
+              "sha256": "5352697506407dcb5971e559b9f30ba3ce80c73c77e1aa87e59e344c722d6265",
+              "mip_bytes": 86812
+            },
+            {
+              "file": "staff-porter-0-back-3-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                55
+              ],
+              "sha256": "abf5c6d14fb49e0df26dd9d12f9afd06b25d2665649c06b7a1e8d81d49a65e81",
+              "mip_bytes": 90120
+            },
+            {
+              "file": "staff-porter-0-back-4-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                55
+              ],
+              "sha256": "ef4953974781c45ab27f3ebe068c8eed0771d2c15a7777bbafbe07bf471ca822",
+              "mip_bytes": 93192
+            },
+            {
+              "file": "staff-porter-0-back-5-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                55
+              ],
+              "sha256": "fd666bc70802f45c8e083b21e29a7ee4c74b84661e9e7dd88325e7ccce7d4dd5",
+              "mip_bytes": 93192
+            },
+            {
+              "file": "staff-porter-0-back-6-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                56
+              ],
+              "sha256": "525f6c9345f586daa50facd2e58052b3f0edd6daedb57b2df3bf716cf4a3dab7",
+              "mip_bytes": 85588
+            },
+            {
+              "file": "staff-porter-0-back-7-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                55
+              ],
+              "sha256": "da6825c07e8a162318840eb31fb37d69c1a041d37b2c4f2ba4fef7589395fb2d",
+              "mip_bytes": 85588
+            }
+          ]
+        }
+      },
+      "1": {
+        "front": {
+          "idle": {
+            "file": "staff-porter-0-front-idle-load1.png",
+            "canvas": [
+              336,
+              336
+            ],
+            "offset": [
+              64,
+              66
+            ],
+            "sha256": "bec68dc728bbd0d9ebd5ea1266346c35874251d73d93a7a6744360ad528ebdba",
+            "mip_bytes": 197528
+          },
+          "walk": [
+            {
+              "file": "staff-porter-0-front-0-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                73
+              ],
+              "sha256": "ca4159767b16882b4741de539008cafc067632457216cd5f34d9bcb30e43ef78",
+              "mip_bytes": 198028
+            },
+            {
+              "file": "staff-porter-0-front-1-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                74
+              ],
+              "sha256": "63b328badfae4a0f503399ac6dba506d0783683a36978d38ed0d2a9e3e33433e",
+              "mip_bytes": 203584
+            },
+            {
+              "file": "staff-porter-0-front-2-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                74
+              ],
+              "sha256": "da8a5c016d59ca82b7a9b1fb0b3867b74260f49d6271d293a0c9062fa13b35e5",
+              "mip_bytes": 191580
+            },
+            {
+              "file": "staff-porter-0-front-3-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                74
+              ],
+              "sha256": "5380dc7f8e1ec6af13c358fc73a863d5eb63ee6f1359e6443a9f2e175c5e7502",
+              "mip_bytes": 191580
+            },
+            {
+              "file": "staff-porter-0-front-4-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                73
+              ],
+              "sha256": "43046421e773d14ee429698156cf2db80ecd4422be2a0e4f6290a3ca1fa3b7b8",
+              "mip_bytes": 192420
+            },
+            {
+              "file": "staff-porter-0-front-5-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                74
+              ],
+              "sha256": "33dc0b1b61b5704ad77d4081b4e3a96cce625bc988bcb44beec2b4b0bdda7e3f",
+              "mip_bytes": 191580
+            },
+            {
+              "file": "staff-porter-0-front-6-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                74
+              ],
+              "sha256": "e64af070a0034b3c24afbf27ec331f5a9bdad082ef2e5e7cfea5824bb9fa8e11",
+              "mip_bytes": 191580
+            },
+            {
+              "file": "staff-porter-0-front-7-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                74
+              ],
+              "sha256": "ae97ab93525d0985ea897ba8e365c9045d6b70cdd5e132d04f52deb6c04b6e36",
+              "mip_bytes": 191580
+            }
+          ]
+        },
+        "back": {
+          "idle": {
+            "file": "staff-porter-0-back-idle-load1.png",
+            "canvas": [
+              252,
+              252
+            ],
+            "offset": [
+              98,
+              49
+            ],
+            "sha256": "67e30069d795ce3e0d9fa6c7596c6e941101c297ab44127e54894dd17baf678e",
+            "mip_bytes": 91380
+          },
+          "walk": [
+            {
+              "file": "staff-porter-0-back-0-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                95,
+                55
+              ],
+              "sha256": "ab057eeb9df902a09e8ccf4cd2ebee2706c7679a63947897bcc888790df90fb0",
+              "mip_bytes": 91276
+            },
+            {
+              "file": "staff-porter-0-back-1-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                92,
+                55
+              ],
+              "sha256": "bd929ff2eb94f2e64381516b8ab4acf5053027bb28510c96462d267047b9d528",
+              "mip_bytes": 93728
+            },
+            {
+              "file": "staff-porter-0-back-2-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                56
+              ],
+              "sha256": "1f5a3c9b258c0bbce93c6ee711c4b3056a0337ebd49201340409c39ac1dd5346",
+              "mip_bytes": 86812
+            },
+            {
+              "file": "staff-porter-0-back-3-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                55
+              ],
+              "sha256": "9ffeb6d07454cc868fa82da8a389d1aee3f3df72e2921fa5e654d1eb27ba1fda",
+              "mip_bytes": 90120
+            },
+            {
+              "file": "staff-porter-0-back-4-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                55
+              ],
+              "sha256": "6c961113924eb45018f72868f9e65f73a87327b3dcf8732008069921e12d6b71",
+              "mip_bytes": 93192
+            },
+            {
+              "file": "staff-porter-0-back-5-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                55
+              ],
+              "sha256": "6bbd0b422267983605ee2767107f318517920d54173309af23194f18d3177818",
+              "mip_bytes": 93192
+            },
+            {
+              "file": "staff-porter-0-back-6-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                56
+              ],
+              "sha256": "61d1f2aea04a6ebd220d65310ce3f336f5256a343a1f9b752585a75b2870a127",
+              "mip_bytes": 85588
+            },
+            {
+              "file": "staff-porter-0-back-7-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                55
+              ],
+              "sha256": "cefaa2b9a21f8cd7ef69a48ade8e2cd95e07d59e3844e1012ffa03e977b8cf5a",
+              "mip_bytes": 85588
+            }
+          ]
+        }
+      }
+    },
+    "staff-porter-1": {
+      "role": "porter",
+      "age_group": "middle_aged",
+      "gender": "female",
+      "variant": 1,
+      "0": {
+        "front": {
+          "idle": {
+            "file": "staff-porter-1-front-idle-load0.png",
+            "canvas": [
+              336,
+              336
+            ],
+            "offset": [
+              64,
+              75
+            ],
+            "sha256": "70729a2b322051da6f868e8ea5b19fcc7777014ba270114a791b39c379fb1f0c",
+            "mip_bytes": 193580
+          },
+          "walk": [
+            {
+              "file": "staff-porter-1-front-0-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                81
+              ],
+              "sha256": "681fe7ff1b8c4459afc3796e944b252615dc6c609dfaa5176e9f20abed486caf",
+              "mip_bytes": 191840
+            },
+            {
+              "file": "staff-porter-1-front-1-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                82
+              ],
+              "sha256": "59efb418afe766585c8a718f37125d14f5ac4a8351c87c14d03e7953ba9bcff2",
+              "mip_bytes": 196200
+            },
+            {
+              "file": "staff-porter-1-front-2-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                83
+              ],
+              "sha256": "f708aef82042a3580f11c0950b50500abe559418e10e0469d7c90ecc34ccc9a5",
+              "mip_bytes": 187488
+            },
+            {
+              "file": "staff-porter-1-front-3-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                82
+              ],
+              "sha256": "6b5458dc1e5bcd1df60ead0b8571ad5b65d367b2446550aabd5e953f58301b36",
+              "mip_bytes": 188056
+            },
+            {
+              "file": "staff-porter-1-front-4-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                81
+              ],
+              "sha256": "d497bd633990b4058d8c3346b1da1033cc8b54265c05747dce0931bf8e630a46",
+              "mip_bytes": 188908
+            },
+            {
+              "file": "staff-porter-1-front-5-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                82
+              ],
+              "sha256": "344d8075d9e1f425e792120bf4ec5de1c05d510eda89085921ba023314e3b7e1",
+              "mip_bytes": 188056
+            },
+            {
+              "file": "staff-porter-1-front-6-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                83
+              ],
+              "sha256": "81d1ab39d57f90b78f6176feecf84093c2830bb608a74516877eaa455fa87ada",
+              "mip_bytes": 187488
+            },
+            {
+              "file": "staff-porter-1-front-7-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                82
+              ],
+              "sha256": "59af135ff05354f4b34d2cd7ed05ebaab787f8df4c6de47fdb3689b2d5249f8a",
+              "mip_bytes": 188056
+            }
+          ]
+        },
+        "back": {
+          "idle": {
+            "file": "staff-porter-1-back-idle-load0.png",
+            "canvas": [
+              252,
+              252
+            ],
+            "offset": [
+              96,
+              58
+            ],
+            "sha256": "7aa7bcee8a61234fbbf45bb2eb05586da23e672be35acf3d43396c24db1dc72c",
+            "mip_bytes": 88056
+          },
+          "walk": [
+            {
+              "file": "staff-porter-1-back-0-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                95,
+                63
+              ],
+              "sha256": "bf9b523e636320877ff3fef50a526406b2ea5932806b5733562acfeb1ae34209",
+              "mip_bytes": 85840
+            },
+            {
+              "file": "staff-porter-1-back-1-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                92,
+                64
+              ],
+              "sha256": "ade65617f6bb846277039a2d3f54077d94000175435a592631ab32a9232c3e00",
+              "mip_bytes": 88148
+            },
+            {
+              "file": "staff-porter-1-back-2-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                96,
+                64
+              ],
+              "sha256": "05265632b299590bf2ad1976a915a04aae20996f599e997cf461e1974dc8a6e5",
+              "mip_bytes": 83872
+            },
+            {
+              "file": "staff-porter-1-back-3-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                96,
+                64
+              ],
+              "sha256": "53609e2380c74748194c10de951ecb44bc4dd8225fc9497aa16ea5f59684b55b",
+              "mip_bytes": 86808
+            },
+            {
+              "file": "staff-porter-1-back-4-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                96,
+                63
+              ],
+              "sha256": "ee59403b1cdd00fd508fcd4b1cc576a7d6105adc90a098a046eb066526c01075",
+              "mip_bytes": 90340
+            },
+            {
+              "file": "staff-porter-1-back-5-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                96,
+                64
+              ],
+              "sha256": "bda4e4fb40df30bda740576a0649565a69b918ec8578174e71d80ada9a6994fb",
+              "mip_bytes": 89580
+            },
+            {
+              "file": "staff-porter-1-back-6-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                96,
+                64
+              ],
+              "sha256": "dbd8682545147952d5e485437a2ea2d36c4bd7402a9800075c4dc3c62a3da197",
+              "mip_bytes": 82600
+            },
+            {
+              "file": "staff-porter-1-back-7-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                96,
+                64
+              ],
+              "sha256": "6f4427a4d5a64cbab218cffc26d905186c9d2c7255460a4266967e48d4f5a9ea",
+              "mip_bytes": 82164
+            }
+          ]
+        }
+      },
+      "1": {
+        "front": {
+          "idle": {
+            "file": "staff-porter-1-front-idle-load1.png",
+            "canvas": [
+              336,
+              336
+            ],
+            "offset": [
+              64,
+              75
+            ],
+            "sha256": "32e2928cd34d0f5bf449bc74b578ee1c6929849ea85b085b1d0c2ebc359e2c91",
+            "mip_bytes": 193580
+          },
+          "walk": [
+            {
+              "file": "staff-porter-1-front-0-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                81
+              ],
+              "sha256": "0a8c3977ce1c7c1668422364d02af51153a3947e2e654bce28ece1e3d5de11be",
+              "mip_bytes": 191840
+            },
+            {
+              "file": "staff-porter-1-front-1-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                82
+              ],
+              "sha256": "71b4c07410f62bd73ffe3a9e2c7d85594034dcfc1caac7436fbbdd11dfcd5396",
+              "mip_bytes": 196200
+            },
+            {
+              "file": "staff-porter-1-front-2-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                83
+              ],
+              "sha256": "8f177353c3a1a4916d4d9beccc82bd30d5ac013b4a4b8ccc2fccd81f4288ffdd",
+              "mip_bytes": 187488
+            },
+            {
+              "file": "staff-porter-1-front-3-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                82
+              ],
+              "sha256": "4be9e2026ef587d7247e02111c994dad143cc733f035a5a79002afc0ad6897b1",
+              "mip_bytes": 188056
+            },
+            {
+              "file": "staff-porter-1-front-4-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                81
+              ],
+              "sha256": "01ac8d898703970998a5dba042b8151c3f58f42fa841dee5012cecc629043912",
+              "mip_bytes": 188908
+            },
+            {
+              "file": "staff-porter-1-front-5-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                82
+              ],
+              "sha256": "ce0a0d1585817abd418da611a62184e7c9195feb67aabd032a4f28843ced521c",
+              "mip_bytes": 188056
+            },
+            {
+              "file": "staff-porter-1-front-6-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                83
+              ],
+              "sha256": "fffbcc71dd62d8dffd0482d1c332d652267ec1b3d4acad8a05925db45d3c652c",
+              "mip_bytes": 187488
+            },
+            {
+              "file": "staff-porter-1-front-7-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                82
+              ],
+              "sha256": "a2189555442d32e128cc93bebe6ae4b21790085987c960f19fd5197b239856be",
+              "mip_bytes": 188056
+            }
+          ]
+        },
+        "back": {
+          "idle": {
+            "file": "staff-porter-1-back-idle-load1.png",
+            "canvas": [
+              252,
+              252
+            ],
+            "offset": [
+              96,
+              58
+            ],
+            "sha256": "a20e0a289168262ebd68017536e11b3d9ca14f2d6882fe023c0ef1cb8cc2af78",
+            "mip_bytes": 88056
+          },
+          "walk": [
+            {
+              "file": "staff-porter-1-back-0-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                95,
+                63
+              ],
+              "sha256": "ce8d90c64ea13fc2dc99e370b958090c82d9f62d9a773814d92400cb596e93b1",
+              "mip_bytes": 85840
+            },
+            {
+              "file": "staff-porter-1-back-1-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                92,
+                64
+              ],
+              "sha256": "5c0c97a1ac238a97e2f99cb5fe1f5e65c8eed2f984c82ebf0791ecd572764c14",
+              "mip_bytes": 88148
+            },
+            {
+              "file": "staff-porter-1-back-2-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                96,
+                64
+              ],
+              "sha256": "2e6b5f1e4f65ab6ff698cd11b7ee071992d8f320d77bdc73e5469fde5fefb41a",
+              "mip_bytes": 83872
+            },
+            {
+              "file": "staff-porter-1-back-3-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                96,
+                64
+              ],
+              "sha256": "1cc0ca0b90cfd7526c3d745bee8d4500182e9dc305ce2dacf1b2c4db5d11bbe6",
+              "mip_bytes": 86808
+            },
+            {
+              "file": "staff-porter-1-back-4-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                96,
+                63
+              ],
+              "sha256": "eee222673b75a11ce740e7ce1739a0a8f04085ea9db8c712a50a137b5bf05087",
+              "mip_bytes": 90340
+            },
+            {
+              "file": "staff-porter-1-back-5-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                96,
+                64
+              ],
+              "sha256": "7074537354036baf2bd3af5901fd6644448c88a2dd9974126ab65045f9cb3329",
+              "mip_bytes": 89580
+            },
+            {
+              "file": "staff-porter-1-back-6-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                96,
+                64
+              ],
+              "sha256": "9797ff93090a381b047f58dec900839c61eb02d6f83a734459dc53a5701c1046",
+              "mip_bytes": 82600
+            },
+            {
+              "file": "staff-porter-1-back-7-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                96,
+                64
+              ],
+              "sha256": "b4c0982d2f02a47f624ce43599f71011e8e0f6d8fbd4d4a47638b9d66afef200",
+              "mip_bytes": 82164
+            }
+          ]
+        }
+      }
+    },
+    "staff-porter-2": {
+      "role": "porter",
+      "age_group": "elder",
+      "gender": "male",
+      "variant": 2,
+      "0": {
+        "front": {
+          "idle": {
+            "file": "staff-porter-2-front-idle-load0.png",
+            "canvas": [
+              336,
+              336
+            ],
+            "offset": [
+              64,
+              61
+            ],
+            "sha256": "7297dffa97f73749e7140ae29a277310465d3c92ba96698666e30c58aa141a3d",
+            "mip_bytes": 201308
+          },
+          "walk": [
+            {
+              "file": "staff-porter-2-front-0-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                68
+              ],
+              "sha256": "6415390b1746f431f3a9c8b1a170d98618136b46908ddb61d85be147da5fd994",
+              "mip_bytes": 201628
+            },
+            {
+              "file": "staff-porter-2-front-1-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                69
+              ],
+              "sha256": "925716d4e7bf85fa1ec12255876f06e69268c28401bd18edfa21075112214ed2",
+              "mip_bytes": 207600
+            },
+            {
+              "file": "staff-porter-2-front-2-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                70
+              ],
+              "sha256": "44d1ee8337f3c6d41dd63127d6c557cfb004c197f322d14b98d648caca3bcbff",
+              "mip_bytes": 194520
+            },
+            {
+              "file": "staff-porter-2-front-3-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                69
+              ],
+              "sha256": "574912fd4bebfa7970b78c855ac316566f2472831207788cc72070b22d7f812d",
+              "mip_bytes": 195360
+            },
+            {
+              "file": "staff-porter-2-front-4-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                68
+              ],
+              "sha256": "96359c9188e96c1c4a97e75db366d8dc6f51e0d653d5a38fcfc5a98540864fb0",
+              "mip_bytes": 195920
+            },
+            {
+              "file": "staff-porter-2-front-5-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                69
+              ],
+              "sha256": "b7ce017a4774f05b8c662964a6216bddadcd4b5b10814cbf21a25f1854b59b54",
+              "mip_bytes": 195360
+            },
+            {
+              "file": "staff-porter-2-front-6-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                70
+              ],
+              "sha256": "6fd93be73b0f233ba927cc9ddeafc1d0deeb4471bb6ebd06762e9301bc69bc92",
+              "mip_bytes": 194520
+            },
+            {
+              "file": "staff-porter-2-front-7-load0.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                69
+              ],
+              "sha256": "9dd77b677ea458b02ced0d664f397033cae8a19c943ba0b4b494c176777da8fb",
+              "mip_bytes": 195360
+            }
+          ]
+        },
+        "back": {
+          "idle": {
+            "file": "staff-porter-2-back-idle-load0.png",
+            "canvas": [
+              252,
+              252
+            ],
+            "offset": [
+              98,
+              48
+            ],
+            "sha256": "1d3742d135b12a8105629d5e8536ed49fb1b36dfe407bad6eb7c7aab63a6e717",
+            "mip_bytes": 92020
+          },
+          "walk": [
+            {
+              "file": "staff-porter-2-back-0-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                95,
+                53
+              ],
+              "sha256": "397cfe045bcecc15de9aad352a75fd4f7a40280e825c0de447099e2b7fce9e5e",
+              "mip_bytes": 92376
+            },
+            {
+              "file": "staff-porter-2-back-1-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                92,
+                53
+              ],
+              "sha256": "904528b42b2e1b803dae3492820bb70499ab1c33384a3f37183f3faf4a7fbda3",
+              "mip_bytes": 94856
+            },
+            {
+              "file": "staff-porter-2-back-2-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                54
+              ],
+              "sha256": "edf151e1142f9b57a08043fdbf3aa090d623c330fd33b58fa60cfe2386920d1a",
+              "mip_bytes": 87880
+            },
+            {
+              "file": "staff-porter-2-back-3-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                53
+              ],
+              "sha256": "c3c7cf4f46dfe379728513c5376dedba585fc035cd21580da23378b7cfd4a62b",
+              "mip_bytes": 91380
+            },
+            {
+              "file": "staff-porter-2-back-4-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                53
+              ],
+              "sha256": "653a25c9c73e336f54b48dcb87b604bf40cf002357931d999d99f58c4e8436c9",
+              "mip_bytes": 94260
+            },
+            {
+              "file": "staff-porter-2-back-5-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                53
+              ],
+              "sha256": "8f1097cc2b553dfb03e2e4e025acd30670340ff7abd8ecec4a3e47c9c18264ac",
+              "mip_bytes": 94260
+            },
+            {
+              "file": "staff-porter-2-back-6-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                54
+              ],
+              "sha256": "ef5344127317d38a8bf4e2666c35f6b3d86962cf2c773325c1a5a2239b2495cb",
+              "mip_bytes": 86812
+            },
+            {
+              "file": "staff-porter-2-back-7-load0.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                53
+              ],
+              "sha256": "2038b0fe6df59a7bbf727e6409d42dd74bbea936801cd4b214fff2b4a6901372",
+              "mip_bytes": 86812
+            }
+          ]
+        }
+      },
+      "1": {
+        "front": {
+          "idle": {
+            "file": "staff-porter-2-front-idle-load1.png",
+            "canvas": [
+              336,
+              336
+            ],
+            "offset": [
+              64,
+              61
+            ],
+            "sha256": "8ed55fcfad636b70c556e501f6a93a4d3ef7d1da5b731a10c60767fcb61ff6e0",
+            "mip_bytes": 201308
+          },
+          "walk": [
+            {
+              "file": "staff-porter-2-front-0-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                68
+              ],
+              "sha256": "d2986d41a02a2881597b62f40f9b2ca33af75ca05122387943d6091ec9f91741",
+              "mip_bytes": 201628
+            },
+            {
+              "file": "staff-porter-2-front-1-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                69
+              ],
+              "sha256": "ffd1337a8608b83a833fa23a687a25908ba797cdc7f1ef232d0b61088d6120c5",
+              "mip_bytes": 207600
+            },
+            {
+              "file": "staff-porter-2-front-2-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                70
+              ],
+              "sha256": "2a9445afec5756f7f0291b7e0ab4b6f280b811457ee79c1b60383178d835ad99",
+              "mip_bytes": 194520
+            },
+            {
+              "file": "staff-porter-2-front-3-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                69
+              ],
+              "sha256": "d6ba2ff31b838ca6c8e9c6ae6b777827b10e72881dce4afe67998e416efb54f3",
+              "mip_bytes": 195360
+            },
+            {
+              "file": "staff-porter-2-front-4-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                68
+              ],
+              "sha256": "0ad2223475ca11e0b51774d7faee350fc38f2fe2f1b125e756b5cf3abe75e8ae",
+              "mip_bytes": 195920
+            },
+            {
+              "file": "staff-porter-2-front-5-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                69
+              ],
+              "sha256": "1894823369371e612fc5aedab500c6acce5f39083a4be8d67d3fee9d99fd68f6",
+              "mip_bytes": 195360
+            },
+            {
+              "file": "staff-porter-2-front-6-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                70
+              ],
+              "sha256": "8d054017cc29b6476c2c3d24460cae502b70c97e3143ddbe42535c9b5fdc00d1",
+              "mip_bytes": 194520
+            },
+            {
+              "file": "staff-porter-2-front-7-load1.png",
+              "canvas": [
+                336,
+                336
+              ],
+              "offset": [
+                64,
+                69
+              ],
+              "sha256": "c4f7416c7d8025f157cc13dc95de933b457f37f91f537e21fe3a14b1700a98e3",
+              "mip_bytes": 195360
+            }
+          ]
+        },
+        "back": {
+          "idle": {
+            "file": "staff-porter-2-back-idle-load1.png",
+            "canvas": [
+              252,
+              252
+            ],
+            "offset": [
+              98,
+              48
+            ],
+            "sha256": "af8a9a6c5d8730a9c1da3f64cf0601ba423eb96e021b1702ecc978d3b2a7fad8",
+            "mip_bytes": 92020
+          },
+          "walk": [
+            {
+              "file": "staff-porter-2-back-0-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                95,
+                53
+              ],
+              "sha256": "dfe901273668490fb93574bbe99138c6d81db9b26105000a041eae2fd3d6084e",
+              "mip_bytes": 92376
+            },
+            {
+              "file": "staff-porter-2-back-1-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                92,
+                53
+              ],
+              "sha256": "e9210c926fa685d322f2c9f63e5ccfe8098f0b62d0c23fd9f46e65fc49d3f09f",
+              "mip_bytes": 94856
+            },
+            {
+              "file": "staff-porter-2-back-2-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                54
+              ],
+              "sha256": "05f24f2d426705b410701aa7909b80400ec178015faf0618f8509b34da39cb1f",
+              "mip_bytes": 87880
+            },
+            {
+              "file": "staff-porter-2-back-3-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                53
+              ],
+              "sha256": "6319d3774784beb8453e1093850fc3e4244e1366dc826ebc5e65d5dea1bcebe4",
+              "mip_bytes": 91380
+            },
+            {
+              "file": "staff-porter-2-back-4-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                53
+              ],
+              "sha256": "b7d432d0f47e60b433411b76d6e9ecbf89c597ceb4eee501168d8abc83f43ee1",
+              "mip_bytes": 94260
+            },
+            {
+              "file": "staff-porter-2-back-5-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                53
+              ],
+              "sha256": "2ed4ff44c92c0a4ca1d87899f762744d171a78580c5fa88b5aca60934796b5aa",
+              "mip_bytes": 94260
+            },
+            {
+              "file": "staff-porter-2-back-6-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                54
+              ],
+              "sha256": "78994bb4aac763651c3c2159859c518cb660bd997557bca24a7a48183f14749c",
+              "mip_bytes": 86812
+            },
+            {
+              "file": "staff-porter-2-back-7-load1.png",
+              "canvas": [
+                252,
+                252
+              ],
+              "offset": [
+                98,
+                53
+              ],
+              "sha256": "4c564d5635630e19268274e6b4eee4707db8104b72f9c6399988340c773772da",
+              "mip_bytes": 86812
+            }
+          ]
+        }
+      }
+    }
+  },
+  "textures": 108,
+  "mip_bytes": 15299296
+}

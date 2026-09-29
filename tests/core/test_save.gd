@@ -15,10 +15,21 @@ func _init() -> void:
 	call_deferred("run")
 
 const V := "whispering_pines"
-const SAVE_FILE := "user://grand_exhibit_save.json"
+## Resolved through SaveSystem rather than hardcoded. This suite deletes and
+## corrupts the save on purpose, and on a developer box the literal path is
+## the live player profile; SaveSystem.save_path() redirects into a throwaway
+## subdirectory whenever the main loop is a res://tests/ script.
+var _save_file_cache: String = ""
+func save_file() -> String:
+	if _save_file_cache.is_empty():
+		# load() not preload(): under -s the main script compiles before autoload
+		# names are bound, and save_system.gd names them. Resolving at runtime
+		# sidesteps that. save_path() is static, so no instance is needed.
+		_save_file_cache = load("res://autoload/save_system.gd").save_path()
+	return _save_file_cache
 
 func cleanup() -> void:
-	for p in [SAVE_FILE, SAVE_FILE + ".bak"]:
+	for p in [save_file(), save_file() + ".bak", save_file() + ".corrupt", save_file() + ".tmp", save_file() + ".bak.tmp"]:
 		if FileAccess.file_exists(p):
 			DirAccess.remove_absolute(p)
 
@@ -91,23 +102,23 @@ func run() -> void:
 	check(GameState.gems == 42, "gems restored from file")
 	check(GameState.dept_level(V, "ticket", "speed") == 7, "dept level restored from file")
 
-	print("-- corrupted checksum -> .bak + fresh start --")
-	var text := FileAccess.get_file_as_string(SaveSystem.SAVE_PATH)
+	print("-- corrupted checksum -> .corrupt + fresh start --")
+	var text := FileAccess.get_file_as_string(SaveSystem.save_path())
 	var env: Dictionary = JSON.parse_string(text)
 	env["state"]["gems"] = 99999  # tamper without fixing checksum
-	var f := FileAccess.open(SaveSystem.SAVE_PATH, FileAccess.WRITE)
+	var f := FileAccess.open(SaveSystem.save_path(), FileAccess.WRITE)
 	f.store_string(JSON.stringify(env))
 	f.close()
 	check(SaveSystem.load_game() == false, "load_game() false on checksum mismatch")
-	check(FileAccess.file_exists(SaveSystem.SAVE_PATH + ".bak"), "corrupt save renamed to .bak")
+	check(FileAccess.file_exists(SaveSystem.save_path() + ".corrupt"), "corrupt save quarantined as .corrupt")
 	check(not SaveSystem.has_save(), "corrupt save removed from live path")
 	# garbage file also recovers
 	cleanup()
-	var f2 := FileAccess.open(SaveSystem.SAVE_PATH, FileAccess.WRITE)
+	var f2 := FileAccess.open(SaveSystem.save_path(), FileAccess.WRITE)
 	f2.store_string("{not json at all!!!")
 	f2.close()
 	check(SaveSystem.load_game() == false, "load_game() false on unparseable file")
-	check(FileAccess.file_exists(SaveSystem.SAVE_PATH + ".bak"), "unparseable save backed up too")
+	check(FileAccess.file_exists(SaveSystem.save_path() + ".corrupt"), "unparseable save backed up too")
 
 	print("-- offline earnings --")
 	GameState.ready_flag = false

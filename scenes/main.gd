@@ -11,6 +11,7 @@ const BoostDockScene := preload("res://scenes/ui/boost_dock.tscn")
 const SideRailScene := preload("res://scenes/ui/side_rail.tscn")
 const VenueScene := preload("res://scenes/venue/venue_view.tscn")
 const PopupLayerScene := preload("res://scenes/ui/popup_layer.tscn")
+const AdaptiveMusic := preload("res://scenes/audio/adaptive_music.gd")
 
 const Consent := preload("res://scripts/monetization/consent.gd")
 const Interstitials := preload("res://scripts/monetization/interstitials.gd")
@@ -34,13 +35,14 @@ func _ready() -> void:
 	Interstitials.note_session_start()
 	Analytics.session_start()
 	_build_shell()
+	add_child(AdaptiveMusic.new())
 	if int(offline.get("seconds", 0)) > 30:
 		Popups.open(WELCOME_BACK_PATH, offline)
 	print("BOOT OK — cash=", GameState.cash.to_notation(), " rep=", GameState.rep_level())
 
 func _build_shell() -> void:
 	var bg := ColorRect.new()
-	bg.color = UI.BG
+	bg.color = preload("res://scripts/ui/museum_chrome.gd").BG
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
@@ -83,6 +85,11 @@ func _build_grade() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 90          # above popups (10) and toasts (30), below nothing
 	add_child(layer)
+	# Refresh after world smoothing and UI; screen-reading passes otherwise share
+	# the earlier world-only snapshot and erase subsequently drawn controls.
+	var copy := BackBufferCopy.new()
+	copy.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+	layer.add_child(copy)
 	var rect := ColorRect.new()
 	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE   # must never eat a tap

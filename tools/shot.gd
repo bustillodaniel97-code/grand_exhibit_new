@@ -10,6 +10,9 @@ extends SceneTree
 ##   out=PATH        target png, absolute or res://user:// (default user://shot.png).
 ##                   out2=/out3=... with at2=/at3=... capture a timed sequence.
 ##   warm=SECS       seconds of simulated play before the first capture (default 2)
+##   sim=SECS        optional accelerated floor simulation after seeding; warm
+##                   still renders live frames afterward. Art preview only,
+##                   not a wall-clock performance or whole-economy benchmark.
 ##   cash=FLOAT      grant cash before warm-up (accepts 1e9 notation)
 ##   gems=INT        grant gems
 ##   levels=INT      buy this many upgrade levels per dept track before warm-up
@@ -40,6 +43,12 @@ func _initialize() -> void:
 	_vp = SubViewport.new()
 	_vp.size = DESIGN
 	_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	# Mirror the shipping viewport setting. Compatibility ignores MSAA; world
+	# edge smoothing is instead part of VenueFloor and therefore captured here.
+	_vp.msaa_2d = ProjectSettings.get_setting(
+		"rendering/anti_aliasing/quality/msaa_2d", 0) as Viewport.MSAA
+	_vp.canvas_item_default_texture_filter = ProjectSettings.get_setting(
+		"rendering/textures/canvas_textures/default_texture_filter", 1) as Viewport.DefaultCanvasItemTextureFilter
 	_vp.handle_input_locally = true
 	_vp.gui_embed_subwindows = true
 	root.add_child(_vp)
@@ -85,6 +94,9 @@ func _seed() -> void:
 		gs.first_launch_unix -= int(_args["days"]) * 86400
 	if _args.has("venue"):
 		var vid: String = String(_args["venue"])
+		if vid not in root.get_node("DataLoader").venue_order():
+			printerr("SHOT unknown venue: ",vid)
+			_done=true;quit(2);return
 		if vid not in gs.venues_unlocked:
 			gs.venues_unlocked.append(vid)
 		gs.current_venue = vid
@@ -100,6 +112,13 @@ func _seed() -> void:
 			for track in ["staff", "speed", "value"]:
 				gs.set_dept_level(venue, dept, track,
 					gs.dept_level(venue, dept, track) + lv)
+	if _args.has("sim"):
+		var preview_floor: Node = _find_floor(root)
+		var economy: Node = root.get_node_or_null("Economy")
+		if preview_floor != null and economy != null:
+			preview_floor.set_rates(economy.venue_rates(gs.current_venue))
+			preview_floor.advance_sim(maxf(0.0,float(_args["sim"])))
+			print("PREVIEW_SIM accelerated floor seconds=",_args["sim"])
 
 
 func _find_floor(n: Node) -> Node:
@@ -133,6 +152,7 @@ func _process(delta: float) -> bool:
 		return false
 	if not _tapped and _t >= float(_shots[0]["t"]) - SETTLE:
 		_tapped = true
+		_fire_zoom()
 		_fire_tap()
 		return false
 	var next: Dictionary = _shots.pop_front()
@@ -152,6 +172,31 @@ func _fire_open() -> void:
 		Popups.open(String(_args["open"]), {})
 
 
+## Drive the venue camera through the REAL input path, not by poking the field.
+##
+## `zoom=2.0 at=360,700` pinches to 2x about that point. Sending a magnify gesture
+## rather than setting _user_zoom is deliberate: it exercises the focal-point
+## correction, which is the part that gets a pinch wrong (the museum slides out
+## from under your fingers) and the part a screenshot can actually show.
+func _fire_zoom() -> void:
+	if not _args.has("zoom"):
+		return
+	var focus: Vector2 = Vector2(DESIGN) * 0.5
+	if _args.has("at"):
+		var xy: PackedStringArray = String(_args["at"]).split(",")
+		if xy.size() == 2:
+			focus = Vector2(float(xy[0]), float(xy[1]))
+	var want: float = maxf(float(_args["zoom"]), 0.05)
+	# In steps, the way fingers deliver it.
+	var steps := 8
+	var per: float = pow(want, 1.0 / float(steps))
+	for _i in steps:
+		var ev := InputEventMagnifyGesture.new()
+		ev.factor = per
+		ev.position = focus
+		_vp.push_input(ev, true)
+
+
 func _fire_tap() -> void:
 	if _args.has("tap"):
 		var xy: PackedStringArray = String(_args["tap"]).split(",")
@@ -167,12 +212,23 @@ func _fire_tap() -> void:
 				_vp.push_input(ev, true)
 
 
+func _report_clumps() -> void:
+	var f: Node = _find_floor(root)
+	if f != null and f.has_method("clump_report"):
+		print("CLUMPS ", f.clump_report())
+		print("CENSUS ", f.state_census())
+		var outdoors: Array = []
+		for person in f._plaza.people:
+			outdoors.append({"activity":f._plaza.activities[person.activity_index].kind,
+				"state":person.state,"position":str(person.pos),"seated":person.node.seated})
+		print("PLAZA_CENSUS ",outdoors)
+
+
 func _capture(path: String) -> void:
+	_report_clumps()
 	var img: Image = _vp.get_texture().get_image()
 	var target := path
-	if not (path.begins_with("res://") or path.begins_with("user://")):
-		target = ProjectSettings.globalize_path(path) if path.begins_with("/") else path
-		if not target.begins_with("/"):
-			target = ProjectSettings.globalize_path("res://").path_join(path)
+	if not path.is_absolute_path():
+		target = ProjectSettings.globalize_path("res://").path_join(path)
 	var err := img.save_png(target)
 	print("SHOT ", target, " ", img.get_width(), "x", img.get_height(), " err=", err)

@@ -1,26 +1,35 @@
 extends Control
-## ManagerPortrait — the framed photo window on a manager's staff pass.
-##
-## Procedural, and not a second art pipeline: the face is the floor's own
-## Character painted by PortraitBaker, wearing the department's uniform. A
-## manager therefore looks like the staff they would be standing next to
-## downstairs, and adding a manager costs a four-integer `look` block in
-## managers.json rather than an asset.
-##
-## The window is drawn before the photo exists and keeps working if it never
-## does: backdrop, halo and the name's initial go down immediately, and the baked
-## texture is swapped in when it lands. Under --headless there is no rendering
-## context to bake with, so the initial is what the suites see.
-##
-## A SEALED file never asks for a bake at all. It used to: the badge inked the
-## finished portrait out to a near-black silhouette, which meant an undiscovered
-## manager looked like a dark figure once the bake landed and like a "?" plate
-## until it did — two different treatments for one state, decided by a race. The
-## sealed plate below is the only thing an unowned manager ever renders.
+## Authored Blender busts share the approved floor cast faces.
+## A sealed file never requests or reveals a portrait texture.
 
 const UI := preload("res://scripts/ui/ui_kit.gd")
 const Character := preload("res://scenes/venue/floor/character.gd")
-const PortraitBaker := preload("res://scenes/managers/portrait_baker.gd")
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
+const PORTRAIT_ROOT := "res://art/manager_portraits/"
+static var _textures: Dictionary = {}
+const BACKGROUND_ROOT := "res://art/manager_backgrounds/"
+const DEPARTMENTS := ["ticket", "archive", "promotions", "gallery"]
+static var _backgrounds: Dictionary = {}
+
+static func background_for(def: Dictionary) -> Texture2D:
+	var dept := str(def.get("specialty", ""))
+	if dept not in DEPARTMENTS: return null
+	if _backgrounds.has(dept): return _backgrounds[dept]
+	var path := BACKGROUND_ROOT + dept + ".png"
+	if not ResourceLoader.exists(path): return null
+	var texture := load(path) as Texture2D
+	if texture != null: _backgrounds[dept] = texture
+	return texture
+
+static func texture_for(def: Dictionary) -> Texture2D:
+	var id := str(def.get("id", ""))
+	if _textures.has(id): return _textures[id]
+	if id.is_empty() or id.get_file() != id: return null
+	var path := PORTRAIT_ROOT + id + ".png"
+	if not ResourceLoader.exists(path): return null
+	var texture := load(path) as Texture2D
+	if texture != null: _textures[id] = texture
+	return texture
 
 var _slot: Control = null
 
@@ -64,7 +73,7 @@ func setup(def: Dictionary, edge: int, owned: bool, fill_width: bool = false) ->
 		custom_minimum_size = Vector2(edge, edge)
 	size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var dept: Color = UI.DEPT_COLORS.get(str(def.get("specialty", "")), UI.LOCKED)
+	var dept := Color(str(def.get("color", "#5B7B8C")))
 	var tint: Color = UI.RARITY_COLORS.get(str(def.get("rarity", "common")), UI.LOCKED)
 
 	var back := Panel.new()
@@ -74,56 +83,56 @@ func setup(def: Dictionary, edge: int, owned: bool, fill_width: bool = false) ->
 	# Deep neutral backdrop with only a wash of the department hue. A backdrop of
 	# straight dept.darkened() put the gallery's gold uniform on a gold wall and
 	# the archive's azure on an azure one — the figure sank into its own colour.
-	sb.bg_color = UI.BG_DEEP.lerp(dept, 0.30) if owned else UI.BG_DEEP.lerp(UI.LOCKED, 0.42)
-	sb.set_corner_radius_all(maxi(edge / 8, 8))
-	sb.set_border_width_all(3)
-	sb.border_color = tint if owned else tint.lerp(UI.LOCKED, 0.55)
+	sb.bg_color = Color("d8ddd4").lerp(dept, 0.12) if owned else Chrome.BG
+	sb.set_corner_radius_all(14)
+	sb.set_border_width_all(1)
+	sb.border_color = Chrome.BRASS if owned else Chrome.BORDER
 	back.add_theme_stylebox_override("panel", sb)
 	add_child(back)
 
-	# Studio halo behind the head, so the figure separates from the backdrop
-	# instead of sinking into a flat rectangle. Lifted off centre because the crop
-	# frames head and chest, so the face sits in the upper half of the window.
-	var halo_wrap := CenterContainer.new()
-	halo_wrap.set_anchors_preset(Control.PRESET_FULL_RECT)
-	halo_wrap.offset_bottom = -edge * 0.16
-	halo_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	halo_wrap.add_child(UI.make_icon("disc", int(edge * 0.74),
-		Color(dept.lightened(0.35), 0.40) if owned else Color(1, 1, 1, 0.05)))
-	add_child(halo_wrap)
+	# The photographed room sits behind the unchanged character, with a quiet
+	# face area and architectural detail at the edges. Four shared backgrounds
+	# keep the collection lightweight; sealed files never load one.
+	back.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
+	if owned:
+		var background := background_for(def)
+		if background != null:
+			var room := TextureRect.new()
+			room.name = "ManagerBackground_" + str(def.get("specialty", ""))
+			room.texture = background
+			room.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+			room.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			room.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			room.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			room.offset_left = 1; room.offset_top = 1
+			room.offset_right = -1; room.offset_bottom = -1
+			room.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			back.add_child(room)
 
 	_slot = Control.new()
 	_slot.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_slot)
+	_slot.clip_contents = true
+	back.add_child(_slot)
 
 	if not owned:
 		_seal(edge)
 		return
 
-	var initial := UI.make_display_label(
-		str(def.get("name", "?")).substr(0, 1), int(edge * 0.42), Color(1, 1, 1, 0.82))
+	var texture := texture_for(def)
+	if texture != null:
+		_show(texture)
+		return
+	# Unknown future managers retain a readable fallback, never a blank card.
+	var initial := UI.make_display_label(str(def.get("name", "?")).substr(0, 1),
+		int(edge * 0.42), Chrome.BG)
 	initial.set_anchors_preset(Control.PRESET_FULL_RECT)
 	initial.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	initial.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	initial.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_slot.add_child(initial)
 
-	var key: String = portrait_key(def)
-	var baked: Texture2D = PortraitBaker.texture_for(key)
-	if baked != null:
-		_show(baked)
-		return
-	# Parent first: PortraitBaker refuses a request from a detached node, because
-	# it has no tree to await a frame on.
-	var fire := func() -> void:
-		PortraitBaker.request(key, look_for(def), self, _show)
-	if is_inside_tree():
-		fire.call()
-	else:
-		tree_entered.connect(fire, CONNECT_ONE_SHOT)
-
-## The sealed plate. One treatment, drawn immediately, identical for all twelve
+## The sealed plate. One treatment, drawn immediately, identical for all
 ## undiscovered managers: an unread file, not a person in shadow.
 func _seal(edge: int) -> void:
 	var mark := UI.make_display_label("?", int(edge * 0.46), Color(1, 1, 1, 0.30))
@@ -150,7 +159,11 @@ func _show(tex: Texture2D) -> void:
 		c.queue_free()
 	var tr := TextureRect.new()
 	tr.texture = tex
+	tr.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	tr.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Keep hair above the frame edge and enough chest visible for tailored lapels.
+	tr.offset_top = custom_minimum_size.y * 0.02
+	tr.offset_bottom = custom_minimum_size.y * 0.10
 	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE

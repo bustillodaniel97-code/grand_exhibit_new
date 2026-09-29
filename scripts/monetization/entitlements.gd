@@ -64,3 +64,20 @@ static func restore(product_ids: Array) -> int:
 			(st["owned"] as Array).append(id)
 			added += 1
 	return added
+
+## Remove entitlements Play no longer reports — a refund, chargeback or
+## developer revocation. The counterpart to restore(): reconciliation has to be
+## able to move in BOTH directions, or refunding the ad-free upgrade is a way to
+## keep it for free. Purchase COUNT is left alone on purpose; the player really
+## did once buy something, and first-purchase offers should not reappear.
+static func withdraw(product_ids: Array) -> int:
+	var st: Dictionary = _st()
+	var owned: Array = st.get("owned", [])
+	var removed: int = 0
+	for pid in product_ids:
+		var id: String = str(pid)
+		var at: int = owned.find(id)
+		if at >= 0:
+			owned.remove_at(at)
+			removed += 1
+	return removed

@@ -1,4 +1,5 @@
 extends RefCounted
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 ## UI Kit v2 — shared palette + widget factories for every screen (SPEC §2).
 ## Plain RefCounted with statics. NO class_name: callers preload this file.
 ## v2: Kenney CC0 skin — nine-patch StyleBoxTexture buttons/panels/bars, icon
@@ -44,17 +45,17 @@ const DANGER := Color("#FF4757")    # hot red — unaffordable / bottleneck
 ## Measured against PAGE (WCAG): TEXT 15.8:1, TEXT_DIM 8.4:1, TEXT_MUTE 5.4:1.
 ## Against CARD: 11.1:1, 5.9:1, 3.7:1. Accents clear 4.5:1 on PAGE except where
 ## noted at the call site.
-const PAGE := Color("#141033")        # popup page ground
-const PAGE_DEEP := Color("#0D0A24")   # wells, troughs, sunken rows
-const CARD := Color("#332A70")        # a card sitting on PAGE (1.48:1 lift)
-const CARD_HI := Color("#443893")     # selected / elevated / header strip
-const TEXT := Color("#F6F3FF")        # primary text on PAGE or CARD
-const TEXT_DIM := Color("#B7ADE4")    # secondary text, captions, sub-values
-const TEXT_MUTE := Color("#8F84C4")   # fine print, empty states, spent pips
+const PAGE := Chrome.BG
+const PAGE_DEEP := Color("#101c24")
+const CARD := Chrome.PANEL
+const CARD_HI := Chrome.RAISED
+const TEXT := Chrome.INK
+const TEXT_DIM := Chrome.DIM
+const TEXT_MUTE := Color("#a3baba")
 ## The one disabled-control tone. Flat, hueless and quieter than any live card,
 ## so a dead button recedes on the dark page and still reads as spent on the one
 ## light surface that disables anything (the dept sheet's MAX).
-const DEAD := Color("#332F4A")
+const DEAD := Color("#263b45")
 ## Hairline rule / rim on dark. A light rule at low alpha reads on both PAGE and
 ## CARD; a dark one disappears into whichever of the two it lands on.
 const HAIRLINE := Color(1, 1, 1, 0.12)
@@ -338,23 +339,16 @@ static func make_inset(tint: Color = PANEL_SOFT) -> StyleBoxFlat:
 ## separate one dark surface from another, so the lift comes from a lit top edge
 ## (the same trick the candy buttons use) plus a black shadow underneath.
 static func make_dark_card(fill: Color = CARD, radius: int = RADIUS_CARD) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = fill
-	sb.set_corner_radius_all(radius)
-	sb.set_content_margin_all(14)
-	sb.border_width_top = 2
-	sb.border_color = Color(1, 1, 1, 0.10)
-	sb.shadow_color = Color(0, 0, 0, 0.42)
-	sb.shadow_size = 6
-	sb.shadow_offset = Vector2(0, 3)
+	var sb := Chrome.panel(radius, fill)
+	sb.set_content_margin_all(16)
 	return sb
 
 ## Dark card plus a saturated rim — offers, rarity frames, outcome cards. The rim
 ## is what tells the player which KIND of thing this is, so it stays full chroma.
 static func make_dark_frame(tint: Color = BRASS, fill: Color = CARD) -> StyleBoxFlat:
 	var sb := make_dark_card(fill)
-	sb.set_border_width_all(3)
-	sb.border_color = tint
+	sb.set_border_width_all(1)
+	sb.border_color = tint.lerp(Chrome.BORDER, 0.55)
 	return sb
 
 ## Recessed well on a dark page (empty slots, stat wells, sub-panels). Reads as
@@ -365,14 +359,13 @@ static func make_dark_inset(fill: Color = PAGE_DEEP, radius: int = RADIUS_BUTTON
 	sb.set_corner_radius_all(radius)
 	sb.set_content_margin_all(10)
 	sb.set_border_width_all(1)
-	sb.border_color = Color(0, 0, 0, 0.45)
-	sb.border_width_bottom = 2
+	sb.border_color = Chrome.BORDER.darkened(0.2)
 	return sb
 
 ## Dark panel (toasts, dramatic headers).
 static func make_dark_panel() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = BG_DEEP
+	sb.bg_color = PAGE_DEEP
 	sb.set_corner_radius_all(RADIUS_CARD)
 	sb.set_content_margin_all(14)
 	sb.shadow_color = Color(0, 0, 0, 0.35)
@@ -382,30 +375,25 @@ static func make_dark_panel() -> StyleBoxFlat:
 ## Progress bar track — deep, so a bright fill reads as light inside a channel.
 static func make_bar_bg() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = BG_DEEP.lerp(PANEL, 0.18)
-	sb.set_corner_radius_all(10)
-	sb.set_border_width_all(2)
-	sb.border_color = BG_DEEP.lerp(PANEL, 0.06)
+	sb.bg_color = PAGE_DEEP
+	sb.set_corner_radius_all(4)
 	return sb
 
 const _BAR_COLORS := {
-	"green": Color("#2ED573"), "yellow": Color("#FFC53D"),
-	"blue": Color("#3BA9F5"), "red": Color("#FF4757"),
+	"green": Chrome.TEAL, "yellow": Chrome.BRASS,
+	"blue": Color("#96c8df"), "red": Chrome.DANGER,
 }
 
 static func make_bar_fill(kind: String = "green") -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = _BAR_COLORS.get(kind, _BAR_COLORS["green"])
-	sb.set_corner_radius_all(10)
-	# Lit top edge so the fill looks like a glossy capsule, not a flat block.
-	sb.border_width_top = 3
-	sb.border_color = (sb.bg_color as Color).lightened(0.35)
+	sb.set_corner_radius_all(4)
 	return sb
 
 # --- Floating chrome (HUD, nav and quest chips drawn over the world) ---------
 ## Base tone for chrome that floats instead of sitting on a panel. Deeper than BG
 ## so a pill still separates from the shell behind it.
-const GLASS := Color("#171132")
+const GLASS := Chrome.BG
 
 ## Translucent "glass" pill for floating chrome. The shell bars used to be opaque
 ## cream slabs: together they painted a fifth of the portrait canvas light, and
@@ -469,15 +457,14 @@ static func skin_button(b: Button, bg: Color) -> Button:
 	else:
 		_apply_display_font(b)
 	b.add_theme_font_size_override("font_size", TYPE_HEADING)
-	b.add_theme_color_override("font_color", Color.WHITE)
-	b.add_theme_color_override("font_hover_color", Color.WHITE)
-	b.add_theme_color_override("font_pressed_color", Color(1, 1, 1, 0.9))
-	b.add_theme_color_override("font_disabled_color", Color(1, 1, 1, 0.6))
-	# Dark rim keeps white text legible on the lighter accents (gold especially).
-	b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.35))
-	b.add_theme_constant_override("outline_size", 3)
+	b.add_theme_color_override("font_color", TEXT)
+	b.add_theme_color_override("font_hover_color", TEXT)
+	b.add_theme_color_override("font_pressed_color", TEXT)
+	b.add_theme_color_override("font_disabled_color", TEXT_MUTE)
+	b.add_theme_constant_override("outline_size", 0)
+	b.custom_minimum_size.y = maxf(b.custom_minimum_size.y, TOUCH_MIN)
 	retint_button(b, bg)
-	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.add_theme_stylebox_override("focus", _button_focus())
 	add_press_squish(b)
 	return b
 
@@ -490,9 +477,10 @@ static func skin_button(b: Button, bg: Color) -> Button:
 ## press-feel signals, and re-running it on a timer stacks duplicate connections
 ## (and duplicate click SFX).
 static func retint_button(b: Button, bg: Color) -> Button:
-	b.add_theme_stylebox_override("normal", _button_box(bg, 6))
-	b.add_theme_stylebox_override("hover", _button_box(bg.lightened(0.12), 6))
-	b.add_theme_stylebox_override("pressed", _button_box(bg.darkened(0.10), 2, 4))
+	var fill := _action_fill(bg)
+	b.add_theme_stylebox_override("normal", _button_box(fill, 0))
+	b.add_theme_stylebox_override("hover", _button_box(fill.lightened(0.08), 0))
+	b.add_theme_stylebox_override("pressed", _button_box(fill.darkened(0.12), 0))
 	# Disabled is ONE state, so it gets one tone and keeps none of the live hue.
 	# The old target was a 42%-grey mixed with the button's own colour, which on a
 	# dark page came out as the brightest slab on the screen — a dead control
@@ -500,21 +488,43 @@ static func retint_button(b: Button, bg: Color) -> Button:
 	b.add_theme_stylebox_override("disabled", _button_box(DEAD, 4))
 	return b
 
-static func _button_box(bg: Color, lip: int, top_pad_extra: int = 0) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = bg
-	sb.set_corner_radius_all(RADIUS_BUTTON)
-	sb.border_width_bottom = lip
-	sb.border_width_top = 2
-	sb.border_color = bg.darkened(0.32)
+static func _button_box(bg: Color, _lip: int, _top_pad_extra: int = 0) -> StyleBoxFlat:
+	var sb := Chrome.panel(RADIUS_BUTTON, bg)
 	sb.content_margin_left = 16
 	sb.content_margin_right = 16
-	sb.content_margin_top = 10 + top_pad_extra
-	sb.content_margin_bottom = 12 - top_pad_extra
-	sb.shadow_color = Color(0.06, 0.03, 0.16, 0.22)
-	sb.shadow_size = 3
-	sb.shadow_offset = Vector2(0, 2)
+	sb.content_margin_top = 10
+	sb.content_margin_bottom = 10
 	return sb
+
+## Translate legacy action roles without changing department/board colours.
+static func _action_fill(tint: Color) -> Color:
+	if tint in [SAGE, ACCENT, UPGRADE_GREEN, Chrome.TEAL, Chrome.ACTION]:
+		return Chrome.ACTION
+	if tint in [BRASS, Chrome.BRASS]: return Color("#6a5534")
+	if tint == SLATE: return Color("#305e70")
+	if tint == PLUM: return Color("#58465c")
+	if tint in [DANGER, Chrome.DANGER]: return Color("#813f3b")
+	if tint == Chrome.DIM or tint.get_luminance() > 0.6: return Chrome.PANEL
+	return tint
+
+static func _button_focus() -> StyleBoxFlat:
+	var sb := Chrome.panel(RADIUS_BUTTON, Color.TRANSPARENT)
+	sb.border_color = Chrome.BRASS
+	sb.set_border_width_all(2)
+	return sb
+
+## Shared portrait page gutter; the entire content remains scrollable.
+static func make_page_scroll(host: Control, gutter: int = 20) -> ScrollContainer:
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, gutter)
+	host.add_child(margin)
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(scroll)
+	return scroll
 
 ## Small square icon button — close buttons, icon chips. Same candy treatment as
 ## the text buttons so nothing in the kit still renders on the old grey texture.
@@ -523,7 +533,7 @@ static func make_icon_button(icon_name: String, bg: Color, size: int = 52) -> Bu
 	b.custom_minimum_size = Vector2(maxi(size, TOUCH_MIN), maxi(size, TOUCH_MIN))
 	b.add_theme_font_override("font", font())
 	retint_button(b, bg)
-	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.add_theme_stylebox_override("focus", _button_focus())
 	b.icon = icon_texture(icon_name, int(size * 0.55))
 	add_press_squish(b)
 	return b
@@ -534,7 +544,7 @@ static func add_press_squish(b: BaseButton) -> void:
 	b.resized.connect(func() -> void:
 		if is_instance_valid(b):
 			b.pivot_offset = b.size / 2.0)
-	b.button_down.connect(func() -> void: _squish_to(b, Vector2(0.93, 0.88), 0.06))
+	b.button_down.connect(func() -> void: _squish_to(b, Vector2(0.98, 0.98), 0.06))
 	b.button_up.connect(func() -> void: _squish_to(b, Vector2.ONE, 0.14))
 	b.pressed.connect(func() -> void: play_sfx(b, "click"))
 

@@ -21,12 +21,16 @@ extends Control
 
 const UI := preload("res://scripts/ui/ui_kit.gd")
 const Popups := preload("res://scripts/ui/popup_manager.gd")
+const PrestigeSystem := preload("res://scripts/meta/prestige_system.gd")
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 
 const DECOR_PATH := "res://scenes/meta/decor_screen.tscn"
 const PRESTIGE_PATH := "res://scenes/meta/prestige_screen.tscn"
+const STATISTICS_PATH := "res://scenes/meta/statistics_screen.tscn"
 
-const TILE := 56          # > 48dp touch floor
-const GAP := 10
+const TILE := 72          # wide enough for the longest caption, still a 52px target
+const TILE_HEIGHT := 52
+const GAP := 8
 ## Clearance under the venue strip. Enough that the rail reads as floating on the
 ## world rather than as a fourth chrome band welded to the bottom of the strip.
 const TOP_CLEARANCE := 12
@@ -37,9 +41,12 @@ var _col: VBoxContainer
 var _prestige_item: Control
 var _strip: Control          # QuestsBar, when it exists
 var _timer: Timer
+var _celebrated: Dictionary = {}
 
 func _ready() -> void:
 	name = "SideRail"
+	# Keep floating controls above every museum storey and its finishing pass.
+	z_index = 100
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	# The rail is a floating overlay, not a page: it must be transparent to every
 	# tap that is not on one of its tiles.
@@ -51,8 +58,9 @@ func _ready() -> void:
 	_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_col)
 
-	_col.add_child(_rail_item("Decor", "star", UI.SAGE, _on_decor_pressed))
-	_prestige_item = _rail_item("Prestige", "trophy", UI.BRASS, _on_prestige_pressed)
+	_col.add_child(_rail_item("Stats", "disc", Chrome.TEAL, _on_stats_pressed))
+	_col.add_child(_rail_item("Decor", "star", Chrome.TEAL, _on_decor_pressed))
+	_prestige_item = _rail_item("Next Museum", "trophy", Chrome.BRASS, _on_prestige_pressed)
 	_col.add_child(_prestige_item)
 
 	EventBus.reputation_changed.connect(_on_state_changed)
@@ -83,38 +91,34 @@ func _bind() -> void:
 			_strip.resized.connect(_reposition)
 	_reposition()
 
-## One rail entry: a square glass tile plus a caption under it. Icon-only tiles
-## are what IBT ships, but its icons are illustrated objects; ours are 24px
-## monochrome glyphs, so the caption is what keeps the rail readable.
+## One full-width museum tile plus its caption. Captions are part of the measured
+## item width so "Next Museum" cannot be clipped on narrow handsets.
 func _rail_item(text: String, icon_name: String, tint: Color, cb: Callable) -> Control:
 	var item := VBoxContainer.new()
 	item.name = "Item%s" % text
-	item.add_theme_constant_override("separation", 1)
+	item.add_theme_constant_override("separation", 2)
 	item.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	item.custom_minimum_size = Vector2(TILE, 0)
 
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(TILE, TILE)
+	b.custom_minimum_size = Vector2(TILE, TILE_HEIGHT)
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.tooltip_text = text
-	b.icon = UI.icon_texture(icon_name, 26)
+	b.icon = UI.icon_texture(icon_name, 22)
 	b.expand_icon = false
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	Chrome.button(b, false, 12)
 	for state in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
 		b.add_theme_color_override(state, tint)
-	var normal := UI.make_glass(16)
-	b.add_theme_stylebox_override("normal", normal)
-	b.add_theme_stylebox_override("hover", UI.make_glass(16, 0.92, Color(1, 1, 1, 0.28)))
-	var pressed := UI.make_glass(16, 0.96, Color(1, 1, 1, 0.34))
-	b.add_theme_stylebox_override("pressed", pressed)
-	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	UI.add_press_squish(b)
 	b.pressed.connect(cb)
 	item.add_child(b)
 
-	var cap := UI.make_display_label(text, UI.TYPE_CAPTION, Color.WHITE)
+	var cap := UI.make_display_label(text, UI.TYPE_CAPTION, Chrome.INK)
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# The caption sits straight on the world, so it carries its own contrast.
-	UI.add_text_halo(cap, Color(0, 0, 0, 0.75), 4)
+	cap.clip_text = false
 	item.add_child(cap)
 	return item
 
@@ -123,7 +127,9 @@ func _reposition() -> void:
 	if _col == null or not is_inside_tree():
 		return
 	var inset: Dictionary = UI.safe_area_insets(self)
-	var w: float = float(TILE)
+	# The label determines the real width; do not force the column back to the
+	# icon width after Godot has measured it.
+	var w: float = maxf(float(TILE), _col.get_combined_minimum_size().x)
 	var h: float = _col.get_combined_minimum_size().y
 	_col.size = Vector2(w, h)
 	_col.position = Vector2(
@@ -146,12 +152,22 @@ func refresh() -> void:
 	# Never disable a control for availability — a disabled button swallows the
 	# tap and tells the player nothing. Prestige is simply absent until it means
 	# something, and Decor stays live and explains itself.
-	var milestones_done: int = GameState.venue_state(GameState.current_venue) \
-		.get("milestones", []).size()
-	var show_prestige: bool = GameState.feature_unlocked("prestige") or milestones_done >= 8
+	# This is not an optional prestige/reset control. It appears only when the
+	# current museum is genuinely 100% complete and its sole meaning is opening
+	# the next authored level.
+	var show_prestige: bool = PrestigeSystem.gate_met(GameState.current_venue) \
+		and PrestigeSystem.next_venue_id() != ""
 	if _prestige_item.visible != show_prestige:
 		_prestige_item.visible = show_prestige
 		_reposition()
+	if show_prestige and not bool(_celebrated.get(GameState.current_venue, false)) \
+			and not Popups.is_open():
+		_celebrated[GameState.current_venue] = true
+		call_deferred("_open_completion")
+
+func _open_completion() -> void:
+	if PrestigeSystem.gate_met(GameState.current_venue) and not Popups.is_open():
+		Popups.open(PRESTIGE_PATH, {"celebrate": true})
 
 func _on_decor_pressed() -> void:
 	if GameState.feature_unlocked("decor"):
@@ -159,6 +175,9 @@ func _on_decor_pressed() -> void:
 	else:
 		var req: int = int(DataLoader.core.get("unlocks", {}).get("decor_rep", 2))
 		EventBus.toast_requested.emit("Decor unlocks at Rep %d" % req)
+
+func _on_stats_pressed() -> void:
+	Popups.open(STATISTICS_PATH)
 
 func _on_prestige_pressed() -> void:
 	Popups.open(PRESTIGE_PATH)

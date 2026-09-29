@@ -4,11 +4,18 @@ extends Node
 ## banked cash = min(pending rate, archive transport rate). Banked goes straight to vault.
 
 const DecorSystem := preload("res://scripts/meta/decor_system.gd")
+const ManagerSystem := preload("res://scripts/managers/manager_system.gd")
 
 var _accum: float = 0.0
 var _signal_throttle: float = 0.0
 var _served_win: BigNumber = BigNumber.zero()
 var _banked_win: BigNumber = BigNumber.zero()
+## Rating is requested as part of every economy tick, yet only changes when
+## visitor flow or placed decor changes. Cache the fully formatted breakdown,
+## not just its scalar, so HUD/statistics callers all share the same answer.
+## The key is derived from live inputs, so direct state edits in tests and dev
+## tools invalidate it without relying on a signal.
+var _satisfaction_cache: Dictionary = {}
 
 func _process(delta: float) -> void:
 	if not GameState.ready_flag:
@@ -113,6 +120,15 @@ func item_mult(level: int) -> float:
 func item_max_level() -> int:
 	return int(_items_cfg().get("max_level", 25))
 
+## Venue-scoped ceiling for the legacy department-wide speed/value tracks.
+## Early venues teach the loop and graduate quickly; later venues extend the
+## runway toward the genre-standard long tail instead of level one running past
+## 200 forever.
+func track_max_level(venue_id: String, track: String) -> int:
+	if track == "staff":
+		return 99  # staff has a department-specific cap handled by purchase_upgrade
+	return maxi(int(DataLoader.get_venue(venue_id).get("track_level_cap", 100)), 1)
+
 ## Summed contribution of a department's items, in staff-units.
 ## venue_rates calls this four times and sits on a 10k-calls-in-2s perf budget,
 ## so the common case (container present, mirror in sync) reads the raw dict
@@ -152,12 +168,33 @@ func item_pending(venue_id: String, dept_id: String, index: int) -> BigNumber:
 		return BigNumber.zero()
 	return BigNumber.from_save(items[index].get("pending", {}))
 
+func item_collect_cooldown(venue_id: String, dept_id: String, index: int) -> int:
+	var items: Array = GameState.dept_items(venue_id, dept_id)
+	if index < 0 or index >= items.size():
+		return 0
+	var cfg: Dictionary = _items_cfg()
+	var level: int = maxi(int(items[index].get("lv", 1)), 1)
+	var venue_order: int = maxi(int(DataLoader.get_venue(venue_id).get("order", 1)), 1)
+	var seconds: int = int(cfg.get("collect_cooldown_base_s", 120)) \
+		+ (level - 1) * int(cfg.get("collect_cooldown_per_level_s", 5)) \
+		+ (venue_order - 1) * int(cfg.get("collect_cooldown_per_venue_s", 30))
+	return mini(seconds, int(cfg.get("collect_cooldown_max_s", 300)))
+
+func item_collect_remaining(venue_id: String, dept_id: String, index: int) -> int:
+	var items: Array = GameState.dept_items(venue_id, dept_id)
+	if index < 0 or index >= items.size():
+		return 0
+	var ready_at: int = int(items[index].get("collect_ready_at", 0))
+	return maxi(ready_at - ClockGuard.now(), 0)
+
 ## Tap-to-collect on ONE station: banks that item's pile immediately, bypassing
 ## the porters — that is the whole point of tapping. Clamped to the venue's
 ## actual pending so the ledger can never mint cash the sim has not produced.
 func collect_item(venue_id: String, dept_id: String, index: int) -> BigNumber:
 	var items: Array = GameState.dept_items(venue_id, dept_id)
 	if index < 0 or index >= items.size():
+		return BigNumber.zero()
+	if item_collect_remaining(venue_id, dept_id, index) > 0:
 		return BigNumber.zero()
 	var amount: BigNumber = BigNumber.from_save(items[index].get("pending", {}))
 	var venue_pending: BigNumber = GameState.pending_cash.get(venue_id, BigNumber.zero())
@@ -166,6 +203,8 @@ func collect_item(venue_id: String, dept_id: String, index: int) -> BigNumber:
 	if amount.is_zero():
 		return BigNumber.zero()
 	items[index]["pending"] = BigNumber.zero().to_save()
+	items[index]["collect_ready_at"] = ClockGuard.now() \
+		+ item_collect_cooldown(venue_id, dept_id, index)
 	GameState.pending_cash[venue_id] = venue_pending.sub(amount)
 	GameState.cash = GameState.cash.add(amount)
 	var vs: Dictionary = GameState.venue_state(venue_id)
@@ -178,22 +217,70 @@ func collect_item(venue_id: String, dept_id: String, index: int) -> BigNumber:
 ## proportion to each item's throughput contribution. The venue-level pending
 ## stays the single source of truth for the sim; the per-item ledger is its
 ## visible decomposition, renormalised here so drift can never accumulate.
+## Which ticket stations currently have somebody at the glass.
+##
+## A presentation HINT, never truth. The economy is rate-based and has to keep
+## working with no floor in existence at all — offline earnings, headless tests,
+## a venue the player is not looking at. So this changes only WHERE a tick's
+## takings are booked, never how much is booked, and an absent or stale hint
+## falls straight back to the old even split.
+##
+## Without it every window's pile climbs whether or not anyone is standing
+## there, which on screen is a till counting money by itself.
+var _busy_stations: Dictionary = {}   # venue_id -> {idx: PackedInt32Array, t: float}
+const _BUSY_HINT_TTL := 1.0
+
+func set_busy_stations(venue_id: String, indices: PackedInt32Array) -> void:
+	_busy_stations[venue_id] = {
+		"idx": indices, "t": float(Time.get_ticks_msec()) / 1000.0,
+	}
+
+## Live, in-range busy indices, or empty when there is no fresh hint. The TTL is
+## what makes a closed floor or a venue switch fail safe instead of pinning the
+## takings to stations nobody is watching any more.
+func _busy_indices(venue_id: String, count: int) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	var e: Dictionary = _busy_stations.get(venue_id, {})
+	if e.is_empty():
+		return out
+	if float(Time.get_ticks_msec()) / 1000.0 - float(e.get("t", 0.0)) > _BUSY_HINT_TTL:
+		return out
+	for i in (e.get("idx", PackedInt32Array()) as PackedInt32Array):
+		if i >= 0 and i < count:
+			out.append(i)
+	return out
+
 func _allocate_item_pending(venue_id: String, gained: BigNumber, drained: BigNumber) -> void:
 	var items: Array = GameState.dept_items(venue_id, "ticket")
 	if items.is_empty():
 		return
+	# Book this tick's takings against the windows actually serving somebody.
+	# Falls back to every window when no floor is reporting.
+	var alloc: PackedInt32Array = _busy_indices(venue_id, items.size())
+	if alloc.is_empty():
+		for i in items.size():
+			alloc.append(i)
 	var total_units := 0.0
-	for it in items:
-		total_units += item_mult(int(it.get("lv", 1)))
+	for i in alloc:
+		total_units += item_mult(int(items[i].get("lv", 1)))
 	if total_units <= 0.0:
 		return
 	var ledger_total := BigNumber.zero()
 	for it in items:
 		ledger_total = ledger_total.add(BigNumber.from_save(it.get("pending", {})))
-	for it in items:
-		var share: float = item_mult(int(it.get("lv", 1))) / total_units
+	var earning: Dictionary = {}
+	for i in alloc:
+		earning[i] = true
+	for idx in items.size():
+		var it: Dictionary = items[idx]
+		# Only a serving window takes a share of the gain; every window is still
+		# eligible for the porter drain below, because a porter collects from
+		# whatever pile it finds.
+		var share: float = (item_mult(int(it.get("lv", 1))) / total_units) \
+			if earning.has(idx) else 0.0
 		var p: BigNumber = BigNumber.from_save(it.get("pending", {}))
-		p = p.add(gained.scale(share))
+		if share > 0.0:
+			p = p.add(gained.scale(share))
 		if not drained.is_zero() and not ledger_total.is_zero():
 			# Porters take from the piles they find, so the drain follows the
 			# ledger's own distribution, not the throughput split.
@@ -212,9 +299,7 @@ func manager_multiplier_for(dept_id: String) -> float:
 		var def: Dictionary = DataLoader.get_manager_def(mid)
 		if def.get("specialty", "") != dept_id:
 			continue
-		var rank: int = clampi(int(st.get("rank", 1)), 1, 4)
-		var rank_mults: Array = def.get("rank_mults", [1.0, 1.5, 2.25, 3.5])
-		mult *= 1.0 + float(def.get("base_mult", 0.03)) * float(st.get("level", 1)) * float(rank_mults[rank - 1])
+		mult *= ManagerSystem.productivity_multiplier(def, st)
 	return mult
 
 ## decor (per-venue pieces + global set bonuses) x boost x milestone globals
@@ -314,20 +399,79 @@ func venue_rates(venue_id: String) -> Dictionary:
 		dept_stat(venue_id, "ticket", "value") * dept_stat(venue_id, "promotions", "value")
 		* (1.0 + gallery_bonus) * income_multiplier(venue_id) * float(sat["income_mult"]))
 	var effective_visitors: float = flows["effective_visitors_per_s"]
-	var choke_id: String = "promotions" if arrival <= serve else "ticket"
+	var actual_choke_id: String = "promotions" if arrival <= serve else "ticket"
 	var pending_per_s: BigNumber = value_per_visitor.scale(effective_visitors)
 	var transport_cash: BigNumber = value_per_visitor.scale(transport)
 	var banked_per_s: BigNumber = pending_per_s if pending_per_s.lt(transport_cash) else transport_cash
 	if transport_cash.lt(pending_per_s):
-		choke_id = "archive"
+		actual_choke_id = "archive"
+	# A red BOTTLENECK badge is an upgrade recommendation, not merely a piece of
+	# telemetry. Do not point it at a flow leg the player has completely capped
+	# for this venue; there is no action they can take there. Keep the physical
+	# limiter separately for diagnostics.
+	var choke_capped: bool = flow_track_maxed(venue_id, actual_choke_id)
+	var choke_id: String = "" if choke_capped else actual_choke_id
 	return {
 		"arrival_per_s": arrival, "serve_per_s": serve, "transport_per_s": transport,
 		"value_per_visitor": value_per_visitor, "effective_visitors_per_s": effective_visitors,
-		"pending_per_s": pending_per_s, "banked_per_s": banked_per_s, "choke_id": choke_id,
+		"pending_per_s": pending_per_s, "banked_per_s": banked_per_s,
+		"choke_id": choke_id, "actual_choke_id": actual_choke_id,
+		"choke_capped": choke_capped,
 		"gallery_bonus": gallery_bonus,
 		"satisfaction": sat, "satisfaction_mult": float(sat["income_mult"]),
 		"stars": float(sat["stars"]),
 	}
+
+## Whether the capacity-producing controls for a flow leg have no upgrades left
+## in this venue. Value does not affect capacity, so it is intentionally omitted.
+func flow_track_maxed(venue_id: String, dept_id: String) -> bool:
+	if dept_id not in ["promotions", "ticket", "archive"]:
+		return false
+	var def: Dictionary = DataLoader.dept_def(dept_id)
+	var staff_maxed: bool = GameState.dept_level(venue_id, dept_id, "staff") \
+		>= int(def.get("max_staff", 99))
+	var speed_maxed: bool = GameState.dept_level(venue_id, dept_id, "speed") \
+		>= track_max_level(venue_id, "speed")
+	return staff_maxed and speed_maxed
+
+## Player-facing interpretation of the rate chain. This is deliberately
+## separate from choke_id: telemetry may name a capped physical ceiling, while
+## guidance must name an action the player can still take.
+func flow_guidance(venue_id: String) -> Dictionary:
+	var rates: Dictionary = venue_rates(venue_id)
+	var actual: String = str(rates.get("actual_choke_id", rates.get("choke_id", "")))
+	var capped: bool = bool(rates.get("choke_capped", false))
+	var names := {
+		"promotions": DataLoader.venue_dept_name(venue_id, "promotions"),
+		"ticket": DataLoader.venue_dept_name(venue_id, "ticket"),
+		"archive": DataLoader.venue_dept_name(venue_id, "archive"),
+	}
+	if actual == "":
+		return {"dept": "", "actionable": false, "title": "Flow unavailable",
+			"detail": "Add staff to begin serving visitors."}
+	if capped:
+		var defs: Array = DataLoader.milestones.get(venue_id, [])
+		var done: int = GameState.venue_state(venue_id).get("milestones", []).size()
+		if not defs.is_empty() and done >= defs.size():
+			return {"dept": "", "actual_dept": actual, "actionable": false,
+				"title": "%s is at this venue's ceiling" % str(names.get(actual, actual.capitalize())),
+				"detail": "The venue is complete. Move on to unlock the next capacity tier.",
+				"ready_to_move": true}
+		return {"dept": "", "actual_dept": actual, "actionable": false,
+			"title": "%s is fully upgraded here" % str(names.get(actual, actual.capitalize())),
+			"detail": "Finish the remaining objectives to unlock the next venue.",
+			"ready_to_move": false}
+	var actions := {
+		"promotions": ("Add or improve café hosts to serve guests faster."
+			if DataLoader.venue_dept_name(venue_id, "promotions").to_lower().contains("cafe")
+			else "Hire or improve marketers to bring visitors in faster."),
+		"ticket": "Add or improve cashier stations to clear the queue faster.",
+		"archive": "Add or improve porters and carts to bank counter cash faster.",
+	}
+	return {"dept": actual, "actual_dept": actual, "actionable": true,
+		"title": "%s needs attention" % str(names.get(actual, actual.capitalize())),
+		"detail": str(actions.get(actual, "Upgrade this department.")),
+		"ready_to_move": false}
 
 func current_cash_per_second() -> BigNumber:
 	return venue_rates(GameState.current_venue)["banked_per_s"]
@@ -387,6 +531,18 @@ func queue_wait_seconds(arrival: float, serve: float) -> float:
 func venue_satisfaction(venue_id: String, flows: Dictionary = {}) -> Dictionary:
 	if flows.is_empty():
 		flows = venue_flows(venue_id)
+	var arrival: float = float(flows.get("arrival_per_s", 0.0))
+	var serve: float = float(flows.get("serve_per_s", 0.0))
+	var throughput: float = float(flows.get("effective_visitors_per_s", 0.0))
+	var decor_state: Dictionary = GameState.venue_state(venue_id).get("decor", {})
+	var decor_signature: int = hash(decor_state)
+	var cached: Dictionary = _satisfaction_cache.get(venue_id, {})
+	if not cached.is_empty() \
+			and float(cached.get("arrival", -1.0)) == arrival \
+			and float(cached.get("serve", -1.0)) == serve \
+			and float(cached.get("throughput", -1.0)) == throughput \
+			and int(cached.get("decor_signature", -1)) == decor_signature:
+		return cached["result"]
 	var cfg: Dictionary = satisfaction_config()
 	var wcfg: Dictionary = cfg.get("weights", {})
 	var weights := {
@@ -401,13 +557,10 @@ func venue_satisfaction(venue_id: String, flows: Dictionary = {}) -> Dictionary:
 	var decor_score: float = clampf(points / decor_target, 0.0, 1.0)
 
 	var scfg: Dictionary = cfg.get("speed", {})
-	var arrival: float = float(flows.get("arrival_per_s", 0.0))
-	var serve: float = float(flows.get("serve_per_s", 0.0))
 	var wait_s: float = queue_wait_seconds(arrival, serve)
 	var wait_good: float = float(scfg.get("wait_good_s", 3.0))
 	var wait_bad: float = maxf(wait_good + 0.001, float(scfg.get("wait_bad_s", 30.0)))
 	var wait_score: float = clampf(1.0 - (wait_s - wait_good) / (wait_bad - wait_good), 0.0, 1.0)
-	var throughput: float = float(flows.get("effective_visitors_per_s", 0.0))
 	var tp_target: float = satisfaction_throughput_target(venue_id)
 	var tp_score: float = clampf(throughput / tp_target, 0.0, 1.0)
 	var queue_weight: float = clampf(float(scfg.get("queue_weight", 0.6)), 0.0, 1.0)
@@ -459,7 +612,7 @@ func venue_satisfaction(venue_id: String, flows: Dictionary = {}) -> Dictionary:
 			"detail": str(details[key]),
 		}
 
-	return {
+	var result := {
 		"score": score,
 		"stars": score * STARS_MAX,
 		"stars_rounded": roundf(score * STARS_MAX * 2.0) / 2.0,
@@ -478,6 +631,14 @@ func venue_satisfaction(venue_id: String, flows: Dictionary = {}) -> Dictionary:
 		"seats_needed": seats_needed,
 		"crowd": crowd,
 	}
+	_satisfaction_cache[venue_id] = {
+		"arrival": arrival,
+		"serve": serve,
+		"throughput": throughput,
+		"decor_signature": decor_signature,
+		"result": result,
+	}
+	return result
 
 ## Cash multiplier the rating applies to value-per-visitor. See venue_rates for
 ## why the rating moves the drop and not the drop rate.
@@ -527,6 +688,8 @@ func purchase_upgrade(venue_id: String, dept_id: String, track: String) -> bool:
 		_grant_rep(staff)
 		EventBus.department_upgraded.emit(venue_id, dept_id, track, staff + 1)
 		return true
+	if level >= track_max_level(venue_id, track):
+		return false
 	var cost: BigNumber = _cost(venue_id, dept_id, track, level)
 	if not GameState.spend_cash(cost):
 		return false

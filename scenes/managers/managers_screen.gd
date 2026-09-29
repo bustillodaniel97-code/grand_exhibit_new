@@ -19,20 +19,25 @@ extends Control
 
 const ManagerSystem := preload("res://scripts/managers/manager_system.gd")
 const UI := preload("res://scripts/ui/ui_kit.gd")
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
+const Popups := preload("res://scripts/ui/popup_manager.gd")
+const CASES_PATH := "res://scenes/managers/lootbox_screen.tscn"
+const FILTERS := {"all": "All", "ready": "Ready", "duty": "On duty", "available": "Available", "sealed": "Sealed"}
+
 const ManagerBadge := preload("res://scenes/managers/manager_badge.gd")
 
 # This screen is popup CONTENT on a DARK page: the deck of passes is the bright
 # thing, so the ground behind it stays out of the way and the body text is light.
-const BG := UI.PAGE
-const INK := UI.TEXT
-const DIM := UI.TEXT_DIM
-const PANEL := UI.CARD
-const ACCENT := UI.ACCENT
-const SLATE := UI.SLATE
-const PLUM := UI.PLUM
+const BG := Chrome.BG
+const INK := Chrome.INK
+const DIM := Chrome.DIM
+const PANEL := Chrome.PANEL
+const ACCENT := Chrome.TEAL
+const SLATE := Chrome.RAISED
+const PLUM := Chrome.BRASS
 # Palette comes from ui_kit — these were private copies of the retired muted
 # scheme, so this screen kept rendering in the old colours after the repaint.
-const LOCKED := UI.LOCKED
+const LOCKED := Chrome.BORDER
 const DEPT_COLORS := UI.DEPT_COLORS
 const RARITY_ORDER := {"common": 0, "rare": 1, "epic": 2, "legendary": 3}
 
@@ -73,6 +78,10 @@ const TAP_SECS := 0.5
 const SETTLE_K := 15.0
 
 var _payload: Dictionary = {}
+var _filter := "all"
+var _filter_buttons: Dictionary = {}
+var _empty_label: Label
+var _title_label: Label
 var _insight_chip: PanelContainer
 var _roster_label: Label
 var _deck: Control
@@ -85,6 +94,8 @@ var _viewed: Dictionary = {}        # manager_id -> true (NEW badge cleared this
 var _ids: Array[String] = []
 var _slots: Array[Dictionary] = []
 var _pos: float = 0.0               # continuous carousel position, in passes
+var _compact_cards := false
+var _card_size := CARD
 var _target: float = 0.0            # pass the carousel is settling onto
 var _shown: int = -1                # index the dots/counter currently show
 var _acted: int = -1                # index the action bar currently describes
@@ -100,6 +111,10 @@ var _vel := 0.0                     # passes per second, sign follows _pos
 
 func setup(payload: Dictionary) -> void:
 	_payload = payload
+	if is_node_ready():
+		_filter = "all"
+		refresh()
+		if _payload.has("select"): select_manager(str(_payload["select"]), true)
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -117,6 +132,7 @@ func _ready() -> void:
 	margin.add_child(root_box)
 	add_child(margin)
 	root_box.add_child(_build_header())
+	root_box.add_child(_build_filters())
 	root_box.add_child(_build_stage())
 	root_box.add_child(_build_dots())
 	_actions = VBoxContainer.new()
@@ -128,7 +144,7 @@ func _ready() -> void:
 	_actions.custom_minimum_size = Vector2(0, ACTIONS_H)
 	root_box.add_child(_actions)
 
-	EventBus.insight_changed.connect(func(_v: Variant) -> void: _refresh_header())
+	EventBus.insight_changed.connect(_on_insight_changed)
 	EventBus.manager_obtained.connect(func(_a: String, _b: int) -> void: refresh())
 	EventBus.manager_leveled.connect(func(_a: String, _b: int) -> void: refresh())
 	EventBus.manager_ranked_up.connect(func(_a: String, _b: int) -> void: refresh())
@@ -149,6 +165,15 @@ func _ready() -> void:
 
 # ------------------------------------------------------------------ chrome
 
+static func _manager_button(text: String, tint: Color) -> Button:
+	var button := UI.make_button(text, tint)
+	button.custom_minimum_size.y = UI.TOUCH_MIN
+	button.expand_icon = true
+	button.add_theme_constant_override("icon_max_width", 20)
+	button.add_theme_constant_override("outline_size", 0)
+	Chrome.button(button, tint != LOCKED)
+	return button
+
 func _build_header() -> Control:
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override("separation", 12)
@@ -156,15 +181,22 @@ func _build_header() -> Control:
 	titles.add_theme_constant_override("separation", 0)
 	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	titles.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	titles.add_child(UI.make_display_label("Staff Passes", 32, INK))
+	_title_label = UI.make_display_label("Managers", 32, INK)
+	titles.add_child(_title_label)
 	# A collection screen has to say how much of the collection is left, or the
 	# only way to count the roster is to scroll it.
 	_roster_label = UI.make_label("", UI.TYPE_LABEL)
 	_roster_label.add_theme_color_override("font_color", DIM)
 	titles.add_child(_roster_label)
 	bar.add_child(titles)
-	_insight_chip = UI.make_dark_currency_chip("insight", "0", SLATE, 26)
+	_insight_chip = UI.make_dark_currency_chip("insight", "0", Chrome.BRASS, 26)
+	_insight_chip.add_theme_stylebox_override("panel", Chrome.panel(12))
 	bar.add_child(_insight_chip)
+	var recruit := _manager_button("Recruit", ACCENT)
+	Chrome.button(recruit, true)
+	recruit.name = "RecruitManagers"
+	recruit.pressed.connect(_open_cases)
+	bar.add_child(recruit)
 	_refresh_header()
 	return bar
 
@@ -173,10 +205,78 @@ func _refresh_header() -> void:
 		UI.set_chip_value(_insight_chip, GameState.insight.to_notation())
 	if is_instance_valid(_roster_label):
 		var have := 0
+		var total := 0
+		var specialty := str(_payload.get("specialty", ""))
 		for id in DataLoader.managers.keys():
+			var def := DataLoader.get_manager_def(id)
+			if specialty != "" and str(def.get("specialty", "")) != specialty:
+				continue
+			total += 1
 			if ManagerSystem.cards(id) > 0:
 				have += 1
-		_roster_label.text = "%d of %d passes issued" % [have, DataLoader.managers.size()]
+		_roster_label.text = "%d of %d recruited" % [have, total]
+		_title_label.text = "Managers" if specialty.is_empty() else "%s team" % specialty.capitalize()
+
+func _on_insight_changed(_value: Variant) -> void:
+	# Only Ready membership depends on currency. Other tabs retain their live
+	# portrait cards and any ongoing swipe when the balance changes.
+	if _filter == "ready":
+		refresh()
+	else:
+		_refresh_header()
+		_refresh_filters()
+		_rebuild_actions()
+
+func _open_cases() -> void:
+	Popups.open(CASES_PATH, {"source": "managers"})
+
+func _build_filters() -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	for key in FILTERS:
+		var button := _manager_button(str(FILTERS[key]), SLATE)
+		button.name = "Filter_" + key
+		button.toggle_mode = true
+		button.custom_minimum_size.y = UI.TOUCH_MIN
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_font_size_override("font_size", 16)
+		button.pressed.connect(func() -> void: set_roster_filter(key))
+		row.add_child(button)
+		_filter_buttons[key] = button
+	return row
+
+func _matches_filter(id: String, kind: String) -> bool:
+	match kind:
+		"ready": return ManagerSystem.can_level_up(id) or ManagerSystem.can_rank_up(id)
+		"duty": return not ManagerSystem.assigned_to(id).is_empty()
+		"available": return ManagerSystem.owned(id) and ManagerSystem.assigned_to(id).is_empty()
+		"sealed": return not ManagerSystem.owned(id)
+	return true
+
+func set_roster_filter(kind: String) -> void:
+	if not FILTERS.has(kind): return
+	_filter = kind
+	_dragging = false
+	refresh()
+
+func _refresh_filters() -> void:
+	var all_ids := _sorted_ids(false)
+	for key in _filter_buttons:
+		var count := 0
+		for id in all_ids:
+			if _matches_filter(id, key): count += 1
+		var button: Button = _filter_buttons[key]
+		button.text = "%s · %d" % [FILTERS[key], count]
+		button.set_pressed_no_signal(key == _filter)
+		Chrome.button(button, key == _filter)
+	if is_instance_valid(_empty_label):
+		_empty_label.visible = _ids.is_empty()
+		_empty_label.text = {
+			"ready": "No upgrades ready yet.\nEarn Insight or collect duplicate cards.",
+			"duty": "No managers on duty.\nChoose Available to assign your team.",
+			"available": "No unassigned managers.\nRecruit more staff or stand someone down.",
+			"sealed": "Every manager in this roster is recruited."
+		}.get(_filter, "No managers in this roster.")
 
 ## The carousel stage: a clipped box holding the deck, with a transparent drag
 ## surface laid over the top. The surface is what receives every press — a card
@@ -185,7 +285,7 @@ func _refresh_header() -> void:
 func _build_stage() -> Control:
 	_stage = Control.new()
 	_stage.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_stage.custom_minimum_size = Vector2(0, 420)
+	_stage.custom_minimum_size = Vector2(0, 320)
 	_stage.clip_contents = true
 	_deck = Control.new()
 	_deck.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -196,6 +296,13 @@ func _build_stage() -> Control:
 	touch.mouse_filter = Control.MOUSE_FILTER_STOP
 	touch.gui_input.connect(_on_drag_input)
 	_stage.add_child(touch)
+	_empty_label = UI.make_label("", UI.TYPE_BODY)
+	_empty_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_empty_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stage.add_child(_empty_label)
 	_stage.resized.connect(_apply_layout)
 	return _stage
 
@@ -238,27 +345,39 @@ func _paint_dots(index: int) -> void:
 		else:
 			d.scale = Vector2.ONE
 			d.modulate = Color.WHITE
-	_counter.text = "%d of %d" % [index + 1, _ids.size()]
+	_counter.text = "%d of %d" % [index + 1, _ids.size()] if not _ids.is_empty() else "0 of 0"
 
 # ------------------------------------------------------------------ data
 
 func refresh() -> void:
 	_refresh_header()
-	var before := _ids.size()
+	var previous := selected_id()
 	_ids = _sorted_ids()
-	if _ids.size() != before:
-		_build_dot_row()
+	var selected := maxi(_ids.find(previous), 0)
+	_pos = float(selected)
+	_target = _pos
+	_refresh_filters()
+	# Ownership can change without roster size changing. Rebuild the tiny dot
+	# strip so a newly issued file immediately changes from sealed to filled.
+	_build_dot_row()
 	for s in _slots:
-		if int(s["index"]) >= 0:
+		if int(s["index"]) != -9999:
 			_fill(s, int(s["index"]), true)
 	_shown = -1
 	_acted = -1
+	_rebind()
 	_apply_layout()
+	_paint_dots(selected)
 	_sync_index()
 
-func _sorted_ids() -> Array[String]:
+func _sorted_ids(apply_filter: bool = true) -> Array[String]:
 	var ids: Array[String] = []
 	for id in DataLoader.managers.keys():
+		var specialty := str(_payload.get("specialty", ""))
+		if specialty != "" \
+				and str(DataLoader.get_manager_def(id).get("specialty", "")) != specialty:
+			continue
+		if apply_filter and not _matches_filter(id, _filter): continue
 		ids.append(id)
 	ids.sort_custom(func(a: String, b: String) -> bool:
 		var da: Dictionary = DataLoader.get_manager_def(a)
@@ -333,9 +452,9 @@ func _jump_to(i: int) -> void:
 
 func _make_holder() -> Control:
 	var h := Control.new()
-	h.size = CARD
-	h.custom_minimum_size = CARD
-	h.pivot_offset = CARD / 2.0
+	h.size = _card_size
+	h.custom_minimum_size = _card_size
+	h.pivot_offset = _card_size / 2.0
 	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	h.visible = false
 	_deck.add_child(h)
@@ -353,19 +472,18 @@ func _fill(s: Dictionary, i: int, force: bool = false) -> void:
 		s["card"].queue_free()
 	s["card"] = null
 	var slot_id := _wrap(i)
-	if slot_id < 0:
+	if slot_id < 0 or (not _wraps() and (i < 0 or i >= _ids.size())):
 		holder.visible = false
 		return
 	var id: String = _ids[slot_id]
 	var card := ManagerBadge.new()
-	card.size = CARD
-	card.custom_minimum_size = CARD
+	card.size = _card_size
+	card.custom_minimum_size = _card_size
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# Parent before setup: the pass's photo asks PortraitBaker for a render, and
-	# the baker refuses a request from a node with no tree to await on.
+	# Keep the card in the carousel tree before applying its authored portrait.
 	holder.add_child(card)
 	card.setup(id, DataLoader.get_manager_def(id), ManagerSystem.state(id),
-		ManagerSystem.cards(id) > 0, not _viewed.get(id, false))
+		ManagerSystem.cards(id) > 0, not _viewed.get(id, false), _compact_cards)
 	card.set_anchors_preset(Control.PRESET_FULL_RECT)
 	s["card"] = card
 
@@ -389,9 +507,18 @@ func _apply_layout() -> void:
 	var box: Vector2 = _deck.size
 	if box.x <= 0.0 or box.y <= 0.0:
 		return
-	# Short viewports (20:9 with a tall safe area) shrink the whole carousel
-	# rather than clipping the centred pass.
-	var fit: float = clampf(minf((box.y - 16.0) / CARD.y, 1.0), 0.60, 1.0)
+	# Short canvases use two columns before scaling to retain readable type.
+	var compact := box.y < 550.0
+	if compact != _compact_cards:
+		_compact_cards = compact
+		_card_size = ManagerBadge.COMPACT_CARD if compact else CARD
+		for slot in _slots:
+			var holder: Control = slot["holder"]
+			holder.custom_minimum_size = _card_size
+			holder.size = _card_size
+			holder.pivot_offset = _card_size / 2.0
+			_fill(slot, int(slot["index"]), true)
+	var fit: float = clampf(minf((box.y - 16.0) / _card_size.y, 1.0), 0.60, 1.0)
 	var step: float = _stride() * fit
 	var edge: float = step * 0.46
 	for s in _slots:
@@ -399,7 +526,7 @@ func _apply_layout() -> void:
 		var i: int = int(s["index"])
 		var d: float = float(i) - _pos
 		var ad: float = absf(d)
-		if _wrap(i) < 0 or ad > CULL:
+		if _wrap(i) < 0 or ad > CULL or (not _wraps() and (i < 0 or i >= _ids.size())):
 			holder.visible = false
 			s["w"] = 0.0
 			continue
@@ -411,13 +538,13 @@ func _apply_layout() -> void:
 		var x: float = signf(d) * (step * lin + edge * ext)
 		var y: float = 24.0 * lin + 14.0 * ext
 		holder.scale = Vector2(sc * squash, sc)
-		holder.position = Vector2(box.x * 0.5 + x, box.y * 0.5 + y) - CARD / 2.0
+		holder.position = Vector2(box.x * 0.5 + x, box.y * 0.5 + y) - _card_size / 2.0
 		var v: float = 1.0 - 0.28 * lin - 0.14 * ext
 		holder.modulate = Color(v, v, v, 1.0 - 0.08 * lin - 0.30 * ext)
 		s["x"] = box.x * 0.5 + x
 		s["y"] = box.y * 0.5 + y
-		s["w"] = CARD.x * sc * squash
-		s["h"] = CARD.y * sc
+		s["w"] = _card_size.x * sc * squash
+		s["h"] = _card_size.y * sc
 	_restack()
 
 ## Nearest pass in front. Done by sibling order rather than z_index: z_index is
@@ -586,7 +713,7 @@ func _rebuild_actions() -> void:
 	var def: Dictionary = DataLoader.get_manager_def(id)
 	if ManagerSystem.cards(id) <= 0:
 		var hint := UI.make_label(
-			"Sealed. %s cards turn up in lootboxes — find one to open this file." %
+			"Find %s manager cards in recruitment cases. Each case shows its drop rates." %
 			str(def.get("rarity", "common")).capitalize(), UI.TYPE_BODY)
 		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -594,19 +721,25 @@ func _rebuild_actions() -> void:
 		hint.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		hint.add_theme_color_override("font_color", DIM)
 		_actions.add_child(hint)
+		var recruit := _manager_button("Open recruitment cases", ACCENT)
+		Chrome.button(recruit, true)
+		recruit.name = "OpenRecruitmentCases"
+		recruit.pressed.connect(_open_cases)
+		_actions.add_child(recruit)
 		return
 
 	# Colour carries affordability; the buttons stay live. A disabled button eats
 	# the press without moving a pixel, which reads as a broken screen rather
 	# than as "you cannot afford this yet".
-	var capped: bool = ManagerSystem.level(id) >= int(def.get("level_cap", 50))
+	var capped: bool = ManagerSystem.level(id) >= ManagerSystem.level_cap(id)
 	var can_level: bool = ManagerSystem.can_level_up(id)
-	var lvl_btn := UI.make_button(
+	var lvl_btn := _manager_button(
 		"Level Up — MAX LEVEL" if capped
 		else "Level Up — %s Insight" % ManagerSystem.level_up_cost(id).to_notation(),
 		SLATE if can_level else LOCKED)
+	Chrome.button(lvl_btn, can_level)
 	lvl_btn.icon = UI.icon_texture("insight", 20)
-	lvl_btn.pressed.connect(func() -> void: ManagerSystem.level_up(id))
+	lvl_btn.pressed.connect(func() -> void: _try_level(id))
 	_actions.add_child(lvl_btn)
 
 	var row := HBoxContainer.new()
@@ -614,15 +747,17 @@ func _rebuild_actions() -> void:
 	_actions.add_child(row)
 	var dup_cost: int = ManagerSystem.rank_up_cost(id)
 	var can_rank: bool = ManagerSystem.can_rank_up(id)
-	var rank_btn := UI.make_button(
+	var rank_btn := _manager_button(
 		"Rank Up — MAX" if dup_cost <= 0
-		else "Rank Up — %d cards (have %d)" % [dup_cost, ManagerSystem.cards(id)],
+		else "Rank Up — %d duplicates (%d spare)" % [dup_cost, maxi(ManagerSystem.cards(id) - 1, 0)],
 		PLUM if can_rank else LOCKED)
+	Chrome.button(rank_btn, can_rank)
 	rank_btn.icon = UI.icon_texture("star", 20)
 	rank_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	rank_btn.pressed.connect(func() -> void: ManagerSystem.rank_up(id))
+	rank_btn.pressed.connect(func() -> void: _try_rank(id))
 	row.add_child(rank_btn)
-	var ex_btn := UI.make_button("Trade", LOCKED)
+	var ex_btn := _manager_button("Trade %d" % ManagerSystem.exchange_ratio(), LOCKED)
+	Chrome.button(ex_btn)
 	ex_btn.pressed.connect(func() -> void: _open_exchange(id))
 	row.add_child(ex_btn)
 
@@ -631,24 +766,58 @@ func _rebuild_actions() -> void:
 	# one, and the player had to work out which by tapping them.
 	var specialty: String = str(def.get("specialty", ""))
 	var dept: Color = DEPT_COLORS.get(specialty, LOCKED)
-	var holder := _holder_of(specialty)
-	var post_btn := UI.make_button("", dept)
+	var holders: Array[String] = ManagerSystem.assigned_ids(specialty)
+	var slots: int = ManagerSystem.assignment_slots(specialty)
+	var productivity: float = ManagerSystem.productivity_multiplier(
+		def, ManagerSystem.state(id))
+	var boost_text := "+%d%%" % roundi((productivity - 1.0) * 100.0)
+	var post_btn := _manager_button("", dept)
+	Chrome.button(post_btn, true)
 	post_btn.add_theme_font_size_override("font_size", UI.TYPE_HEADING)
 	if ManagerSystem.assigned_to(id) == specialty:
-		post_btn.text = "On duty — %s (stand down)" % specialty.capitalize()
+		post_btn.text = "On duty — %s • %s (stand down)" % [
+			specialty.capitalize(), boost_text]
 		post_btn.pressed.connect(func() -> void: ManagerSystem.unassign(id))
-	elif holder != "":
-		# Swapping is the only thing the player could have meant, and refusing
-		# the tap would leave them staring at a button that does nothing.
-		post_btn.text = "Take the %s post from %s" % [
-			specialty.capitalize(), str(DataLoader.get_manager_def(holder).get("name", holder)).split(" ")[0]]
-		post_btn.pressed.connect(func() -> void:
-			ManagerSystem.unassign(holder)
-			ManagerSystem.assign(id, specialty))
+	elif holders.size() >= slots:
+		post_btn.text = "%s full • %s — choose replacement" % [
+			specialty.capitalize(), boost_text]
+		post_btn.pressed.connect(
+			func() -> void: _open_post_replacement(id, specialty, holders))
 	else:
-		post_btn.text = "Post to %s" % specialty.capitalize()
+		post_btn.text = "Post to %s • %s (%d/%d)" % [
+			specialty.capitalize(), boost_text, holders.size(), slots]
 		post_btn.pressed.connect(func() -> void: ManagerSystem.assign(id, specialty))
 	_actions.add_child(post_btn)
+
+func _try_level(id: String) -> void:
+	if ManagerSystem.level(id) >= ManagerSystem.level_cap(id):
+		EventBus.toast_requested.emit("Already at the level cap for this rank")
+		return
+	var cost := ManagerSystem.level_up_cost(id)
+	if not GameState.insight.gte(cost):
+		EventBus.toast_requested.emit(
+			"Need %s more Insight" % cost.sub(GameState.insight).to_notation())
+		return
+	if ManagerSystem.level_up(id):
+		EventBus.toast_requested.emit("%s reached level %d" % [
+			str(DataLoader.get_manager_def(id).get("name", id)),
+			ManagerSystem.level(id)])
+
+func _try_rank(id: String) -> void:
+	var cost := ManagerSystem.rank_up_cost(id)
+	if cost <= 0:
+		EventBus.toast_requested.emit("Already at maximum rank")
+		return
+	var spendable := maxi(ManagerSystem.cards(id) - 1, 0)
+	if spendable < cost:
+		EventBus.toast_requested.emit(
+			"Need %d more duplicate card%s" % [
+				cost - spendable, "" if cost - spendable == 1 else "s"])
+		return
+	if ManagerSystem.rank_up(id):
+		EventBus.toast_requested.emit("%s reached rank %d" % [
+			str(DataLoader.get_manager_def(id).get("name", id)),
+			ManagerSystem.rank(id)])
 
 ## Who currently holds `dept`, or "".
 func _holder_of(dept: String) -> String:
@@ -658,6 +827,77 @@ func _holder_of(dept: String) -> String:
 		if ManagerSystem.assigned_to(id) == dept:
 			return id
 	return ""
+
+## A department can eventually hold several managers. Replacing holders[0]
+## automatically was destructive and increasingly arbitrary as posts unlocked;
+## let the player choose exactly who stands down.
+func _open_post_replacement(incoming_id: String, specialty: String,
+		holders: Array[String]) -> void:
+	var dlg := Control.new()
+	dlg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(dlg)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.62)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	dlg.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dlg.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(600, 0)
+	panel.add_theme_stylebox_override(
+		"panel", UI.make_dark_frame(DEPT_COLORS.get(specialty, ACCENT)))
+	center.add_child(panel)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	panel.add_child(box)
+	var incoming_name := str(
+		DataLoader.get_manager_def(incoming_id).get("name", incoming_id))
+	var head := UI.make_display_label(
+		"Choose who %s replaces" % incoming_name, UI.TYPE_HEADING, INK)
+	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(head)
+	var note := UI.make_label(
+		"%s has %d active post%s." % [
+			specialty.capitalize(), holders.size(),
+			"" if holders.size() == 1 else "s"], UI.TYPE_BODY)
+	note.add_theme_color_override("font_color", DIM)
+	box.add_child(note)
+	var incoming_def: Dictionary = DataLoader.get_manager_def(incoming_id)
+	var incoming_mult := ManagerSystem.productivity_multiplier(
+		incoming_def, ManagerSystem.state(incoming_id))
+	var incoming_note := UI.make_label("Incoming: %s  (+%d%% productivity)" % [
+		incoming_name, roundi((incoming_mult - 1.0) * 100.0)], UI.TYPE_BODY)
+	incoming_note.add_theme_color_override("font_color", DEPT_COLORS.get(specialty, INK))
+	box.add_child(incoming_note)
+	var current_team := Economy.manager_multiplier_for(specialty)
+	for holder_id in holders:
+		var current: String = holder_id
+		var current_def: Dictionary = DataLoader.get_manager_def(current)
+		var current_mult := ManagerSystem.productivity_multiplier(
+			current_def, ManagerSystem.state(current))
+		var resulting_team := current_team / maxf(current_mult, 0.0001) * incoming_mult
+		var b := _manager_button(
+			"Replace %s (+%d%%)\nTeam +%d%% → +%d%%" % [
+				str(current_def.get("name", current)),
+				roundi((current_mult - 1.0) * 100.0),
+				roundi((current_team - 1.0) * 100.0),
+				roundi((resulting_team - 1.0) * 100.0)],
+			DEPT_COLORS.get(specialty, SLATE))
+		b.pressed.connect(func() -> void:
+			if ManagerSystem.replace_assignment(current, incoming_id, specialty):
+				EventBus.toast_requested.emit("%s is now on duty in %s" % [
+					incoming_name, specialty.capitalize()])
+				dlg.queue_free()
+			else:
+				EventBus.toast_requested.emit("Team changed — review the active posts"))
+		box.add_child(b)
+	var cancel := _manager_button("Keep current team", LOCKED)
+	Chrome.button(cancel)
+	cancel.custom_minimum_size.y = UI.TOUCH_MIN
+	cancel.pressed.connect(func() -> void: dlg.queue_free())
+	box.add_child(cancel)
 
 func _open_exchange(from_id: String) -> void:
 	var def: Dictionary = DataLoader.get_manager_def(from_id)
@@ -698,14 +938,20 @@ func _open_exchange(from_id: String) -> void:
 		var td: Dictionary = DataLoader.get_manager_def(tid)
 		if str(td.get("rarity", "")) != rarity:
 			continue
-		var b := UI.make_button("%s  (%d cards owned)" % [str(td.get("name", tid)), ManagerSystem.cards(tid)],
+		var b := _manager_button("%s  (%d cards owned)" % [str(td.get("name", tid)), ManagerSystem.cards(tid)],
 			SLATE if ManagerSystem.can_exchange(from_id, tid) else LOCKED)
 		b.add_theme_font_size_override("font_size", 18)
 		var target: String = tid
 		b.pressed.connect(func() -> void:
 			if ManagerSystem.exchange(from_id, target):
-				dlg.queue_free())
+				EventBus.toast_requested.emit("Trade complete — 1 %s card received" %
+					str(DataLoader.get_manager_def(target).get("name", target)))
+				dlg.queue_free()
+			else:
+				EventBus.toast_requested.emit(
+					"Keep one card plus %d duplicates to trade" % ratio))
 		box.add_child(b)
-	var cancel := UI.make_button("Cancel", LOCKED)
+	var cancel := _manager_button("Cancel", LOCKED)
+	Chrome.button(cancel)
 	cancel.pressed.connect(func() -> void: dlg.queue_free())
 	box.add_child(cancel)

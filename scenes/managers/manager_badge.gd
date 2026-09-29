@@ -20,18 +20,20 @@ extends PanelContainer
 
 const UI := preload("res://scripts/ui/ui_kit.gd")
 const ManagerPortrait := preload("res://scenes/managers/manager_portrait.gd")
-const PortraitBaker := preload("res://scenes/managers/portrait_baker.gd")
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 const ManagerSystem := preload("res://scripts/managers/manager_system.gd")
 
 signal tapped(manager_id: String)
 
 ## The pass, in design px. The carousel scales this; nothing else sets it.
-const CARD := Vector2(352, 548)
+const CARD := Vector2(392, 628)
+const COMPACT_CARD := Vector2(460, 430)
+const RARITY_TINTS := {"common": Color("9CAEB6"), "rare": Color("83B9C7"), "epic": Color("B5A0CC"), "legendary": Chrome.BRASS}
 ## Photo window height. The window fills the card's content width.
 const PHOTO := 248
 ## Rarity stripe down the binding edge. Wide enough to survive being minified
 ## onto a phone, narrow enough to read as an edge stripe rather than a panel.
-const SPINE := 9
+const SPINE := 4
 
 var _id: String = ""
 
@@ -86,33 +88,46 @@ static func legible_fill(tint: Color) -> Color:
 # ------------------------------------------------------------------ build
 
 ## `state` is {"level","rank","cards"}; `owned` false renders the sealed variant.
-func setup(id: String, def: Dictionary, state: Dictionary, owned: bool, is_new: bool) -> void:
+func setup(id: String, def: Dictionary, state: Dictionary, owned: bool, is_new: bool, compact: bool = false) -> void:
 	_id = id
-	custom_minimum_size = CARD
+	custom_minimum_size = COMPACT_CARD if compact else CARD
 	var rarity: String = str(def.get("rarity", "common"))
-	var tint: Color = UI.RARITY_COLORS.get(rarity, UI.LOCKED)
+	var tint: Color = RARITY_TINTS.get(rarity, UI.LOCKED)
 	var specialty: String = str(def.get("specialty", ""))
-	var dept: Color = UI.DEPT_COLORS.get(specialty, UI.LOCKED)
+	var dept := Color(str(def.get("color", "#5B7B8C")))
 	add_theme_stylebox_override("panel", _badge_box(tint, owned))
 
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 8)
+	col.add_theme_constant_override("separation", 6)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(col)
 
+	var details: VBoxContainer = col
 	var photo := ManagerPortrait.new()
-	col.add_child(photo)
-	photo.setup(def, PHOTO, owned, true)
+	if compact:
+		var identity_row := HBoxContainer.new()
+		identity_row.add_theme_constant_override("separation", 14)
+		col.add_child(identity_row)
+		identity_row.add_child(photo)
+		photo.setup(def, 180, owned)
+		details = VBoxContainer.new()
+		details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		details.add_theme_constant_override("separation", 9)
+		identity_row.add_child(details)
+	else:
+		col.add_child(photo)
+		photo.setup(def, PHOTO, owned, true)
 
 	# The name gets the card's whole width. Sharing the line with the rarity pill
 	# cost it eighty pixels, and "Archivist Mabel Crumb" came out as "Archivist
 	# Mabel Cr…" on the one card the player is looking straight at.
 	var name_l := UI.make_display_label(
 		str(def.get("name", id)) if owned else "Personnel File Sealed",
-		UI.TYPE_TITLE, UI.TEXT if owned else UI.TEXT_MUTE)
+		22, Chrome.INK if owned else Chrome.DIM)
 	name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	col.add_child(name_l)
+	name_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_l.custom_minimum_size.y = 52
+	details.add_child(name_l)
 
 	# Tier and department, side by side: the two things the player sorts by. The
 	# rarity word rides a pill in its own hue, because at thumb size a coloured
@@ -120,15 +135,15 @@ func setup(id: String, def: Dictionary, state: Dictionary, owned: bool, is_new: 
 	var tags := HBoxContainer.new()
 	tags.add_theme_constant_override("separation", 7)
 	tags.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	col.add_child(tags)
+	details.add_child(tags)
 	tags.add_child(pill(rarity.to_upper(), tint))
 	tags.add_child(pill(specialty.to_upper(), dept))
-	var post_l := UI.make_label(str(def.get("post", "")), UI.TYPE_LABEL)
-	post_l.add_theme_color_override("font_color", UI.TEXT_DIM)
+	var post_l := UI.make_label(str(def.get("post", "")), UI.TYPE_BODY if compact else UI.TYPE_LABEL)
+	post_l.add_theme_color_override("font_color", Chrome.DIM)
 	post_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	post_l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	post_l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	tags.add_child(post_l)
+	post_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	details.add_child(post_l)
 
 	# Level + rank. The service number leads the row either way, so a sealed pass
 	# is still a pass and the card keeps one height across the roster.
@@ -139,14 +154,14 @@ func setup(id: String, def: Dictionary, state: Dictionary, owned: bool, is_new: 
 	rank_row.add_child(_field("NO. %s" % service_no(def)))
 	if owned:
 		rank_row.add_child(UI.make_display_label(
-			"LV %d" % maxi(int(state.get("level", 1)), 1), UI.TYPE_LABEL, UI.TEXT))
+			"LV %d" % maxi(int(state.get("level", 1)), 1), UI.TYPE_LABEL, Chrome.INK))
 		rank_row.add_child(_pips(int(state.get("rank", 1))))
 	var gap := Control.new()
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rank_row.add_child(gap)
 	if is_new and owned:
-		rank_row.add_child(pill("NEW", UI.ACCENT))
+		rank_row.add_child(pill("NEW", Chrome.TEAL))
 
 	col.add_child(_traits_row(def, dept, owned))
 	col.add_child(_stats_strip(def, state, dept, owned))
@@ -160,10 +175,10 @@ func setup(id: String, def: Dictionary, state: Dictionary, owned: bool, is_new: 
 
 	var bio := UI.make_label(
 		str(def.get("flavor", "")) if owned
-		else "Recruit this manager from a lootbox to open their file.",
+		else "Recruit this manager from a case to open their file.",
 		UI.TYPE_LABEL)
 	bio.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	bio.add_theme_color_override("font_color", UI.TEXT_DIM)
+	bio.add_theme_color_override("font_color", Chrome.DIM)
 	bio.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(bio)
 
@@ -211,7 +226,7 @@ func _squish(target: Vector2) -> void:
 ## thing on the carousel still lit from the old scheme.
 func _badge_box(tint: Color, owned: bool) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = UI.CARD if owned else UI.CARD.lerp(UI.PAGE_DEEP, 0.55)
+	sb.bg_color = Chrome.PANEL if owned else Chrome.PANEL.lerp(Chrome.BG, 0.55)
 	sb.set_corner_radius_all(UI.RADIUS_CARD)
 	sb.content_margin_left = 12 + SPINE
 	sb.content_margin_right = 14
@@ -269,14 +284,11 @@ func _stats_strip(def: Dictionary, state: Dictionary, dept: Color, owned: bool) 
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wrap.add_child(row)
 	var level: int = maxi(int(state.get("level", 1)), 1)
-	var rank: int = clampi(int(state.get("rank", 1)), 1, 4)
-	var rank_mults: Array = def.get("rank_mults", [1.0, 1.5, 2.25, 3.5])
-	var mult: float = 1.0 + float(def.get("base_mult", 0.03)) * float(level) \
-		* float(rank_mults[mini(rank - 1, rank_mults.size() - 1)])
-	row.add_child(_stat_cell("DEPT", "x%.2f" % mult if owned else "—", dept))
+	var mult: float = ManagerSystem.productivity_multiplier(def, state)
+	row.add_child(_stat_cell("PROD", "x%.2f" % mult if owned else "—", dept))
 	row.add_child(_stat_cell("CARDS", str(int(state.get("cards", 0))) if owned else "—", dept))
-	row.add_child(_stat_cell("POWER",
-		"%.0f" % ManagerSystem.battle_attack(def, state) if owned else "—", dept))
+	row.add_child(_stat_cell("AUDIT",
+		"%.0f" % ManagerSystem.audit_efficiency(def, state) if owned else "—", dept))
 	return wrap
 
 func _stat_cell(label: String, value: String, dept: Color) -> Control:
@@ -284,11 +296,11 @@ func _stat_cell(label: String, value: String, dept: Color) -> Control:
 	cell.add_theme_constant_override("separation", 0)
 	cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cell.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var l := UI.make_display_label(label, UI.TYPE_CAPTION, UI.TEXT_MUTE)
+	var l := UI.make_display_label(label, UI.TYPE_LABEL, Chrome.DIM)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cell.add_child(l)
-	var v := UI.make_display_label(value, UI.TYPE_HEADING, dept.lightened(0.22))
+	var v := UI.make_display_label(value, UI.TYPE_HEADING, Chrome.INK)
 	v.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cell.add_child(v)
@@ -296,23 +308,24 @@ func _stat_cell(label: String, value: String, dept: Color) -> Control:
 
 ## Small-caps field label — the printed-form voice of the pass.
 func _field(text: String) -> Label:
-	var l := UI.make_display_label(text, UI.TYPE_CAPTION, UI.TEXT_MUTE)
+	var l := UI.make_display_label(text, UI.TYPE_LABEL, Chrome.DIM)
 	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
 
-## Rank stars. Earned pips are brass and filled, unearned ones an outline: a
-## dimmed FILL is a smudge at this size and reads as a rendering fault.
+## A readable rank counter avoids ten tiny outlines becoming clipped-looking
+## smudges when the short-screen carousel scales the card down.
 func _pips(rank: int) -> Control:
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 3)
+	row.add_theme_constant_override("separation", 5)
 	row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for i in 4:
-		if i < rank:
-			row.add_child(UI.make_icon("star", 17, UI.BRASS))
-		else:
-			row.add_child(UI.make_icon("star_outline", 17, UI.TEXT_MUTE))
+	var star := UI.make_icon("star", 16, Chrome.BRASS)
+	star.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	row.add_child(star)
+	var label := UI.make_label("Rank %d/%d" % [rank, ManagerSystem.MAX_RANK], UI.TYPE_BODY, Chrome.DIM)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(label)
 	return row
 
 ## Trait keywords. Outlined rather than filled: two more saturated pills next to
@@ -345,7 +358,7 @@ static func trait_chip(text: String, dept: Color) -> Control:
 	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	p.add_theme_stylebox_override("panel", sb)
-	var l := UI.make_label(text, UI.TYPE_CAPTION, dept.lightened(0.30))
+	var l := UI.make_label(text, UI.TYPE_LABEL, Chrome.DIM)
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	p.add_child(l)
 	return p

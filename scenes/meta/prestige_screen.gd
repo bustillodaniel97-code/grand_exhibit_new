@@ -20,31 +20,39 @@ extends Control
 const PrestigeSystem = preload("res://scripts/meta/prestige_system.gd")
 const MilestoneSystem = preload("res://scripts/meta/milestone_system.gd")
 const UI = preload("res://scripts/ui/ui_kit.gd")
+const Chrome = preload("res://scripts/ui/museum_chrome.gd")
+const Popups = preload("res://scripts/ui/popup_manager.gd")
 
 # Palette aliases (ui_kit is the single source — SPEC §2).
 # Popup CONTENT on a DARK page. DIM is the muted ink for locked / empty states.
-const BG := UI.PAGE
-const INK := UI.TEXT
-const PANEL := UI.CARD
-const ACCENT := UI.ACCENT
-const BRASS := UI.BRASS
-const SAGE := UI.SAGE
-const SLATE := UI.SLATE
-const DANGER := UI.DANGER
-const DIM := UI.TEXT_MUTE
+const BG := Chrome.BG
+const INK := Chrome.INK
+const PANEL := Chrome.PANEL
+const ACCENT := Chrome.TEAL
+const BRASS := Chrome.BRASS
+const SAGE := Chrome.TEAL
+const SLATE := Color("96c8df")
+const DANGER := Chrome.DANGER
+const DIM := Chrome.DIM
 
 var _list: VBoxContainer
 var _action_bar: VBoxContainer
 var _confirm: ConfirmationDialog
+var _celebrate_on_open: bool = false
 
-func setup(_payload: Dictionary) -> void:
+func setup(payload: Dictionary) -> void:
+	_celebrate_on_open = bool(payload.get("celebrate", false))
 	if is_inside_tree() and _list != null:
 		refresh()
 
 func _ready() -> void:
 	_build_shell()
 	refresh()
+	if _celebrate_on_open or PrestigeSystem.gate_met(GameState.current_venue):
+		call_deferred("_play_celebration")
 	EventBus.milestone_completed.connect(func(_v, _m): refresh())
+	EventBus.decor_purchased.connect(func(_v, _d): refresh())
+	EventBus.department_upgraded.connect(func(_v, _d, _t, _l): refresh())
 	EventBus.prestige_performed.connect(func(_f, _t): refresh())
 
 func _build_shell() -> void:
@@ -63,6 +71,7 @@ func _build_shell() -> void:
 	vbox.add_theme_constant_override("separation", 10)
 	margin.add_child(vbox)
 	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(scroll)
 	_list = VBoxContainer.new()
@@ -73,10 +82,36 @@ func _build_shell() -> void:
 	_action_bar.add_theme_constant_override("separation", 6)
 	vbox.add_child(_action_bar)
 	_confirm = ConfirmationDialog.new()
-	_confirm.ok_button_text = "Open it"
+	_confirm.title = "Open your next museum?"
+	_confirm.dialog_autowrap = true
+	var dialog_theme := ThemeDB.get_default_theme().duplicate() as Theme
+	var surface := Chrome.panel(12, Chrome.BG)
+	surface.set_content_margin_all(18)
+	dialog_theme.set_stylebox("panel", "AcceptDialog", surface)
+	var border := Chrome.panel(12, Chrome.PANEL)
+	border.content_margin_top = 34
+	border.expand_margin_top = 34
+	dialog_theme.set_stylebox("embedded_border", "Window", border)
+	dialog_theme.set_stylebox("embedded_unfocused_border", "Window", border)
+	dialog_theme.set_color("title_color", "Window", INK)
+	_confirm.theme = dialog_theme
+	_confirm.ok_button_text = "Open museum"
 	_confirm.cancel_button_text = "Not yet"
 	_confirm.confirmed.connect(_on_move_confirmed)
 	add_child(_confirm)
+	_confirm.get_label().add_theme_font_size_override("font_size", 19)
+	_confirm.get_label().add_theme_color_override("font_color", INK)
+	for button in [_confirm.get_ok_button(), _confirm.get_cancel_button()]:
+		button.add_theme_font_size_override("font_size", 18)
+		Chrome.button(button, button == _confirm.get_ok_button())
+		# AcceptDialog resets button custom minima while laying out its native row.
+		# Give the actual button styles enough padding to retain a touch-size face.
+		for state in ["normal", "hover", "pressed", "focus"]:
+			var button_style := button.get_theme_stylebox(state).duplicate() as StyleBoxFlat
+			button_style.content_margin_top = 16
+			button_style.content_margin_bottom = 16
+			button.add_theme_stylebox_override(state, button_style)
+		button.custom_minimum_size = Vector2(148, 54)
 
 # ------------------------------------------------------------------- builders
 
@@ -90,7 +125,7 @@ func _label(text: String, size: int = 15, color: Color = INK) -> Label:
 
 func _panel(tint: Color = PANEL) -> PanelContainer:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UI.make_dark_card(tint))
+	p.add_theme_stylebox_override("panel", Chrome.panel(16, tint))
 	return p
 
 func _section(title: String, color: Color) -> void:
@@ -119,24 +154,37 @@ func refresh() -> void:
 	if not is_inside_tree() or _list == null:
 		return
 	for c in _list.get_children():
+		_list.remove_child(c)
 		c.queue_free()
 	for c in _action_bar.get_children():
+		_action_bar.remove_child(c)
 		c.queue_free()
 	var vid: String = GameState.current_venue
 	var venue: Dictionary = DataLoader.get_venue(vid)
 	var preview: Dictionary = PrestigeSystem.next_venue_preview()
 
-	_list.add_child(UI.make_display_label("Move On", 26, INK))
-	_list.add_child(_label("Curator of %s — museum %d of %d" % [str(venue.get("name", vid)),
-		int(venue.get("order", 1)), DataLoader.venue_order().size()], 14, DIM))
+	var complete := PrestigeSystem.gate_met(vid)
+	_list.add_child(UI.make_display_label(
+		"Museum complete" if complete else "Venues", 30,
+		BRASS if complete else INK))
+	_list.add_child(_label(
+		(("%s has completed its milestones and core operation. The collection is yours to perfect." if preview.is_empty() else
+		"%s has completed its milestones and core operation. Your next chapter is ready.") % str(venue.get("name", vid)))
+		if complete else
+		"Curator of %s — level %d of %d" % [str(venue.get("name", vid)),
+			int(venue.get("order", 1)), DataLoader.venue_order().size()],
+		15, SAGE if complete else DIM))
 
-	_build_gate_card(vid)
+	_list.add_child(_venue_preview(venue))
+	if not complete:
+		_build_gate_card(vid)
 	if preview.is_empty():
 		_build_final_card()
 	else:
 		_build_next_card(preview)
 		_build_keep_leave()
 	_build_milestone_chain(vid)
+	_build_collection(vid)
 	_build_action_bar(preview)
 
 ## The gate, stated as a count and a bar rather than a sentence — the player
@@ -145,9 +193,10 @@ func _build_gate_card(vid: String) -> void:
 	var done: int = PrestigeSystem.milestones_done(vid)
 	var need: int = PrestigeSystem.milestones_required(vid)
 	var ready: bool = PrestigeSystem.gate_met(vid)
+	var milestone_ready: bool = PrestigeSystem.milestone_gate_met(vid)
 	var card := PanelContainer.new()
 	card.add_theme_stylebox_override("panel",
-		UI.make_dark_frame(SAGE if ready else ACCENT))
+		Chrome.panel(16))
 	var cv := VBoxContainer.new()
 	cv.add_theme_constant_override("separation", 6)
 	card.add_child(cv)
@@ -155,7 +204,7 @@ func _build_gate_card(vid: String) -> void:
 	head.add_theme_constant_override("separation", 8)
 	cv.add_child(head)
 	head.add_child(UI.make_icon("trophy" if ready else "lock", 22, SAGE if ready else ACCENT))
-	var head_l := _label("Milestones %d / %d" % [done, need], 18, INK)
+	var head_l := _label("Venue readiness", 18, INK)
 	head_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(head_l)
 	# No wrap: beside an expand-fill title this label gets one glyph of width and
@@ -169,24 +218,52 @@ func _build_gate_card(vid: String) -> void:
 	bar.value = clampf(float(done) / maxf(float(need), 1.0), 0.0, 1.0)
 	bar.show_percentage = false
 	bar.custom_minimum_size = Vector2(0, 16)
-	bar.add_theme_stylebox_override("background", UI.make_bar_bg())
-	bar.add_theme_stylebox_override("fill", UI.make_bar_fill("green" if ready else "yellow"))
+	bar.add_theme_stylebox_override("background", Chrome.channel(Chrome.BG))
+	bar.add_theme_stylebox_override("fill", Chrome.channel(SAGE if milestone_ready else BRASS))
 	cv.add_child(bar)
+	cv.add_child(_label("Milestones %d / %d" % [done, need], 13, DIM))
+	var operations := ProgressBar.new()
+	operations.min_value = 0.0
+	operations.max_value = 1.0
+	operations.value = PrestigeSystem.operations_progress(vid)
+	operations.show_percentage = false
+	operations.custom_minimum_size = Vector2(0, 16)
+	operations.add_theme_stylebox_override("background", Chrome.channel(Chrome.BG))
+	operations.add_theme_stylebox_override("fill",
+		Chrome.channel(SAGE if PrestigeSystem.operations_met(vid) else BRASS))
+	cv.add_child(operations)
+	cv.add_child(_label("Core operation %d%%" % int(round(operations.value * 100.0)), 13, DIM))
+	var furnishing := ProgressBar.new()
+	furnishing.max_value = 1.0
+	furnishing.value = PrestigeSystem.decor_progress(vid)
+	furnishing.show_percentage = false
+	furnishing.custom_minimum_size = Vector2(0, 16)
+	furnishing.add_theme_stylebox_override("background", Chrome.channel(Chrome.BG))
+	furnishing.add_theme_stylebox_override("fill", Chrome.channel(SAGE if PrestigeSystem.decor_met(vid) else BRASS))
+	cv.add_child(furnishing)
+	cv.add_child(_label(PrestigeSystem.decor_summary(vid), 13, DIM))
+	var furnish := UI.make_button("Furnish museum", SAGE)
+	furnish.pressed.connect(func() -> void:
+		Popups.close_top()
+		Popups.open("res://scenes/meta/decor_screen.tscn", {"venue_id": vid}))
+	cv.add_child(furnish)
 	if ready:
-		cv.add_child(_label("The chain is complete. The next museum will take you.", 13, DIM))
+		cv.add_child(_label("The operation is complete. The next museum awaits.", 13, DIM))
+	elif milestone_ready:
+		cv.add_child(_label(PrestigeSystem.block_reason(), 13, DIM))
 	else:
 		var nxt: Dictionary = MilestoneSystem.next_milestone(vid)
 		cv.add_child(_label("Next: %s" % str(nxt.get("name", "—")), 13, DIM))
 	_list.add_child(card)
 
 func _build_next_card(preview: Dictionary) -> void:
-	_section("The next museum", BRASS)
+	_section("Your next museum", BRASS)
 	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", UI.make_dark_frame(BRASS))
+	card.add_theme_stylebox_override("panel", Chrome.panel(16))
 	var cv := VBoxContainer.new()
 	cv.add_theme_constant_override("separation", 6)
 	card.add_child(cv)
-	cv.add_child(UI.make_display_label(str(preview["name"]), 20, INK))
+	cv.add_child(_venue_preview(preview))
 	cv.add_child(_label(str(preview["desc"]), 14, DIM))
 	cv.add_child(UI.make_divider())
 	# Both sides of the deal on one card. The cost line is not hidden: the owner's
@@ -204,6 +281,89 @@ func _build_next_card(preview: Dictionary) -> void:
 		slot_text += " (%d more than here)" % delta
 	cv.add_child(_stat_row("star", "Decor", slot_text, BRASS))
 	_list.add_child(card)
+
+func _play_celebration() -> void:
+	if not is_inside_tree():
+		return
+	UI.play_sfx(self, "buy")
+	var colors := [BRASS, SAGE, UI.PLUM, UI.SLATE, Color.WHITE]
+	for i in 28:
+		var bit := ColorRect.new()
+		bit.color = colors[i % colors.size()]
+		bit.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		bit.size = Vector2(5 + (i % 3) * 3, 10 + (i % 4) * 2)
+		bit.position = Vector2(
+			18.0 + fmod(float(i * 83), maxf(size.x - 36.0, 40.0)),
+			-18.0 - float((i * 29) % 130))
+		bit.rotation = float(i) * 0.37
+		bit.z_index = 20
+		add_child(bit)
+		var tw := bit.create_tween()
+		tw.set_parallel(true)
+		tw.tween_property(bit, "position:y", size.y + 30.0,
+			1.15 + float(i % 7) * 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_property(bit, "rotation", bit.rotation + PI * 2.0,
+			1.15 + float(i % 7) * 0.08)
+		tw.chain().tween_callback(bit.queue_free)
+
+## Static previews are rendered from each real venue, never from a player save.
+## Keeping the aspect ratio avoids cropping upper floors out of the image.
+func _venue_preview(venue: Dictionary, compact: bool = false) -> Control:
+	var id := str(venue.get("id", ""))
+	var frame := VBoxContainer.new()
+	frame.add_theme_constant_override("separation", 7)
+	var image := TextureRect.new()
+	image.name = "VenueArtwork_" + id
+	image.custom_minimum_size = Vector2(0, 172 if compact else 310)
+	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	image.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var path := "res://art/venue_previews/%s.png" % id
+	if ResourceLoader.exists(path):
+		image.texture = load(path)
+	frame.add_child(image)
+	var caption := _label("%02d  %s" % [int(venue.get("order", 1)), str(venue.get("name", "Museum"))], 16 if compact else 21, INK)
+	frame.add_child(caption)
+	if not compact:
+		frame.add_child(_label("Venue preview · developed museum", 12, DIM))
+	return frame
+
+func _build_collection(current_id: String) -> void:
+	var toggle := UI.make_button("Explore all 12 museums", Chrome.PANEL)
+	toggle.custom_minimum_size.y = 52
+	toggle.toggle_mode = true
+	Chrome.button(toggle)
+	_list.add_child(toggle)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 10)
+	grid.visible = false
+	_list.add_child(grid)
+	toggle.toggled.connect(func(open: bool):
+		grid.visible = open
+		toggle.text = "Close museum collection" if open else "Explore all 12 museums"
+		if open:
+			_populate_collection(grid, current_id)
+		else:
+			for child in grid.get_children():
+				grid.remove_child(child)
+				child.queue_free())
+
+func _populate_collection(grid: GridContainer, current_id: String) -> void:
+	var current_order := int(DataLoader.get_venue(current_id).get("order", 1))
+	for id in DataLoader.venue_order():
+		var venue := DataLoader.get_venue(id)
+		var card := _panel()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var col := VBoxContainer.new()
+		card.add_child(col)
+		col.add_child(_venue_preview(venue, true))
+		var order := int(venue.get("order", 1))
+		var state := "CURRENT MUSEUM" if id == current_id else ("CHAPTER COMPLETE" if order < current_order else "UPCOMING CHAPTER")
+		col.add_child(_label(state, 12, SAGE if id == current_id else DIM))
+		grid.add_child(card)
 
 func _stat_row(icon: String, label: String, detail: String, tint: Color) -> Control:
 	var hb := HBoxContainer.new()
@@ -229,7 +389,7 @@ func _build_keep_leave() -> void:
 func _build_final_card() -> void:
 	_section("The end of the road", BRASS)
 	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", UI.make_dark_frame(BRASS))
+	card.add_theme_stylebox_override("panel", Chrome.panel(16))
 	var cv := VBoxContainer.new()
 	card.add_child(cv)
 	cv.add_child(_label("There is no bigger museum. This one is yours to perfect.", 15, INK))
@@ -260,7 +420,7 @@ func _build_milestone_chain(vid: String) -> void:
 			state_color = DIM
 			state_icon = "lock"
 		hb.add_child(UI.make_icon(state_icon, 20, state_color))
-		var name_l := _label("%d. %s" % [i + 1, str(ms.get("name", "?"))], 16,
+		var name_l := _label("%d. %s" % [i + 1, str(ms.get("name", "?")).replace(" (PRESTIGE)", "")], 16,
 			INK if i <= done.size() else DIM)
 		name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hb.add_child(name_l)
@@ -282,10 +442,13 @@ func _build_action_bar(preview: Dictionary) -> void:
 	var final_venue: bool = preview.is_empty()
 	var label: String = "FINAL MUSEUM"
 	if not final_venue:
-		label = "OPEN %s" % str(preview.get("name", "")).to_upper()
+		label = "OPEN LEVEL %d — %s" % [
+			int(preview.get("order", 0)), str(preview.get("name", "")).to_upper()]
 	var btn := UI.make_button(label, BRASS if ready else UI.DEAD)
 	btn.icon = UI.icon_texture("arrow_right" if ready else "lock", 22)
 	btn.custom_minimum_size = Vector2(0, 64)
+	Chrome.button(btn, ready)
+	btn.add_theme_font_size_override("font_size", 18)
 	# Live buttons keep the kit's white-with-dark-outline face, which is what
 	# holds up on gold. Only the dead state is repainted, to recede on the page.
 	if not ready:
@@ -311,13 +474,19 @@ func _on_action_pressed() -> void:
 	_confirm.dialog_text = ("Open %s?\n\nYou keep every coin, gem, manager and reputation "
 		+ "level you have earned. %s and everything installed in it stays shut behind you.") % [
 		str(preview.get("name", "")), here]
-	_confirm.popup_centered()
+	var viewport_size := get_viewport_rect().size
+	_confirm.popup_centered(Vector2i(mini(600, int(viewport_size.x) - 48), 280))
 
 func _on_move_confirmed() -> void:
 	if PrestigeSystem.graduate():
 		var nv: Dictionary = DataLoader.get_venue(GameState.current_venue)
 		EventBus.toast_requested.emit("Welcome to %s!" % str(nv.get("name", GameState.current_venue)))
 		UI.play_sfx(self, "buy")
+		# Keep this completed screen over the world for one render frame while
+		# VenueFloor replaces the old plan, props, cast and navigation. Closing it
+		# immediately exposed the intermediate half-rebuilt attraction state.
+		await get_tree().process_frame
+		Popups.close_top()
 	else:
 		EventBus.toast_requested.emit(PrestigeSystem.block_reason())
 	refresh()

@@ -14,6 +14,10 @@ const DONE_KEY := "quests_done"
 ## Refill active_quests up to 3 from pool quests not yet done in this venue.
 static func ensure_active_quests(venue_id: String) -> void:
 	var vs: Dictionary = GameState.venue_state(venue_id)
+	if MilestoneSystem.all_complete(venue_id):
+		vs["active_quests"] = []
+		vs["progress"] = 0.0
+		return
 	var active: Array = []
 	for qid in vs.get("active_quests", []):
 		if DataLoader.quests.has(str(qid)) and str(qid) not in active:
@@ -43,6 +47,9 @@ static func current_value(venue_id: String, qdef: Dictionary) -> BigNumber:
 		"upgrade_count":
 			return BigNumber.from_float(float(GameState.dept_level(
 				venue_id, str(qdef.get("dept", "")), str(qdef.get("track", "")))))
+		"item_level":
+			return BigNumber.from_float(float(GameState.item_level(
+				venue_id, str(qdef.get("dept", "")), int(qdef.get("item", 0)))))
 		"earn_total":
 			return BigNumber.from_save(GameState.venue_state(venue_id).get("earned_total", {}))
 		"serve_total":
@@ -66,6 +73,11 @@ static func is_complete(venue_id: String, qdef: Dictionary) -> bool:
 ## Check all active quests; complete those at target, fill the venue bar,
 ## fire milestones on bar-full, and draw replacements.
 static func evaluate(venue_id: String) -> void:
+	if MilestoneSystem.all_complete(venue_id):
+		var complete_state: Dictionary = GameState.venue_state(venue_id)
+		complete_state["active_quests"] = []
+		complete_state["progress"] = 0.0
+		return
 	ensure_active_quests(venue_id)
 	var vs: Dictionary = GameState.venue_state(venue_id)
 	var completed_any: bool = false
@@ -77,7 +89,10 @@ static func evaluate(venue_id: String) -> void:
 		var done: Array = vs.get(DONE_KEY, [])
 		done.append(str(qid))
 		vs[DONE_KEY] = done
-		vs["progress"] = float(vs.get("progress", 0.0)) + float(qdef.get("progress_reward", 0.1))
+		var venue: Dictionary = DataLoader.get_venue(venue_id)
+		var pace: float = float(venue.get("quest_progress_mult", 1.0))
+		vs["progress"] = float(vs.get("progress", 0.0)) \
+			+ float(qdef.get("progress_reward", 0.1)) * pace
 		completed_any = true
 		EventBus.quest_completed.emit(str(qid))
 	if completed_any:

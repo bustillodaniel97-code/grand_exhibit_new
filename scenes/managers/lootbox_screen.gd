@@ -5,22 +5,23 @@ extends Control
 
 const LootboxSystem := preload("res://scripts/managers/lootbox_system.gd")
 const UI := preload("res://scripts/ui/ui_kit.gd")
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 const ManagerBadge := preload("res://scenes/managers/manager_badge.gd")
 const ManagerPortrait := preload("res://scenes/managers/manager_portrait.gd")
 
 # Popup CONTENT on a DARK page: the tier cards and the reveal are the bright
 # things here, so the ground behind them is deep and the body text is light.
-const BG := UI.PAGE
-const INK := UI.TEXT
-const DIM := UI.TEXT_DIM
-const PANEL := UI.CARD
-const ACCENT := UI.ACCENT
-const BRASS := UI.BRASS
-const SAGE := UI.SAGE
-const SLATE := UI.SLATE
-const PLUM := UI.PLUM
+const BG := Chrome.BG
+const INK := Chrome.INK
+const DIM := Chrome.DIM
+const PANEL := Chrome.PANEL
+const ACCENT := Chrome.TEAL
+const BRASS := Chrome.BRASS
+const SAGE := Chrome.TEAL
+const SLATE := Chrome.DIM
+const PLUM := Chrome.BRASS
 # Was a private copy of the retired muted palette; ui_kit is the source now.
-const RARITY_COLORS := UI.RARITY_COLORS
+const RARITY_COLORS := ManagerBadge.RARITY_TINTS
 const RV_PLACEMENT := "free_lootbox"
 const FIELD_BOX := "field_case"
 
@@ -29,6 +30,7 @@ var _rng := RandomNumberGenerator.new()
 var _gems_chip: PanelContainer
 var _box_list: VBoxContainer
 var _refresh_timer: Timer
+var _tier_controls: Dictionary = {} # box_id -> stable card/price/open controls
 
 func setup(payload: Dictionary) -> void:
 	_payload = payload
@@ -52,13 +54,20 @@ func _ready() -> void:
 	var bar := HBoxContainer.new()
 	bar.add_theme_constant_override("separation", 12)
 	root_box.add_child(bar)
-	var title := UI.make_display_label("Lootboxes", 36, INK)
+	var title := UI.make_display_label("Recruitment Cases", 36, INK)
 	bar.add_child(title)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.add_child(spacer)
 	_gems_chip = UI.make_dark_currency_chip("gems", "0", Color(1, 1, 1), 26)
+	_gems_chip.add_theme_stylebox_override("panel", Chrome.panel(12))
 	bar.add_child(_gems_chip)
+	var intro := UI.make_label(
+		"Open cases to recruit managers and collect duplicates for rank-ups and trades.",
+		UI.TYPE_BODY)
+	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	intro.add_theme_color_override("font_color", DIM)
+	root_box.add_child(intro)
 	# tier list
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -68,23 +77,35 @@ func _ready() -> void:
 	_box_list.add_theme_constant_override("separation", 12)
 	scroll.add_child(_box_list)
 	# signals
-	EventBus.gems_changed.connect(func(_v: int) -> void: _refresh_boxes())
-	EventBus.lootbox_opened.connect(func(_b: String, _r: Dictionary) -> void: _refresh_boxes())
+	EventBus.gems_changed.connect(func(_v: int) -> void: _refresh_status())
+	EventBus.lootbox_opened.connect(func(_b: String, _r: Dictionary) -> void: _refresh_status())
 	AdService.ad_result.connect(_on_ad_result)
 	_refresh_timer = Timer.new()
 	_refresh_timer.wait_time = 1.0
-	_refresh_timer.timeout.connect(_refresh_boxes)
+	_refresh_timer.timeout.connect(_refresh_status)
 	add_child(_refresh_timer)
 	_refresh_timer.start()
-	_refresh_boxes()
+	_build_boxes()
+	_refresh_status()
 
 ## Framed tier card: dark stock, saturated rim. The rim used to be the whole
 ## card — a near-white panel washed with 16% of the tier colour — which on a dark
 ## page was a sheet of paper with a hint of tint rather than a lootbox.
 func _style(bg_color: Color, border_color: Color, _radius: int = 12, border_w: int = 3) -> StyleBox:
-	var sb := UI.make_dark_frame(border_color, bg_color)
-	sb.set_border_width_all(maxi(border_w, 3))
+	var sb := Chrome.panel(_radius, bg_color)
+	sb.border_color = border_color.lerp(Chrome.BORDER, 0.45)
+	sb.set_border_width_all(2 if border_w >= 4 else 1)
+	sb.set_content_margin_all(12)
 	return sb
+
+static func _case_button(text: String, tint: Color) -> Button:
+	var button := UI.make_button(text, tint)
+	button.custom_minimum_size.y = UI.TOUCH_MIN
+	button.expand_icon = true
+	button.add_theme_constant_override("icon_max_width", 20)
+	button.add_theme_constant_override("outline_size", 0)
+	Chrome.button(button, tint != SLATE)
+	return button
 
 ## --- free_lootbox charge logic (owned here per SPEC §8) ------------------------
 
@@ -151,17 +172,39 @@ func _sorted_boxes() -> Array[String]:
 		return int(DataLoader.get_lootbox(a).get("tier", 0)) < int(DataLoader.get_lootbox(b).get("tier", 0)))
 	return ids
 
-func _refresh_boxes() -> void:
+func _build_boxes() -> void:
+	_tier_controls.clear()
+	for box_id in _sorted_boxes():
+		var entry := _build_tier_card(box_id)
+		_box_list.add_child(entry["card"])
+		_tier_controls[box_id] = entry
+
+## Currency, countdown and affordance text change in place. Keeping cards and
+## buttons mounted preserves keyboard/controller focus and an in-progress press.
+func _refresh_status() -> void:
 	if is_instance_valid(_gems_chip):
 		UI.set_chip_value(_gems_chip, "%d" % GameState.gems)
-	if not is_instance_valid(_box_list):
-		return
-	for c in _box_list.get_children():
-		c.queue_free()
-	for box_id in _sorted_boxes():
-		_box_list.add_child(_build_tier_card(box_id))
+	for box_id in _tier_controls.keys():
+		var controls: Dictionary = _tier_controls[box_id]
+		var price_l: Label = controls["price"]
+		var open_btn: Button = controls["open"]
+		if not is_instance_valid(price_l) or not is_instance_valid(open_btn):
+			continue
+		if box_id == FIELD_BOX:
+			var count := int(charge_state().get("count", 0))
+			price_l.text = "FREE %d/%d" % [count, _max_charges()]
+			var next := _next_charge_text()
+			if next != "":
+				price_l.text += "   (%s)" % next
+			open_btn.text = "Open (watch ad)" if count > 0 else "Recharging — tap for details"
+		else:
+			var price := int(DataLoader.get_lootbox(box_id).get("price_gems", 0))
+			price_l.text = "%d Gems" % price
+			open_btn.text = "Buy & Open" if GameState.gems >= price else "Need %d Gems" % price
+		# Blocked actions stay live: their handlers explain the exact reason.
+		open_btn.disabled = false
 
-func _build_tier_card(box_id: String) -> Control:
+func _build_tier_card(box_id: String) -> Dictionary:
 	var def: Dictionary = DataLoader.get_lootbox(box_id)
 	var card := PanelContainer.new()
 	card.add_theme_stylebox_override("panel", _style(PANEL, ACCENT if box_id != FIELD_BOX else SAGE, 12, 3))
@@ -182,16 +225,18 @@ func _build_tier_card(box_id: String) -> Control:
 	desc.add_theme_font_size_override("font_size", 18)
 	desc.add_theme_color_override("font_color", DIM)
 	box.add_child(desc)
+	var odds := Label.new()
+	odds.text = "Published odds: " + LootboxSystem.rates_text(box_id)
+	odds.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	odds.add_theme_font_size_override("font_size", 16)
+	odds.add_theme_color_override("font_color", SLATE)
+	box.add_child(odds)
 	# price / free-charge line
 	var price_l := Label.new()
 	price_l.add_theme_font_size_override("font_size", 20)
 	price_l.add_theme_color_override("font_color", BRASS)
 	if box_id == FIELD_BOX:
-		var st: Dictionary = charge_state()
-		price_l.text = "FREE %d/%d" % [int(st.get("count", 0)), _max_charges()]
-		var next: String = _next_charge_text()
-		if next != "":
-			price_l.text += "   (%s)" % next
+		price_l.text = "FREE"
 	else:
 		price_l.text = "%d Gems" % int(def.get("price_gems", 0))
 	box.add_child(price_l)
@@ -199,24 +244,24 @@ func _build_tier_card(box_id: String) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	box.add_child(row)
-	var rates_btn := UI.make_button("Drop rates", SLATE)
+	var rates_btn := _case_button("Drop rates", SLATE)
 	rates_btn.icon = UI.icon_texture("question", 18)
 	rates_btn.add_theme_font_size_override("font_size", 18)
 	rates_btn.pressed.connect(func() -> void: _show_rates(box_id))
 	row.add_child(rates_btn)
-	var open_btn := UI.make_button("", SAGE if box_id == FIELD_BOX else BRASS)
+	var open_btn := _case_button("", SAGE if box_id == FIELD_BOX else BRASS)
 	open_btn.add_theme_font_size_override("font_size", 20)
 	if box_id == FIELD_BOX:
 		open_btn.text = "Open (watch ad)"
-		open_btn.disabled = int(charge_state().get("count", 0)) <= 0
 		open_btn.pressed.connect(_open_field_free)
 	else:
 		open_btn.text = "Buy & Open"
 		open_btn.icon = UI.icon_texture("gems", 20)
-		open_btn.disabled = GameState.gems < int(def.get("price_gems", 0))
 		open_btn.pressed.connect(func() -> void: _open_with_gems(box_id))
+	open_btn.set_meta("box_id", box_id)
 	row.add_child(open_btn)
-	return card
+	return {"card": card, "price": price_l, "open": open_btn, "rates": rates_btn,
+		"odds": odds}
 
 ## --- open flows ---------------------------------------------------------------
 
@@ -287,7 +332,7 @@ func _show_rates(box_id: String) -> void:
 	rates.add_theme_color_override("font_color", INK)
 	rates.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(rates)
-	var close := UI.make_button("Close", SLATE)
+	var close := _case_button("Close", SLATE)
 	close.pressed.connect(func() -> void: (p["dlg"] as Control).queue_free())
 	box.add_child(close)
 
@@ -305,7 +350,7 @@ func _show_reveal(box_id: String, results: Dictionary) -> void:
 	# A reveal shows the FACE. The roster is a wall of ID photos now, so a won
 	# manager arriving as a coloured line of text was the one place the player
 	# met someone new and never saw them. The portrait comes out of the same
-	# bake cache the badges fill, so a reveal costs no extra render.
+	# authored texture cache the badges fill, so a reveal needs no live render.
 	var rows: Array[Control] = []
 	for entry in results.get("cards", []):
 		var def: Dictionary = DataLoader.get_manager_def(str(entry.get("id", "")))
@@ -335,7 +380,7 @@ func _show_reveal(box_id: String, results: Dictionary) -> void:
 	bonus.add_theme_color_override("font_color", BRASS)
 	bonus.visible = false
 	box.add_child(bonus)
-	var close := UI.make_button("...", BRASS)
+	var close := _case_button("...", BRASS)
 	close.disabled = true
 	close.pressed.connect(func() -> void: dlg.queue_free())
 	box.add_child(close)

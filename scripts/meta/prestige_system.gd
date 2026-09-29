@@ -7,9 +7,9 @@ extends RefCounted
 ## does not own. The PLAYER-FACING word is "open the next museum": this is a
 ## graduation to a bigger building, not a prestige reset.
 ##
-## THE GATE. Every milestone in the current venue's chain (8 in data today;
-## venue_progression.milestones_required can lower it for tuning). One ladder,
-## one gate — a second cash or currency threshold would only obscure it.
+## THE GATE. Complete the milestone chain, cap the four core operation tracks,
+## and meet the current museum's installed furnishing count and decor score.
+## Readiness is shown together; no premium currency or event item is required.
 ##
 ## THE MOVE IS ONE-WAY. The venue you leave is recorded in GameState.venues_closed
 ## and can never be current again. Nothing in the game offers a way back.
@@ -75,15 +75,86 @@ static func milestones_required(venue_id: String) -> int:
 static func milestones_done(venue_id: String) -> int:
 	return GameState.venue_state(venue_id).get("milestones", []).size()
 
-static func gate_met(venue_id: String) -> bool:
+static func milestone_gate_met(venue_id: String) -> bool:
 	var need: int = milestones_required(venue_id)
 	return need > 0 and milestones_done(venue_id) >= need
+
+## The four tracks that physically carry one visitor through the operation.
+## Requiring these—not every optional value/staff purchase—makes READY mean the
+## venue was actually built, while leaving room for different player builds.
+static func core_tracks() -> Array:
+	return [
+		["promotions", "speed", "Promotions Speed"],
+		["ticket", "speed", "Ticket Speed"],
+		["archive", "speed", "Archive Speed"],
+		["gallery", "value", "Gallery Value"],
+	]
+
+static func operations_required(venue_id: String) -> int:
+	if not bool(config().get("require_core_tracks_capped", true)):
+		return 0
+	return int(DataLoader.get_venue(venue_id).get("track_level_cap", 100)) * core_tracks().size()
+
+static func operations_done(venue_id: String) -> int:
+	var cap: int = int(DataLoader.get_venue(venue_id).get("track_level_cap", 100))
+	var done := 0
+	for track in core_tracks():
+		done += mini(GameState.dept_level(venue_id, str(track[0]), str(track[1])), cap)
+	return done
+
+static func operations_progress(venue_id: String) -> float:
+	var required := operations_required(venue_id)
+	return 1.0 if required <= 0 else clampf(float(operations_done(venue_id)) / float(required), 0.0, 1.0)
+
+static func operations_met(venue_id: String) -> bool:
+	return operations_done(venue_id) >= operations_required(venue_id)
+
+## Furnishing is local to the museum and must remain installed. Premium and
+## event pieces can contribute, but every target is reachable with cash designs.
+static func decor_required(venue_id: String) -> int:
+	return ceili(DecorSystem.slots_total(venue_id) * float(config().get("decor_slot_fraction", .5)))
+
+static func decor_points_required(venue_id: String) -> float:
+	return decor_required(venue_id) * float(config().get("decor_points_per_required_piece", 4.0))
+
+static func decor_done(venue_id: String) -> int:
+	var valid: Dictionary = {}
+	for did in GameState.venue_state(venue_id).get("decor", {}).values():
+		if not DataLoader.get_decor(str(did)).is_empty():valid[str(did)] = true
+	return valid.size()
+
+static func decor_progress(venue_id: String) -> float:
+	var pieces := clampf(float(decor_done(venue_id)) / maxf(decor_required(venue_id), 1), 0, 1)
+	var points := clampf(DecorSystem.venue_decor_points(venue_id) / maxf(decor_points_required(venue_id), 1), 0, 1)
+	return minf(pieces, points)
+
+static func decor_met(venue_id: String) -> bool:
+	return decor_done(venue_id) >= decor_required(venue_id) and DecorSystem.venue_decor_points(venue_id) + .00001 >= decor_points_required(venue_id)
+
+static func decor_summary(venue_id: String) -> String:
+	return "%d / %d furnishings · %d / %d decor points" % [decor_done(venue_id), decor_required(venue_id), roundi(DecorSystem.venue_decor_points(venue_id)), roundi(decor_points_required(venue_id))]
+
+static func readiness_progress(venue_id: String) -> float:
+	var partial := clampf(float(GameState.venue_state(venue_id).get("progress", 0.0)), 0, 1)
+	var milestones := clampf((float(milestones_done(venue_id)) + partial) / maxf(milestones_required(venue_id), 1), 0, 1)
+	return (milestones + operations_progress(venue_id) + decor_progress(venue_id)) / 3.0
+
+static func gate_met(venue_id: String) -> bool:
+	return milestone_gate_met(venue_id) and operations_met(venue_id) and decor_met(venue_id)
 
 ## "" when the player may move on, otherwise the player-facing reason.
 static func block_reason() -> String:
 	var vid: String = GameState.current_venue
-	if not gate_met(vid):
+	if not milestone_gate_met(vid):
 		return "%d of %d milestones done" % [milestones_done(vid), milestones_required(vid)]
+	if not operations_met(vid):
+		var cap: int = int(DataLoader.get_venue(vid).get("track_level_cap", 100))
+		for track in core_tracks():
+			if GameState.dept_level(vid, str(track[0]), str(track[1])) < cap:
+				return "Operations %d%% — upgrade %s to Lv.%d" % [
+					int(round(operations_progress(vid) * 100.0)), str(track[2]), cap]
+	if not decor_met(vid):
+		return "Furnish this museum: " + decor_summary(vid)
 	if next_venue_id() == "":
 		return "This is the final museum"
 	return ""

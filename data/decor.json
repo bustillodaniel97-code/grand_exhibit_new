@@ -12,7 +12,13 @@
       "premium": false,
       "event_exclusive": false,
       "desc": "Sturdy seating for weary visitors.",
-      "set_id": "heritage"
+      "set_id": "heritage",
+      "visual": {
+        "kind": "bench",
+        "len": 1.5,
+        "col": "#8A5B38",
+        "rail": "#6B4325"
+      }
     },
     {
       "id": "brass_fountain",
@@ -25,7 +31,22 @@
       "premium": true,
       "event_exclusive": false,
       "desc": "A gleaming centerpiece. Coins tossed in are pure profit.",
-      "set_id": "heritage"
+      "set_id": "heritage",
+      "visual": {
+        "kind": "fountain",
+        "size": [
+          1.3,
+          1.0
+        ],
+        "rim_h": 18.0,
+        "rim": "#B08A4A",
+        "water": "#4FA8D8",
+        "sand": "#E8DCB8",
+        "life": [
+          "#F2D98A"
+        ],
+        "life_count": 3
+      }
     },
     {
       "id": "heritage_arch",
@@ -38,7 +59,19 @@
       "premium": false,
       "event_exclusive": false,
       "desc": "A carved wooden archway from the original 1911 building.",
-      "set_id": "heritage"
+      "set_id": "heritage",
+      "visual": {
+        "kind": "facade",
+        "len": 1.6,
+        "height": 42.0,
+        "leaf": 0.42,
+        "door_at": 0.36,
+        "col": "#7A5836",
+        "door_a": "#96714A",
+        "door_b": "#85623F",
+        "fanlight": "#E7D9AE",
+        "blocks_nav": false
+      }
     },
     {
       "id": "velvet_rope",
@@ -51,7 +84,17 @@
       "premium": false,
       "event_exclusive": false,
       "desc": "Queues feel classier behind velvet.",
-      "set_id": "heritage"
+      "set_id": "heritage",
+      "visual": {
+        "kind": "rope_line",
+        "span": 1.8,
+        "posts": 4,
+        "post_h": 23.0,
+        "rope": "#8C2130",
+        "post": "#5A3A22",
+        "knob": "#E8B83F",
+        "gloss": true
+      }
     },
     {
       "id": "crest_banner",
@@ -64,7 +107,15 @@
       "premium": false,
       "event_exclusive": false,
       "desc": "The museum crest, stitched in brass thread.",
-      "set_id": "heritage"
+      "set_id": "heritage",
+      "visual": {
+        "kind": "banner",
+        "col": "#8C3B49",
+        "field": "#6E2F3A",
+        "motif": "#E8B83F",
+        "height": 46.0,
+        "blocks_nav": false
+      }
     },
     {
       "id": "heritage_topiary",
@@ -77,7 +128,16 @@
       "premium": false,
       "event_exclusive": false,
       "desc": "A hedge trimmed into the shape of the original hall.",
-      "set_id": "heritage"
+      "set_id": "heritage",
+      "visual": {
+        "kind": "planter",
+        "r": 0.36,
+        "pot": "#9A6B45",
+        "leaf": "#2E7A45",
+        "tip": "#5FB877",
+        "blades": 10,
+        "reach": 26.0
+      }
     },
     {
       "id": "ancient_obelisk",
@@ -90,7 +150,17 @@
       "premium": false,
       "event_exclusive": true,
       "desc": "Recovered on expedition. Not for sale.",
-      "set_id": "antiquity"
+      "set_id": "antiquity",
+      "visual": {
+        "kind": "plinth",
+        "size": [
+          0.46,
+          0.46
+        ],
+        "height": 64.0,
+        "col": "#D8C9A0",
+        "lip": "#B9A87C"
+      }
     },
     {
       "id": "marble_bust",
@@ -103,7 +173,18 @@
       "premium": true,
       "event_exclusive": false,
       "desc": "Nobody knows who Septimus was. Everyone agrees he matters.",
-      "set_id": "antiquity"
+      "set_id": "antiquity",
+      "visual": {
+        "kind": "statue",
+        "size": [
+          0.66,
+          0.58
+        ],
+        "plinth_h": 32.0,
+        "plinth": "#CFC6B0",
+        "stone": "#F4EFE4",
+        "edge": "#B0A48C"
+      }
     },
     {
       "id": "column_gate",
@@ -116,7 +197,19 @@
       "premium": true,
       "event_exclusive": false,
       "desc": "Reclaimed columns from a fallen temple.",
-      "set_id": "antiquity"
+      "set_id": "antiquity",
+      "visual": {
+        "kind": "facade",
+        "len": 2.6,
+        "height": 64.0,
+        "leaf": 0.9,
+        "door_at": 0.35,
+        "col": "#CFC099",
+        "door_a": "#E0D3AE",
+        "door_b": "#C9BA92",
+        "fanlight": "#F0E6C8",
+        "blocks_nav": false
+      }
     },
     {
       "id": "mosaic_floor",
@@ -129,7 +222,17 @@
       "premium": false,
       "event_exclusive": false,
       "desc": "Two thousand tiles, one enormous jigsaw.",
-      "set_id": "antiquity"
+      "set_id": "antiquity",
+      "visual": {
+        "kind": "rug",
+        "size": [
+          2.0,
+          1.35
+        ],
+        "col": "#45707E",
+        "border": "#C9A24A",
+        "blocks_nav": false
+      }
     },
     {
       "id": "sphinx_statue",
@@ -142,7 +245,25 @@
       "premium": true,
       "event_exclusive": false,
       "desc": "It watches the entrance. Visitors swear it blinks.",
-      "set_id": "antiquity"
+      "set_id": "antiquity",
+      "visual": {
+        "kind": "casket",
+        "size": [
+          1.35,
+          0.8
+        ],
+        "plinth_h": 10.0,
+        "plinth": "#C9B896",
+        "body": "#D8B978",
+        "trim": "#3E6E8C",
+        "edge": "#A07C3C",
+        "height": 40.0,
+        "lid_r": [
+          22.0,
+          16.0
+        ],
+        "shoulder": 22.0
+      }
     },
     {
       "id": "relic_case",
@@ -155,7 +276,18 @@
       "premium": false,
       "event_exclusive": false,
       "desc": "Climate-controlled case for the fragile good stuff.",
-      "set_id": "antiquity"
+      "set_id": "antiquity",
+      "visual": {
+        "kind": "vitrine",
+        "size": [
+          1.05,
+          0.68
+        ],
+        "plinth_h": 17.0,
+        "base": "#6E5A3E",
+        "art": "#E8C55A",
+        "glass_h": 34.0
+      }
     },
     {
       "id": "welcome_planter",
@@ -167,7 +299,16 @@
       "income_mult": 1.02,
       "premium": false,
       "event_exclusive": false,
-      "desc": "Fresh flowers say: yes, we are open."
+      "desc": "Fresh flowers say: yes, we are open.",
+      "visual": {
+        "kind": "planter",
+        "r": 0.21,
+        "pot": "#C0663A",
+        "leaf": "#3F9A5B",
+        "tip": "#86D89A",
+        "blades": 5,
+        "reach": 14.0
+      }
     },
     {
       "id": "reading_lamps",
@@ -179,7 +320,17 @@
       "income_mult": 1.03,
       "premium": false,
       "event_exclusive": false,
-      "desc": "Warm light makes plaques irresistible."
+      "desc": "Warm light makes plaques irresistible.",
+      "visual": {
+        "kind": "plinth",
+        "size": [
+          0.28,
+          0.28
+        ],
+        "height": 46.0,
+        "col": "#3E4A52",
+        "lip": "#F4DC9A"
+      }
     },
     {
       "id": "lily_pond",
@@ -191,7 +342,23 @@
       "income_mult": 1.04,
       "premium": false,
       "event_exclusive": false,
-      "desc": "Frogs included at no extra charge."
+      "desc": "Frogs included at no extra charge.",
+      "visual": {
+        "kind": "touch_pool",
+        "size": [
+          1.6,
+          1.15
+        ],
+        "rim_h": 8.0,
+        "rim": "#6F8A5A",
+        "water": "#4E9C74",
+        "sand": "#6E7A52",
+        "life": [
+          "#F0A8C8",
+          "#F6E2A0"
+        ],
+        "life_count": 6
+      }
     },
     {
       "id": "crystal_chandelier",
@@ -203,7 +370,16 @@
       "income_mult": 1.1,
       "premium": true,
       "event_exclusive": false,
-      "desc": "Seven kilos of cut crystal. Do not tap."
+      "desc": "Seven kilos of cut crystal. Do not tap.",
+      "visual": {
+        "kind": "hanging",
+        "ceiling": 62.0,
+        "drop": 16.0,
+        "span": 26.0,
+        "body": "#DCE8F6",
+        "edge": "#FFFFFF",
+        "blocks_nav": false
+      }
     },
     {
       "id": "expedition_totem",
@@ -215,7 +391,18 @@
       "income_mult": 1.09,
       "premium": false,
       "event_exclusive": true,
-      "desc": "Carved by the expedition team at base camp."
+      "desc": "Carved by the expedition team at base camp.",
+      "visual": {
+        "kind": "statue",
+        "size": [
+          0.5,
+          0.5
+        ],
+        "plinth_h": 6.0,
+        "plinth": "#6B4A32",
+        "stone": "#8C5A3C",
+        "edge": "#D8A45A"
+      }
     },
     {
       "id": "pharaoh_mask",
@@ -227,7 +414,21 @@
       "income_mult": 1.1,
       "premium": false,
       "event_exclusive": true,
-      "desc": "Recovered from the deep desert. Priceless; please don't touch."
+      "desc": "Recovered from the deep desert. Priceless; please don't touch.",
+      "visual": {
+        "kind": "case",
+        "size": [
+          1.0,
+          0.6
+        ],
+        "plinth_h": 15.0,
+        "base": "#7A5A34",
+        "specimens": [
+          "#E8C55A",
+          "#3E6E8C",
+          "#E8C55A"
+        ]
+      }
     },
     {
       "id": "visitor_benches",
@@ -241,7 +442,13 @@
       "decor_score": 3,
       "premium": false,
       "event_exclusive": false,
-      "desc": "A row of benches down the long hall. Tired feet spend more."
+      "desc": "A row of benches down the long hall. Tired feet spend more.",
+      "visual": {
+        "kind": "bench",
+        "len": 2.7,
+        "col": "#A9793F",
+        "rail": "#86602F"
+      }
     },
     {
       "id": "shaded_terrace",
@@ -255,7 +462,12 @@
       "decor_score": 5,
       "premium": false,
       "event_exclusive": false,
-      "desc": "Canvas awnings over garden seating. Somewhere to sit out the rain."
+      "desc": "Canvas awnings over garden seating. Somewhere to sit out the rain.",
+      "visual": {
+        "kind": "cafe_table",
+        "col": "#E8D9A8",
+        "stool": "#3E7A5E"
+      }
     },
     {
       "id": "atrium_lounge",
@@ -269,7 +481,13 @@
       "decor_score": 6,
       "premium": false,
       "event_exclusive": false,
-      "desc": "Deep armchairs under the atrium glass. Nobody leaves in a hurry."
+      "desc": "Deep armchairs under the atrium glass. Nobody leaves in a hurry.",
+      "visual": {
+        "kind": "bench",
+        "len": 2.0,
+        "col": "#4E6A78",
+        "rail": "#38505C"
+      }
     },
     {
       "id": "picnic_lawn",
@@ -283,7 +501,16 @@
       "decor_score": 6,
       "premium": false,
       "event_exclusive": false,
-      "desc": "Mown stripes and trestle tables. School groups can finally sit down."
+      "desc": "Mown stripes and trestle tables. School groups can finally sit down.",
+      "visual": {
+        "kind": "patch",
+        "size": [
+          2.2,
+          1.6
+        ],
+        "col": "#5FA05C",
+        "blocks_nav": false
+      }
     },
     {
       "id": "quiet_reading_nook",
@@ -297,7 +524,20 @@
       "decor_score": 7,
       "premium": true,
       "event_exclusive": false,
-      "desc": "Padded alcoves off the main hall. The only silence in the building."
+      "desc": "Padded alcoves off the main hall. The only silence in the building.",
+      "visual": {
+        "kind": "shelf",
+        "size": [
+          1.4,
+          0.5
+        ],
+        "height": 42.0,
+        "col": "#6B4A32",
+        "goods": "#C2703F",
+        "boxes": "#E0CFA6",
+        "strap": "#8C5A3C",
+        "bays": 3
+      }
     },
     {
       "id": "panorama_rest_deck",
@@ -311,7 +551,18 @@
       "decor_score": 9,
       "premium": true,
       "event_exclusive": false,
-      "desc": "A tiered deck over the gardens. Half the crowd sits here on purpose."
+      "desc": "A tiered deck over the gardens. Half the crowd sits here on purpose.",
+      "visual": {
+        "kind": "plinth",
+        "size": [
+          2.2,
+          1.35
+        ],
+        "height": 11.0,
+        "col": "#A87B4E",
+        "lip": "#8A6033",
+        "blocks_nav": false
+      }
     }
   ],
   "sets": [

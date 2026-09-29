@@ -38,7 +38,7 @@ const TEX := SIZE * STORE               # 224 — stored texture edge
 const RENDER := TEX * SUPERSAMPLE       # 672 — render target edge
 
 static var _cache := {}         # look_key -> ImageTexture
-static var _pending := {}       # look_key -> true while queued or in flight
+static var _pending := {}       # look_key -> callbacks waiting for the shared bake
 static var _queue: Array = []
 static var _busy := false
 
@@ -53,14 +53,20 @@ static func is_baked(look_key: String) -> bool:
 ## the finished Texture2D; it is skipped if the requester died in the meantime.
 static func request(look_key: String, look: Dictionary, host: Node,
 		on_ready: Callable = Callable()) -> void:
-	if look_key == "" or _cache.has(look_key) or _pending.has(look_key):
+	if look_key == "" or host == null or not host.is_inside_tree():
 		return
-	if host == null or not host.is_inside_tree():
+	if _cache.has(look_key):
+		if on_ready.is_valid(): on_ready.call(_cache[look_key])
 		return
 	if DisplayServer.get_name() == "headless":
 		return
-	_pending[look_key] = true
-	_queue.append({"key": look_key, "look": look, "host": host, "cb": on_ready})
+	# Rebuilt roster cards still need the result of an already-running bake.
+	# Deduplicate rendering, never subscribers; dead controls are skipped below.
+	if _pending.has(look_key):
+		if on_ready.is_valid(): (_pending[look_key] as Array).append(on_ready)
+		return
+	_pending[look_key] = [on_ready] if on_ready.is_valid() else []
+	_queue.append({"key": look_key, "look": look, "host": host})
 	if not _busy:
 		_pump()
 
@@ -77,7 +83,8 @@ static func _pump() -> void:
 		return
 	# Let the frame settle first: a SubViewport created before the renderer has
 	# drawn anything reads back fully transparent.
-	await anchor.get_tree().process_frame
+	var tree := anchor.get_tree()
+	await tree.process_frame
 
 	var vp := SubViewport.new()
 	vp.size = Vector2i(RENDER, RENDER)
@@ -85,13 +92,15 @@ static func _pump() -> void:
 	vp.disable_3d = true
 	vp.render_target_clear_mode = SubViewport.CLEAR_MODE_ALWAYS
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	anchor.get_tree().root.add_child(vp)
+	tree.root.add_child(vp)
 
 	var painter: Node2D = load("res://scenes/venue/floor/character.gd").new()
 	painter.set_painter_mode(true)
 	# Pose 0 is the stance the walk cycle starts from: no bob, no swing, no
 	# squash. A badge photo of someone mid-stride would look like a mistake.
 	painter.bake_pose = 0
+	# Front-on framing: the cap peak must not be drawn in walking profile.
+	painter.portrait_mode = true
 	var k: float = float(RENDER) / CROP.size.x
 	painter.scale = Vector2.ONE * k
 	painter.position = -CROP.position * k
@@ -110,6 +119,7 @@ static func _bake(job: Dictionary, vp: SubViewport, painter: Node2D) -> void:
 	# render target before the texture is read back.
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
+	var callbacks: Array = _pending.get(key, [])
 	_pending.erase(key)
 	if not is_instance_valid(vp):
 		return
@@ -119,9 +129,9 @@ static func _bake(job: Dictionary, vp: SubViewport, painter: Node2D) -> void:
 	img.resize(TEX, TEX, Image.INTERPOLATE_LANCZOS)
 	var tex := ImageTexture.create_from_image(img)
 	_cache[key] = tex
-	var cb: Callable = job["cb"]
-	if cb.is_valid() and is_instance_valid(cb.get_object()):
-		cb.call(tex)
+	for cb: Callable in callbacks:
+		if cb.is_valid() and is_instance_valid(cb.get_object()):
+			cb.call(tex)
 
 ## Any queued requester that is still in the tree can host the render target.
 static func _live_host() -> Node:

@@ -8,18 +8,17 @@ extends Control
 ## valuable screen region empty; and the three free-reward cards — the only things in
 ## here that cost the player nothing — were built last, a full screen below the fold.
 ##
-## The shape now, top to bottom, is the order a shopper actually reads:
-##   HERO      one offer, full width, with a real countdown and a computed saving
-##   FREE      the three rewarded placements, above the fold, never below it
-##   STARTER   shown only to a player who has never bought anything
-##   DAILY     the rotating shelf, with its refresh countdown
-##   GEMS      a ladder whose cards grow with the tier, badged with computed value
-##   CASH/INSIGHT, AD-FREE, then the legal footer
+## A persistent wallet and five category tabs keep navigation above the shelf.
+## Each category remembers its scroll position; a rebuild preserves the active
+## category and recovers product controls from the authoritative purchase state.
+## Offers holds the hero, starter and daily shelf; Rewards, Gems, Resources and
+## Passes each expose their own complete section. Product-view events are emitted
+## once when their category is first shown, not while hidden panels are built.
 ##
 ## House rules honoured here:
-##  · No button is ever disabled for affordability, ownership or a daily limit. It
-##    stays tappable and explains by toast — a disabled button swallows the tap and
-##    reads as a broken game.
+##  · No button is disabled for affordability, ownership or a daily limit. It stays
+##    tappable and explains by toast. An accepted purchase temporarily disables all
+##    visible copies of that product so two cards cannot launch the same purchase.
 ##  · Every value claim is computed from the catalog (store_pricing.gd) and states
 ##    its basis on screen. No invented "most popular", no strikethrough without a
 ##    printed anchor, no countdown on something that does not actually expire.
@@ -37,26 +36,38 @@ const Consent := preload("res://scripts/monetization/consent.gd")
 const Art := preload("res://scripts/monetization/store_art.gd")
 const UI := preload("res://scripts/ui/ui_kit.gd")
 
-# Palette aliases (ui_kit is the single source — SPEC §2).
-const BG := UI.PAGE
-const INK := UI.TEXT
-const DIM := UI.TEXT_DIM
-const PANEL := UI.CARD
-const ACCENT := UI.ACCENT
-const BRASS := UI.BRASS
-const SAGE := UI.SAGE
-const SLATE := UI.SLATE
-const PLUM := UI.PLUM
+# Museum shop palette: navy display cases, warm brass and quiet teal accents.
+const BG := Color("14232d")
+const INK := Color("f5f1e8")
+const DIM := Color("c1cece")
+const PANEL := Color("213641")
+const ACCENT := Color("aa552e")
+const BRASS := Color("d6b579")
+const SAGE := Color("27766a")
+const SLATE := Color("2e6e8b")
+const PLUM := Color("765f92")
+const CATEGORIES := {"offers":"Offers", "rewards":"Rewards", "gems":"Gems", "resources":"Resources", "passes":"Passes"}
 
-## Touch floor for anything in this screen. ui_kit documents 48dp as the Android
-## minimum; a buy button is the last place to sit on the floor, so it sits above it.
+## Design-pixel targets. Physical phone sizing still requires device validation.
 const BUY_H := 56
 const HERO_BUY_H := 64
 
+var _category := "offers"
+var _category_buttons: Dictionary = {}
+var _category_panels: Dictionary = {}
+var _category_products: Dictionary = {}
+var _building_category := ""
+var _category_scroll: Dictionary = {}
+var _scroll_revision := 0
+var _restoring_scroll := false
+var _shelf_root: VBoxContainer
+var _wallet_chips: Dictionary = {}
 var _scroll: ScrollContainer
 var _sections: VBoxContainer
 var _tick_labels: Array = []  # Array of {label:Label, kind:String, data:Variant}
-var _pending_buttons: Dictionary = {}  # product_id -> Button (restored on failure)
+var _product_buttons: Dictionary = {}  # product_id -> Array[Button], including hero duplicates
+var _pending_products: Dictionary = {} # product_id -> true while this screen awaits settlement
+var _tracking_ready := false
 var _impressions: Dictionary = {}      # product_id -> true, one log per screen open
 var _burst: Control
 
@@ -66,21 +77,33 @@ func _ready() -> void:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 14)
+	add_child(margin)
+	var page := VBoxContainer.new()
+	page.add_theme_constant_override("separation", 12)
+	margin.add_child(page)
+	page.add_child(_build_shop_header())
+	page.add_child(_build_category_bar())
 	_scroll = ScrollContainer.new()
-	_scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	add_child(_scroll)
-
-	_sections = VBoxContainer.new()
-	_sections.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_sections.add_theme_constant_override("separation", 12)
-	_scroll.add_child(_sections)
+	page.add_child(_scroll)
+	_shelf_root = VBoxContainer.new()
+	_shelf_root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.add_child(_shelf_root)
 
 	EventBus.iap_completed.connect(_on_iap_completed)
 	EventBus.daily_deals_refreshed.connect(_rebuild)
 	EventBus.rv_reward_granted.connect(func(_p: String, _c: Dictionary) -> void: _rebuild())
 	EventBus.boost_changed.connect(func(_m: float, _s: int) -> void: _rebuild())
 	EventBus.toast_requested.connect(_on_toast)
+	# Platform prices arrive asynchronously (and on resume/reconnect): rebuild
+	# labels rather than holding a fabricated fallback as a live offer.
+	if not IAPService.prices_updated.is_connected(_rebuild):
+		IAPService.prices_updated.connect(_rebuild)
 
 	var timer := Timer.new()
 	timer.wait_time = 1.0
@@ -91,10 +114,15 @@ func _ready() -> void:
 	_rebuild()
 
 func setup(payload: Dictionary) -> void:
+	_tracking_ready = true
 	Offers.check_triggers()
 	Analytics.store_open(str(payload.get("source", "nav")))
 	_impressions.clear()
 	if is_node_ready():
+		# Select the requested shelf before rebuilding/tracking visible products.
+		# Wallet deep links must not report an unseen Offers shelf impression.
+		var requested:=str(payload.get("category",""))
+		if CATEGORIES.has(requested):_category=requested
 		_rebuild()
 
 # ------------------------------------------------------------------- rebuild
@@ -104,23 +132,109 @@ func _rebuild() -> void:
 		return
 	# A rebuild used to throw the player back to the top of the store on every
 	# purchase, which is the worst possible moment to lose their place.
-	var scroll_y: int = _scroll.scroll_vertical if _scroll else 0
+	if not _restoring_scroll: _category_scroll[_category] = _scroll.scroll_vertical
 	_tick_labels.clear()
-	_pending_buttons.clear()
-	for child in _sections.get_children():
+	_product_buttons.clear()
+	_pending_products.clear()
+	_category_panels.clear()
+	_category_products.clear()
+	for child in _shelf_root.get_children():
+		_shelf_root.remove_child(child)
 		child.queue_free()
-	_build_hero()
-	_build_free_rewards()
-	_build_starter()
-	_build_daily_deals()
-	_build_gem_ladder()
-	_build_cash_insight()
-	_build_ad_free()
-	_build_footer()
-	if _scroll:
-		_scroll.set_deferred("scroll_vertical", scroll_y)
+	for key in CATEGORIES:
+		_building_category = key
+		_category_products[key] = []
+		_sections = VBoxContainer.new()
+		_sections.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_sections.add_theme_constant_override("separation", 14)
+		_shelf_root.add_child(_sections)
+		_category_panels[key] = _sections
+		match key:
+			"offers":
+				_build_hero()
+				_build_starter()
+				_build_daily_deals()
+			"rewards": _build_free_rewards()
+			"gems": _build_gem_ladder()
+			"resources": _build_cash_insight()
+			"passes":
+				_build_ad_free()
+				_build_footer()
+	_building_category = ""
+	_show_category()
+	_refresh_wallet()
+
+func _build_shop_header() -> Control:
+	var header := VBoxContainer.new()
+	header.add_theme_constant_override("separation", 10)
+	var title := _display("Museum Store", 32, INK)
+	header.add_child(title)
+	if IAPService.debug_iap or AdService.debug_ads:
+		var simulated := "Purchases and ads are simulated" if IAPService.debug_iap and AdService.debug_ads else ("Purchases are simulated" if IAPService.debug_iap else "Ads are simulated")
+		var simulation := _label("PLAYTEST · " + simulated, 14, Color("d6b579"))
+		simulation.name = "SimulationNotice"
+		header.add_child(simulation)
+	var wallet := HBoxContainer.new()
+	wallet.add_theme_constant_override("separation", 8)
+	header.add_child(wallet)
+	for currency in ["cash", "gems", "insight"]:
+		var chip := UI.make_dark_currency_chip(currency, "0", INK, 20)
+		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		chip.add_theme_stylebox_override("panel", _surface(PANEL, Color("42606b"), 10))
+		wallet.add_child(chip)
+		_wallet_chips[currency] = chip
+	return header
+
+func _refresh_wallet() -> void:
+	for key in _wallet_chips:
+		var value: String = str(GameState.gems) if key == "gems" else (
+			GameState.cash.to_notation() if key == "cash" else GameState.insight.to_notation())
+		UI.set_chip_value(_wallet_chips[key], value)
+
+func _build_category_bar() -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	for key in CATEGORIES:
+		var button := _button(CATEGORIES[key], PANEL)
+		button.name = "Category_" + key
+		button.toggle_mode = true
+		button.custom_minimum_size.y = UI.TOUCH_MIN
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_font_size_override("font_size", 17)
+		button.pressed.connect(func() -> void: set_category(key))
+		row.add_child(button)
+		_category_buttons[key] = button
+	return row
+
+func set_category(key: String) -> void:
+	if not CATEGORIES.has(key): return
+	if not _restoring_scroll: _category_scroll[_category] = _scroll.scroll_vertical
+	_category = key
+	_show_category()
+
+func _show_category() -> void:
+	for entry in _category_products.get(_category, []):
+		_emit_impression(entry.id, entry.section)
+	for key in _category_panels:
+		_category_panels[key].visible = key == _category
+	for key in _category_buttons:
+		_category_buttons[key].set_pressed_no_signal(key == _category)
+		_skin_button(_category_buttons[key], SAGE if key == _category else PANEL)
+	_scroll_revision += 1
+	_restoring_scroll = true
+	_restore_category_scroll(_category, _scroll_revision)
+
+func _restore_category_scroll(key: String, revision: int) -> void:
+	# Visibility changes first resize the shelf, then the ScrollContainer updates
+	# its range. Restoring before those layout passes clamps a saved offset to 0.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if revision != _scroll_revision or key != _category: return
+	_scroll.scroll_vertical = int(_category_scroll.get(key, 0))
+	_restoring_scroll = false
 
 func _tick() -> void:
+	_refresh_wallet()
 	for entry in _tick_labels:
 		var label: Label = entry["label"]
 		if not is_instance_valid(label):
@@ -163,7 +277,7 @@ func _build_hero() -> void:
 	# The hero rides the ELEVATED card tone. On a dark shelf every card is the same
 	# value, so "this one is the offer" has to be carried by the surface as well as
 	# by the ribbon and the rim.
-	var card := _card(UI.CARD_HI, ACCENT)
+	var card := _card(Color("30444c"), Color("bc9563"))
 	_sections.add_child(card)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 8)
@@ -191,7 +305,7 @@ func _build_hero() -> void:
 	var body := HBoxContainer.new()
 	body.add_theme_constant_override("separation", 14)
 	col.add_child(body)
-	body.add_child(Art.make_product_art(def, 104, _tier_of(product_id)))
+	body.add_child(Art.make_product_art(def, 204, _tier_of(product_id)))
 
 	var text := VBoxContainer.new()
 	text.add_theme_constant_override("separation", 4)
@@ -209,9 +323,11 @@ func _build_hero() -> void:
 	var buy := _buy_button(product_id, "Get it  " + IAPService.localized_price(product_id),
 		ACCENT, HERO_BUY_H)
 	if offer_id != "":
-		buy.pressed.connect(func() -> void: _on_buy_pressed(product_id, Offers.buy.bind(offer_id)))
+		buy.pressed.connect(func() -> void: _on_buy_pressed(
+			product_id, Offers.buy.bind(offer_id), buy))
 	else:
-		buy.pressed.connect(func() -> void: _on_buy_pressed(product_id, IAPCat.purchase.bind(product_id)))
+		buy.pressed.connect(func() -> void: _on_buy_pressed(
+			product_id, IAPCat.purchase.bind(product_id), buy))
 	col.add_child(buy)
 
 ## Struck-through à-la-carte anchor plus the basis for it, or null when the bundle
@@ -232,8 +348,9 @@ func _value_row(def: Dictionary) -> Control:
 ## Directly under the hero, deliberately. These cost the player nothing and were
 ## previously the last section built.
 func _build_free_rewards() -> void:
-	_sections.add_child(_section_header("Free — watch a short ad"))
-	var row := HBoxContainer.new()
+	_sections.add_child(_section_header("Daily rewards"))
+	_sections.add_child(_wrapped("Choose a reward. Watch an ad to collect it.", 17, DIM))
+	var row := VBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	_sections.add_child(row)
 
@@ -259,17 +376,25 @@ func _free_card(title: String, value: Label, placement_id: String, color: Color,
 		on_press: Callable) -> Control:
 	var card := _card(PANEL, color)
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	card.add_child(row)
+	row.add_child(Art.make_product_art({"id":"reward_"+placement_id},96))
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 4)
-	card.add_child(col)
-	col.add_child(_display(title, UI.TYPE_LABEL, INK))
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.add_theme_constant_override("separation", 6)
+	row.add_child(col)
+	col.add_child(_display(title, 24, INK))
+	value.add_theme_color_override("font_color", DIM)
+	value.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(value)
-	var btn := UI.make_button("Watch", color)
-	btn.custom_minimum_size = Vector2(0, BUY_H)
+	var btn := _button("Watch", color)
+	btn.custom_minimum_size = Vector2(120, BUY_H)
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	btn.icon = UI.icon_texture("arrow_right", 18)
 	btn.tooltip_text = RV.blocked_message(placement_id)
 	btn.pressed.connect(on_press)
-	col.add_child(btn)
+	row.add_child(btn)
 	return card
 
 func _placement_status(placement_id: String, when_free: String) -> String:
@@ -309,7 +434,7 @@ func _build_daily_deals() -> void:
 	header_row.add_theme_constant_override("separation", 8)
 	_sections.add_child(header_row)
 	var countdown := _label("New deals in " + _fmt_duration(Deals.seconds_until_refresh()),
-		UI.TYPE_LABEL, SLATE)
+		UI.TYPE_LABEL, Color("9fd0db"))
 	countdown.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	header_row.add_child(countdown)
 	_tick_labels.append({"label": countdown, "kind": "deals_refresh", "data": null})
@@ -317,7 +442,7 @@ func _build_daily_deals() -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header_row.add_child(spacer)
-	var force := UI.make_button("Reroll  %d" % Deals.force_cost(), SLATE)
+	var force := _button("Reroll  %d" % Deals.force_cost(), SLATE)
 	force.icon = UI.icon_texture("gems", 18)
 	force.custom_minimum_size = Vector2(0, UI.TOUCH_MIN)
 	force.tooltip_text = "%d rerolls left today" % Deals.force_refreshes_left()
@@ -383,7 +508,7 @@ func _build_ad_free() -> void:
 			var row := HBoxContainer.new()
 			row.add_theme_constant_override("separation", 10)
 			owned.add_child(row)
-			row.add_child(UI.make_icon("check", 26, SAGE))
+			row.add_child(Art.make_product_art({"id":"no_ads"},128))
 			row.add_child(_wrapped("Ad-Free Pass active — interstitials are off.",
 				UI.TYPE_BODY, INK))
 			_sections.add_child(owned)
@@ -397,12 +522,12 @@ func _build_footer() -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	_sections.add_child(row)
-	var restore := UI.make_button("Restore purchases", SLATE)
+	var restore := _button("Restore purchases", SLATE)
 	restore.custom_minimum_size = Vector2(0, UI.TOUCH_MIN)
 	restore.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	restore.pressed.connect(func() -> void: IAPCat.restore_purchases())
 	row.add_child(restore)
-	var privacy := UI.make_button("Privacy choices", PLUM)
+	var privacy := _button("Privacy choices", PLUM)
 	privacy.custom_minimum_size = Vector2(0, UI.TOUCH_MIN)
 	privacy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	privacy.pressed.connect(_on_privacy_pressed)
@@ -442,22 +567,30 @@ func _product_card(pid: String, section: String, tier: int, wide: bool = false) 
 	var badge: String = Pricing.value_badge(def)
 	if badge != "":
 		col.add_child(Art.make_ribbon(badge, BRASS if badge == "BEST VALUE" else SAGE))
+	elif not wide:
+		# Reserve the ribbon line so neighboring product art and titles align.
+		var badge_space := Control.new()
+		badge_space.custom_minimum_size.y = 26
+		badge_space.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(badge_space)
 
-	var body := HBoxContainer.new()
+	var body: BoxContainer = HBoxContainer.new() if wide else VBoxContainer.new()
 	body.add_theme_constant_override("separation", 10)
 	col.add_child(body)
-	body.add_child(Art.make_product_art(def, 84 if wide else 60, tier))
+	var product_art := Art.make_product_art(def,180,tier)
+	if not wide:product_art.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_child(product_art)
 	var text := VBoxContainer.new()
 	text.add_theme_constant_override("separation", 2)
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.add_child(text)
-	text.add_child(_display(str(def.get("title", pid)), UI.TYPE_HEADING, INK))
+	text.add_child(_display(str(def.get("title", pid)), 22 if wide else 20, INK))
 	if str(def.get("kind", "")) == "cash_pack":
-		var worth := _label(_cash_worth_text(def), UI.TYPE_LABEL, SLATE)
+		var worth := _wrapped(_cash_worth_text(def), UI.TYPE_LABEL, DIM)
 		text.add_child(worth)
 		_tick_labels.append({"label": worth, "kind": "cash_worth", "data": pid})
 	else:
-		text.add_child(_wrapped(_grants_text(def), UI.TYPE_LABEL, SLATE))
+		text.add_child(_wrapped(_grants_text(def), UI.TYPE_LABEL, DIM))
 	var sub: String = str(def.get("subtitle", ""))
 	if sub != "" and wide:
 		text.add_child(_wrapped(sub, UI.TYPE_CAPTION, DIM))
@@ -466,17 +599,23 @@ func _product_card(pid: String, section: String, tier: int, wide: bool = false) 
 		if value_row != null:
 			text.add_child(value_row)
 
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_child(spacer)
 	var buy := _buy_button(pid, IAPService.localized_price(pid), accent, BUY_H)
-	buy.pressed.connect(func() -> void: _on_buy_pressed(pid, IAPCat.purchase.bind(pid)))
+	buy.pressed.connect(func() -> void: _on_buy_pressed(pid, IAPCat.purchase.bind(pid), buy))
 	col.add_child(buy)
 	return card
 
-## Buy buttons stay enabled in every state. When a product is sold out for the day
-## or already owned the label says so and the tap explains why — the codebase has
-## already paid once for disabling these.
+## Buy buttons stay enabled in every state. When a product is sold out for the day,
+## already owned, or not reported by the platform store, the label says so and
+## the tap explains why — the codebase has already paid once for disabling these.
+## An empty price_text (Play did not report the product) never falls back to a
+## fabricated catalog price as a live offer: it reads Unavailable and stays blocked.
 func _buy_button(pid: String, price_text: String, color: Color, height: int) -> Button:
 	var reason: String = IAPCat.blocked_reason(pid)
-	var label: String = price_text
+	var label: String = price_text if price_text != "" else "Unavailable"
 	var tint: Color = color
 	match reason:
 		"daily_limit":
@@ -488,40 +627,53 @@ func _buy_button(pid: String, price_text: String, color: Color, height: int) -> 
 		"in_flight":
 			label = "Purchasing…"
 			tint = SLATE
-	var b := UI.make_button(label, tint)
+		"unavailable":
+			label = "Unavailable"
+			tint = SLATE
+	var b := _button(label, tint)
 	b.custom_minimum_size = Vector2(0, height)
 	b.set_meta("product_id", pid)
 	b.set_meta("price_text", price_text)
 	b.set_meta("base_color", color)
+	if not _product_buttons.has(pid):
+		_product_buttons[pid] = []
+	(_product_buttons[pid] as Array).append(b)
+	if reason == "in_flight":
+		_pending_products[pid] = true
+	if reason == "in_flight" or _pending_products.has(pid):
+		_set_purchase_pending(b, true)
 	return b
 
-func _on_buy_pressed(product_id: String, action: Callable) -> void:
+func _on_buy_pressed(product_id: String, action: Callable, tapped: Button = null) -> void:
+	# The catalogue remains the authority for repeat-tap rejection. This local guard
+	# closes the smaller window before an async backend exposes its in-flight state.
+	if _pending_products.has(product_id):
+		EventBus.toast_requested.emit("Purchase already in progress")
+		return
 	if not bool(action.call()):
 		return
-	# Pending state, not a disabled button: iap_catalog rejects the repeat tap and
-	# toasts, so the player always gets an answer.
-	var btn: Button = _find_buy_button(product_id)
-	if btn != null:
-		btn.text = "Purchasing…"
-		UI.retint_button(btn, SLATE)
-		_pending_buttons[product_id] = btn
+	_pending_products[product_id] = true
+	# Include the exact control that initiated the purchase even in focused tests or
+	# transient layouts where it has not yet been registered in the rebuilt shelf.
+	if is_instance_valid(tapped) and not tapped in _buttons_for(product_id):
+		if not _product_buttons.has(product_id):
+			_product_buttons[product_id] = []
+		(_product_buttons[product_id] as Array).append(tapped)
+	_set_product_pending(product_id, true)
 
-func _find_buy_button(product_id: String) -> Button:
-	for node in _sections.get_children():
-		var found: Button = _search_button(node, product_id)
-		if found != null:
-			return found
-	return null
+func _buttons_for(product_id: String) -> Array:
+	return _product_buttons.get(product_id, []) as Array
 
-func _search_button(node: Node, product_id: String) -> Button:
-	if node is Button and node.has_meta("price_text") \
-			and str(node.get_meta("product_id", "")) == product_id:
-		return node
-	for child in node.get_children():
-		var found: Button = _search_button(child, product_id)
-		if found != null:
-			return found
-	return null
+func _set_purchase_pending(button: Button, pending: bool) -> void:
+	if not is_instance_valid(button):
+		return
+	button.disabled = pending
+	button.text = "Purchasing…" if pending else str(button.get_meta("price_text", "Buy"))
+	_skin_button(button, SLATE if pending else button.get_meta("base_color", ACCENT))
+
+func _set_product_pending(product_id: String, pending: bool) -> void:
+	for button: Button in _buttons_for(product_id):
+		_set_purchase_pending(button, pending)
 
 func _on_iap_completed(product_id: String) -> void:
 	var def: Dictionary = DataLoader.get_iap(product_id)
@@ -551,14 +703,14 @@ func _show_reward_burst(title: String, contents: String) -> void:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 6)
 	card.add_child(col)
-	var head := _display("Thank you!", UI.TYPE_TITLE, SAGE)
+	var head := _display("Thank you!", UI.TYPE_TITLE, Color("a9dbcb"))
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(head)
 	var name_lbl := _display(title, UI.TYPE_HEADING, INK)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(name_lbl)
 	if contents != "":
-		var got := _label(contents, UI.TYPE_LABEL, SLATE)
+		var got := _label(contents, UI.TYPE_LABEL, Color("a7d6e8"))
 		got.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		col.add_child(got)
 
@@ -578,23 +730,27 @@ func _show_reward_burst(title: String, contents: String) -> void:
 ## A failed or blocked purchase must put the button back; the toast is the signal
 ## we already have for both.
 func _on_toast(_text: String) -> void:
-	if _pending_buttons.is_empty():
+	if _pending_products.is_empty():
 		return
 	var settled: Array = []
-	for pid in _pending_buttons.keys():
+	for pid in _pending_products.keys():
 		if IAPCat.is_in_flight(str(pid)):
 			continue  # still waiting on the store; leave the pending label alone
-		var btn: Button = _pending_buttons[pid]
-		if is_instance_valid(btn):
-			btn.text = str(btn.get_meta("price_text", "Buy"))
-			UI.retint_button(btn, btn.get_meta("base_color", ACCENT))
+		_set_product_pending(str(pid), false)
 		settled.append(pid)
 	for pid in settled:
-		_pending_buttons.erase(pid)
+		_pending_products.erase(pid)
 
 # ------------------------------------------------------------------- helpers
 
 func _log_impression(product_id: String, section: String) -> void:
+	if not _building_category.is_empty():
+		_category_products[_building_category].append({"id":product_id,"section":section})
+		if _building_category != _category: return
+	_emit_impression(product_id, section)
+
+func _emit_impression(product_id: String, section: String) -> void:
+	if not _tracking_ready: return
 	if _impressions.has(product_id):
 		return
 	_impressions[product_id] = true
@@ -668,7 +824,10 @@ func _section_header(text: String) -> Label:
 	return UI.make_display_label(text, UI.TYPE_TITLE, INK)
 
 func _display(text: String, size: int, color: Color) -> Label:
-	return UI.make_display_label(text, size, color)
+	var label := UI.make_display_label(text, size, color)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size.x = 100
+	return label
 
 func _label(text: String, size: int, color: Color) -> Label:
 	var l := UI.make_label(text, size)
@@ -693,9 +852,44 @@ func _grid(columns: int) -> GridContainer:
 ## thing. The rim is now doing most of that work — on a dark page it is the only
 ## part of the card carrying chroma.
 func _card(fill: Color, border: Color = Color(0, 0, 0, 0)) -> PanelContainer:
-	var p := PanelContainer.new()
-	if border.a > 0.0:
-		p.add_theme_stylebox_override("panel", UI.make_dark_frame(border, fill))
-	else:
-		p.add_theme_stylebox_override("panel", UI.make_dark_card(fill))
-	return p
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _surface(fill, border.lerp(fill, .65), 16))
+	return panel
+
+func _surface(fill: Color, border: Color, radius: int) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = fill
+	style.border_color = border
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(radius)
+	style.set_content_margin_all(14)
+	style.shadow_color = Color(0,0,0,.17)
+	style.shadow_size = 4
+	style.shadow_offset = Vector2(0,3)
+	return style
+
+func _button(text: String, color: Color) -> Button:
+	var button := UI.make_button(text, color)
+	_skin_button(button, color)
+	return button
+
+func _skin_button(button: Button, color: Color) -> void:
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		var fill := color.darkened(.04) if state == "hover" else (color.darkened(.13) if state == "pressed" else color)
+		if state == "disabled": fill = PANEL
+		var style := _surface(fill, fill.lightened(.14), 10)
+		style.content_margin_top = 8
+		style.content_margin_bottom = 8
+		button.add_theme_stylebox_override(state, style)
+	button.add_theme_constant_override("outline_size", 0)
+	var foreground := Art.foreground_for(color)
+	button.add_theme_color_override("font_color", foreground)
+	button.add_theme_color_override("font_hover_color", foreground)
+	button.add_theme_color_override("font_pressed_color", foreground)
+	button.add_theme_color_override("font_disabled_color", DIM)
+	var focus := StyleBoxFlat.new()
+	focus.bg_color = Color.TRANSPARENT
+	focus.border_color = INK
+	focus.set_border_width_all(2)
+	focus.set_corner_radius_all(10)
+	button.add_theme_stylebox_override("focus", focus)

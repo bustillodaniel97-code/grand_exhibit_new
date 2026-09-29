@@ -23,7 +23,18 @@ var GS: Node
 var ECON: Node
 var SS: Node
 
-const SAVE_FILE := "user://grand_exhibit_save.json"
+## Resolved through SaveSystem rather than hardcoded. This suite deletes and
+## corrupts the save on purpose, and on a developer box the literal path is
+## the live player profile; SaveSystem.save_path() redirects into a throwaway
+## subdirectory whenever the main loop is a res://tests/ script.
+var _save_file_cache: String = ""
+func save_file() -> String:
+	if _save_file_cache.is_empty():
+		# load() not preload(): under -s the main script compiles before autoload
+		# names are bound, and save_system.gd names them. Resolving at runtime
+		# sidesteps that. save_path() is static, so no instance is needed.
+		_save_file_cache = load("res://autoload/save_system.gd").save_path()
+	return _save_file_cache
 const REGISTRY: Array[String] = [
 	"res://scenes/managers/managers_screen.tscn",
 	"res://scenes/managers/lootbox_screen.tscn",
@@ -53,20 +64,23 @@ func run() -> void:
 	check(EB != null and DL != null and GS != null and ECON != null and SS != null,
 		"autoloads present as root children")
 	DL.reload_all()
-	for p in [SAVE_FILE, SAVE_FILE + ".bak"]:
+	for p in [save_file(), save_file() + ".bak"]:
 		if FileAccess.file_exists(p):
 			DirAccess.remove_absolute(p)
 
 	print("-- feature gates --")
 	GS.reset_to_new_game()
 	GS.first_launch_unix = root.get_node("ClockGuard").now()
-	check(not GS.feature_unlocked("managers"), "managers locked at rep < 6")
+	check(not GS.feature_unlocked("managers"), "managers locked at rep < 3")
 	check(not GS.feature_unlocked("expedition"), "expedition locked at rep < 7")
 	check(not GS.feature_unlocked("inspection"), "inspection locked at day < 1")
-	# Cross rep 6 but not 7: thresholds idx5 = 620 -> rep 6.
-	GS.add_reputation(BigNumber.from_float(620.0))
+	# Managers arrive early enough to shape the introductory venue.
+	GS.add_reputation(BigNumber.from_float(60.0))
+	check(GS.rep_level() == 3, "rep_level == 3 at 60 xp (got %d)" % GS.rep_level())
+	check(GS.feature_unlocked("managers"), "managers unlocked at rep 3")
+	# Cross rep 6 but not 7: add the remaining 560 xp.
+	GS.add_reputation(BigNumber.from_float(560.0))
 	check(GS.rep_level() == 6, "rep_level == 6 at 620 xp (got %d)" % GS.rep_level())
-	check(GS.feature_unlocked("managers"), "managers unlocked at rep 6")
 	check(not GS.feature_unlocked("expedition"), "expedition still locked at rep 6")
 	# Cross rep 7: thresholds idx6 = 1250 (620 + 630).
 	GS.add_reputation(BigNumber.from_float(630.0))

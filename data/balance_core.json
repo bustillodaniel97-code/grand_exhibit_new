@@ -38,6 +38,11 @@
       "burst_visitors": 50
     }
   },
+  "manager_assignment_slots": [
+    6,
+    9,
+    12
+  ],
   "departments": {
     "promotions": {
       "name": "Promotions Office",
@@ -221,16 +226,29 @@
   },
   "venue_progression": {
     "milestones_required": 8,
-    "bank_pending_cash_on_move": true
+    "require_core_tracks_capped": true,
+    "bank_pending_cash_on_move": true,
+    "decor_slot_fraction": 0.5,
+    "decor_points_per_required_piece": 4.0
   },
   "unlocks": {
-    "managers_rep": 6,
+    "managers_rep": 3,
     "expedition_rep": 7,
     "inspection_day": 1,
     "decor_rep": 2
   },
   "monetization_tuning": {
     "instant_cash_minutes": 15,
+    "progress_rescue": {
+      "enabled": true,
+      "minimum_session_seconds": 300,
+      "no_purchase_seconds": 300,
+      "minimum_upgrade_eta_seconds": 600,
+      "offer_cooldown_seconds": 900,
+      "maximum_offers_per_day": 3,
+      "reward_income_minutes": 15,
+      "dismiss_snooze_seconds": 1800
+    },
     "free_gems_amount": 5,
     "free_gems_per_day": 3,
     "boost_hours_per_view": 2,
@@ -252,7 +270,11 @@
     "step_per_level": 0.25,
     "max_level": 25,
     "cost_mult": 0.5,
-    "_doc": "Per-item upgrades: an item at level L contributes (1 + (L-1)*step_per_level) staff-units. Cost of L->L+1 is the department's staff-track cost at level L times cost_mult."
+    "collect_cooldown_base_s": 120,
+    "collect_cooldown_per_level_s": 5,
+    "collect_cooldown_per_venue_s": 30,
+    "collect_cooldown_max_s": 300,
+    "_doc": "Per-item upgrades: an item at level L contributes (1 + (L-1)*step_per_level) staff-units. Cost of L->L+1 is the department's staff-track cost at level L times cost_mult. Instant cashier transfers have one independently saved recharge per station; the cooldown grows gently with station level and venue order so active collection complements, rather than replaces, archive porters."
   },
   "money_bags": {
     "chance_min": 0.1,
@@ -262,5 +284,17 @@
     "lifetime_s": 14.0,
     "max_alive": 6,
     "_doc": "A served visitor may leave a tip bag. Both the odds and the size scale with the venue's satisfaction stars, so fast service and good decor are what make the floor worth tapping. Value is expressed in VISITORS' worth of income so it tracks progression automatically instead of needing a per-venue table."
+  },
+  "progress_rescue": {
+    "_note": "Contextual rewarded-ad rescue. Offered ONLY when the player is genuinely stuck, never required for solvability, always player-initiated. scripts/monetization/progress_rescue.gd reads this block.",
+    "min_session_seconds": 300,
+    "require_positive_income": true,
+    "stuck_eta_seconds": 600,
+    "reward_seconds_of_income": 900,
+    "cooldown_seconds": 900,
+    "dismiss_snooze_seconds": 1800,
+    "max_offers_per_day": 3,
+    "suppress_after_purchase_seconds": 86400,
+    "placement": "instant_cash"
   }
 }

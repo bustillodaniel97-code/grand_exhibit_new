@@ -5,7 +5,8 @@ extends RefCounted
 ## and any duplicate spend (rank-up, exchange) must leave an owned manager with >= 1 card.
 
 const DEPTS: Array[String] = ["promotions", "ticket", "archive", "gallery"]
-const MAX_RANK: int = 4
+const ManagerCurve := preload("res://scripts/managers/manager_curve.gd")
+const MAX_RANK: int = ManagerCurve.MAX_RANK
 const DATA_PATH := "res://data/managers.json"
 
 static var _exchange_ratio_cache: int = -1
@@ -60,10 +61,13 @@ static func level_up_cost(id: String) -> BigNumber:
 	var growth: float = float(def.get("insight_cost_growth", 1.12))
 	return BigNumber.from_float(base * pow(growth, float(level(id) - 1)))
 
+static func level_cap(id: String) -> int:
+	return ManagerCurve.level_cap(rank(id))
+
 static func can_level_up(id: String) -> bool:
 	if not owned(id):
 		return false
-	if level(id) >= int(manager_def(id).get("level_cap", 50)):
+	if level(id) >= level_cap(id):
 		return false
 	return GameState.insight.gte(level_up_cost(id))
 
@@ -72,7 +76,7 @@ static func level_up(id: String) -> bool:
 	if def.is_empty() or not owned(id):
 		return false
 	var lvl: int = level(id)
-	if lvl >= int(def.get("level_cap", 50)):
+	if lvl >= level_cap(id):
 		return false
 	if not GameState.spend_insight(level_up_cost(id)):
 		return false
@@ -85,8 +89,7 @@ static func rank_up_cost(id: String) -> int:
 	var r: int = rank(id)
 	if r >= MAX_RANK:
 		return 0
-	var dup_costs: Array = manager_def(id).get("dup_costs", [2, 4, 8])
-	return int(dup_costs[r - 1])
+	return ManagerCurve.rank_cost(r)
 
 static func can_rank_up(id: String) -> bool:
 	if not owned(id):
@@ -106,7 +109,26 @@ static func rank_up(id: String) -> bool:
 	EventBus.manager_ranked_up.emit(id, r + 1)
 	return true
 
-## Assign to a department. specialty must match; only one manager per dept (global per save).
+## Assignment posts open with Reputation. This mirrors the reference loop where
+## manager slots are a progression reward rather than a forever-one-per-room rule.
+static func assignment_slots(_dept_id: String) -> int:
+	var thresholds: Array = DataLoader.core.get("manager_assignment_slots", [6, 9, 12])
+	var slots: int = 0
+	for rep in thresholds:
+		if GameState.rep_level() >= int(rep):
+			slots += 1
+	return maxi(slots, 1)
+
+static func assigned_ids(dept_id: String) -> Array[String]:
+	var out: Array[String] = []
+	for mid in GameState.managers_state.keys():
+		if str(GameState.managers_state[mid].get("assigned_to", "")) == dept_id:
+			out.append(str(mid))
+	# Stable ordering keeps multi-post rooms, replacement copy, and floor auras
+	# attached to the same managers across save loads.
+	out.sort()
+	return out
+
 static func assign(id: String, dept_id: String) -> bool:
 	var def: Dictionary = manager_def(id)
 	if def.is_empty() or not owned(id):
@@ -118,11 +140,8 @@ static func assign(id: String, dept_id: String) -> bool:
 	var st: Dictionary = state(id)
 	if str(st.get("assigned_to", "")) == dept_id:
 		return true
-	for mid in GameState.managers_state.keys():
-		if mid == id:
-			continue
-		if str(GameState.managers_state[mid].get("assigned_to", "")) == dept_id:
-			return false
+	if assigned_ids(dept_id).size() >= assignment_slots(dept_id):
+		return false
 	st["assigned_to"] = dept_id
 	EventBus.manager_assigned.emit(id, dept_id)
 	return true
@@ -133,6 +152,37 @@ static func unassign(id: String) -> bool:
 		return false
 	st["assigned_to"] = ""
 	EventBus.manager_assigned.emit(id, "")
+	return true
+
+## Swap one occupied post without exposing an intermediate empty team to Economy,
+## floor auras, or UI listeners. Every invariant is checked before either state is
+## touched; stale modal choices therefore leave the current team intact.
+static func replace_assignment(outgoing_id: String, incoming_id: String,
+		dept_id: String) -> bool:
+	if outgoing_id == incoming_id or dept_id not in DEPTS:
+		return false
+	var outgoing_def: Dictionary = manager_def(outgoing_id)
+	var incoming_def: Dictionary = manager_def(incoming_id)
+	if outgoing_def.is_empty() or incoming_def.is_empty():
+		return false
+	if not owned(outgoing_id) or not owned(incoming_id):
+		return false
+	if str(outgoing_def.get("specialty", "")) != dept_id \
+			or str(incoming_def.get("specialty", "")) != dept_id:
+		return false
+	var outgoing_state: Dictionary = state(outgoing_id)
+	var incoming_state: Dictionary = state(incoming_id)
+	if str(outgoing_state.get("assigned_to", "")) != dept_id \
+			or str(incoming_state.get("assigned_to", "")) != "":
+		return false
+	var holders := assigned_ids(dept_id)
+	if outgoing_id not in holders or holders.size() < assignment_slots(dept_id):
+		return false
+	# Commit the complete team before notifying either listener.
+	outgoing_state["assigned_to"] = ""
+	incoming_state["assigned_to"] = dept_id
+	EventBus.manager_assigned.emit(outgoing_id, "")
+	EventBus.manager_assigned.emit(incoming_id, dept_id)
 	return true
 
 ## exchange_ratio cards of from_id -> 1 card of to_id. Same rarity required.
@@ -158,9 +208,14 @@ static func exchange(from_id: String, to_id: String) -> bool:
 	EventBus.manager_exchanged.emit(from_id, to_id, ratio, 1)
 	return true
 
-## SPEC §6: battle_power * (1 + 0.12*(level-1)) * rank_mults[rank-1].
+## Economic stat shown as Productivity and consumed by Economy.
+static func productivity_multiplier(def: Dictionary, st: Dictionary) -> float:
+	return ManagerCurve.productivity(def, st)
+
+## Audit stat used by both manager-facing UI and match-3 team strength.
+static func audit_efficiency(def: Dictionary, st: Dictionary) -> float:
+	return ManagerCurve.audit_efficiency(def, st)
+
+## Compatibility name used by the battle layer.
 static func battle_attack(def: Dictionary, st: Dictionary) -> float:
-	var lvl: int = maxi(int(st.get("level", 1)), 1)
-	var r: int = clampi(int(st.get("rank", 1)), 1, MAX_RANK)
-	var rank_mults: Array = def.get("rank_mults", [1.0, 1.5, 2.25, 3.5])
-	return float(def.get("battle_power", 10.0)) * (1.0 + 0.12 * float(lvl - 1)) * float(rank_mults[r - 1])
+	return audit_efficiency(def, st)

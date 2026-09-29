@@ -221,6 +221,7 @@ func _process(delta: float) -> bool:
 	_check_traffic()
 	_check_taps()
 	_check_arrivals()
+	_check_cars_never_overlap()
 	print("---")
 	if _fail == 0:
 		print("ALL CITY CHECKS PASSED")
@@ -267,6 +268,21 @@ func _check_traffic() -> void:
 			inside = false
 	check(moved == now.size(), "every car actually drove (%d of %d)" % [moved, now.size()])
 	check(inside, "every car is still inside its lane span")
+	var cars: Array = _city.get("_cars")
+	var yielding: Dictionary = cars[0]
+	yielding["gx"] = City.CROSS_MIN_GX - 0.73
+	yielding["dir"] = 1.0
+	yielding["gy"] = City.LANE_OUT
+	City.Routes.start(yielding,PackedVector2Array([Vector2(-30,City.LANE_OUT),Vector2(36,City.LANE_OUT)]),true)
+	var before: float = float(yielding["gx"])
+	_city.advance(0.25, true)
+	var stop_line: float = City.CROSS_MIN_GX - 0.72
+	check(float(yielding["gx"]) <= stop_line + 0.001,
+		"an approaching car yields at the painted crossing")
+	before = float(yielding["gx"])
+	_city.advance(0.25, false)
+	check(float(yielding["gx"]) > before,
+		"the yielding car resumes when the crossing clears")
 
 ## The surround covers most of the canvas, so a tap out there must fall through
 ## to nothing rather than opening whatever room rect happens to be nearest.
@@ -295,8 +311,44 @@ func _sample_visitors() -> void:
 func _check_arrivals() -> void:
 	check(_max_gy > Iso.GRID.y,
 		"visitors are seen outside the building, on the approach (max gy %.2f)" % _max_gy)
-	check(_min_alpha < 0.9,
-		"an arrival fades up across the forecourt rather than popping in (min a %.2f)"
+	check(_min_alpha >= 0.99,
+		"arrivals stay fully opaque while walking in from off-screen (min a %.2f)"
 			% _min_alpha)
-	check(_floor.standing_spots().has(City.STREET_G),
+	var left: Array = _city.arrival_route(false)
+	var right: Array = _city.arrival_route(true)
+	check(not Iso.on_canvas(left[0]) and not Iso.on_canvas(right[0]),
+		"the two sidewalk approaches begin outside opposite frame edges")
+	check(left[1].is_equal_approx(_city.map_point(City.CROSS_FAR))
+			and left[2].is_equal_approx(_city.map_point(City.CROSS_NEAR)),
+		"arrivals cross the road only on the painted zebra")
+	check(_floor.standing_spots().has(_city.street_point()),
 		"the street spawn is declared as a standing spot, so geometry checks cover it")
+
+## Two cars share each lane at different speeds, so the faster one catches the
+## slower one within a minute of simulated driving. Before the following gap
+## existed it drove straight through and the pair rendered stacked on top of
+## each other — the "cars riding on top of each other" report. Simulate long
+## enough for every pair to converge and wrap, and assert they never overlap.
+func _check_cars_never_overlap() -> void:
+	var cars: Array = _city.get("_cars")
+	check(cars.size() >= 2, "there is traffic to check (%d cars)" % cars.size())
+	var min_gap := INF
+	var worst := ""
+	# 400s at 1/30s steps: several full laps of the lane span, which is what it
+	# takes for the wrap-around case to bring a fast car up behind a slow one.
+	for _step in 12000:
+		_city.advance(1.0 / 30.0, false)
+		for i in cars.size():
+			for j in range(i + 1, cars.size()):
+				var a: Dictionary = cars[i]
+				var b: Dictionary = cars[j]
+				if float(a.get("wait",0))>0 or float(b.get("wait",0))>0:continue
+				if a.axis!=Vector2.RIGHT or b.axis!=Vector2.RIGHT:continue
+				if not is_equal_approx(float(a["gy"]), float(b["gy"])):
+					continue  # different lanes never interact
+				var gap: float = absf(float(a["gx"]) - float(b["gx"]))
+				if gap < min_gap:
+					min_gap = gap
+					worst = "%.2f between cars in lane %.2f" % [gap, float(a["gy"])]
+	check(min_gap >= City.CAR_HALF_GX * 2.0 - 0.01,
+		"no two cars in a lane ever overlap (closest %s)" % worst)

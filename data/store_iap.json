@@ -163,7 +163,7 @@
       "id": "first_buy_bonus",
       "kind": "gems",
       "title": "First Purchase Bonus",
-      "subtitle": "Double the Pouch, same price \u2014 once per museum",
+      "subtitle": "Double the Pouch, same price — once per museum",
       "price_usd": "$0.99",
       "grants": {
         "gems": 160,
@@ -371,5 +371,16 @@
     "ad_content_rating": "G",
     "consent_required_regions": "EEA_UK",
     "_note": "child_directed=true forces non-personalized ads everywhere and is the Families-programme build switch; scripts/monetization/consent.gd reads this block."
+  },
+  "ads": {
+    "_note": "Google's OFFICIAL PUBLIC TEST ad units. They always fill, they cost nobody money, and they work with no AdMob account, so the rewarded/interstitial paths can be exercised on a device before the real ids exist. REPLACE every value below with the production ids before the first Play release — shipping test units means zero revenue and an AdMob policy strike. Source: developers.google.com/admob/android/test-ads",
+    "is_test": true,
+    "android_app_id": "ca-app-pub-3940256099942544~3347511713",
+    "units": {
+      "rewarded": "ca-app-pub-3940256099942544/5224354917",
+      "rewarded_interstitial": "ca-app-pub-3940256099942544/5354046379",
+      "interstitial": "ca-app-pub-3940256099942544/1033173712"
+    },
+    "_placements_note": "AdService.KNOWN_PLACEMENTS are GAME-side names (instant_cash, free_gems, income_x2, welcome_back, insight_rush, free_lootbox). All rewarded placements share one ad unit; the placement name is what the reward token and analytics key on."
   }
 }

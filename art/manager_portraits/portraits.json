@@ -1,0 +1,427 @@
+{
+  "schema": 1,
+  "master_sha256": "1368106650a125380c5addf511017689d8e71e40f8568e7e553f1293a5bfa105",
+  "manager_data_sha256": "f6604bf5521627e3f04cea3913d8e3e20f8bcba973c28305ab1253a264e81275",
+  "renderer_sha256": "306f7073137b3553d54d93696e8795400bab9f9e023c251fbd869f1cb1604465",
+  "portraits": [
+    {
+      "id": "barker_theo",
+      "source_face": "visitor_middle_aged_male",
+      "adult_age_group": "middle_aged",
+      "source_hair": "visitor_middle_aged_male",
+      "authored_look": {
+        "skin": 0,
+        "hair": 1,
+        "hair_style": 0,
+        "build": 1
+      },
+      "wardrobe_color": "#8E6C8A",
+      "file": "barker_theo.png",
+      "sha256": "98b523eecd08dcdc8d4ab574e1ad06a7439dc2ab66f954d454444ab377655eba",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "df117aedc889ce0945c364a40ee29a3fa302a4b45ca8c496d46179c5f7c8139f",
+      "wardrobe": {
+        "style": "tailored_blazer",
+        "source_geometry_hash": "ad1a099fb6f2205802897c63dcffa4ec14e98aad94dfac8024b253cba60338c9",
+        "hidden_face_features": [
+          "barker_theo Attendant Ivory smile"
+        ]
+      },
+      "pre_hair_fit_sha256": "1db20e4a7e094abb294484381e4d23669be40f79259244c163b4d93da359c262",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    },
+    {
+      "id": "docent_poppy",
+      "source_face": "visitor_young_adult_female",
+      "adult_age_group": "young_adult",
+      "source_hair": "visitor_young_adult_female",
+      "authored_look": {
+        "skin": 2,
+        "hair": 3,
+        "hair_style": 3,
+        "build": 0
+      },
+      "wardrobe_color": "#C4703F",
+      "file": "docent_poppy.png",
+      "sha256": "a152cb0f811e8e913743978ab3245874a50adde215e8969072e278531fbefd1d",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "17b3d2e534e3bc1336a377cf0da91f0df8abe25bd029c35a029e24f9d82951ad",
+      "wardrobe": {
+        "style": "tailored_blazer",
+        "source_geometry_hash": "1c49896a7f9f57c912b6350e2acbd215747b0b68bc1cc57b0350d508acb51c00",
+        "hidden_face_features": [
+          "docent_poppy Attendant Ivory smile"
+        ]
+      },
+      "pre_hair_fit_sha256": "3eac53c2e129a97b89372c6cce7c3d82c052d586af86174b18cdb88dbf50fd17",
+      "hair_revision": "scalp roots plus outer bob fitted at temples and below ears 2026-09-18",
+      "pre_outer_hair_fit_sha256": "d51486668391cfb4b30b523fd5d7c39f71c734bc8086f4624d0d9b5527fe2a18",
+      "hair_studio": "art/blond-hair-2026-09-18/blond-hair-studio.blend",
+      "hair_studio_sha256": "5e535d14e76c3a820c7383baba0e78776fabb247d5304114be790f80cf8cca10"
+    },
+    {
+      "id": "archivist_mabel",
+      "source_face": "visitor_elder_female-v2",
+      "adult_age_group": "elder",
+      "source_hair": "visitor_middle_aged_female-v1",
+      "authored_look": {
+        "skin": 4,
+        "hair": 4,
+        "hair_style": 2,
+        "build": 1
+      },
+      "wardrobe_color": "#5B7B8C",
+      "file": "archivist_mabel.png",
+      "sha256": "4474ce7b07664d91e88f767250a129d7e529bbd01ca857172aa9a917b464fb69",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "68f51ad729ec974e9e306cecf487ee44f95071b80189c2024159af69cd17a3e4",
+      "wardrobe": {
+        "style": "tailored_blazer",
+        "source_geometry_hash": "e11c781a8c25ee16812c0e21cf83b66fb2a418ac23eac9303536a7c4564571af",
+        "hidden_face_features": []
+      },
+      "pre_hair_fit_sha256": "dc84789f08deaadcf8557d8cc1a0fa11081638ff5a57cbc93f8ebde68b521d61",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    },
+    {
+      "id": "storyteller_june",
+      "source_face": "visitor_middle_aged_female-v2",
+      "adult_age_group": "middle_aged",
+      "source_hair": "visitor_child_female-v1",
+      "authored_look": {
+        "skin": 1,
+        "hair": 0,
+        "hair_style": 7,
+        "build": 2
+      },
+      "wardrobe_color": "#B08D3E",
+      "file": "storyteller_june.png",
+      "sha256": "6d6fa2d6863be5aa95eea377b05df663ca418ffd8f49fa74c85481d420092aec",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "52e7efb0fc29eef7d5b6ee9f2e6fe26b78bded1d63d2edf3f1a7bba74776a766",
+      "wardrobe": {
+        "style": "tailored_blazer",
+        "source_geometry_hash": "550c1ecd3a859301122ca00fe076ae933875e6b34df9e7eaa6a407527bddb65a",
+        "hidden_face_features": []
+      },
+      "pre_hair_fit_sha256": "36fe0117eceb294da8ff265513d76abc7d9314e3d55850b2643841614b760532",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    },
+    {
+      "id": "publicist_ivory",
+      "source_face": "visitor_young_adult_female-v2",
+      "adult_age_group": "young_adult",
+      "source_hair": "visitor_young_adult_male",
+      "authored_look": {
+        "skin": 0,
+        "hair": 5,
+        "hair_style": 1,
+        "build": 0
+      },
+      "wardrobe_color": "#8E6C8A",
+      "file": "publicist_ivory.png",
+      "sha256": "0e594fdf504a3f730363caece916d12b5515e5840a877c28a075936bbe58d5b2",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "43aeb7373d983782a6b71242f1eff51cf0772a1116307a0f4ff88bde8ab8c70a",
+      "wardrobe": {
+        "style": "tailored_blazer",
+        "source_geometry_hash": "7c5baa994202ced38447e754f7f9765e00d455ded80041067c54faafbd044016",
+        "hidden_face_features": []
+      },
+      "pre_hair_fit_sha256": "1818b661a8388086474886a5e883b66833f2e29e30abd8f3bc75905e738fe86a",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    },
+    {
+      "id": "usher_bram",
+      "source_face": "visitor_middle_aged_male-v1",
+      "adult_age_group": "middle_aged",
+      "source_hair": "visitor_young_adult_female-v1",
+      "authored_look": {
+        "skin": 3,
+        "hair": 0,
+        "hair_style": 6,
+        "build": 2
+      },
+      "wardrobe_color": "#C4703F",
+      "file": "usher_bram.png",
+      "sha256": "74505845376976312c568181730cc6c166c00200e0056f62204c285a2245614b",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "41160c417fb75c0f3b9e9cf30c13196feeb8715e6f42f57088376346fee64a20",
+      "wardrobe": {
+        "style": "tailored_blazer",
+        "source_geometry_hash": "bf2a7e43f870674e7a95ec3185941e30b16c2f642aa33c98fa3ef054f6ee25e1",
+        "hidden_face_features": [
+          "usher_bram Attendant Ivory smile"
+        ]
+      },
+      "pre_hair_fit_sha256": "30e403edafca6293bfa94b0174ca1b7b72af0c1c03cb447eb61a2e2ea29300cb",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    },
+    {
+      "id": "conservator_nadia",
+      "source_face": "visitor_middle_aged_female-v1",
+      "adult_age_group": "middle_aged",
+      "source_hair": "visitor_young_adult_female",
+      "authored_look": {
+        "skin": 1,
+        "hair": 6,
+        "hair_style": 3,
+        "build": 0
+      },
+      "wardrobe_color": "#5B7B8C",
+      "file": "conservator_nadia.png",
+      "sha256": "0b3508486533ae0495c5aae52ce8ce5ea6cb3964de3561681834eb0fc4cb9ea7",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "2fdcc9145d1d396ad191515850905f80ef2ed28eafbc9597f8ca32e5ba4191e8",
+      "wardrobe": {
+        "style": "tailored_blazer",
+        "source_geometry_hash": "6421aea18421cc1a7c61b6730c918795003e179e8dc2615871de68f3605f704a",
+        "hidden_face_features": [
+          "conservator_nadia Attendant Ivory smile"
+        ]
+      },
+      "pre_hair_fit_sha256": "abd9e5a2fae96bdbc00c1332132b14046ead6416a1da49d610d58fae2b69c235",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    },
+    {
+      "id": "paleontologist_rex",
+      "source_face": "visitor_middle_aged_male-v2",
+      "adult_age_group": "middle_aged",
+      "source_hair": "visitor_middle_aged_male",
+      "authored_look": {
+        "skin": 3,
+        "hair": 1,
+        "hair_style": 0,
+        "build": 2
+      },
+      "wardrobe_color": "#B08D3E",
+      "file": "paleontologist_rex.png",
+      "sha256": "b052e2ed1ac3f2c4fb001c41d76083ebb7b25cc357a0c9fb486f46d630570f89",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "224b9f3669671cfc2552f1b697ac60674471e9d8bc0e6b7d2e4e9258ba901ebe",
+      "wardrobe": {
+        "style": "tailored_blazer",
+        "source_geometry_hash": "4fa3f36dd7bc7fbc073758084a6e4969f0d9069e95bbe3e34a5a8532046e3a37",
+        "hidden_face_features": []
+      },
+      "pre_hair_fit_sha256": "d1b7ed23f6e369ba2001245791ec5829412e15c1858567b94383400e33ee9cb6",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    },
+    {
+      "id": "gala_director_cosmo",
+      "source_face": "visitor_young_adult_male-v1",
+      "adult_age_group": "young_adult",
+      "source_hair": "visitor_young_adult_male-v1",
+      "authored_look": {
+        "skin": 2,
+        "hair": 2,
+        "hair_style": 5,
+        "build": 1
+      },
+      "wardrobe_color": "#8E6C8A",
+      "file": "gala_director_cosmo.png",
+      "sha256": "16a0f25ec015f5a07944d60887400ddea80fabacf04daca3578cf3a4547aeb59",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "1771f28374b4153f09431dd29ba4795971179a113dbc4f255eb3e5084418bdd3",
+      "wardrobe": {
+        "style": "tailored_blazer",
+        "source_geometry_hash": "a3bcecc96c10b58cf846ebc8eccaa089d3f6ea28e8396eabfbbba39806da91de",
+        "hidden_face_features": [
+          "gala_director_cosmo Attendant Ivory smile"
+        ]
+      },
+      "pre_hair_fit_sha256": "0bd46f29b2fd50f9d37b09820ce2c9b65a4bd033d057c9bfc27a08c10ec0c26f",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    },
+    {
+      "id": "turnstile_tilda",
+      "source_face": "visitor_young_adult_female-v1",
+      "adult_age_group": "young_adult",
+      "source_hair": "visitor_middle_aged_female-v2",
+      "authored_look": {
+        "skin": 5,
+        "hair": 0,
+        "hair_style": 4,
+        "build": 0
+      },
+      "wardrobe_color": "#C4703F",
+      "file": "turnstile_tilda.png",
+      "sha256": "a8840bcad3b98aa40857612cbd5aeebb57fb72f17ea8a72baa67c58bd5beaf7d",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "417f26425785ad54142a47e79cb145f2829a12cdb046fcad0a141b10545771e7",
+      "wardrobe": {
+        "style": "tailored_blazer",
+        "source_geometry_hash": "963a0cc70889670b971490cd87d24d15f91e36ce349f8d271cdf0133c5aef62c",
+        "hidden_face_features": [
+          "turnstile_tilda Attendant Ivory smile"
+        ]
+      },
+      "pre_hair_fit_sha256": "8e214bd66666e53870a4f7609b185eb32293c09f09d18dab5e3e474cea7a2975",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    },
+    {
+      "id": "keeper_aloysius",
+      "source_face": "visitor_elder_male-v1",
+      "adult_age_group": "elder",
+      "source_hair": "visitor_young_adult_female-v1",
+      "authored_look": {
+        "skin": 0,
+        "hair": 4,
+        "hair_style": 6,
+        "build": 2
+      },
+      "wardrobe_color": "#5B7B8C",
+      "file": "keeper_aloysius.png",
+      "sha256": "d1044644ef3c61de6ae81e05440b7106c5624f9c2d6c74deda22c419bbc9dbc6",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "de2df671e1e1173598a1b9ecb0aadc03d76e098768b2b1289e4a423733f0a227",
+      "wardrobe": {
+        "style": "waistcoat",
+        "source_geometry_hash": "1a488a8b2f961eb51c68520ff4f8808a4b9b81375aed66ef2e3ae1ab9ec90de8",
+        "hidden_face_features": []
+      },
+      "pre_hair_fit_sha256": "ee6d1bda0918a64fdf7d6bbf87b26102ccb23c8183612f41bf69f018ff89d942",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    },
+    {
+      "id": "curatrix_seraphine",
+      "source_face": "visitor_middle_aged_female",
+      "adult_age_group": "middle_aged",
+      "source_hair": "visitor_middle_aged_female-v1",
+      "authored_look": {
+        "skin": 4,
+        "hair": 2,
+        "hair_style": 2,
+        "build": 0
+      },
+      "wardrobe_color": "#B08D3E",
+      "file": "curatrix_seraphine.png",
+      "sha256": "2a15c1e6b9e9e668b2c5f83c0993c7280692f1d5c5a78ab39933be89f5c7e11e",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "c50565a4e652077184662bad5770f77471d140368ec81585429b9ec1868bdca4",
+      "wardrobe": {
+        "style": "tailored_blazer",
+        "source_geometry_hash": "972d17b84e902c6d47d8787560d394f3efc56482118e1197f1797aa1b56067e1",
+        "hidden_face_features": [
+          "curatrix_seraphine Attendant Ivory smile"
+        ]
+      },
+      "pre_hair_fit_sha256": "1bc3124c3058dab41facd5d7ffe6316fe9c6bcef3baf7b7d1bbc523770216cb0",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    },
+    {
+      "id": "founders_ghost",
+      "source_face": "visitor_elder_male",
+      "adult_age_group": "elder",
+      "source_hair": "visitor_young_adult_male-v1",
+      "authored_look": {
+        "skin": 0,
+        "hair": 4,
+        "hair_style": 5,
+        "build": 1
+      },
+      "wardrobe_color": "#8E6C8A",
+      "file": "founders_ghost.png",
+      "sha256": "52044157aa6be61ba7b24efd9c186cc3d18a6117106a30d376628cfedc08af4b",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": true,
+      "original_portrait_sha256": "7c81dd8f1fe9340f158de3ae7492bd41ed26def0858b53deb072c49a3810ecad",
+      "wardrobe": {
+        "style": "waistcoat",
+        "source_geometry_hash": "b015a64d952a3febe6951314d019d0b27834d22b939aff7ec886f1e9642ee031",
+        "hidden_face_features": []
+      },
+      "pre_hair_fit_sha256": "c26e669b98a77977506d286b067987ea9ea4e6e1b43a4816fc57ffe05b2040fd",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    },
+    {
+      "id": "night_curator",
+      "source_face": "visitor_middle_aged_female-v2",
+      "adult_age_group": "middle_aged",
+      "source_hair": "visitor_child_female-v1",
+      "authored_look": {
+        "skin": 5,
+        "hair": 0,
+        "hair_style": 7,
+        "build": 2
+      },
+      "wardrobe_color": "#B08D3E",
+      "file": "night_curator.png",
+      "sha256": "1deb0170c539b38c58cc9d6d00aee9b3b71598690be30f5027405337fae18596",
+      "size": [
+        512,
+        640
+      ],
+      "spectral": false,
+      "original_portrait_sha256": "af0b6c3c7079311a8c5a1ad86089b8d8aa9fd5909a25487a6af14bad6f8654d4",
+      "wardrobe": {
+        "style": "tailored_blazer",
+        "source_geometry_hash": "9895916432197a76e0570033d8ede452a493c2c3222f97632972ac44d8f7d29e",
+        "hidden_face_features": []
+      },
+      "pre_hair_fit_sha256": "812116fb81fcc6618661d0b287012555ed3acbba343f73e5c80f33793c4c6a77",
+      "hair_revision": "scalp-fitted roots and sculpted crown 2026-09-18"
+    }
+  ],
+  "scope": "Originaladultportraitsfromapprovedfacegeometry,authoredmanagerpalette/hair/build,512x640nativeBlenderbusts. NoNPCfloorimagecrops andnogameplaydatachanges.",
+  "wardrobe_revision": {
+    "authoring": "art/manager-wardrobe-2026-09-17",
+    "source_studio_sha256": "1450776b397cfc04e919fa8850e92be560b2b313db365c36680a049980aa7994",
+    "wardrobe_studio_sha256": "4df4f2891708aea643b05aa7c51c0fb593901c08eab2c6ff586d6a55a7414a16",
+    "renderer_sha256": "a3b90212329ac738b8fbc1675d37fb060eed209932aa673e787f3f2997b3bfd7",
+    "protected_source_meshes": 511,
+    "faces_materials_eyewear_camera_preserved": true
+  },
+  "hair_studio_sha256": "b619fc7a7710e670925f0f839e1de554a56677937ce155501ec03be73453ac6b"
+}
