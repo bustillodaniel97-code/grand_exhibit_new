@@ -148,6 +148,9 @@ func run() -> void:
 	_check_portrait_crop()
 	await _check_badge_layout()
 
+	# Let the last tap/click sound finish: a playback still mixing at quit is
+	# reported as a leaked sound resource.
+	await create_timer(0.8).timeout
 	print("DONE failures=", _failures)
 	quit(0 if _failures == 0 else 1)
 
