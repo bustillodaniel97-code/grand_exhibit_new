@@ -94,6 +94,8 @@ func _apply_safe_area() -> void:
 
 func _chip(icon_name: String, _color: Color, width: int) -> Button:
 	var b:=Button.new();Chrome.button(b)
+	# Currency icons keep their own colours; only glyph icons take the ink tint.
+	for state in ["icon_normal_color","icon_hover_color","icon_pressed_color"]:b.add_theme_color_override(state,Color.WHITE)
 	b.custom_minimum_size=Vector2(width,CHIP_H)
 	b.add_theme_font_override("font",UI.font())
 	b.add_theme_font_size_override("font_size",12)

@@ -53,6 +53,7 @@ func _build_level_capsule() -> PanelContainer:
 
 func _build_cash_button() -> Button:
 	_cash_button=Button.new();Chrome.button(_cash_button)
+	_cash_button.name="HudCash"  # coin-burst target (scripts/ui/juice.gd)
 	_cash_button.custom_minimum_size=Vector2(176,ROW_H)
 	_cash_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	_cash_button.pressed.connect(_on_store_pressed.bind("resources"))
@@ -69,6 +70,7 @@ func _build_cash_button() -> Button:
 
 func _build_gems_button() -> Button:
 	_gems_button=Button.new();Chrome.button(_gems_button)
+	_gems_button.name="HudGems"
 	_gems_button.custom_minimum_size=Vector2(142,ROW_H)
 	_gems_button.pressed.connect(_on_store_pressed.bind("gems"))
 	var row:=_overlay_row(_gems_button)

@@ -541,6 +541,284 @@ def gold_statue():
     return p
 
 
+# ============================================================ themed exhibits (museums 2-12)
+WATER = "#2FC5DC"
+GLASS = "#CFEFFF"
+
+
+def tank():
+    """Aquarium tank with fish, weed and a sand bed, 2.4 x 1.1, 1.7 tall."""
+    p = [box((2.4, 1.1, 0.45), (0, 0, 0.225), m(STONE_DK), bev=0.05),
+         box((2.3, 1.0, 1.15), (0, 0, 1.03), m(WATER, 0.05, alpha=0.45), bev=0.03),
+         box((2.34, 1.04, 0.06), (0, 0, 1.62), m(STEEL, 0.3, metal=0.5), bev=0.02),
+         box((2.2, 0.9, 0.12), (0, 0, 0.51), m("#F2DDA0", 0.8), bev=0.02)]
+    r = random.Random(12)
+    for i in range(5):  # weed
+        x = -0.9 + i * 0.45
+        for j in range(3):
+            p.append(sphere(0.08, (x + r.uniform(-0.05, 0.05), 0.2 + r.uniform(-0.1, 0.1), 0.62 + j * 0.16), m("#3FA64A", 0.6),
+                            scale=(0.6, 0.6, 1.4), seg=10))
+    cols = ["#FFC53D", "#FF8F5A", "#FF6FA8", "#7FD4E8"]
+    for i in range(7):  # fish
+        x, y, z = r.uniform(-0.9, 0.9), r.uniform(-0.3, 0.3), r.uniform(0.8, 1.4)
+        c = cols[i % len(cols)]
+        p.append(sphere(0.08, (x, y, z), m(c, 0.3), scale=(1.5, 0.6, 0.9), seg=12))
+        p.append(cyl(0.06, 0.08, (x - 0.14, y, z), m(c, 0.3), r2=0.0, rot=(0, math.pi / 2, 0), bev=0, verts=6))
+    return p
+
+
+def touch_pool():
+    """Low rock pool with starfish and anemones, 2.2 x 1.6."""
+    p = [cyl(1.0, 0.45, (0, 0, 0.22), m(STONE_DK), bev=0.06, verts=24),
+         cyl(0.88, 0.1, (0, 0, 0.4), m(WATER, 0.05, alpha=0.6), bev=0.02, verts=24),
+         cyl(0.86, 0.05, (0, 0, 0.3), m("#F2DDA0", 0.8), verts=24)]
+    r = random.Random(4)
+    for i in range(6):
+        a = i / 6 * TAU + 0.3
+        x, y = math.cos(a) * 0.55, math.sin(a) * 0.55
+        if i % 2:
+            for k in range(5):  # starfish
+                b = k / 5 * TAU
+                p.append(sphere(0.05, (x + math.cos(b) * 0.06, y + math.sin(b) * 0.06, 0.36), m("#FF8F5A", 0.5), scale=(1.6, 0.6, 0.4), seg=8))
+        else:
+            p.append(sphere(0.08, (x, y, 0.38), m("#B45CF0", 0.4), seg=12))
+            for k in range(6):
+                b = k / 6 * TAU
+                p.append(rod((x, y, 0.4), (x + math.cos(b) * 0.08, y + math.sin(b) * 0.08, 0.5), 0.015, m("#E07BF0", 0.4)))
+    p[0].scale = (1.1, 0.8, 1.0)
+    return p
+
+
+def kelp():
+    """Kelp column in a glass cylinder, 0.8 x 0.8, 3.2 tall."""
+    p = [cyl(0.4, 0.3, (0, 0, 0.15), m(STONE_DK), bev=0.04),
+         cyl(0.36, 2.8, (0, 0, 1.7), m(WATER, 0.05, alpha=0.35), bev=0.02),
+         cyl(0.4, 0.12, (0, 0, 3.12), m(STEEL, 0.3, metal=0.5), bev=0.02)]
+    r = random.Random(6)
+    for i in range(4):
+        a = i / 4 * TAU
+        prev = (math.cos(a) * 0.12, math.sin(a) * 0.12, 0.3)
+        for k in range(1, 9):
+            pt = (math.cos(a) * 0.12 + 0.08 * math.sin(k * 0.9 + i), math.sin(a) * 0.12, 0.3 + k * 0.32)
+            p.append(rod(prev, pt, 0.05, m("#3FA64A" if k % 2 else "#5FD08C", 0.6)))
+            prev = pt
+    return p
+
+
+def coral():
+    """Coral garden in a stone-rimmed pool, 1.7 x 1.2."""
+    p = [box((1.7, 1.2, 0.4), (0, 0, 0.2), m(STONE_DK), bev=0.06),
+         box((1.5, 1.0, 0.06), (0, 0, 0.38), m(WATER, 0.05, alpha=0.6))]
+    r = random.Random(8)
+    cols = ["#F07D78", "#F3C969", "#CF89D8", "#7FE8C8"]
+    for i in range(7):
+        x, y = r.uniform(-0.6, 0.6), r.uniform(-0.4, 0.4)
+        c = m(cols[i % 4], 0.5)
+        base = (x, y, 0.4)
+        for k in range(3):
+            a = k / 3 * TAU + r.uniform(0, 1)
+            tip = (x + math.cos(a) * 0.15, y + math.sin(a) * 0.15, 0.7 + r.uniform(0, 0.25))
+            p.append(rod(base, tip, 0.05, c, r2=0.03))
+            p.append(sphere(0.05, tip, c, seg=10))
+    return p
+
+
+def hung_skeleton():
+    """Whale skeleton hung from the ceiling on wires, 5.0 x 1.4 footprint."""
+    b = m(BONE, 0.3)
+    wire = m("#5A5A6E", 0.4)
+    p = []
+    z0 = 2.3
+    for i in range(26):
+        u = i / 25
+        x = -2.4 + 4.8 * u
+        z = z0 + 0.25 * math.sin(u * math.pi)
+        p.append(sphere(0.05 + 0.1 * math.sin(min(1.0, u * 1.1) * math.pi * 0.95), (x, 0, z), b, seg=10))
+        if 6 <= i <= 18 and i % 2 == 0:
+            rr = 0.25 + 0.25 * math.sin((u - 0.2) / 0.55 * math.pi)
+            p.append(torus(rr, 0.03, (x, 0, z - rr * 0.8), b, rot=(0, math.pi / 2, 0)))
+    p.append(sphere(0.3, (2.55, 0, z0 + 0.05), b, scale=(1.8, 0.9, 0.5)))
+    for sy in (-1, 1):
+        p.append(rod((1.5, sy * 0.25, z0), (1.2, sy * 0.8, z0 - 0.5), 0.05, b))
+    for x in (-1.6, 0.0, 1.6):
+        p.append(rod((x, 0, z0 + 0.2), (x, 0, 4.4), 0.012, wire))
+    return p
+
+
+def hanging():
+    """A great bird (condor) hung with spread wings, 2.6 x 1.0 footprint."""
+    body, edge = m("#7A5C3E", 0.6), m("#4A3524", 0.6)
+    wire = m("#5A5A6E", 0.4)
+    z = 2.5
+    p = [sphere(0.25, (0, 0, z), body, scale=(1.6, 0.8, 0.7)),
+         sphere(0.13, (0.42, 0, z + 0.06), m("#E8C8A8", 0.5)),
+         cyl(0.05, 0.12, (0.58, 0, z + 0.04), m("#F2C14E", 0.4), r2=0.0, rot=(0, math.pi / 2, 0), bev=0, verts=8)]
+    p.append(sphere(0.1, (0.3, 0, z + 0.08), m("#F4F1EA", 0.6), scale=(0.8, 1.6, 0.6), seg=12))  # white ruff
+    for sy in (-1, 1):
+        p.append(sphere(0.5, (-0.05, sy * 0.62, z + 0.08), body, scale=(0.55, 1.2, 0.09)))     # inner wing
+        p.append(sphere(0.42, (-0.12, sy * 1.12, z + 0.16), body, scale=(0.5, 1.0, 0.08)))     # outer wing
+        for k in range(5):                                                                        # fingered primaries
+            p.append(sphere(0.2, (-0.28 + k * 0.08, sy * (1.42 + 0.03 * k), z + 0.2), edge, scale=(0.35, 1.2, 0.08), seg=10))
+    p.append(sphere(0.2, (-0.5, 0, z), edge, scale=(1.2, 0.9, 0.12)))                           # tail
+    for x in (-0.3, 0.3):
+        p.append(rod((x, 0, z + 0.1), (x, 0, 4.4), 0.012, wire))
+    return p
+
+
+def plinth():
+    """Obelisk on a stepped plinth, 1 x 1, 2.4 tall."""
+    p = [box((1.0, 1.0, 0.3), (0, 0, 0.15), m(STONE_DK), bev=0.04),
+         box((0.8, 0.8, 0.25), (0, 0, 0.42), m(STONE), bev=0.04),
+         cyl(0.26, 1.7, (0, 0, 1.4), m("#C9A96B", 0.5), r2=0.16, bev=0.02, verts=4, rot=(0, 0, math.pi / 4)),
+         cyl(0.16, 0.25, (0, 0, 2.37), m("#F2C14E", 0.25, metal=0.6), r2=0.0, bev=0, verts=4, rot=(0, 0, math.pi / 4))]
+    for k in range(3):
+        p.append(box((0.3, 0.05, 0.06), (0, -0.2 - k * 0.001, 1.0 + k * 0.35), m("#7A5A3A", 0.5), bev=0.01))
+    return p
+
+
+def rack():
+    """Costume / tool rack with hanging garments, 1.2 x 0.5."""
+    p = [box((1.2, 0.5, 0.06), (0, 0, 0.03), m(WOOD_DK), bev=0.02)]
+    for sx in (-0.55, 0.55):
+        p.append(cyl(0.03, 1.5, (sx, 0, 0.78), m(STEEL, 0.3, metal=0.5), bev=0))
+    p.append(cyl(0.025, 1.14, (0, 0, 1.5), m(STEEL, 0.3, metal=0.5), rot=(0, math.pi / 2, 0), bev=0))
+    cols = ["#3A78D8", "#E0524A", "#F2D14A", "#4FB86A"]
+    for i in range(4):
+        x = -0.4 + i * 0.27
+        p.append(box((0.22, 0.12, 0.6), (x, 0, 1.15), m(cols[i], 0.6), bev=0.03))
+    return p
+
+
+def machine():
+    """Ticket / snack machine, 0.7 x 0.55."""
+    p = [box((0.7, 0.55, 1.5), (0, 0, 0.75), m(RED, 0.4), bev=0.05),
+         box((0.5, 0.05, 0.6), (-0.04, -0.28, 1.0), m("#9FD3F0", 0.1, emit=0.4), bev=0.02),
+         box((0.12, 0.05, 0.3), (0.24, -0.28, 1.0), m(INK, 0.4), bev=0.01),
+         box((0.4, 0.05, 0.14), (0, -0.28, 0.35), m(INK, 0.4), bev=0.01)]
+    for i in range(3):
+        p.append(sphere(0.03, (0.24, -0.31, 0.92 + i * 0.08), m(["#FFD34D", "#4FB86A", "#3A78D8"][i], 0.3, emit=0.6), seg=8))
+    return p
+
+
+def armor():
+    """Suit of armour on a stand, 1.3 x 1.1 footprint."""
+    steel = m("#C5C8C5", 0.25, metal=0.7)
+    cloth = m("#7D2B24", 0.6)
+    p = [box((1.1, 0.9, 0.3), (0, 0, 0.15), m(STONE), bev=0.05),
+         cyl(0.12, 0.7, (-0.12, 0, 0.65), steel, bev=0.02), cyl(0.12, 0.7, (0.12, 0, 0.65), steel, bev=0.02),
+         sphere(0.3, (0, 0, 1.25), steel, scale=(1.0, 0.75, 1.1)),
+         box((0.5, 0.36, 0.3), (0, 0, 0.95), cloth, bev=0.04),
+         sphere(0.2, (0, 0, 1.7), steel, scale=(1, 1, 1.15)),
+         box((0.26, 0.05, 0.04), (0, -0.19, 1.72), m(INK, 0.4), bev=0.01),
+         sphere(0.07, (0, 0, 1.95), m("#D5AD55", 0.3, metal=0.5), seg=10)]
+    for sx in (-1, 1):
+        p.append(sphere(0.13, (sx * 0.32, 0, 1.42), steel))
+        p.append(cyl(0.07, 0.55, (sx * 0.36, 0, 1.08), steel, bev=0.02))
+    p.append(rod((0.45, -0.1, 0.35), (0.45, -0.1, 1.9), 0.025, m(STEEL, 0.3, metal=0.6)))  # halberd
+    p.append(box((0.22, 0.04, 0.3), (0.52, -0.1, 1.85), steel, bev=0.01))
+    return p
+
+
+def clockwork():
+    """Great clock mechanism: cased dial, pendulum and gears, 1.2 x 1.0."""
+    wood, brass = m("#6B452B", 0.5), m("#E5C15F", 0.25, metal=0.6)
+    p = [box((1.2, 1.0, 0.3), (0, 0, 0.15), m(STONE), bev=0.05),
+         box((0.8, 0.5, 2.1), (0, 0.1, 1.35), wood, bev=0.05),
+         cyl(0.36, 0.06, (0, -0.16, 2.0), m("#F0E9D8", 0.4), rot=(math.pi / 2, 0, 0), bev=0.02),
+         torus(0.37, 0.035, (0, -0.19, 2.0), brass, rot=(math.pi / 2, 0, 0)),
+         rod((0, -0.2, 2.0), (0.12, -0.21, 2.2), 0.018, m(INK, 0.4)),
+         rod((0, -0.2, 2.0), (-0.2, -0.21, 1.95), 0.014, m(INK, 0.4)),
+         rod((0, -0.17, 1.6), (0, -0.17, 0.9), 0.015, brass),
+         cyl(0.12, 0.04, (0, -0.19, 0.85), brass, rot=(math.pi / 2, 0, 0), bev=0.01)]
+    for i, (x, z, r) in enumerate(((0.52, 1.2, 0.22), (0.5, 0.75, 0.15), (-0.5, 1.0, 0.18))):
+        p.append(cyl(r, 0.06, (x, -0.1, z), brass, rot=(math.pi / 2, 0, 0), bev=0.01, verts=12))
+        for k in range(8):
+            a = k / 8 * TAU
+            p.append(box((0.06, 0.06, 0.06), (x + math.cos(a) * r, -0.1, z + math.sin(a) * r), brass, bev=0.01))
+    return p
+
+
+def orrery():
+    """Brass orrery: sun and planets on arms, 1.6 x 1.2."""
+    metal, orbit = m("#173F4C", 0.3, metal=0.5), m("#DDF5F2", 0.3)
+    p = [cyl(0.55, 0.3, (0, 0, 0.15), m(STONE), bev=0.04),
+         cyl(0.05, 1.1, (0, 0, 0.85), metal, bev=0),
+         sphere(0.2, (0, 0, 1.45), m("#F7D774", 0.2, emit=1.4))]
+    cols = ["#E36F7A", "#3A78D8", "#4FB86A", "#E0B34A"]
+    for i, r in enumerate((0.35, 0.5, 0.65, 0.78)):
+        a = i * 1.7
+        p.append(torus(r, 0.012, (0, 0, 1.45), orbit, rot=(0.25, 0, 0)))
+        x, y = math.cos(a) * r, math.sin(a) * r
+        p.append(rod((0, 0, 1.4), (x, y, 1.42 + y * 0.25), 0.012, metal))
+        p.append(sphere(0.06 + 0.02 * (i % 2), (x, y, 1.45 + y * 0.25), m(cols[i], 0.4), seg=12))
+    return p
+
+
+def throne():
+    """Royal throne on a dais, 1.6 x 1.2."""
+    body, cushion, trim = m("#9F3F6C", 0.5), m("#5C426E", 0.7), m("#FFE08A", 0.25, metal=0.5)
+    p = [box((1.6, 1.2, 0.25), (0, 0, 0.125), m(STONE), bev=0.05),
+         box((1.2, 0.9, 0.12), (0, 0, 0.3), m("#C0392B", 0.7), bev=0.02),
+         box((0.8, 0.6, 0.45), (0, 0.05, 0.6), body, bev=0.05),
+         box((0.7, 0.5, 0.1), (0, 0.0, 0.87), cushion, bev=0.04),
+         box((0.8, 0.14, 1.2), (0, 0.32, 1.35), body, bev=0.05),
+         sphere(0.16, (0, 0.32, 2.05), trim, scale=(1.2, 0.5, 1.0))]
+    for sx in (-1, 1):
+        p.append(box((0.12, 0.55, 0.25), (sx * 0.42, 0.05, 0.98), body, bev=0.03))
+        p.append(sphere(0.07, (sx * 0.42, -0.22, 1.12), trim, seg=12))
+        p.append(sphere(0.08, (sx * 0.34, 0.32, 1.98), trim, seg=12))
+    return p
+
+
+def pine(seed=0):
+    """Snowy alpine pine, about 2.4 tall."""
+    r = random.Random(seed)
+    p = [cyl(0.1, 0.5, (0, 0, 0.25), m(WOOD_DK), bev=0.02)]
+    for k in range(3):
+        rr = 0.75 - k * 0.2
+        p.append(cyl(rr, 0.8, (0, 0, 0.7 + k * 0.5), m("#2F7A4A", 0.6), r2=0.05, bev=0.03, verts=12))
+        p.append(cyl(rr * 0.6, 0.18, (0, 0, 0.98 + k * 0.5), m("#F4F8FA", 0.5), r2=0.05, bev=0.02, verts=12))
+    return p
+
+
+def palm(seed=0):
+    """Desert palm, about 2.6 tall."""
+    r = random.Random(seed)
+    p = []
+    prev = (0, 0, 0)
+    for k in range(1, 7):
+        pt = (0.05 * k * k / 6, 0, k * 0.4)
+        p.append(rod(prev, pt, 0.1 - k * 0.008, m("#A87E4E", 0.6)))
+        p.append(torus(0.1 - k * 0.008, 0.02, pt, m("#8A6440", 0.6)))
+        prev = pt
+    for i in range(7):
+        a = i / 7 * TAU + r.uniform(0, 0.3)
+        tip = (prev[0] + math.cos(a) * 0.9, math.sin(a) * 0.9, prev[2] - 0.35)
+        mid = (prev[0] + math.cos(a) * 0.5, math.sin(a) * 0.5, prev[2] + 0.1)
+        p.append(rod(prev, mid, 0.08, m("#4FAE4A", 0.5), r2=0.06))
+        p.append(rod(mid, tip, 0.06, m("#4FAE4A", 0.5), r2=0.02))
+    p.append(sphere(0.12, prev, m("#7A5A3A", 0.5)))
+    return p
+
+
+def chandelier():
+    """Crystal chandelier hung from the ceiling, 1.2 x 1.2 footprint."""
+    gold = m("#E8B83A", 0.2, metal=0.8)
+    crystal = m("#DFF4FF", 0.05, emit=0.6)
+    z = 2.6
+    p = [torus(0.45, 0.04, (0, 0, z), gold), torus(0.28, 0.035, (0, 0, z + 0.25), gold),
+         cyl(0.02, 1.6, (0, 0, z + 1.1), gold, bev=0), sphere(0.08, (0, 0, z + 0.35), gold, seg=12)]
+    for i in range(12):
+        a = i / 12 * TAU
+        p.append(sphere(0.05, (math.cos(a) * 0.45, math.sin(a) * 0.45, z - 0.12), crystal, scale=(0.7, 0.7, 1.6), seg=10))
+        if i % 2 == 0:
+            p.append(cyl(0.03, 0.12, (math.cos(a) * 0.45, math.sin(a) * 0.45, z + 0.08), m("#FFF6D8", 0.3, emit=1.5), bev=0, verts=8))
+    for i in range(6):
+        a = i / 6 * TAU + 0.3
+        p.append(sphere(0.045, (math.cos(a) * 0.28, math.sin(a) * 0.28, z + 0.12), crystal, scale=(0.7, 0.7, 1.6), seg=10))
+    return p
+
+
 # ============================================================ outdoor
 def tree(seed=0):
     """Round, puffy Link's-Awakening-style tree (about 1.9 tall)."""
@@ -639,6 +917,22 @@ PROPS = {
     "banner": (banner, (0.5, 0.3), "outdoor"),
     "spotlight": (spotlight, (0.4, 0.4), "outdoor"),
     "gold_statue": (gold_statue, (1.0, 1.0), "outdoor"),
+    "tank": (tank, (2.4, 1.1), "exhibits"),
+    "touch_pool": (touch_pool, (2.2, 1.6), "exhibits"),
+    "kelp": (kelp, (0.8, 0.8), "exhibits"),
+    "coral": (coral, (1.7, 1.2), "exhibits"),
+    "hung_skeleton": (hung_skeleton, (5.0, 1.4), "exhibits"),
+    "hanging": (hanging, (2.6, 1.0), "exhibits"),
+    "plinth": (plinth, (1.0, 1.0), "exhibits"),
+    "armor": (armor, (1.3, 1.1), "exhibits"),
+    "clockwork": (clockwork, (1.2, 1.0), "exhibits"),
+    "orrery": (orrery, (1.6, 1.2), "exhibits"),
+    "throne": (throne, (1.6, 1.2), "exhibits"),
+    "rack": (rack, (1.2, 0.5), "props"),
+    "chandelier": (chandelier, (1.2, 1.2), "props"),
+    "machine": (machine, (0.7, 0.55), "props"),
+    "pine": (pine, (1.5, 1.5), "outdoor"),
+    "palm": (palm, (1.5, 1.5), "outdoor"),
     "tree": (tree, (1.5, 1.5), "outdoor"),
     "bush": (bush, (0.7, 0.7), "outdoor"),
     "lamp_post": (lamp_post, (0.3, 0.3), "outdoor"),

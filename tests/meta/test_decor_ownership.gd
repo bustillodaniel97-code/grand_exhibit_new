@@ -116,7 +116,10 @@ func _test_buy_unlocks_globally(GS: Node, EB: Node) -> void:
 
 func _test_second_venue_charges_again(GS: Node) -> void:
 	print("-- a new museum stocks its own decor, at its own price --")
-	GS.cash = BigNumber.from_parts(1.0, 4)
+	# Priced in V2's own economy (DecorSystem.cash_cost), not museum one's.
+	var v2_price: BigNumber = DecorSystem.cash_cost("oak_bench", V2)
+	check(v2_price.gt(DecorSystem.cash_cost("oak_bench", V1)), "the second museum's price is in its own economy")
+	GS.cash = v2_price.scale(10.0)
 	GS.gems = 100000
 	check(not DecorSystem.bought_here(V2, "oak_bench"),
 		"the second museum has not bought this piece")

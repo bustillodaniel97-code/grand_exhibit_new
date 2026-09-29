@@ -316,8 +316,7 @@ func income_multiplier(venue_id: String) -> float:
 	var mult: float = 1.0
 	var vs: Dictionary = GameState.venue_state(venue_id)
 	for slot in vs.get("decor", {}).keys():
-		var d: Dictionary = DataLoader.get_decor(str(vs["decor"][slot]))
-		mult *= float(d.get("income_mult", 1.0))
+		mult *= DecorSystem.piece_mult(venue_id, str(vs["decor"][slot]))
 	mult *= decor_set_multiplier()
 	mult *= WingSystem.income_mult(venue_id)
 	mult *= DigSystem.income_mult(venue_id)

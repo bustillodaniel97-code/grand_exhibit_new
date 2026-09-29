@@ -27,6 +27,7 @@ PLINTH_TOP = 0.12
 FLOOR_TOP = 0.17
 WALL_T = 0.16
 H_BACK, H_SIDE, H_INNER, H_FRONT = 2.4, 1.5, 1.05, 0.34
+STOREY = 2.8  # height between theme levels (rooms with "level": 1, 2, 3)
 
 STYLES = {
     "whispering_pines": {
@@ -46,6 +47,65 @@ STYLES = {
 }
 
 
+SURROUNDS = {
+    # lawn stripes, paving, tree kind
+    "parkland": (("#6CC24A", "#62B843"), ("#E8DCC4", "#D8CAB0"), "tree"),
+    "harbour": (("#6CC24A", "#5DB443"), ("#DCE3E6", "#C9D2D6"), "tree"),
+    "dunes": (("#EBC98A", "#E2BD78"), ("#F1DDB0", "#E4CC98"), "palm"),
+    "alpine": (("#EEF4F8", "#E3ECF2"), ("#D6DEE6", "#C8D2DC"), "pine"),
+    "nightfall": (("#4E9A6A", "#468F61"), ("#C9CCD8", "#B8BCCB"), "pine"),
+    "gardens": (("#63C24E", "#57B544"), ("#E6DCC8", "#D8CCB4"), "tree"),
+    "clock_district": (("#76B85A", "#6BAE50"), ("#C8C0B2", "#B7AE9F"), "tree"),
+    "palace_gardens": (("#68C650", "#5DBA46"), ("#F0E4D0", "#E2D4BC"), "tree"),
+    "worlds_campus": (("#6CC24A", "#62B843"), ("#E2DAF0", "#D2C8E6"), "tree"),
+}
+
+
+def toyify(hexc, sat=1.9, val=1.12):
+    """Push a muted theme colour toward the saturated toy palette."""
+    import colorsys
+    h = hexc.lstrip("#")
+    r, g, b = (int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    hh, ss, vv = colorsys.rgb_to_hsv(r, g, b)
+    ss = min(0.85, ss * sat + 0.08)
+    vv = min(0.97, vv * val + 0.05)
+    r, g, b = colorsys.hsv_to_rgb(hh, ss, vv)
+    return "#%02X%02X%02X" % (round(r * 255), round(g * 255), round(b * 255))
+
+
+def auto_style(venue, theme):
+    """A STYLES entry derived from the venue's own 2D palette and surround."""
+    pal = theme.get("palette", {})
+    def col(key, fallback):
+        v = pal.get(key, fallback)
+        return v if isinstance(v, str) and v.startswith("#") else fallback
+    walls = {"shell": toyify(col("panel", "#F3E2BF"), 1.2, 1.02)}
+    floors = {}
+    light = toyify(col("floor", "#FFF1D6"), 1.4, 1.05)
+    for r in theme.get("rooms", []):
+        dept = r.get("dept", r.get("merge_into", ""))
+        base = col("room." + dept, "") or col("room." + r["id"], "") or col("stone", "#C9B896")
+        c = toyify(base)
+        walls[r["id"]] = c
+        if dept:
+            walls[dept] = c
+        role = r.get("role", "link")
+        if role == "exhibit":
+            floors[r["id"]] = ("planks", toyify(base, 1.2, 1.25), toyify(base, 1.2, 1.12))
+        elif role == "store":
+            floors[r["id"]] = ("planks", toyify(base, 1.4, 1.2), toyify(base, 1.4, 1.08))
+        elif role == "promo":
+            floors[r["id"]] = ("carpet", c, toyify(col("trim", "#F2C14E")))
+        elif role == "queue":
+            floors[r["id"]] = ("checker", light, toyify(base, 2.2, 1.1))
+        else:
+            floors[r["id"]] = ("checker", light, toyify(col("stone", "#D9C4A0"), 1.3, 1.1))
+    lawn, paving, tree = SURROUNDS.get(theme.get("surround", "parkland"), SURROUNDS["parkland"])
+    return {"floors": floors, "walls": walls, "exterior": toyify(col("panel", "#EFE3CC"), 1.1, 1.0),
+            "trim": "#FFF7E6", "accent": toyify(col("carpet", "#D9413A"), 1.6, 1.1),
+            "dome": toyify(col("trim", "#5FB8A0"), 1.5, 1.1), "lawn": lawn, "paving": paving, "tree": tree}
+
+
 def load_wings(vid):
     """Authored wings with a 3D layout (data/wings.json), in floor order."""
     path = os.path.join(toy.ROOT, "data", "wings.json")
@@ -60,15 +120,26 @@ def load_venue(vid):
     with open(os.path.join(toy.ROOT, "data", "venues.json"), encoding="utf-8") as f:
         data = json.load(f)
     venues = data["venues"] if isinstance(data, dict) and "venues" in data else data
-    return next(v for v in venues if v["id"] == vid)
+    by_id = {v["id"]: v for v in venues}
+
+    def resolve(t):
+        if "extends" not in t:
+            return t
+        out = dict(resolve(by_id[t["extends"]]["theme"]))
+        out.update({k: v for k, v in t.items() if k != "extends"})
+        return out
+    v = dict(by_id[vid])
+    v["theme"] = resolve(v["theme"])
+    return v
 
 
 class Builder:
     def __init__(self, venue):
         self.v = venue
         self.t = venue["theme"]
-        self.s = STYLES.get(venue["id"], STYLES["whispering_pines"])
+        self.s = STYLES.get(venue["id"]) or auto_style(venue, self.t)
         self.rooms = self.t["rooms"]
+        self.levels = sorted({int(r.get("level", 0)) for r in self.rooms})
         self.rnd = random.Random(7)
         xs = [r["rect"][0] + r["rect"][2] for r in self.rooms]
         ys = [r["rect"][1] + r["rect"][3] for r in self.rooms]
@@ -79,21 +150,41 @@ class Builder:
         for w in self.wings:
             self.groups["floor_" + w["id"]] = []
             self.groups["lift_" + w["id"]] = []
+        self.floor_meta = {}  # group name -> glTF extras (rect, y, lift spots) for Godot
+        for lv in self.levels:
+            if lv > 0:
+                self.groups[self.level_group(lv)] = []
+                self.groups["lift_floor_%d" % lv] = []
+
+    # ------------------------------------------------------------ storeys
+    def level_group(self, lv):
+        """Theme level L >= 1 is the auto wing "floor_L" (WingSystem), whose
+        geometry Godot finds as node floor_floor_L."""
+        return "building" if lv <= 0 else "floor_floor_%d" % lv
+
+    def base(self, lv):
+        return FLOOR_TOP + max(0, lv) * STOREY
+
+    def level_of(self, gx, gy):
+        r = self.room_at(gx, gy)
+        return int(r.get("level", 0)) if r else 0
 
     def add(self, group, objs):
         self.groups.setdefault(group, [])
         self.groups[group] += objs if isinstance(objs, list) else [objs]
 
     # ------------------------------------------------------------ helpers
-    def room_at(self, gx, gy):
+    def room_at(self, gx, gy, level=None):
         for r in self.rooms:
+            if level is not None and int(r.get("level", 0)) != level:
+                continue
             x, y, w, h = r["rect"]
             if x <= gx <= x + w and y <= gy <= y + h:
                 return r
         return None
 
-    def inside(self, gx, gy):
-        return self.room_at(gx, gy) is not None
+    def inside(self, gx, gy, level=None):
+        return self.room_at(gx, gy, level) is not None
 
     def wall_colour(self, ref):
         key = ref.lstrip("@").split("|")[0]
@@ -155,15 +246,20 @@ class Builder:
             spots += [(-2.2 - r.uniform(0, 3.5), gy + r.uniform(-0.4, 0.4)), (W + 2.2 + r.uniform(0, 3.5), gy + r.uniform(-0.4, 0.4))]
         for gx in range(-2, int(W) + 3, 2):  # behind the building
             spots.append((gx + r.uniform(-0.4, 0.4), self.back_y() - 2.2 - r.uniform(0, 2.5)))
+        # Trees and bushes are INSTANCED in Godot (one shared mesh, many
+        # transforms): baked copies were two thirds of every shell's vertices.
+        # Their spots ride on the grounds node as flat [gx, gy, rot, scale, ...].
+        kind = self.s.get("tree", "tree")
+        self.scatter = {"trees_kind": kind, "trees": [], "bushes": []}
         for i, (gx, gy) in enumerate(spots):
-            self.add("grounds", self.inst("tree", g2b(gx, gy), r.uniform(0, 6.3), r.uniform(1.0, 1.3), seed=i % 4))
+            self.scatter["trees"] += [round(gx, 3), round(gy, 3), round(r.uniform(0, 6.3), 3), round(r.uniform(1.0, 1.3), 3)]
         for gx in (-1.2, W + 1.2):  # plaza lamps and hedges
             for gy in (H + 1.0, road_y - 1.4):
                 self.add("grounds", self.inst("lamp_post", g2b(gx, gy)))
         doors = self.doorways()
         for i, gx in enumerate([x * 0.8 for x in range(-1, int(W / 0.8) + 2)]):
             if all(abs(gx - d) > 1.3 for d in doors):
-                self.add("grounds", self.inst("bush", g2b(gx, H + 0.75), r.uniform(0, 6.3), 0.85, seed=i))
+                self.scatter["bushes"] += [round(gx, 3), round(H + 0.75, 3), round(r.uniform(0, 6.3), 3), 0.85]
         self.add("grounds", self.inst("fountain", g2b(W - 3.0, H + 2.4)))
         self.add("grounds", self.inst("bus_stop", g2b(1.5, road_y - 0.55)))
 
@@ -199,65 +295,89 @@ class Builder:
     def floors(self):
         for room in self.rooms:
             x, y, w, h = room["rect"]
+            lv = int(room.get("level", 0))
+            g = self.level_group(lv)
             style, a, b = self.s["floors"].get(room["id"], ("checker", "#FFF1D6", "#E6D5B8"))
-            z = FLOOR_TOP - 0.025
+            z = self.base(lv) - 0.025
             if style == "checker":
-                for gx in range(int(x), int(x + w)):
-                    for gy in range(int(y), int(y + h)):
-                        self.add("building", box((1, 1, 0.05), g2b(gx + 0.5, gy + 0.5, z), mat(a if (gx + gy) % 2 else b, 0.25),
-                                                 bev=0.015, seg=1))
+                for gx in range(int(x), int(math.ceil(x + w))):
+                    for gy in range(int(y), int(math.ceil(y + h))):
+                        cw, ch = min(1.0, x + w - gx), min(1.0, y + h - gy)
+                        self.add(g, box((cw, ch, 0.05), g2b(gx + cw / 2, gy + ch / 2, z), mat(a if (gx + gy) % 2 else b, 0.25),
+                                        bev=0.015, seg=1))
             elif style == "planks":
-                n = int(round(h / 0.5))
+                n = max(1, int(round(h / 0.5)))
+                ph = h / n
                 for i in range(n):
-                    self.add("building", box((w, 0.5, 0.05), g2b(x + w / 2, y + i * 0.5 + 0.25, z),
-                                             mat(a if i % 2 else b, 0.3), bev=0.012, seg=1))
+                    self.add(g, box((w, ph, 0.05), g2b(x + w / 2, y + i * ph + ph / 2, z),
+                                    mat(a if i % 2 else b, 0.3), bev=0.012, seg=1))
             else:  # carpet with a border
-                self.add("building", box((w, h, 0.05), g2b(x + w / 2, y + h / 2, z), mat(b, 0.7)))
-                self.add("building", box((w - 0.5, h - 0.5, 0.05), g2b(x + w / 2, y + h / 2, z + 0.01), mat(a, 0.8)))
+                self.add(g, box((w, h, 0.05), g2b(x + w / 2, y + h / 2, z), mat(b, 0.7)))
+                self.add(g, box((max(0.2, w - 0.5), max(0.2, h - 0.5), 0.05), g2b(x + w / 2, y + h / 2, z + 0.01), mat(a, 0.8)))
         dress = self.t.get("dressing", {})
         for rug in dress.get("floor", []) + dress.get("carpet", []):
+            if "radius" in rug:  # round inlay (orbital rings on the floor)
+                (cx, cy), rr = rug["at"], float(rug["radius"])
+                lv = self.level_of(cx, cy)
+                z0 = self.base(lv)
+                col = rug.get("col", "#344D68")
+                col = col if col.startswith("#") else "#344D68"
+                line = rug.get("line", "#A9CCC7")
+                line = line if line.startswith("#") else "#E0B34A"
+                self.add(self.level_group(lv), cyl(rr, 0.02, g2b(cx, cy, z0 + 0.01), mat(toyify(col, 1.3, 1.2), 0.6), bev=0, verts=48))
+                for k, f in enumerate((0.45, 0.72, 0.95)):
+                    self.add(self.level_group(lv), torus(rr * f, 0.035, g2b(cx, cy, z0 + 0.025), mat(line, 0.4)))
+                continue
             (x, y), (w, h) = rug["at"], rug["size"]
-            self.add("building", box((w, h, 0.02), g2b(x + w / 2, y + h / 2, FLOOR_TOP + 0.01), mat("#C0392B", 0.8)))
-            self.add("building", box((w - 0.3, h - 0.3, 0.02), g2b(x + w / 2, y + h / 2, FLOOR_TOP + 0.02), mat("#E0B34A", 0.8)))
+            lv = self.level_of(x + w / 2, y + h / 2)
+            z0 = self.base(lv)
+            self.add(self.level_group(lv), box((w, h, 0.02), g2b(x + w / 2, y + h / 2, z0 + 0.01), mat("#C0392B", 0.8)))
+            self.add(self.level_group(lv), box((max(0.1, w - 0.3), max(0.1, h - 0.3), 0.02), g2b(x + w / 2, y + h / 2, z0 + 0.02), mat("#E0B34A", 0.8)))
 
     def wall_kind(self, seg):
+        """Classify a wall against rooms on ITS OWN level: the front edge of an
+        upper storey is a low parapet (so the camera sees in), not an inner wall."""
         (x, y), L = seg["at"], seg["len"]
+        lv = int(seg.get("level", 0)) if self.levels != [0] else None
         if seg["axis"] == "x":
             mx = x + L / 2
-            if not self.inside(mx, y + 0.3):
+            if not self.inside(mx, y + 0.3, lv):
                 return "front", (0, 1)
-            if not self.inside(mx, y - 0.3):
+            if not self.inside(mx, y - 0.3, lv):
                 return "back", (0, -1)
         else:
             my = y + L / 2
-            if not self.inside(x + 0.3, my) or not self.inside(x - 0.3, my):
-                return "side", (1, 0) if not self.inside(x + 0.3, my) else (-1, 0)
+            if not self.inside(x + 0.3, my, lv) or not self.inside(x - 0.3, my, lv):
+                return "side", (1, 0) if not self.inside(x + 0.3, my, lv) else (-1, 0)
         return "inner", (0, 0)
 
     def walls(self):
         ext, trim = self.s["exterior"], self.s["trim"]
         for seg in self.t.get("walls", []):
             (x, y), L = seg["at"], seg["len"]
+            lv = int(seg.get("level", 0))
+            g = self.level_group(lv)
+            z0 = self.base(lv)
             kind, out = self.wall_kind(seg)
             h = {"back": H_BACK, "side": H_SIDE, "inner": H_INNER, "front": H_FRONT}[kind]
             col = self.wall_colour(seg.get("col", "@shell"))
             along_x = seg["axis"] == "x"
             cx, cy = (x + L / 2, y) if along_x else (x, y + L / 2)
             size = (L + WALL_T, WALL_T, h) if along_x else (WALL_T, L + WALL_T, h)
-            z = FLOOR_TOP + h / 2
+            z = z0 + h / 2
             if kind == "inner" or kind == "front":
-                self.add("building", box(size, g2b(cx, cy, z), mat(col if kind == "inner" else ext, 0.45), bev=0.04))
+                self.add(g, box(size, g2b(cx, cy, z), mat(col if kind == "inner" else ext, 0.45), bev=0.04))
             else:  # outer wall: room colour inside, stone outside
                 half = WALL_T / 2
                 inner = (size[0], half, h) if along_x else (half, size[1], h)
                 ox, oy = out
-                self.add("building", box(inner, g2b(cx - ox * half / 2, cy - oy * half / 2, z), mat(col, 0.45), bev=0.03))
-                self.add("building", box(inner, g2b(cx + ox * half / 2, cy + oy * half / 2, z), mat(ext, 0.5), bev=0.03))
+                self.add(g, box(inner, g2b(cx - ox * half / 2, cy - oy * half / 2, z), mat(col, 0.45), bev=0.03))
+                self.add(g, box(inner, g2b(cx + ox * half / 2, cy + oy * half / 2, z), mat(ext, 0.5), bev=0.03))
             cap = (size[0] + 0.06, size[1] + 0.06, 0.08)
-            self.add("building", box(cap, g2b(cx, cy, FLOOR_TOP + h + 0.02), mat(trim, 0.35), bev=0.03))
+            self.add(g, box(cap, g2b(cx, cy, z0 + h + 0.02), mat(trim, 0.35), bev=0.03))
             if kind != "front":
                 base = (size[0] + 0.03, size[1] + 0.03, 0.12)
-                self.add("building", box(base, g2b(cx, cy, FLOOR_TOP + 0.06), mat(shade(col, 0.7), 0.5), bev=0.02))
+                self.add(g, box(base, g2b(cx, cy, z0 + 0.06), mat(shade(col, 0.7), 0.5), bev=0.02))
 
     def wall_dressing(self):
         for d in self.t.get("dressing", {}).get("wall", []):
@@ -268,9 +388,11 @@ class Builder:
             cx, cy = (x + L / 2, y + WALL_T / 2 + 0.03) if along_x else (x + WALL_T / 2 + 0.03, y + L / 2)
             size = (L, 0.05, 0.6) if along_x else (0.05, L, 0.6)
             frame = (L + 0.1, 0.04, 0.7) if along_x else (0.04, L + 0.1, 0.7)
-            self.add("building", box(frame, g2b(cx, cy, FLOOR_TOP + 1.2), mat("#C99A3A", 0.3, metal=0.3), bev=0.02))
-            self.add("building", box(size, g2b(cx + (0 if along_x else 0.02), cy + (0.02 if along_x else 0), FLOOR_TOP + 1.2),
-                                     mat(col, 0.5)))
+            lv = int(d.get("level", self.level_of(cx, cy + 0.3)))
+            z0 = self.base(lv)
+            self.add(self.level_group(lv), box(frame, g2b(cx, cy, z0 + 1.2), mat("#C99A3A", 0.3, metal=0.3), bev=0.02))
+            self.add(self.level_group(lv), box(size, g2b(cx + (0 if along_x else 0.02), cy + (0.02 if along_x else 0), z0 + 1.2),
+                                               mat(col, 0.5)))
 
     def crown(self):
         """Grand silhouette on the back wall: cornice, pediment, dome, flags, name.
@@ -284,6 +406,15 @@ class Builder:
         self.add("crown", box((W + 0.5, 0.5, 0.2), g2b(W / 2, -0.1, top + 0.1), mat(trim, 0.35), bev=0.05))
         if self.wings:
             self.upper_crown()
+            return
+        if max(self.levels) > 0:
+            top = max(self.levels)
+            rs = [r["rect"] for r in self.rooms if int(r.get("level", 0)) == top]
+            x0 = min(r[0] for r in rs)
+            y0 = min(r[1] for r in rs)
+            x1 = max(r[0] + r[2] for r in rs)
+            y1 = max(r[1] + r[3] for r in rs)
+            self.upper_crown([x0, y0, x1 - x0, y1 - y0], self.base(top), None)
             return
         gal = next((r for r in self.rooms if r.get("role") == "exhibit"), self.rooms[0])
         cx = gal["rect"][0] + gal["rect"][2] / 2
@@ -314,13 +445,13 @@ class Builder:
         self.add("crown", txt)
 
     # ------------------------------------------------------------ upper floors
-    def upper_crown(self):
+    def upper_crown(self, rect=None, base=None, dome=None):
         """Pediment, name, flags and the domed pavilion on the top floor."""
         ext, trim, acc = self.s["exterior"], self.s["trim"], self.s["accent"]
-        w = self.wings[-1]
-        L = w["layout"]
-        x, y, wd, h = L["rect"]
-        base = L["y"]
+        if rect is None:
+            L = self.wings[-1]["layout"]
+            rect, base, dome = L["rect"], L["y"], L.get("dome")
+        x, y, wd, h = rect
         cx = x + wd / 2
         top = base + H_BACK
         self.add("crown", box((wd + 0.5, 0.5, 0.2), g2b(cx, y - 0.1, top + 0.1), mat(trim, 0.35), bev=0.05))
@@ -329,18 +460,19 @@ class Builder:
         for fx in (x + 0.3, x + wd - 0.3):
             self.add("crown", [cyl(0.05, 1.8, g2b(fx, y - 0.2, top + 0.9), mat("#2E3A4A", 0.35)),
                                box((0.6, 0.04, 0.35), g2b(fx + 0.32, y - 0.2, top + 1.6), mat(acc, 0.4), bev=0.02)])
-        dx, dy = L.get("dome", [cx, y + 1.5])
+        dx, dy = dome if dome else [cx, y - 1.3]
+        db = base if dome else top + 0.3  # no pavilion floor: the dome sits on the back wall
         drum_h = 2.1
-        self.add("crown", [cyl(1.25, drum_h, g2b(dx, dy, base + drum_h / 2), mat(ext, 0.5), bev=0.04),
-                           torus(1.26, 0.08, g2b(dx, dy, base + drum_h), mat(trim, 0.35)),
-                           cyl(0.08, 0.9, g2b(dx, dy, base + drum_h + 2.0), mat("#2E3A4A", 0.35)),
-                           sphere(0.14, g2b(dx, dy, base + drum_h + 1.75), mat("#F2C14E", 0.25, metal=0.5))])
+        self.add("crown", [cyl(1.25, drum_h, g2b(dx, dy, db + drum_h / 2), mat(ext, 0.5), bev=0.04),
+                           torus(1.26, 0.08, g2b(dx, dy, db + drum_h), mat(trim, 0.35)),
+                           cyl(0.08, 0.9, g2b(dx, dy, db + drum_h + 2.0), mat("#2E3A4A", 0.35)),
+                           sphere(0.14, g2b(dx, dy, db + drum_h + 1.75), mat("#F2C14E", 0.25, metal=0.5))])
         for i in range(8):  # arched windows round the drum
             a = i / 8 * math.tau
             px, py = dx + math.cos(a) * 1.24, dy + math.sin(a) * 1.24
-            self.add("crown", box((0.34, 0.06, 0.8), g2b(px, py, base + 1.1), mat("#9FD3F0", 0.15), bev=0.02,
+            self.add("crown", box((0.34, 0.06, 0.8), g2b(px, py, db + 1.1), mat("#9FD3F0", 0.15), bev=0.02,
                                   rot=(0, 0, -a + math.pi / 2)))
-        self.add("dome", sphere(1.3, g2b(dx, dy, base + drum_h + 0.35), mat(self.s["dome"], 0.3, name="dome"), scale=(1, 1, 0.9)))
+        self.add("dome", sphere(1.3, g2b(dx, dy, db + drum_h + 0.35), mat(self.s["dome"], 0.3, name="dome"), scale=(1, 1, 0.9)))
         self.name_sign(cx, y + 0.35, top + 0.62)
 
     def name_sign(self, cx, gy, z):
@@ -424,11 +556,16 @@ class Builder:
             self.lift(w, below, top)
 
     def lift(self, w, bottom, top):
-        """Glass elevator: brass-framed shaft from `bottom` to above `top`, a
-        landing into the floor, and a separate cabin Godot moves."""
-        g = "lift_" + w["id"]
         L = w["layout"]
         ax, ay = L["lift"]["at"]
+        fx, fy, fw, fh = L["rect"]
+        self.lift_geo(w["id"], ax, ay, bottom, top, fy + fh)
+
+    def lift_geo(self, wid, ax, ay, bottom, top, front):
+        """Glass elevator: brass-framed shaft from `bottom` to above `top`, a
+        landing into the floor whose front edge is at grid y `front`, and a
+        separate cabin Godot moves."""
+        g = "lift_" + wid
         brass = mat("#E0B34A", 0.25, metal=0.6)
         glass = mat("#BFE6FF", 0.05, alpha=0.28)
         hgt = top - bottom + 2.1
@@ -440,8 +577,6 @@ class Builder:
         self.add(g, sphere(0.22, g2b(ax, ay, bottom + hgt + 0.1), mat(self.s["accent"], 0.3), scale=(1, 1, 0.6)))
         self.add(g, box((1.2, 1.1, 0.06), g2b(ax, ay, bottom + 0.03), mat("#2E3A4A", 0.4), bev=0.02))
         # landing between the shaft and the floor's front edge
-        fx, fy, fw, fh = L["rect"]
-        front = fy + fh
         near = ay - 0.5
         y0, y1 = sorted((near, front - 0.4))
         self.add(g, box((1.1, max(0.2, y1 - y0 + 0.4), 0.06), g2b(ax, (y0 + y1) / 2, top - 0.03), mat(self.s["trim"], 0.4), bev=0.02))
@@ -453,9 +588,63 @@ class Builder:
             parts.append(box((0.04, 0.86, 1.24), (sx, 0, 0.7), glass))
             for sy in (-0.43, 0.43):
                 parts.append(cyl(0.035, 1.3, (sx, sy, 0.7), brass, bev=0))
-        cab = toy.join(parts, "cabin_" + w["id"])
+        cab = toy.join(parts, "cabin_" + wid)
         cab.location = g2b(ax, ay, bottom)
-        self.groups["cabin_" + w["id"]] = [cab]
+        self.groups["cabin_" + wid] = [cab]
+
+    # ------------------------------------------------------------ theme storeys (levels)
+    def podiums(self):
+        """Under every upper-storey room, the storeys beneath it as a stone block
+        with a cornice at the floor line."""
+        ext, trim = self.s["exterior"], self.s["trim"]
+        for r in self.rooms:
+            lv = int(r.get("level", 0))
+            if lv <= 0:
+                continue
+            x, y, w, h = r["rect"]
+            top = self.base(lv) - 0.05
+            g = self.level_group(lv)
+            self.add(g, box((w, h, top), g2b(x + w / 2, y + h / 2, top / 2), mat(ext, 0.5)))
+            self.add(g, box((w + 0.12, h + 0.12, 0.12), g2b(x + w / 2, y + h / 2, top - 0.06), mat(trim, 0.35), bev=0.03))
+
+    def find_lift(self, lv):
+        """Where a lift joins storey lv-1 to lv: in a stair room if the theme has
+        one, else in the lower room that meets the upper storey's front edge.
+        Returns (ax, ay, enter, exit) in grid coordinates, or None."""
+        lower = [r for r in self.rooms if int(r.get("level", 0)) == lv - 1]
+        upper = [r for r in self.rooms if int(r.get("level", 0)) == lv]
+        lower.sort(key=lambda r: (0 if "stair" in r["id"] else 1 if r.get("role") == "link" else 2, -r["rect"][2]))
+        for lo in lower:
+            lx, ly, lw, lh = lo["rect"]
+            for up in upper:
+                ux, uy, uw, uh = up["rect"]
+                if abs(ly - (uy + uh)) > 0.05:
+                    continue
+                o0, o1 = max(lx, ux), min(lx + lw, ux + uw)
+                if o1 - o0 < 1.3 or lh < 1.4 or uh < 1.3:
+                    continue
+                ax = (o0 + o1) / 2
+                ay = ly + 0.55
+                return ax, ay, (ax, ly + min(1.35, lh - 0.2)), (ax, ly - min(0.9, uh - 0.3))
+        return None
+
+    def level_lifts(self):
+        for lv in self.levels:
+            if lv <= 0:
+                continue
+            rs = [r for r in self.rooms if int(r.get("level", 0)) == lv]
+            x0 = min(r["rect"][0] for r in rs)
+            y0 = min(r["rect"][1] for r in rs)
+            x1 = max(r["rect"][0] + r["rect"][2] for r in rs)
+            y1 = max(r["rect"][1] + r["rect"][3] for r in rs)
+            depts = [r.get("dept") for r in sorted(rs, key=lambda r: -r["rect"][2] * r["rect"][3]) if r.get("dept")]
+            meta = {"rect": [x0, y0, x1 - x0, y1 - y0], "y": self.base(lv), "dept": depts[0] if depts else "gallery"}
+            spot = self.find_lift(lv)
+            if spot:
+                ax, ay, enter, exit_ = spot
+                self.lift_geo("floor_%d" % lv, ax, ay, self.base(lv - 1), self.base(lv), ay - 0.55)
+                meta.update({"lift_at": [ax, ay], "enter": list(enter), "exit": list(exit_)})
+            self.floor_meta[self.level_group(lv)] = meta
 
     # ------------------------------------------------------------ grandeur (exterior dressing by tier)
     def grandeur(self, road_y):
@@ -550,6 +739,8 @@ class Builder:
         self.walls()
         self.wall_dressing()
         self.upper_floors()
+        self.podiums()
+        self.level_lifts()
         self.crown()
         self.outdoors(road_y)
         self.grandeur(road_y)
@@ -557,6 +748,13 @@ class Builder:
         for g, objs in self.groups.items():
             if objs:
                 out[g] = toy.join(objs, g)
+        for g, meta in self.floor_meta.items():
+            if g in out:
+                for k, v in meta.items():
+                    out[g][k] = v  # glTF extras -> Godot node metadata "extras"
+        if "grounds" in out and getattr(self, "scatter", None):
+            for k, v in self.scatter.items():
+                out["grounds"][k] = v
         return out
 
 

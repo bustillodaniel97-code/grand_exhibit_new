@@ -15,6 +15,7 @@ const Popups := preload("res://scripts/ui/popup_manager.gd")
 const DigSystem := preload("res://scripts/digsite/dig_system.gd")
 const DigLogic := preload("res://scripts/digsite/dig_logic.gd")
 const DigPit := preload("res://scenes/digsite/dig_pit.gd")
+const Juice := preload("res://scripts/ui/juice.gd")
 const EXPEDITION_PATH := "res://scenes/events/expedition_screen.tscn"
 const AD_PLACEMENT := "dig_energy"
 
@@ -178,6 +179,10 @@ func swing_at(x: int, y: int) -> Dictionary:
 	if bool(res.get("ok", false)):
 		pit.apply_result(x, y, res)
 		UI.play_sfx(self, "click")
+		var find: Dictionary = res.get("find", {})
+		if not find.is_empty() and str(find["kind"]) in ["coins", "gems"]:
+			var at: Vector2 = pit.camera.unproject_position(pit.cell_center(x, y)) + _container.get_global_rect().position
+			Juice.coin_burst(at, "gems" if str(find["kind"]) == "gems" else "cash", 6)
 		if bool(res.get("complete", false)):
 			get_tree().create_timer(1.2).timeout.connect(func() -> void:
 				if is_instance_valid(self):

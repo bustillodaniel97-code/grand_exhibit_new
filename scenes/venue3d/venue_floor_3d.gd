@@ -19,6 +19,7 @@ const UI := preload("res://scripts/ui/ui_kit.gd")
 const Popups := preload("res://scripts/ui/popup_manager.gd")
 const WingSystem := preload("res://scripts/meta/wing_system.gd")
 const WINGS_PATH := "res://scenes/meta/wings_screen.tscn"
+const Juice := preload("res://scripts/ui/juice.gd")
 
 const TAP_SLOP := 14.0     # px a press may travel and still count as a tap
 const CHIP := Vector2(52, 52)
@@ -44,6 +45,7 @@ var _font: Font
 var _floor_bar: VBoxContainer
 var _floor_btns: Array[Button] = []   # top floor first, ground last
 var _ground_focus := Vector3.ZERO
+var _tier_set := false
 
 func _ready() -> void:
 	name = "VenueFloor"
@@ -93,6 +95,7 @@ func build(vid: String) -> void:
 		b.queue_free()
 	_chips.clear()
 	_ups.clear()
+	_tier_set = false
 	world = Venue3D.new()
 	world.name = "Venue3D"
 	world.venue_id = vid
@@ -115,6 +118,13 @@ func set_rates(rates: Dictionary) -> void:
 		_value_text = vpv.to_notation()
 	var arrival := float(rates.get("arrival_per_s", 0.3))
 	world.visitor_target = clampi(int(round(10.0 + arrival * 14.0)), 10, 30)
+	# Hero exhibits follow the gallery's value track (tier 1..4 across its cap).
+	var cap: int = Economy.track_max_level(venue_id, "value")
+	var lvl: int = GameState.dept_level(venue_id, "gallery", "value")
+	var tier := 1 + mini(3, int(floor(4.0 * float(lvl) / float(maxi(cap, 1)))))
+	if tier != world.exhibit_tier or not _tier_set:
+		world.set_exhibit_tier(tier, _tier_set)
+		_tier_set = true
 	_refresh_stations()
 
 func get_choke() -> String:
@@ -232,6 +242,7 @@ func _refresh_stations() -> void:
 	var owned: int = GameState.dept_items(venue_id, "ticket").size()
 	world.set_open_windows(maxi(owned, 1))
 	world.refresh_signs()
+	world.refresh_decor()
 	var count: int = mini(owned, world.window_count())
 	while _chips.size() < count:
 		var index := _chips.size()
@@ -330,6 +341,7 @@ func _on_station_cash(index: int) -> void:
 		item_selected.emit("ticket", index)
 		return
 	world.pop_text(world.station_anchor(index) + Vector3(0, 0.4, 0), "+$" + amount.to_notation(), Color("#FFE680"), true)
+	Juice.coin_burst(_chips[index].get_global_rect().get_center())
 	UI.play_sfx(self, "buy")
 	_refresh_stations()
 

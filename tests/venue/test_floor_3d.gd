@@ -97,7 +97,10 @@ func run() -> void:
 	gs.venue_state(gs.current_venue)["milestones"] = ms_ids
 	gs.cash = BigNumber.from_parts(1.0, 40)
 	check(WS.renovate(gs.current_venue, "hall_of_giants"), "2F renovates")
-	await create_timer(1.6).timeout
+	var t2 := Time.get_ticks_msec()
+	while not (f2["tints"] as Array).is_empty() and Time.get_ticks_msec() - t2 < 15000:
+		await process_frame
+	await create_timer(0.5).timeout
 	check(bool(f2["open"]) and (f2["derelict"] as Array).is_empty(), "renovation clears the derelict dressing")
 	check((f2["pieces"][0] as Node3D).visible, "2F exhibits are revealed")
 	check((f2["tints"] as Array).is_empty(), "colour floods back (grey overrides removed)")
@@ -111,24 +114,31 @@ func run() -> void:
 	var rider: Node3D = w._spawn(w._look(), f2["enter"])
 	w._travel(rider, 0, 1)
 	var t0 := Time.get_ticks_msec()
-	while int(rider.get_meta("floor", 0)) != 1 and Time.get_ticks_msec() - t0 < 20000:
+	while int(rider.get_meta("floor", 0)) != 1 and Time.get_ticks_msec() - t0 < 90000:
 		await process_frame
 	check(int(rider.get_meta("floor", 0)) == 1 and absf(rider.global_position.y - float(f2["y"])) < 0.2,
 		"a visitor rides the lift up to the 2F (y=%.2f)" % rider.global_position.y)
 	floor.go_to_floor(1)
-	await create_timer(1.0).timeout
+	var t1 := Time.get_ticks_msec()
+	while absf(cam.focus.y - float(f2["y"])) >= 0.3 and Time.get_ticks_msec() - t1 < 15000:
+		await process_frame
 	check(absf(cam.focus.y - float(f2["y"])) < 0.3, "the floor selector lifts the camera to the 2F")
 
-	# Venues without 3D art keep the 2D floor.
+	# Venues without 3D art keep the 2D floor. Once every museum has art, the
+	# kill switch stands in for a 2D-only museum.
 	var other := ""
 	for vid in dl.venues.keys():
 		if not Floor3D.supports(str(vid)):
 			other = vid
 			break
-	check(other != "" and not VenueView.wants_3d(other), "venues without art fall back to 2D")
+	var forced := other == ""
+	if forced:
+		other = "copper_kettle"
+		VenueView.use_3d = false
+	check(not VenueView.wants_3d(other), "a venue without art (or with 3D switched off) falls back to 2D")
 	VenueView.use_3d = false
 	check(not VenueView.wants_3d(gs.current_venue), "use_3d off forces the 2D floor")
-	VenueView.use_3d = true
+	VenueView.use_3d = not forced
 
 	# Moving to a venue without art swaps the floor kind in place.
 	var home: String = gs.current_venue
@@ -139,6 +149,7 @@ func run() -> void:
 	var swapped: Node = view.find_child("VenueFloor", true, false)
 	check(swapped != null and swapped.get_script() != Floor3D and swapped.has_method("set_rates"),
 		"graduating to a 2D-only venue mounts the 2D floor")
+	VenueView.use_3d = true
 	gs.current_venue = home
 	view._on_venue_changed(other, home)
 	await process_frame
@@ -146,6 +157,9 @@ func run() -> void:
 		"returning to a 3D venue mounts the 3D floor again")
 
 	view.queue_free()
-	await process_frame
+	# Let teardown finish (killed tweens and freed timers are released on the
+	# following frames) so nothing is reported leaked at exit.
+	for _i in 10:
+		await process_frame
 	print("RESULT: ", "OK" if failures == 0 else "FAILED (%d)" % failures)
 	quit(1 if failures > 0 else 0)

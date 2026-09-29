@@ -23,6 +23,7 @@ signal wing_revealed(wing_id: String)
 
 const FLOOR_TOP := 0.17
 const WALL_T := 0.16
+const STOREY := 2.8  # tools/blender/toybox/venue.py STOREY: height between theme levels
 
 ## kind -> [art3d folder, footprint it was modelled at]
 ## (tools/blender/toybox/props.py PROPS).
@@ -42,8 +43,21 @@ const KIT := {
 	"cafe_table": ["props", Vector2(1.2, 1.2)], "telescope": ["props", Vector2(0.8, 0.8)],
 	"topiary": ["props", Vector2(0.6, 0.6)], "scaffold": ["props", Vector2(2.0, 0.6)],
 	"dust_sheet": ["props", Vector2(1.4, 1.4)], "work_sign": ["props", Vector2(0.8, 0.4)],
+	"tank": ["exhibits", Vector2(2.4, 1.1)], "touch_pool": ["exhibits", Vector2(2.2, 1.6)],
+	"kelp": ["exhibits", Vector2(0.8, 0.8)], "coral": ["exhibits", Vector2(1.7, 1.2)],
+	"hung_skeleton": ["exhibits", Vector2(5.0, 1.4)], "hanging": ["exhibits", Vector2(2.6, 1.0)],
+	"plinth": ["exhibits", Vector2(1.0, 1.0)], "armor": ["exhibits", Vector2(1.3, 1.1)],
+	"clockwork": ["exhibits", Vector2(1.2, 1.0)], "orrery": ["exhibits", Vector2(1.6, 1.2)],
+	"throne": ["exhibits", Vector2(1.6, 1.2)], "rack": ["props", Vector2(1.2, 0.5)],
+	"machine": ["props", Vector2(0.7, 0.55)], "chandelier": ["props", Vector2(1.2, 1.2)],
+	"banner": ["outdoor", Vector2(0.5, 0.3)], "fountain": ["outdoor", Vector2(2.0, 2.0)],
 }
-const HERO_KINDS := ["skeleton", "casket", "statue", "mammoth", "whale"]
+## Decor visual kind (data/decor.json) -> 3D kit piece.
+const DECOR_KIT := {"bench": "bench", "fountain": "fountain", "facade": "facade", "rope_line": "rope_post",
+	"banner": "banner", "planter": "topiary", "plinth": "plinth", "statue": "statue", "casket": "casket",
+	"vitrine": "vitrine", "touch_pool": "touch_pool", "hanging": "chandelier", "case": "case",
+	"cafe_table": "cafe_table", "shelf": "shelf", "rug": "", "patch": ""}
+const HERO_KINDS := ["skeleton", "casket", "statue", "mammoth", "whale", "hung_skeleton", "tank", "throne", "orrery", "clockwork", "armor"]
 const GOLD := Color("#E8B83A")
 
 # Cast palettes: brighter than the 2D cast's, for the toy look.
@@ -84,6 +98,10 @@ var _open_windows := 1
 var floors: Array = []
 var _shell: Node3D
 var _grand_tier := 0
+## Hero exhibits (skeleton, mammoth, whale, casket, statue): {node, scale, dress: []}
+var _heroes: Array = []
+var exhibit_tier := 1
+var _decor_nodes := {}  # slot -> {id, node}
 
 func _ready() -> void:
 	_rng.seed = 20260928
@@ -96,6 +114,7 @@ func _ready() -> void:
 	add_child(_region)
 	_shell = _scene("res://art3d/venues/%s/shell.glb" % venue_id).instantiate()
 	_region.add_child(_shell)
+	_scatter()
 	_read_floors()
 	_place_all()
 	_place_floors()
@@ -109,6 +128,8 @@ func _ready() -> void:
 			_make_derelict(f)
 	_apply_grandeur(WingSystem.grandeur_tier(venue_id), false)
 	EventBus.wing_renovated.connect(_on_wing_renovated)
+	refresh_decor(false)
+	EventBus.decor_purchased.connect(_on_decor_changed)
 
 # ------------------------------------------------------------------ layout
 func _measure() -> void:
@@ -156,24 +177,59 @@ static func _v2(a: Variant, fallback := Vector2.ZERO) -> Vector2:
 	return fallback
 
 # ------------------------------------------------------------------ props
+## Theme level (storey) of the room under grid point p (0 when outside).
+func level_at(p: Vector2) -> int:
+	for r in rooms:
+		var rect: Array = r["rect"]
+		if Rect2(float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3])).has_point(p):
+			return int(r.get("level", 0))
+	return 0
+
+## The upper floor (floors[] entry) a theme level maps to, or {} for the ground.
+func _floor_for_level(lv: int) -> Dictionary:
+	if lv <= 0:
+		return {}
+	for f in floors:
+		if int(f.get("level", -1)) == lv:
+			return f
+	return {}
+
+func _level_y(lv: int) -> float:
+	return FLOOR_TOP + float(maxi(lv, 0)) * STOREY
+
 func _place_all() -> void:
 	for spec in theme.get("props", []) + theme.get("exhibits", []):
 		var kind := str(spec.get("kind", ""))
+		var anchor_pt := _v2(spec.get("anchor", spec.get("at")))
+		var lv := level_at(anchor_pt)
+		var y := _level_y(lv)
+		var fl := _floor_for_level(lv)
 		if KIT.has(kind):
-			_place(kind, spec)
+			var node := _place(kind, spec, y)
+			if kind in HERO_KINDS:
+				_heroes.append({"node": node, "scale": node.scale, "dress": []})
+			if not fl.is_empty():
+				(fl["pieces"] as Array).append(node)
+				if spec.has("views"):
+					(fl["dust"] as Array).append({"at": spec.get("at"), "size": spec.get("size", [1.0, 1.0])})
 		if spec.has("barrier"):
-			_rope_line(spec["barrier"])
+			_rope_line(spec["barrier"], y, fl)
 		if spec.has("views") and spec.has("anchor"):
 			var anchor := _v2(spec["anchor"])
+			var dest: Array = fl["views"] if not fl.is_empty() else _views
 			for v in spec["views"]:
 				var p := anchor + _v2(v)
-				_views.append({"spot": Vector3(p.x, FLOOR_TOP, p.y), "look": Vector3(anchor.x, 1.0, anchor.y),
-					"hero": kind in HERO_KINDS})
+				dest.append({"spot": Vector3(p.x, y, p.y), "look": Vector3(anchor.x, y + 0.85, anchor.y),
+					"hero": kind in HERO_KINDS, "floor": floors.find(fl) + 1 if not fl.is_empty() else 0})
 	for room in rooms:
 		var origin := _v2(room["rect"])
+		var lv := int(room.get("level", 0))
+		var fl := _floor_for_level(lv)
 		if str(room.get("role", "")) == "exhibit":
 			for s in room.get("stations", []):
-				_place("docent_stand", {"at": [origin.x + float(s[0]), origin.y + float(s[1])]})
+				var st := _place("docent_stand", {"at": [origin.x + float(s[0]), origin.y + float(s[1])]}, _level_y(lv))
+				if not fl.is_empty():
+					(fl["pieces"] as Array).append(st)
 		var q: Dictionary = room.get("queue", {})
 		for st in q.get("stations", []):
 			var base := _v2(_room_by_id(str(st.get("room", ""))).get("rect", room["rect"]))
@@ -221,7 +277,7 @@ func _place(kind: String, spec: Dictionary, base := FLOOR_TOP, parent: Node = nu
 	node.scale = Vector3(k, 1.0, short)  # local axes, applied before the turn
 	return node
 
-func _rope_line(barrier: Dictionary) -> void:
+func _rope_line(barrier: Dictionary, y := FLOOR_TOP, fl: Dictionary = {}) -> void:
 	var a := _v2(barrier.get("from"))
 	var b := _v2(barrier.get("to"))
 	var posts := maxi(2, int(barrier.get("posts", 3)))
@@ -230,7 +286,9 @@ func _rope_line(barrier: Dictionary) -> void:
 	rope.roughness = 0.5
 	for i in posts:
 		var p := a.lerp(b, float(i) / float(posts - 1))
-		_place("rope_post", {"at": [p.x, p.y]})
+		var post := _place("rope_post", {"at": [p.x, p.y]}, y)
+		if not fl.is_empty():
+			(fl["pieces"] as Array).append(post)
 		if i > 0:
 			var q := a.lerp(b, float(i - 1) / float(posts - 1))
 			var seg := MeshInstance3D.new()
@@ -243,7 +301,9 @@ func _rope_line(barrier: Dictionary) -> void:
 			seg.material_override = rope
 			_region.add_child(seg)
 			var mid := (p + q) * 0.5
-			seg.position = Vector3(mid.x, FLOOR_TOP + 0.5, mid.y)
+			seg.position = Vector3(mid.x, y + 0.5, mid.y)
+			if not fl.is_empty():
+				(fl["pieces"] as Array).append(seg)
 			var d := p - q
 			seg.rotation = Vector3(0.0, -atan2(d.y, d.x), PI * 0.5)
 
@@ -301,17 +361,28 @@ func _staff() -> void:
 	for room in rooms:
 		var origin := _v2(room["rect"])
 		var dept := str(room.get("dept", ""))
+		var lv := int(room.get("level", 0))
+		var y := _level_y(lv)
+		var fl := _floor_for_level(lv)
+		var hired: Array = []
 		for s in room.get("stations", []):
 			var p := origin + _v2(s) + (Vector2(0.35, 0.1) if dept == "gallery" else Vector2.ZERO)
-			var n := _spawn(_look("staff", dept), Vector3(p.x, FLOOR_TOP, p.y))
-			n.face(Vector3(p.x, 0.0, p.y + 1.0))
+			var n := _spawn(_look("staff", dept), Vector3(p.x, y, p.y))
+			n.face(Vector3(p.x, y, p.y + 1.0))
+			hired.append(n)
 		if room.has("marketer"):
 			var m := origin + _v2(room["marketer"])
-			_spawn(_look("staff", "promotions"), Vector3(m.x, FLOOR_TOP, m.y)).face(_door_in + Vector3(0, 0, 3))
+			var mk := _spawn(_look("staff", "promotions"), Vector3(m.x, y, m.y))
+			mk.face(_door_in + Vector3(0, 0, 3))
+			hired.append(mk)
 		var store: Dictionary = room.get("store", {})
 		if store.has("home"):
 			var h := origin + _v2(store["home"])
-			_spawn(_look("staff", "archive"), Vector3(h.x, FLOOR_TOP, h.y)).face(Vector3(h.x + 1.0, 0.0, h.y))
+			var ar := _spawn(_look("staff", "archive"), Vector3(h.x, y, h.y))
+			ar.face(Vector3(h.x + 1.0, y, h.y))
+			hired.append(ar)
+		if not fl.is_empty():
+			(fl["staff"] as Array).append_array(hired)
 	for f in floors:
 		_floor_staff(f)
 
@@ -333,49 +404,127 @@ func _visit(n: Npc, inside := false) -> void:
 	n.speed = _rng.randf_range(0.9, 1.25)
 	if not inside:
 		await _walk(n, _door_out + Vector3(_rng.randf_range(-0.6, 0.6), 0, 0))
+		if not _alive(n):
+			return
 		await _walk(n, _door_in)
+		if not _alive(n):
+			return
 	if not inside and not _windows.is_empty():
 		var wi := _rng.randi() % mini(_open_windows, _windows.size())
 		var w: Dictionary = _windows[wi]
 		await _walk(n, w["spot"] + Vector3(_rng.randf_range(-0.2, 0.2), 0, _rng.randf_range(-0.2, 0.2)))
+		if not _alive(n):
+			return
 		n.face(w["look"])
-		await get_tree().create_timer(_rng.randf_range(1.2, 2.6)).timeout
+		await _wait(_rng.randf_range(1.2, 2.6))
+		if not _alive(n):
+			return
 		ticket_sold.emit(wi, w["top"])
 	for i in _rng.randi_range(2, 3):
 		var pool := _open_views()
-		if pool.is_empty() or not is_instance_valid(n):
+		if pool.is_empty():
 			break
 		var v: Dictionary = pool[_rng.randi() % pool.size()]
 		var want := int(v.get("floor", 0))
 		var here := int(n.get_meta("floor", 0))
 		if want != here:
 			await _travel(n, here, want)
-		if not is_instance_valid(n):
+		if not _alive(n):
 			return
 		await _walk(n, v["spot"])
+		if not _alive(n):
+			return
 		n.face(v["look"])
 		if bool(v["hero"]) and _rng.randf() < 0.5:
 			n.play("cheer")
-		await get_tree().create_timer(_rng.randf_range(2.0, 4.5)).timeout
-	if not is_instance_valid(n):
-		return
+		await _wait(_rng.randf_range(2.0, 4.5))
+		if not _alive(n):
+			return
 	if int(n.get_meta("floor", 0)) != 0:
 		await _travel(n, int(n.get_meta("floor", 0)), 0)
-	await _walk(n, _exit_in)
-	await _walk(n, _exit_out)
+	for to in [_exit_in, _exit_out]:
+		if not _alive(n):
+			return
+		await _walk(n, to)
+	if not _alive(n):
+		return
 	var leave_x := -7.0 if n.global_position.x < W * 0.5 else W + 7.0
 	await _walk(n, Vector3(leave_x, 0.1, road_z - 2.35))
+	if not _alive(n):
+		return
 	_visitors -= 1
 	n.queue_free()
+
+## Wait on a Timer CHILD rather than a SceneTreeTimer: a coroutine suspended on
+## a tree timer (or a tween) forms a reference cycle with it, and if the museum
+## is torn down mid-wait (graduation, tab switch, quit) the pair is never freed.
+## A child Timer dies with the museum and takes the suspended call with it.
+func _wait(secs: float) -> void:
+	var t := Timer.new()
+	t.one_shot = true
+	t.wait_time = maxf(secs, 0.01)
+	add_child(t)
+	_waits.append(t)
+	t.start()
+	await t.timeout
+	_waits.erase(t)
+	if is_instance_valid(t):
+		t.queue_free()
+
+var _waits: Array = []
+
+## Run `cb` after `secs`, unless the museum is gone by then.
+func _after(secs: float, cb: Callable) -> void:
+	var t := Timer.new()
+	t.one_shot = true
+	t.wait_time = maxf(secs, 0.01)
+	add_child(t)
+	t.timeout.connect(func() -> void:
+		cb.call()
+		t.queue_free())
+	t.start()
+
+## A visitor's coroutine carries on only while it and the museum still exist.
+func _alive(n: Object) -> bool:
+	return not _closing and is_instance_valid(n)
+
+var _closing := false
+
+## Leaving the tree: stop every visitor's day. Walkers suspended on `arrived`
+## are released (they check _alive and return), so no coroutine is left holding
+## this script when the museum is torn down (graduation, tab switch, quit).
+func _on_decor_changed(v: String, _decor_id: String) -> void:
+	if v == venue_id:
+		refresh_decor()
+
+func _exit_tree() -> void:
+	_closing = true
+	if EventBus.decor_purchased.is_connected(_on_decor_changed):
+		EventBus.decor_purchased.disconnect(_on_decor_changed)
+	if EventBus.wing_renovated.is_connected(_on_wing_renovated):
+		EventBus.wing_renovated.disconnect(_on_wing_renovated)
+	# A coroutine awaiting a signal of an object that is then freed is never
+	# released (Godot keeps its GDScriptFunctionState). Wake every suspended
+	# walker and waiter now; each sees _closing and returns.
+	for c in get_children():
+		if c is Npc:
+			(c as Npc).arrived.emit()
+	for t in _waits.duplicate():
+		if is_instance_valid(t):
+			(t as Timer).timeout.emit()
+	_waits.clear()
 
 ## Ground views plus every open floor's; upper floors weighted up so the new
 ## wing visibly fills once it opens.
 func _open_views() -> Array:
 	var out: Array = _views.duplicate()
 	for f in floors:
-		if bool(f["open"]):
-			out += f["views"]
-			out += f["views"]
+		# A storey is only visitable once it is open AND every floor below it
+		# is reachable (lifts chain upward floor by floor).
+		if not bool(f["open"]) or not bool(f["has_lift"]):
+			break
+		out += f["views"]
+		out += f["views"]
 	return out
 
 func _walk(n: Npc, to: Vector3) -> void:
@@ -383,13 +532,62 @@ func _walk(n: Npc, to: Vector3) -> void:
 	if n.is_walking():
 		await n.arrived
 
+# ------------------------------------------------------------------ scatter (instanced greenery)
+## Trees and bushes come as spots on the grounds node (glTF extras, flat
+## [gx, gy, rot, scale, ...]) and are drawn as MultiMeshes: one shared mesh,
+## many transforms. Outside the navigation region: nobody walks into a hedge.
+func _scatter() -> void:
+	var g := _shell.find_child("grounds", true, false)
+	if g == null:
+		return
+	var ex: Dictionary = g.get_meta("extras", {})
+	_instance_field(str(ex.get("trees_kind", "tree")), ex.get("trees", []))
+	_instance_field("bush", ex.get("bushes", []))
+
+func _instance_field(kind: String, flat: Array) -> void:
+	var n := flat.size() / 4
+	var path := "res://art3d/outdoor/%s.glb" % kind
+	if n <= 0 or not ResourceLoader.exists(path):
+		return
+	var src: Node3D = _scene(path).instantiate()
+	for node in src.find_children("*", "MeshInstance3D", true, false) + ([src] if src is MeshInstance3D else []):
+		var mi := node as MeshInstance3D
+		var local := mi.global_transform if mi.is_inside_tree() else mi.transform
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = mi.mesh
+		mm.instance_count = n
+		for i in n:
+			var basis := Basis(Vector3.UP, float(flat[i * 4 + 2])).scaled(Vector3.ONE * float(flat[i * 4 + 3]))
+			mm.set_instance_transform(i, Transform3D(basis, Vector3(float(flat[i * 4]), 0.0, float(flat[i * 4 + 1]))) * local)
+		var mmi := MultiMeshInstance3D.new()
+		mmi.name = "Scatter_%s" % kind
+		mmi.multimesh = mm
+		add_child(mmi)
+	src.free()
+
 # ------------------------------------------------------------------ floors (wings)
 ## Upper floors come from data/wings.json layouts; the shell carries their
 ## architecture as nodes named floor_<id>, lift_<id> and cabin_<id>.
 func _read_floors() -> void:
 	var below := FLOOR_TOP
-	for w in WingSystem.floor_layouts(venue_id):
-		var lay: Dictionary = w["layout"]
+	for w in WingSystem.wings(venue_id):
+		var lay: Dictionary = {}
+		if (w as Dictionary).has("layout"):
+			lay = w["layout"]
+		elif int(w.get("floor", 0)) >= 1:
+			# Theme storeys: the shell carries each one's layout as glTF extras.
+			var node := _shell.find_child("floor_" + str(w["id"]), true, false)
+			if node == null:
+				continue
+			var ex: Dictionary = node.get_meta("extras", {})
+			lay = {"rect": ex.get("rect", [0, 0, W, 4]), "y": ex.get("y", _level_y(int(w["floor"])))}
+			if ex.has("lift_at"):
+				lay["lift"] = {"at": ex["lift_at"], "enter": ex["enter"], "exit": ex["exit"]}
+			if not (w as Dictionary).has("dept"):
+				w["dept"] = str(ex.get("dept", "gallery"))
+		else:
+			continue
 		var r: Array = lay["rect"]
 		var lift: Dictionary = lay.get("lift", {})
 		var y := float(lay.get("y", 3.0))
@@ -406,8 +604,11 @@ func _read_floors() -> void:
 			"enter": Vector3(_v2(lift.get("enter")).x, below, _v2(lift.get("enter")).y),
 			"exit": Vector3(_v2(lift.get("exit")).x, y, _v2(lift.get("exit")).y),
 			"busy": false, "pieces": [], "staff": [], "derelict": [], "tints": [], "views": [],
-			"layout": lay,
+			"layout": lay, "has_lift": lift.has("at"), "dust": [],
+			"level": int(w.get("floor", 1)) if not (w as Dictionary).has("layout") else -1,
 		}
+		for spec in lay.get("exhibits", []):
+			(f["dust"] as Array).append({"at": spec.get("at"), "size": spec.get("size", [1.0, 1.0])})
 		floors.append(f)
 		below = y
 
@@ -424,7 +625,10 @@ func _place_floors() -> void:
 		for spec in lay.get("props", []) + lay.get("exhibits", []):
 			var kind := str(spec.get("kind", ""))
 			if KIT.has(kind):
-				(f["pieces"] as Array).append(_place(kind, spec, y))
+				var piece := _place(kind, spec, y)
+				(f["pieces"] as Array).append(piece)
+				if kind in HERO_KINDS:
+					_heroes.append({"node": piece, "scale": piece.scale, "dress": []})
 			if spec.has("views") and spec.has("anchor"):
 				var anchor := _v2(spec["anchor"])
 				for v in spec["views"]:
@@ -463,7 +667,7 @@ func _make_derelict(f: Dictionary) -> void:
 	for n in f["staff"]:
 		(n as Node3D).visible = false
 	var dress: Array = f["derelict"]
-	for spec in (f["layout"] as Dictionary).get("exhibits", []):
+	for spec in f["dust"]:
 		var at := _v2(spec.get("at"))
 		var size := _v2(spec.get("size"), Vector2(1.0, 1.0))
 		var sheet := _place("dust_sheet", {"at": [at.x + size.x * 0.5, at.y + size.y * 0.5]}, y, self)
@@ -569,13 +773,15 @@ func _reveal(f: Dictionary) -> void:
 	var centre := Vector3(rect.get_center().x, float(f["y"]) + 1.5, rect.get_center().y)
 	burst(centre, 90)
 	pop_text(centre + Vector3(0, 1.0, 0), "%s OPEN!" % str(f["name"]).to_upper(), Color("#FFE680"), true)
-	get_tree().create_timer(1.6).timeout.connect(func() -> void: wing_revealed.emit(str(f["id"])))
+	_after(1.6, func() -> void:
+		set_exhibit_tier(exhibit_tier)
+		wing_revealed.emit(str(f["id"])))
 
 # ------------------------------------------------------------------ lifts
 ## Take `n` from floor index `from` to `to` (0 = ground), one lift at a time.
 func _travel(n: Npc, from: int, to: int) -> void:
 	var at := from
-	while at != to and is_instance_valid(n):
+	while at != to and _alive(n):
 		if to > at:
 			await _ride(n, floors[at], true)
 			at += 1
@@ -587,9 +793,9 @@ func _travel(n: Npc, from: int, to: int) -> void:
 
 func _ride(n: Npc, f: Dictionary, up: bool) -> void:
 	await _walk(n, f["enter"] if up else f["exit"])
-	while bool(f["busy"]) and is_instance_valid(n):
-		await get_tree().create_timer(0.4).timeout
-	if not is_instance_valid(n):
+	while bool(f["busy"]) and _alive(n):
+		await _wait(0.4)
+	if not _alive(n):
 		return
 	f["busy"] = true
 	var cabin := f["cabin"] as Node3D
@@ -599,7 +805,7 @@ func _ride(n: Npc, f: Dictionary, up: bool) -> void:
 		var fetch := create_tween()
 		fetch.tween_method(func(y: float) -> void: cabin.global_position.y = y,
 			cabin.global_position.y, from_y, 0.8).set_trans(Tween.TRANS_SINE)
-		await fetch.finished
+		await _wait(0.8)
 	var la: Vector3 = f["lift_at"]
 	if not is_instance_valid(n):
 		f["busy"] = false
@@ -607,12 +813,16 @@ func _ride(n: Npc, f: Dictionary, up: bool) -> void:
 	n.global_position = Vector3(la.x, from_y, la.z)
 	n.face(Vector3(la.x, from_y, la.z + (-1.0 if up else 1.0)))
 	var ride := create_tween()
+	var ride_secs := absf(to_y - from_y) * 0.45 + 0.5
 	ride.tween_method(func(y: float) -> void:
 		if is_instance_valid(n):
 			n.global_position = Vector3(la.x, y, la.z)
 		if cabin:
-			cabin.global_position.y = y, from_y, to_y, absf(to_y - from_y) * 0.45 + 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	await ride.finished
+			cabin.global_position.y = y, from_y, to_y, ride_secs).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await _wait(ride_secs)
+	if not _alive(n):
+		f["busy"] = false
+		return
 	f["busy"] = false
 	if is_instance_valid(n):
 		await _walk(n, f["exit"] if up else f["enter"])
@@ -721,11 +931,180 @@ func pick(screen: Vector2) -> Dictionary:
 		var f: Dictionary = floors[i]
 		var hit: Variant = Plane(Vector3.UP, float(f["y"])).intersects_ray(o, d)
 		if hit != null and (f["rect"] as Rect2).has_point(Vector2((hit as Vector3).x, (hit as Vector3).z)):
-			return {"point": hit, "wing": str(f["id"]), "open": bool(f["open"]), "dept": str(f["dept"])}
+			var dept := str(f["dept"])
+			if int(f["level"]) > 0:
+				var d2 := dept_at(hit, int(f["level"]))
+				dept = d2 if d2 != "" else dept
+			return {"point": hit, "wing": str(f["id"]), "open": bool(f["open"]), "dept": dept}
 	var g: Variant = Plane(Vector3.UP, FLOOR_TOP).intersects_ray(o, d)
 	if g == null:
 		return {}
 	return {"point": g, "wing": "", "open": true, "dept": dept_at(g)}
+
+# ------------------------------------------------------------------ decor
+## Placed decor (DecorSystem) stands at the theme's decor anchor for its slot.
+## New pieces pop in with confetti; removed ones leave. Cheap to call often.
+func refresh_decor(celebrate := true) -> void:
+	var placed: Dictionary = GameState.venue_state(venue_id).get("decor", {})
+	var anchors: Array = theme.get("decor_anchors", [])
+	for slot in _decor_nodes.keys():
+		var e: Dictionary = _decor_nodes[slot]
+		if str(placed.get(str(slot), "")) != str(e["id"]):
+			if is_instance_valid(e["node"]):
+				(e["node"] as Node).queue_free()
+			_decor_nodes.erase(slot)
+	for slot_key in placed.keys():
+		var slot := int(slot_key)
+		var id := str(placed[slot_key])
+		if _decor_nodes.has(slot) or slot >= anchors.size():
+			continue
+		var def: Dictionary = DataLoader.get_decor(id)
+		var vis: Dictionary = def.get("visual", {})
+		var kind := str(DECOR_KIT.get(str(vis.get("kind", "")), "planter"))
+		var at := _v2(anchors[slot])
+		var y := _level_y(level_at(at))
+		var node: Node3D
+		if kind == "":
+			node = _decor_rug(at, y, vis)
+		else:
+			node = _place(kind, {"at": [at.x, at.y]}, y, self)
+		_decor_nodes[slot] = {"id": id, "node": node}
+		if celebrate:
+			var s0 := node.scale
+			node.scale = s0 * 0.05
+			node.create_tween().tween_property(node, "scale", s0, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			burst(Vector3(at.x, y + 1.2, at.y), 50)
+			pop_text(Vector3(at.x, y + 1.8, at.y), str(def.get("name", "")), Color("#FFE680"))
+
+func _decor_rug(at: Vector2, y: float, vis: Dictionary) -> Node3D:
+	var mi := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(1.8, 0.03, 1.3)
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(str(vis.get("col", "#C0392B"))) if str(vis.get("col", "#")).begins_with("#") else Color("#C0392B")
+	m.roughness = 0.8
+	bm.material = m
+	mi.mesh = bm
+	add_child(mi)
+	mi.position = Vector3(at.x, y + 0.02, at.y)
+	return mi
+
+# ------------------------------------------------------------------ hero exhibit tiers
+## Hero exhibits grow with the gallery: tier 1 as found, 2 adds a light beam and
+## brass rim, 3 a gold ring and more size, 4 sparkles. The floor calls this from
+## the gallery's value track, so upgrading the department is visible on the
+## museum's star pieces, not only in a number.
+func set_exhibit_tier(tier: int, celebrate := false) -> void:
+	tier = clampi(tier, 1, 4)
+	var grew := tier > exhibit_tier
+	exhibit_tier = tier
+	for h in _heroes:
+		var node := h["node"] as Node3D
+		if not is_instance_valid(node):
+			continue
+		for d in h["dress"]:
+			if is_instance_valid(d):
+				(d as Node).queue_free()
+		(h["dress"] as Array).clear()
+		if not node.visible:
+			continue  # a derelict floor's piece is dressed when it is revealed
+		var target: Vector3 = (h["scale"] as Vector3) * (1.0 + 0.09 * float(tier - 1))
+		if celebrate and grew:
+			var tw := node.create_tween()
+			tw.tween_property(node, "scale", target * 1.12, 0.18).set_trans(Tween.TRANS_BACK)
+			tw.tween_property(node, "scale", target, 0.25)
+		else:
+			node.scale = target
+		var aabb := _world_aabb(node)
+		var c := aabb.get_center()
+		var r := maxf(aabb.size.x, aabb.size.z) * 0.5
+		var base_y := node.global_position.y
+		if tier >= 2:
+			(h["dress"] as Array).append(_beam(Vector3(c.x, base_y, c.z), r, aabb.size.y))
+			(h["dress"] as Array).append(_rim(Vector3(c.x, base_y + 0.02, c.z), r + 0.15, Color("#C9A04A")))
+		if tier >= 3:
+			(h["dress"] as Array).append(_rim(Vector3(c.x, base_y + 0.06, c.z), r + 0.3, GOLD))
+		if tier >= 4:
+			(h["dress"] as Array).append(_sparkles(Vector3(c.x, base_y + aabb.size.y * 0.6, c.z), r))
+		if celebrate and grew:
+			pop_text(Vector3(c.x, base_y + aabb.size.y + 0.6, c.z), "EXHIBIT UPGRADED!", Color("#FFE680"), true)
+			burst(Vector3(c.x, base_y + aabb.size.y, c.z), 40)
+
+func _world_aabb(node: Node3D) -> AABB:
+	var out := AABB()
+	var first := true
+	for n in node.find_children("*", "MeshInstance3D", true, false) + ([node] if node is MeshInstance3D else []):
+		var mi := n as MeshInstance3D
+		var box := mi.global_transform * mi.get_aabb()
+		out = box if first else out.merge(box)
+		first = false
+	return out
+
+## A soft vertical light beam (cheap: one unshaded, additive cone).
+func _beam(at: Vector3, r: float, h: float) -> Node3D:
+	var mi := MeshInstance3D.new()
+	var cone := CylinderMesh.new()
+	cone.top_radius = r * 0.35
+	cone.bottom_radius = r * 1.05
+	cone.height = h + 2.2
+	cone.radial_segments = 24
+	cone.cap_top = false
+	cone.cap_bottom = false
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.albedo_color = Color(1.0, 0.92, 0.6, 0.16)
+	cone.material = m
+	mi.mesh = cone
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mi)
+	mi.global_position = at + Vector3(0, (h + 2.2) * 0.5, 0)
+	return mi
+
+func _rim(at: Vector3, r: float, col: Color) -> Node3D:
+	var mi := MeshInstance3D.new()
+	var t := TorusMesh.new()
+	t.inner_radius = r
+	t.outer_radius = r + 0.09
+	t.rings = 48
+	t.ring_segments = 8
+	var m := StandardMaterial3D.new()
+	m.albedo_color = col
+	m.metallic = 0.8
+	m.roughness = 0.25
+	t.material = m
+	mi.mesh = t
+	add_child(mi)
+	mi.global_position = at
+	mi.scale = Vector3(1, 0.5, 1)
+	return mi
+
+func _sparkles(at: Vector3, r: float) -> Node3D:
+	var p := CPUParticles3D.new()
+	p.amount = 24
+	p.lifetime = 1.6
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = r
+	p.direction = Vector3.UP
+	p.spread = 30.0
+	p.initial_velocity_min = 0.2
+	p.initial_velocity_max = 0.6
+	p.gravity = Vector3.ZERO
+	var q := QuadMesh.new()
+	q.size = Vector2(0.09, 0.09)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	m.albedo_color = Color("#FFF3B0")
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	q.material = m
+	p.mesh = q
+	add_child(p)
+	p.global_position = at
+	return p
 
 # ------------------------------------------------------------------ game hooks
 ## How many ticket windows the player owns: the rest stand empty (counter and
@@ -757,8 +1136,10 @@ func ground_at(screen: Vector2) -> Variant:
 
 ## The department whose room contains world point `p` ("" for lobby/outside).
 ## Rooms that `merge_into` another count as that room's department.
-func dept_at(p: Vector3) -> String:
+func dept_at(p: Vector3, level := 0) -> String:
 	for r in rooms:
+		if int(r.get("level", 0)) != level:
+			continue
 		var rect: Array = r["rect"]
 		if Rect2(float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3])).has_point(Vector2(p.x, p.z)):
 			if r.has("merge_into"):

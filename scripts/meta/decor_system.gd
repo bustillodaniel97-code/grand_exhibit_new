@@ -46,11 +46,60 @@ static func buy_decor(venue_id: String, decor_id: String) -> bool:
 			if not GameState.spend_gems(gems_cost):
 				return false
 		else:
-			var cost := BigNumber.from_parts(float(def.get("cost_cash_m", 0.0)), int(def.get("cost_cash_e", 0)))
-			if not GameState.spend_cash(cost):
+			if not GameState.spend_cash(cash_cost(decor_id, venue_id)):
 				return false
 	_place(venue_id, slot, decor_id)
 	return true
+
+# ----------------------------------------------------------------- price + levels
+## Decor priced in THIS museum's economy: the authored price is in museum-one
+## units and scales by the venue's cost_mult x 10^cost_exp, the same scale its
+## upgrades use. Flat prices made the whole catalogue free after museum one.
+static func cash_cost(decor_id: String, venue_id: String = "") -> BigNumber:
+	var vid := venue_id if venue_id != "" else GameState.current_venue
+	var def: Dictionary = DataLoader.get_decor(decor_id)
+	var v: Dictionary = DataLoader.get_venue(vid)
+	return BigNumber.from_parts(float(def.get("cost_cash_m", 0.0)) * float(v.get("cost_mult", 1.0)),
+		int(def.get("cost_cash_e", 0)) + int(v.get("cost_exp", 0)))
+
+const MAX_LEVEL := 10
+
+## Placed decor levels up like a station (Idle Bank Tycoon's decorations are
+## department items with levels): each level raises its income bonus and its
+## decor points, and pays reputation.
+static func level(venue_id: String, decor_id: String) -> int:
+	return int((GameState.venue_state(venue_id).get("decor_levels", {}) as Dictionary).get(decor_id, 1))
+
+static func upgrade_cost(venue_id: String, decor_id: String) -> BigNumber:
+	var def: Dictionary = DataLoader.get_decor(decor_id)
+	var base := cash_cost(decor_id, venue_id)
+	if base.is_zero():  # gem and reward pieces level with cash too
+		var v: Dictionary = DataLoader.get_venue(venue_id)
+		base = BigNumber.from_parts(5.0 * float(v.get("cost_mult", 1.0)) * maxf(1.0, float(def.get("cost_gems", 60)) / 60.0),
+			3 + int(v.get("cost_exp", 0)))
+	return base.scale(pow(2.4, float(level(venue_id, decor_id))))
+
+static func can_upgrade(venue_id: String, decor_id: String) -> bool:
+	return placed_slot(venue_id, decor_id) >= 0 and level(venue_id, decor_id) < MAX_LEVEL
+
+static func upgrade(venue_id: String, decor_id: String) -> bool:
+	if not can_upgrade(venue_id, decor_id):
+		return false
+	if not GameState.spend_cash(upgrade_cost(venue_id, decor_id)):
+		return false
+	var vs: Dictionary = GameState.venue_state(venue_id)
+	var lv: Dictionary = vs.get("decor_levels", {})
+	lv[decor_id] = level(venue_id, decor_id) + 1
+	vs["decor_levels"] = lv
+	GameState.add_reputation(BigNumber.from_float(3.0 + float(lv[decor_id])))
+	EventBus.decor_purchased.emit(venue_id, decor_id)
+	return true
+
+## Income multiplier of a placed piece at its level: the authored bonus grows
+## by 60% of itself per level (oak bench +3% -> +19% at level 10).
+static func piece_mult(venue_id: String, decor_id: String) -> float:
+	var base := float(DataLoader.get_decor(decor_id).get("income_mult", 1.0)) - 1.0
+	return 1.0 + base * (1.0 + 0.6 * float(level(venue_id, decor_id) - 1))
 
 ## Stand up a piece already bought in THIS museum — the storage round trip.
 ## Free, because it was paid for here. Returns false if it was never bought in
@@ -283,7 +332,8 @@ static func piece_rest_seats(decor_id: String) -> int:
 static func venue_decor_points(venue_id: String) -> float:
 	var total: float = 0.0
 	for did in GameState.venue_state(venue_id).get("decor", {}).values():
-		total += piece_decor_points(str(did))
+		# Levels add a quarter of the piece's points each.
+		total += piece_decor_points(str(did)) * (1.0 + 0.25 * float(level(venue_id, str(did)) - 1))
 	return total
 
 ## Seats provided by placed decor. The venue's own free floor seating is added by
@@ -314,13 +364,11 @@ static func can_afford(decor_id: String) -> bool:
 	var gems_cost: int = int(def.get("cost_gems", 0))
 	if gems_cost > 0:
 		return GameState.gems >= gems_cost
-	var cost := BigNumber.from_parts(float(def.get("cost_cash_m", 0.0)), int(def.get("cost_cash_e", 0)))
-	return GameState.cash.gte(cost)
+	return GameState.cash.gte(cash_cost(decor_id))
 
 static func cost_text(decor_id: String) -> String:
 	var def: Dictionary = DataLoader.get_decor(decor_id)
 	var gems_cost: int = int(def.get("cost_gems", 0))
 	if gems_cost > 0:
 		return "%d Gems" % gems_cost
-	var cost := BigNumber.from_parts(float(def.get("cost_cash_m", 0.0)), int(def.get("cost_cash_e", 0)))
-	return "%s Cash" % cost.to_notation()
+	return "%s Cash" % cash_cost(decor_id).to_notation()

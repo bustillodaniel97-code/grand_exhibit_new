@@ -334,6 +334,20 @@ func _shop_row(decor_id: String, slots_full: bool) -> PanelContainer:
 	if bool(def.get("event_exclusive", false)) and not DecorSystem.bought_here(_venue_id, decor_id):
 		info.add_child(_label("Expedition reward", 14, BRASS))
 	elif here >= 0:
+		var lv: int = DecorSystem.level(_venue_id, decor_id)
+		info.add_child(_label("Level %d / %d · now +%d%% income" % [lv, DecorSystem.MAX_LEVEL,
+			int(round((DecorSystem.piece_mult(_venue_id, decor_id) - 1.0) * 100.0))], 14, INK))
+		if lv < DecorSystem.MAX_LEVEL:
+			var up_cost: BigNumber = DecorSystem.upgrade_cost(_venue_id, decor_id)
+			var up := UI.make_button("Lv %d  $%s" % [lv + 1, up_cost.to_notation()], SAGE)
+			up.name = "Upgrade_%s" % decor_id
+			up.add_theme_font_size_override("font_size", 15)
+			up.disabled = GameState.cash.lt(up_cost)
+			up.pressed.connect(func() -> void:
+				if DecorSystem.upgrade(_venue_id, decor_id):
+					UI.play_sfx(self, "buy")
+				refresh())
+			hb.add_child(up)
 		var view := UI.make_button("View", ACCENT)
 		view.pressed.connect(func() -> void: _show_installation(decor_id))
 		hb.add_child(view)
