@@ -51,7 +51,7 @@ Sources on IBT: `docs/research/IBT_LEVEL_STRUCTURE.md`, `docs/research/IBT_FLOOR
 
 | Target | Status |
 |---|---|
-| Android | ✅ preset + build script (billing/ads SDKs to wire) |
+| Android | ✅ preset + build script (billing/ads SDKs to wire). The game pack is about 45 MB: exports leave out the 2D floor's sprite sheets |
 | iOS | 🟡 preset; needs a Mac with Xcode, StoreKit/Game Center plugins |
 | Steam (Win/Linux/Deck/macOS) | 🟡 presets, window/letterbox, achievements layer; install GodotSteam, create the app |
 | Epic | 🟡 preset + EOS seam |
@@ -66,4 +66,3 @@ See `docs/PLATFORMS.md`.
 3. Profile on a low-end phone. The graphics switch is in (Low drops shadows,
    MSAA, glow and tilt-shift and caps the crowd; Auto falls back to Low when
    the museum averages under 40 fps), but it hasn't been measured on hardware.
-4. Drop the 2D floor's sprite art from mobile exports now that every museum is 3D. It's about 160 MB, most of the current build.

@@ -91,7 +91,9 @@ packaged as **MSIX**:
 
 ## Build size
 
-A pack-only export (`--export-pack`) is currently about 170 MB. Most of that is
-the 2D floor's sprite art in `art/`, which museums 2–12 still use. As each
-museum moves to the 3D toy-diorama floor (`art3d/`, about 13 MB for everything
-so far), the matching 2D art can leave the export.
+A pack-only export (`--export-pack`) is about 45 MB. Every museum runs on the
+3D toy-diorama floor (`art3d/`, about 35 MB), so every preset in
+`export_presets.template.cfg` leaves out the 2D floor's sprite sheets
+(`art/npc_*`, `art/environment`, `art/vehicles`; about 150 MB). The 2D sprite
+loaders check for their files and fall back to procedural drawing, so the
+2D floor still works in tests, where it's switched on explicitly.
