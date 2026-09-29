@@ -70,6 +70,8 @@ func _build_shell() -> void:
 	# after the layout so it draws over the world, before the popup layer
 	# (CanvasLayer 10) so every screen still covers it.
 	add_child(SideRailScene.instantiate())
+	# First-run walkthrough; ignores the mouse, so it can never block play.
+	add_child(preload("res://scenes/ui/tutorial.gd").new())
 
 	add_child(PopupLayerScene.instantiate())
 	_build_toast()
