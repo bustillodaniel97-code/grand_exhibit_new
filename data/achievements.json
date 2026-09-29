@@ -1,11 +1,17 @@
 {
   "_doc": [
     "Achievements, tracked locally for every build and mirrored to the storefront",
-    "by autoload/platform_services.gd (Steam / Epic; Game Center and Play Games",
-    "plug into the same calls). `id` is also the API name to register in",
-    "Steamworks / the EOS dev portal. `on` is the EventBus signal that re-checks",
-    "it; `need` is the threshold for the counter named in `count`."
+    "by autoload/platform_services.gd (Steam, Epic, Google Play Games, Game",
+    "Center). `id` is also the API name to register in Steamworks / the EOS dev",
+    "portal / App Store Connect. `on` is the EventBus signal that re-checks it;",
+    "`need` is the threshold for the counter named in `count`."
   ],
+  "platform_ids": {
+    "_note": "Storefront ids that differ from ours. play_games: paste the ids the Play Console generates (Achievements > Get resources), e.g. \"FIRST_UPGRADE\": \"CgkI...\"; an unmapped achievement is kept locally and not sent. game_center: ours, with game_center_prefix in front, unless mapped here. steam / epic: ours unless mapped.",
+    "play_games": {},
+    "game_center_prefix": "",
+    "game_center": {}
+  },
   "achievements": [
     {"id": "FIRST_UPGRADE", "name": "Open for Business", "desc": "Buy your first upgrade.", "on": "department_upgraded", "count": "upgrades", "need": 1},
     {"id": "HUNDRED_UPGRADES", "name": "Renovator", "desc": "Buy 100 upgrades.", "on": "department_upgraded", "count": "upgrades", "need": 100},

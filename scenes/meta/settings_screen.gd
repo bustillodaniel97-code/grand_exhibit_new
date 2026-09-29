@@ -60,7 +60,15 @@ func _build() -> void:
 	_body.add_child(_row("Help", tut))
 	var ps := get_node_or_null("/root/PlatformServices")
 	var backend := str(ps.get("backend")) if ps != null else "none"
-	var store: String = str({"steam": "Steam", "epic": "Epic Games Store", "none": "Offline"}.get(backend, backend))
+	var store: String = str({"steam": "Steam", "epic": "Epic Games Store", "play_games": "Google Play Games",
+		"game_center": "Game Center", "none": "Offline"}.get(backend, backend))
+	if ps != null and bool(ps.call("can_show_platform_achievements")):
+		var ach := Button.new()
+		ach.name = "PlatformAchievements"
+		ach.text = "View"
+		_style(ach, false)
+		ach.pressed.connect(func() -> void: ps.call("show_platform_achievements"))
+		_body.add_child(_row(store, ach))
 	_body.add_child(_label("Achievements: %s · %d unlocked" % [store, (ps.call("unlocked") as Array).size() if ps != null else 0], 14, Chrome.DIM))
 	var version := str(ProjectSettings.get_setting("application/config/version", ""))
 	_body.add_child(_label("Grand Exhibit · v%s" % (version if version != "" else "1.0.0"), 13, Chrome.DIM))
