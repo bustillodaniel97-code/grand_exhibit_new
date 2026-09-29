@@ -563,6 +563,1102 @@
         "lip": "#8A6033",
         "blocks_nav": false
       }
+    },
+    {
+      "id": "pine_cone_planter",
+      "name": "Giant Pine-Cone Planter",
+      "slot_theme": "entrance",
+      "cost_cash_m": 1.5,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "A pine cone the size of a toddler. Visitors pose with it.",
+      "set_id": "set_whispering_pines",
+      "venues": [
+        "whispering_pines"
+      ],
+      "req_milestones": 0,
+      "visual": {
+        "kind": "planter",
+        "r": 0.36,
+        "pot": "#8A5B38",
+        "leaf": "#2E7A45",
+        "tip": "#5FB877"
+      }
+    },
+    {
+      "id": "fossil_case",
+      "name": "Fossil Drawer Case",
+      "slot_theme": "hall",
+      "cost_cash_m": 4.0,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.05,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Pull-out drawers of ammonites and fern prints.",
+      "set_id": "set_whispering_pines",
+      "venues": [
+        "whispering_pines"
+      ],
+      "req_milestones": 1,
+      "visual": {
+        "kind": "case"
+      }
+    },
+    {
+      "id": "trex_statue",
+      "name": "Baby T. rex Statue",
+      "slot_theme": "garden",
+      "cost_cash_m": 2.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.06,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Bronze, friendly, and extremely photographed.",
+      "set_id": "set_whispering_pines",
+      "venues": [
+        "whispering_pines"
+      ],
+      "req_milestones": 2,
+      "visual": {
+        "kind": "statue"
+      }
+    },
+    {
+      "id": "nature_banner",
+      "name": "Wildlife Banner",
+      "slot_theme": "hall",
+      "cost_cash_m": 6.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.07,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Hand-painted owls, foxes and one very serious badger.",
+      "set_id": "set_whispering_pines",
+      "venues": [
+        "whispering_pines"
+      ],
+      "req_milestones": 3,
+      "visual": {
+        "kind": "banner",
+        "col": "#2E7A45",
+        "field": "#1F5A33",
+        "motif": "#F2C14E"
+      }
+    },
+    {
+      "id": "jelly_column",
+      "name": "Jellyfish Column",
+      "slot_theme": "hall",
+      "cost_cash_m": 1.5,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Moon jellies drift up a glass tube.",
+      "set_id": "set_copper_kettle",
+      "venues": [
+        "copper_kettle"
+      ],
+      "req_milestones": 0,
+      "visual": {
+        "kind": "kelp",
+        "height": 60.0,
+        "r": 0.3
+      }
+    },
+    {
+      "id": "coral_arch",
+      "name": "Coral Arch Pool",
+      "slot_theme": "garden",
+      "cost_cash_m": 4.0,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.05,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "A living arch of coral in a shallow pool.",
+      "set_id": "set_copper_kettle",
+      "venues": [
+        "copper_kettle"
+      ],
+      "req_milestones": 1,
+      "visual": {
+        "kind": "coral",
+        "size": [
+          1.6,
+          1.1
+        ]
+      }
+    },
+    {
+      "id": "anchor_bench",
+      "name": "Anchor Bench",
+      "slot_theme": "entrance",
+      "cost_cash_m": 2.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.06,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Salvaged timber on anchor legs.",
+      "set_id": "set_copper_kettle",
+      "venues": [
+        "copper_kettle"
+      ],
+      "req_milestones": 2,
+      "visual": {
+        "kind": "bench",
+        "len": 1.5,
+        "col": "#5E6B75",
+        "rail": "#3E4B55"
+      }
+    },
+    {
+      "id": "reef_tank",
+      "name": "Reef Tank",
+      "slot_theme": "hall",
+      "cost_cash_m": 6.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.07,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "A slice of reef with clownfish on patrol.",
+      "set_id": "set_copper_kettle",
+      "venues": [
+        "copper_kettle"
+      ],
+      "req_milestones": 3,
+      "visual": {
+        "kind": "tank",
+        "size": [
+          1.8,
+          0.9
+        ],
+        "height": 38.0,
+        "plinth_h": 12.0
+      }
+    },
+    {
+      "id": "river_amphora",
+      "name": "Amphora Plinth",
+      "slot_theme": "hall",
+      "cost_cash_m": 1.5,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "A painted amphora from the river delta.",
+      "set_id": "set_grand_river",
+      "venues": [
+        "grand_river"
+      ],
+      "req_milestones": 0,
+      "visual": {
+        "kind": "plinth",
+        "size": [
+          0.8,
+          0.8
+        ],
+        "height": 14.0
+      }
+    },
+    {
+      "id": "laurel_statue",
+      "name": "Laureate Statue",
+      "slot_theme": "garden",
+      "cost_cash_m": 4.0,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.05,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "A poet in marble, laurel slightly askew.",
+      "set_id": "set_grand_river",
+      "venues": [
+        "grand_river"
+      ],
+      "req_milestones": 1,
+      "visual": {
+        "kind": "statue"
+      }
+    },
+    {
+      "id": "scroll_shelf",
+      "name": "Scroll Library",
+      "slot_theme": "hall",
+      "cost_cash_m": 2.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.06,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Scrolls stacked like firewood.",
+      "set_id": "set_grand_river",
+      "venues": [
+        "grand_river"
+      ],
+      "req_milestones": 2,
+      "visual": {
+        "kind": "shelf",
+        "size": [
+          1.5,
+          0.5
+        ]
+      }
+    },
+    {
+      "id": "athena_banner",
+      "name": "Athena Banner",
+      "slot_theme": "entrance",
+      "cost_cash_m": 6.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.07,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "The owl of wisdom, in gold thread.",
+      "set_id": "set_grand_river",
+      "venues": [
+        "grand_river"
+      ],
+      "req_milestones": 3,
+      "visual": {
+        "kind": "banner",
+        "col": "#3A5A8C",
+        "field": "#2A4A7C",
+        "motif": "#E8B83F"
+      }
+    },
+    {
+      "id": "scarab_planter",
+      "name": "Scarab Palm Pot",
+      "slot_theme": "entrance",
+      "cost_cash_m": 1.5,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "A date palm in a scarab-carved pot.",
+      "set_id": "set_sunspire",
+      "venues": [
+        "sunspire"
+      ],
+      "req_milestones": 0,
+      "visual": {
+        "kind": "planter",
+        "r": 0.36,
+        "pot": "#C9A96B",
+        "leaf": "#3FA64A",
+        "tip": "#8BD06A"
+      }
+    },
+    {
+      "id": "canopic_case",
+      "name": "Canopic Case",
+      "slot_theme": "hall",
+      "cost_cash_m": 4.0,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.05,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Four jars, four gods, one very nervous curator.",
+      "set_id": "set_sunspire",
+      "venues": [
+        "sunspire"
+      ],
+      "req_milestones": 1,
+      "visual": {
+        "kind": "vitrine"
+      }
+    },
+    {
+      "id": "sun_obelisk",
+      "name": "Sun Obelisk",
+      "slot_theme": "garden",
+      "cost_cash_m": 2.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.06,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Catches the sunrise on its golden tip.",
+      "set_id": "set_sunspire",
+      "venues": [
+        "sunspire"
+      ],
+      "req_milestones": 2,
+      "visual": {
+        "kind": "plinth",
+        "size": [
+          1.0,
+          1.0
+        ],
+        "height": 18.0
+      }
+    },
+    {
+      "id": "golden_sarcophagus",
+      "name": "Golden Sarcophagus",
+      "slot_theme": "hall",
+      "cost_cash_m": 6.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.07,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "The star of the show. Please do not knock.",
+      "set_id": "set_sunspire",
+      "venues": [
+        "sunspire"
+      ],
+      "req_milestones": 3,
+      "visual": {
+        "kind": "casket"
+      }
+    },
+    {
+      "id": "ice_planter",
+      "name": "Frost Fir Planter",
+      "slot_theme": "entrance",
+      "cost_cash_m": 1.5,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "A fir dusted in real snow, somehow.",
+      "set_id": "set_cloudrest",
+      "venues": [
+        "cloudrest"
+      ],
+      "req_milestones": 0,
+      "visual": {
+        "kind": "planter",
+        "r": 0.36,
+        "pot": "#8FA0AE",
+        "leaf": "#2F7A4A",
+        "tip": "#EAF4FA"
+      }
+    },
+    {
+      "id": "crystal_case",
+      "name": "Crystal Geode Case",
+      "slot_theme": "hall",
+      "cost_cash_m": 4.0,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.05,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "An amethyst geode split to show its heart.",
+      "set_id": "set_cloudrest",
+      "venues": [
+        "cloudrest"
+      ],
+      "req_milestones": 1,
+      "visual": {
+        "kind": "vitrine"
+      }
+    },
+    {
+      "id": "eagle_hanging",
+      "name": "Great Eagle",
+      "slot_theme": "hall",
+      "cost_cash_m": 2.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.06,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Wingspan wider than the ticket desk.",
+      "set_id": "set_cloudrest",
+      "venues": [
+        "cloudrest"
+      ],
+      "req_milestones": 2,
+      "visual": {
+        "kind": "hanging"
+      }
+    },
+    {
+      "id": "summit_banner",
+      "name": "Summit Banner",
+      "slot_theme": "garden",
+      "cost_cash_m": 6.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.07,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Every peak the museum's founders climbed.",
+      "set_id": "set_cloudrest",
+      "venues": [
+        "cloudrest"
+      ],
+      "req_milestones": 3,
+      "visual": {
+        "kind": "banner",
+        "col": "#3A78D8",
+        "field": "#2A68C8",
+        "motif": "#EAF4FA"
+      }
+    },
+    {
+      "id": "rune_plinth",
+      "name": "Runestone Plinth",
+      "slot_theme": "garden",
+      "cost_cash_m": 1.5,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Carved runes that glow faintly at night.",
+      "set_id": "set_aurora_world",
+      "venues": [
+        "aurora_world"
+      ],
+      "req_milestones": 0,
+      "visual": {
+        "kind": "plinth",
+        "size": [
+          0.8,
+          0.8
+        ],
+        "height": 16.0
+      }
+    },
+    {
+      "id": "star_orrery",
+      "name": "Aurora Orrery",
+      "slot_theme": "hall",
+      "cost_cash_m": 4.0,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.05,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "The sky, wound up and ticking.",
+      "set_id": "set_aurora_world",
+      "venues": [
+        "aurora_world"
+      ],
+      "req_milestones": 1,
+      "visual": {
+        "kind": "orrery",
+        "size": [
+          1.4,
+          1.1
+        ]
+      }
+    },
+    {
+      "id": "longship_bench",
+      "name": "Longship Bench",
+      "slot_theme": "entrance",
+      "cost_cash_m": 2.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.06,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Carved from a retired longship's oars.",
+      "set_id": "set_aurora_world",
+      "venues": [
+        "aurora_world"
+      ],
+      "req_milestones": 2,
+      "visual": {
+        "kind": "bench",
+        "len": 1.5,
+        "col": "#6B452B",
+        "rail": "#4A3524"
+      }
+    },
+    {
+      "id": "aurora_banner",
+      "name": "Aurora Banner",
+      "slot_theme": "hall",
+      "cost_cash_m": 6.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.07,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Green and violet silk that ripples like the lights.",
+      "set_id": "set_aurora_world",
+      "venues": [
+        "aurora_world"
+      ],
+      "req_milestones": 3,
+      "visual": {
+        "kind": "banner",
+        "col": "#2FA67A",
+        "field": "#1F8A66",
+        "motif": "#B58CE8"
+      }
+    },
+    {
+      "id": "moon_planter",
+      "name": "Moonflower Planter",
+      "slot_theme": "garden",
+      "cost_cash_m": 1.5,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Blooms only after dark.",
+      "set_id": "set_celestial_conservatory",
+      "venues": [
+        "celestial_conservatory"
+      ],
+      "req_milestones": 0,
+      "visual": {
+        "kind": "planter",
+        "r": 0.36,
+        "pot": "#5E5A66",
+        "leaf": "#3F7A5A",
+        "tip": "#DFF4FF"
+      }
+    },
+    {
+      "id": "comet_case",
+      "name": "Comet Glass Case",
+      "slot_theme": "hall",
+      "cost_cash_m": 4.0,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.05,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Glass fused when a comet grazed the desert.",
+      "set_id": "set_celestial_conservatory",
+      "venues": [
+        "celestial_conservatory"
+      ],
+      "req_milestones": 1,
+      "visual": {
+        "kind": "case"
+      }
+    },
+    {
+      "id": "brass_orrery",
+      "name": "Grand Brass Orrery",
+      "slot_theme": "hall",
+      "cost_cash_m": 2.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.06,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Nine worlds on brass arms.",
+      "set_id": "set_celestial_conservatory",
+      "venues": [
+        "celestial_conservatory"
+      ],
+      "req_milestones": 2,
+      "visual": {
+        "kind": "orrery",
+        "size": [
+          1.4,
+          1.1
+        ]
+      }
+    },
+    {
+      "id": "stargazer_table",
+      "name": "Stargazer Tea Table",
+      "slot_theme": "garden",
+      "cost_cash_m": 6.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.07,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Tea, telescopes and very late nights.",
+      "set_id": "set_celestial_conservatory",
+      "venues": [
+        "celestial_conservatory"
+      ],
+      "req_milestones": 3,
+      "visual": {
+        "kind": "cafe_table"
+      }
+    },
+    {
+      "id": "shield_rack",
+      "name": "Shield Rack",
+      "slot_theme": "hall",
+      "cost_cash_m": 1.5,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Crests of every house that held the citadel.",
+      "set_id": "set_ironwood_citadel",
+      "venues": [
+        "ironwood_citadel"
+      ],
+      "req_milestones": 0,
+      "visual": {
+        "kind": "rack",
+        "size": [
+          1.2,
+          0.5
+        ]
+      }
+    },
+    {
+      "id": "knight_armor",
+      "name": "Knight's Armour",
+      "slot_theme": "hall",
+      "cost_cash_m": 4.0,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.05,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Polished every morning, dented every war.",
+      "set_id": "set_ironwood_citadel",
+      "venues": [
+        "ironwood_citadel"
+      ],
+      "req_milestones": 1,
+      "visual": {
+        "kind": "armor",
+        "size": [
+          1.2,
+          1.0
+        ]
+      }
+    },
+    {
+      "id": "round_table",
+      "name": "Round Table",
+      "slot_theme": "garden",
+      "cost_cash_m": 2.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.06,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Knights not included.",
+      "set_id": "set_ironwood_citadel",
+      "venues": [
+        "ironwood_citadel"
+      ],
+      "req_milestones": 2,
+      "visual": {
+        "kind": "cafe_table"
+      }
+    },
+    {
+      "id": "dragon_banner",
+      "name": "Dragon Banner",
+      "slot_theme": "entrance",
+      "cost_cash_m": 6.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.07,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "A red dragon on a field of iron.",
+      "set_id": "set_ironwood_citadel",
+      "venues": [
+        "ironwood_citadel"
+      ],
+      "req_milestones": 3,
+      "visual": {
+        "kind": "banner",
+        "col": "#7D2B24",
+        "field": "#5D1B14",
+        "motif": "#D5AD55"
+      }
+    },
+    {
+      "id": "pearl_planter",
+      "name": "Sea-Grass Urn",
+      "slot_theme": "entrance",
+      "cost_cash_m": 1.5,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Sea grass that sways without any wind.",
+      "set_id": "set_pelagic_crown",
+      "venues": [
+        "pelagic_crown"
+      ],
+      "req_milestones": 0,
+      "visual": {
+        "kind": "planter",
+        "r": 0.36,
+        "pot": "#5E7A88",
+        "leaf": "#2FA67A",
+        "tip": "#7FE8C8"
+      }
+    },
+    {
+      "id": "nautilus_case",
+      "name": "Nautilus Case",
+      "slot_theme": "hall",
+      "cost_cash_m": 4.0,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.05,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "A pearly nautilus older than the palace.",
+      "set_id": "set_pelagic_crown",
+      "venues": [
+        "pelagic_crown"
+      ],
+      "req_milestones": 1,
+      "visual": {
+        "kind": "vitrine"
+      }
+    },
+    {
+      "id": "abyss_tank",
+      "name": "Abyss Tank",
+      "slot_theme": "hall",
+      "cost_cash_m": 2.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.06,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Lanternfish glow in the dark water.",
+      "set_id": "set_pelagic_crown",
+      "venues": [
+        "pelagic_crown"
+      ],
+      "req_milestones": 2,
+      "visual": {
+        "kind": "tank",
+        "size": [
+          1.8,
+          0.9
+        ],
+        "height": 38.0,
+        "plinth_h": 12.0
+      }
+    },
+    {
+      "id": "coral_throne",
+      "name": "Coral Throne",
+      "slot_theme": "garden",
+      "cost_cash_m": 6.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.07,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Where the Pelagic crown was said to sit.",
+      "set_id": "set_pelagic_crown",
+      "venues": [
+        "pelagic_crown"
+      ],
+      "req_milestones": 3,
+      "visual": {
+        "kind": "throne",
+        "size": [
+          1.4,
+          1.1
+        ]
+      }
+    },
+    {
+      "id": "gear_planter",
+      "name": "Cogwheel Planter",
+      "slot_theme": "entrance",
+      "cost_cash_m": 1.5,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Ivy trained through antique gears.",
+      "set_id": "set_chronos_spire",
+      "venues": [
+        "chronos_spire"
+      ],
+      "req_milestones": 0,
+      "visual": {
+        "kind": "planter",
+        "r": 0.36,
+        "pot": "#C9A36A",
+        "leaf": "#3F7A5A",
+        "tip": "#8BD06A"
+      }
+    },
+    {
+      "id": "pendulum_clock",
+      "name": "Pendulum Clock",
+      "slot_theme": "hall",
+      "cost_cash_m": 4.0,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.05,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Keeps time to a hundredth of a second.",
+      "set_id": "set_chronos_spire",
+      "venues": [
+        "chronos_spire"
+      ],
+      "req_milestones": 1,
+      "visual": {
+        "kind": "clockwork",
+        "size": [
+          1.1,
+          0.9
+        ]
+      }
+    },
+    {
+      "id": "hourglass_case",
+      "name": "Hourglass Case",
+      "slot_theme": "hall",
+      "cost_cash_m": 2.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.06,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Sand from twelve centuries.",
+      "set_id": "set_chronos_spire",
+      "venues": [
+        "chronos_spire"
+      ],
+      "req_milestones": 2,
+      "visual": {
+        "kind": "vitrine"
+      }
+    },
+    {
+      "id": "tick_bench",
+      "name": "Tick-Tock Bench",
+      "slot_theme": "garden",
+      "cost_cash_m": 6.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.07,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "The slats click, gently, as you sit.",
+      "set_id": "set_chronos_spire",
+      "venues": [
+        "chronos_spire"
+      ],
+      "req_milestones": 3,
+      "visual": {
+        "kind": "bench",
+        "len": 1.5,
+        "col": "#6B452B",
+        "rail": "#E5C15F"
+      }
+    },
+    {
+      "id": "rose_topiary",
+      "name": "Royal Rose Topiary",
+      "slot_theme": "garden",
+      "cost_cash_m": 1.5,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Clipped into the shape of a crown.",
+      "set_id": "set_empyrean_palace",
+      "venues": [
+        "empyrean_palace"
+      ],
+      "req_milestones": 0,
+      "visual": {
+        "kind": "planter",
+        "r": 0.36,
+        "pot": "#9F3F6C",
+        "leaf": "#2E7A45",
+        "tip": "#E36FA8"
+      }
+    },
+    {
+      "id": "regalia_case",
+      "name": "Regalia Case",
+      "slot_theme": "hall",
+      "cost_cash_m": 4.0,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.05,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Orb, sceptre and a very small tiara.",
+      "set_id": "set_empyrean_palace",
+      "venues": [
+        "empyrean_palace"
+      ],
+      "req_milestones": 1,
+      "visual": {
+        "kind": "vitrine"
+      }
+    },
+    {
+      "id": "royal_throne",
+      "name": "Cloud Throne",
+      "slot_theme": "hall",
+      "cost_cash_m": 2.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.06,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Upholstered in something that feels like clouds.",
+      "set_id": "set_empyrean_palace",
+      "venues": [
+        "empyrean_palace"
+      ],
+      "req_milestones": 2,
+      "visual": {
+        "kind": "throne",
+        "size": [
+          1.4,
+          1.1
+        ]
+      }
+    },
+    {
+      "id": "court_banner",
+      "name": "Court Banner",
+      "slot_theme": "entrance",
+      "cost_cash_m": 6.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.07,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "The palace crest on violet velvet.",
+      "set_id": "set_empyrean_palace",
+      "venues": [
+        "empyrean_palace"
+      ],
+      "req_milestones": 3,
+      "visual": {
+        "kind": "banner",
+        "col": "#7E5FC8",
+        "field": "#5E3FA8",
+        "motif": "#FFE08A"
+      }
+    },
+    {
+      "id": "world_planter",
+      "name": "World-Tree Sapling",
+      "slot_theme": "garden",
+      "cost_cash_m": 1.5,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.03,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "A sapling grown from every seed at once.",
+      "set_id": "set_infinite_museum",
+      "venues": [
+        "infinite_museum"
+      ],
+      "req_milestones": 0,
+      "visual": {
+        "kind": "planter",
+        "r": 0.36,
+        "pot": "#6A6480",
+        "leaf": "#3FA64A",
+        "tip": "#B58CE8"
+      }
+    },
+    {
+      "id": "worlds_orrery",
+      "name": "Orrery of Worlds",
+      "slot_theme": "hall",
+      "cost_cash_m": 4.0,
+      "cost_cash_e": 3,
+      "cost_gems": 0,
+      "income_mult": 1.05,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Every museum you ever opened, orbiting.",
+      "set_id": "set_infinite_museum",
+      "venues": [
+        "infinite_museum"
+      ],
+      "req_milestones": 1,
+      "visual": {
+        "kind": "orrery",
+        "size": [
+          1.4,
+          1.1
+        ]
+      }
+    },
+    {
+      "id": "time_clock",
+      "name": "Clock of All Times",
+      "slot_theme": "hall",
+      "cost_cash_m": 2.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.06,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "It shows every hour at once.",
+      "set_id": "set_infinite_museum",
+      "venues": [
+        "infinite_museum"
+      ],
+      "req_milestones": 2,
+      "visual": {
+        "kind": "clockwork",
+        "size": [
+          1.1,
+          0.9
+        ]
+      }
+    },
+    {
+      "id": "infinite_throne",
+      "name": "Curator's Throne",
+      "slot_theme": "garden",
+      "cost_cash_m": 6.0,
+      "cost_cash_e": 4,
+      "cost_gems": 0,
+      "income_mult": 1.07,
+      "premium": false,
+      "event_exclusive": false,
+      "desc": "Reserved for you.",
+      "set_id": "set_infinite_museum",
+      "venues": [
+        "infinite_museum"
+      ],
+      "req_milestones": 3,
+      "visual": {
+        "kind": "throne",
+        "size": [
+          1.4,
+          1.1
+        ]
+      }
     }
   ],
   "sets": [
@@ -593,6 +1689,186 @@
         "relic_case"
       ],
       "bonus_mult": 1.2
+    },
+    {
+      "id": "set_whispering_pines",
+      "set_id": "set_whispering_pines",
+      "name": "Naturalist Set",
+      "pieces": [
+        "pine_cone_planter",
+        "fossil_case",
+        "trex_statue",
+        "nature_banner"
+      ],
+      "bonus_mult": 1.12,
+      "venues": [
+        "whispering_pines"
+      ]
+    },
+    {
+      "id": "set_copper_kettle",
+      "set_id": "set_copper_kettle",
+      "name": "Tidepool Set",
+      "pieces": [
+        "jelly_column",
+        "coral_arch",
+        "anchor_bench",
+        "reef_tank"
+      ],
+      "bonus_mult": 1.12,
+      "venues": [
+        "copper_kettle"
+      ]
+    },
+    {
+      "id": "set_grand_river",
+      "set_id": "set_grand_river",
+      "name": "Classical Set",
+      "pieces": [
+        "river_amphora",
+        "laurel_statue",
+        "scroll_shelf",
+        "athena_banner"
+      ],
+      "bonus_mult": 1.12,
+      "venues": [
+        "grand_river"
+      ]
+    },
+    {
+      "id": "set_sunspire",
+      "set_id": "set_sunspire",
+      "name": "Pharaoh Set",
+      "pieces": [
+        "scarab_planter",
+        "canopic_case",
+        "sun_obelisk",
+        "golden_sarcophagus"
+      ],
+      "bonus_mult": 1.12,
+      "venues": [
+        "sunspire"
+      ]
+    },
+    {
+      "id": "set_cloudrest",
+      "set_id": "set_cloudrest",
+      "name": "Summit Set",
+      "pieces": [
+        "ice_planter",
+        "crystal_case",
+        "eagle_hanging",
+        "summit_banner"
+      ],
+      "bonus_mult": 1.12,
+      "venues": [
+        "cloudrest"
+      ]
+    },
+    {
+      "id": "set_aurora_world",
+      "set_id": "set_aurora_world",
+      "name": "Northern Lights Set",
+      "pieces": [
+        "rune_plinth",
+        "star_orrery",
+        "longship_bench",
+        "aurora_banner"
+      ],
+      "bonus_mult": 1.12,
+      "venues": [
+        "aurora_world"
+      ]
+    },
+    {
+      "id": "set_celestial_conservatory",
+      "set_id": "set_celestial_conservatory",
+      "name": "Orbital Garden Set",
+      "pieces": [
+        "moon_planter",
+        "comet_case",
+        "brass_orrery",
+        "stargazer_table"
+      ],
+      "bonus_mult": 1.12,
+      "venues": [
+        "celestial_conservatory"
+      ]
+    },
+    {
+      "id": "set_ironwood_citadel",
+      "set_id": "set_ironwood_citadel",
+      "name": "Knighthood Set",
+      "pieces": [
+        "shield_rack",
+        "knight_armor",
+        "round_table",
+        "dragon_banner"
+      ],
+      "bonus_mult": 1.12,
+      "venues": [
+        "ironwood_citadel"
+      ]
+    },
+    {
+      "id": "set_pelagic_crown",
+      "set_id": "set_pelagic_crown",
+      "name": "Abyssal Set",
+      "pieces": [
+        "pearl_planter",
+        "nautilus_case",
+        "abyss_tank",
+        "coral_throne"
+      ],
+      "bonus_mult": 1.12,
+      "venues": [
+        "pelagic_crown"
+      ]
+    },
+    {
+      "id": "set_chronos_spire",
+      "set_id": "set_chronos_spire",
+      "name": "Clockmaker Set",
+      "pieces": [
+        "gear_planter",
+        "pendulum_clock",
+        "hourglass_case",
+        "tick_bench"
+      ],
+      "bonus_mult": 1.12,
+      "venues": [
+        "chronos_spire"
+      ]
+    },
+    {
+      "id": "set_empyrean_palace",
+      "set_id": "set_empyrean_palace",
+      "name": "Royal Court Set",
+      "pieces": [
+        "rose_topiary",
+        "regalia_case",
+        "royal_throne",
+        "court_banner"
+      ],
+      "bonus_mult": 1.12,
+      "venues": [
+        "empyrean_palace"
+      ]
+    },
+    {
+      "id": "set_infinite_museum",
+      "set_id": "set_infinite_museum",
+      "name": "Infinite Set",
+      "pieces": [
+        "world_planter",
+        "worlds_orrery",
+        "time_clock",
+        "infinite_throne"
+      ],
+      "bonus_mult": 1.12,
+      "venues": [
+        "infinite_museum"
+      ]
     }
   ]
 }

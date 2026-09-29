@@ -960,7 +960,8 @@ func refresh_decor(celebrate := true) -> void:
 			continue
 		var def: Dictionary = DataLoader.get_decor(id)
 		var vis: Dictionary = def.get("visual", {})
-		var kind := str(DECOR_KIT.get(str(vis.get("kind", "")), "planter"))
+		var vk := str(vis.get("kind", ""))
+		var kind := str(DECOR_KIT.get(vk, vk if KIT.has(vk) else "planter"))
 		var at := _v2(anchors[slot])
 		var y := _level_y(level_at(at))
 		var node: Node3D

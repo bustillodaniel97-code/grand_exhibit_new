@@ -52,6 +52,23 @@ func run() -> void:
 	check(not DS.can_upgrade(vid, "oak_bench"), "stored decor cannot be upgraded")
 	check(DS.place_decor(vid, "oak_bench") and DS.level(vid, "oak_bench") == DS.MAX_LEVEL, "levels survive storage")
 
+	# Themed stock: each museum sells its own set, unlocked by its milestones.
+	check(DS.stocked_here(vid, "fossil_case") and not DS.stocked_here("copper_kettle", "fossil_case"),
+		"the Naturalist Set is sold only at Whispering Pines")
+	check(DS.stocked_here("copper_kettle", "reef_tank"), "the aquarium sells its reef tank")
+	check(DS.stocked_here(vid, "oak_bench") and DS.stocked_here("copper_kettle", "oak_bench"), "the classic catalogue is sold everywhere")
+	check(not DS.buy_decor("copper_kettle", "fossil_case"), "another museum cannot buy a themed piece")
+	check(DS.unlocked_here(vid, "pine_cone_planter"), "the first themed piece is open from the start")
+	check(not DS.unlocked_here(vid, "fossil_case") and "milestone 1" in DS.lock_reason(vid, "fossil_case"),
+		"later themed pieces show the milestone that unlocks them")
+	check(not DS.buy_decor(vid, "fossil_case"), "a locked piece cannot be bought")
+	var ms: Array = []
+	for m in root.get_node("DataLoader").milestones.get(vid, []):
+		ms.append(str(m["id"]))
+	gs.venue_state(vid)["milestones"] = ms.slice(0, 1)
+	check(DS.unlocked_here(vid, "fossil_case") and DS.buy_decor(vid, "fossil_case"), "milestone 1 unlocks and sells it")
+	DS.remove_decor(vid, "fossil_case")
+
 	# The 3D floor shows it.
 	var Venue3D: GDScript = load("res://scenes/venue3d/venue_3d.gd")
 	var w: Node3D = Venue3D.new()

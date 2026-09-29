@@ -33,6 +33,8 @@ static func buy_decor(venue_id: String, decor_id: String) -> bool:
 	var def: Dictionary = DataLoader.get_decor(decor_id)
 	if def.is_empty() or bool(def.get("event_exclusive", false)):
 		return false
+	if not stocked_here(venue_id, decor_id) or not unlocked_here(venue_id, decor_id):
+		return false
 	if owned(venue_id, decor_id):
 		return false
 	var slot: int = first_free_slot(venue_id)
@@ -50,6 +52,25 @@ static func buy_decor(venue_id: String, decor_id: String) -> bool:
 				return false
 	_place(venue_id, slot, decor_id)
 	return true
+
+# ----------------------------------------------------------------- stock + unlocks
+## Themed pieces (a `venues` list) are stocked only by their own museum; the
+## rest of the catalogue is sold everywhere. Idle Bank Tycoon themes decor to
+## each bank; an aquarium should sell a reef tank, not the Oak Bench only.
+static func stocked_here(venue_id: String, decor_id: String) -> bool:
+	var venues: Array = DataLoader.get_decor(decor_id).get("venues", [])
+	return venues.is_empty() or venue_id in venues
+
+## Themed pieces unlock with this museum's goal milestones, and the shop shows
+## them (locked) ahead of time so the next reward is always in view.
+static func unlocked_here(venue_id: String, decor_id: String) -> bool:
+	var need := int(DataLoader.get_decor(decor_id).get("req_milestones", 0))
+	return (GameState.venue_state(venue_id).get("milestones", []) as Array).size() >= need
+
+static func lock_reason(venue_id: String, decor_id: String) -> String:
+	if unlocked_here(venue_id, decor_id):
+		return ""
+	return "Unlocks at goal milestone %d" % int(DataLoader.get_decor(decor_id).get("req_milestones", 0))
 
 # ----------------------------------------------------------------- price + levels
 ## Decor priced in THIS museum's economy: the authored price is in museum-one

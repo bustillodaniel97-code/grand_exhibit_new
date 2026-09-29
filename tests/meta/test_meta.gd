@@ -91,7 +91,10 @@ func _test_data_integrity() -> void:
 	check(DL.decor.size() >= 18, "18+ decor pieces (%d)" % DL.decor.size())
 	check(DL.decor_sets.size() >= 2, "2 decor sets")
 	for sid in DL.decor_sets.keys():
-		check(DL.decor_sets[sid].get("pieces", []).size() == 6, "set %s has 6 pieces" % sid)
+		# Cross-museum sets have 6 pieces; a museum's own themed set has 4 (it
+		# must fit that museum's decor slots alongside everything else).
+		var want: int = 4 if not (DL.decor_sets[sid].get("venues", []) as Array).is_empty() else 6
+		check(DL.decor_sets[sid].get("pieces", []).size() == want, "set %s has %d pieces" % [sid, want])
 	var event_count: int = 0
 	for did in DL.decor.keys():
 		if bool(DL.decor[did].get("event_exclusive", false)):

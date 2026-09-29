@@ -279,8 +279,15 @@ func _build_shop() -> void:
 		_list.add_child(_label("All slots full in this venue.", 14, ACCENT))
 	# Group defs by set, then unaffiliated pieces.
 	var groups: Array = []
-	for set_id in DataLoader.decor_sets.keys():
-		groups.append({"name": str(DataLoader.decor_sets[set_id].get("name", set_id)),
+	# This museum's own themed set first, then the sets every museum sells.
+	var sets: Array = DataLoader.decor_sets.keys()
+	sets.sort_custom(func(a, b) -> bool:
+		return (_venue_id in (DataLoader.decor_sets[a].get("venues", []) as Array)) and not (_venue_id in (DataLoader.decor_sets[b].get("venues", []) as Array)))
+	for set_id in sets:
+		var sv: Array = DataLoader.decor_sets[set_id].get("venues", [])
+		if not sv.is_empty() and _venue_id not in sv:
+			continue
+		groups.append({"name": str(DataLoader.decor_sets[set_id].get("name", set_id)) + (" · only here" if not sv.is_empty() else ""),
 			"pieces": DataLoader.decor_sets[set_id].get("pieces", [])})
 	# Rest areas get their own group: they are bought for a different reason than
 	# every other piece (seats, not spectacle) and burying them under
@@ -370,9 +377,12 @@ func _shop_row(decor_id: String, slots_full: bool) -> PanelContainer:
 		# different building stocking its own shelves.
 		if DecorSystem.owned_previously(_venue_id, decor_id):
 			info.add_child(_label("You had this in an earlier museum", 13, BRASS))
-		var btn := UI.make_button("Buy — %s" % DecorSystem.cost_text(decor_id), SAGE)
+		var lock: String = DecorSystem.lock_reason(_venue_id, decor_id)
+		if lock != "":
+			info.add_child(_label(lock, 13, BRASS))
+		var btn := UI.make_button("Buy — %s" % DecorSystem.cost_text(decor_id) if lock == "" else "Locked", SAGE)
 		btn.add_theme_font_size_override("font_size", 18)
-		btn.disabled = slots_full or not DecorSystem.can_afford(decor_id)
+		btn.disabled = slots_full or lock != "" or not DecorSystem.can_afford(decor_id)
 		btn.pressed.connect(func(): _on_buy(decor_id))
 		hb.add_child(btn)
 	return row
