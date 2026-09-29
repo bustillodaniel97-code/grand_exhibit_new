@@ -22,9 +22,9 @@ extends Control
 ##  · Every value claim is computed from the catalog (store_pricing.gd) and states
 ##    its basis on screen. No invented "most popular", no strikethrough without a
 ##    printed anchor, no countdown on something that does not actually expire.
-##  · The page is DARK (UI.PAGE) and the body text is light (UI.TEXT). The shop is
-##    the ground the products stand on, so it stays out of the way and the gold,
-##    green and violet on the cards do the selling.
+##  · The page is the shared cream chrome with dark ink. The shop is the ground
+##    the products stand on, so it stays out of the way and the gold, green and
+##    violet on the cards do the selling.
 
 const RV := preload("res://scripts/monetization/rv_placements.gd")
 const IAPCat := preload("res://scripts/monetization/iap_catalog.gd")
@@ -35,17 +35,19 @@ const Pricing := preload("res://scripts/monetization/store_pricing.gd")
 const Consent := preload("res://scripts/monetization/consent.gd")
 const Art := preload("res://scripts/monetization/store_art.gd")
 const UI := preload("res://scripts/ui/ui_kit.gd")
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 
-# Museum shop palette: navy display cases, warm brass and quiet teal accents.
-const BG := Color("14232d")
-const INK := Color("f5f1e8")
-const DIM := Color("c1cece")
-const PANEL := Color("213641")
-const ACCENT := Color("aa552e")
-const BRASS := Color("d6b579")
-const SAGE := Color("27766a")
-const SLATE := Color("2e6e8b")
-const PLUM := Color("765f92")
+# Toy-shop palette: the same warm cream chrome as every other screen, with
+# saturated candy accents on the products so the cards do the selling.
+const BG := Chrome.BG
+const INK := Chrome.INK
+const DIM := Chrome.DIM
+const PANEL := Chrome.PANEL
+const ACCENT := Color("f0772e")
+const BRASS := Color("e3a21a")
+const SAGE := Chrome.ACTION
+const SLATE := Color("2f8fd8")
+const PLUM := Color("9a5ad6")
 const CATEGORIES := {"offers":"Offers", "rewards":"Rewards", "gems":"Gems", "resources":"Resources", "passes":"Passes"}
 
 ## Design-pixel targets. Physical phone sizing still requires device validation.
@@ -171,7 +173,7 @@ func _build_shop_header() -> Control:
 	header.add_child(title)
 	if IAPService.debug_iap or AdService.debug_ads:
 		var simulated := "Purchases and ads are simulated" if IAPService.debug_iap and AdService.debug_ads else ("Purchases are simulated" if IAPService.debug_iap else "Ads are simulated")
-		var simulation := _label("PLAYTEST · " + simulated, 14, Color("d6b579"))
+		var simulation := _label("PLAYTEST · " + simulated, 14, BRASS.darkened(0.25))
 		simulation.name = "SimulationNotice"
 		header.add_child(simulation)
 	var wallet := HBoxContainer.new()
@@ -180,7 +182,7 @@ func _build_shop_header() -> Control:
 	for currency in ["cash", "gems", "insight"]:
 		var chip := UI.make_dark_currency_chip(currency, "0", INK, 20)
 		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		chip.add_theme_stylebox_override("panel", _surface(PANEL, Color("42606b"), 10))
+		chip.add_theme_stylebox_override("panel", _surface(Chrome.RAISED, Chrome.BORDER, 10))
 		wallet.add_child(chip)
 		_wallet_chips[currency] = chip
 	return header
@@ -277,7 +279,7 @@ func _build_hero() -> void:
 	# The hero rides the ELEVATED card tone. On a dark shelf every card is the same
 	# value, so "this one is the offer" has to be carried by the surface as well as
 	# by the ribbon and the rim.
-	var card := _card(Color("30444c"), Color("bc9563"))
+	var card := _card(Chrome.RAISED, Chrome.BRASS)
 	_sections.add_child(card)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 8)
@@ -434,7 +436,7 @@ func _build_daily_deals() -> void:
 	header_row.add_theme_constant_override("separation", 8)
 	_sections.add_child(header_row)
 	var countdown := _label("New deals in " + _fmt_duration(Deals.seconds_until_refresh()),
-		UI.TYPE_LABEL, Color("9fd0db"))
+		UI.TYPE_LABEL, SLATE.darkened(0.2))
 	countdown.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	header_row.add_child(countdown)
 	_tick_labels.append({"label": countdown, "kind": "deals_refresh", "data": null})
@@ -518,7 +520,7 @@ func _build_ad_free() -> void:
 # -------------------------------------------------------------------- footer
 
 func _build_footer() -> void:
-	_sections.add_child(UI.make_divider(UI.HAIRLINE))
+	_sections.add_child(UI.make_divider(Chrome.BORDER))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	_sections.add_child(row)
@@ -703,14 +705,14 @@ func _show_reward_burst(title: String, contents: String) -> void:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 6)
 	card.add_child(col)
-	var head := _display("Thank you!", UI.TYPE_TITLE, Color("a9dbcb"))
+	var head := _display("Thank you!", UI.TYPE_TITLE, Chrome.TEAL)
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(head)
 	var name_lbl := _display(title, UI.TYPE_HEADING, INK)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(name_lbl)
 	if contents != "":
-		var got := _label(contents, UI.TYPE_LABEL, Color("a7d6e8"))
+		var got := _label(contents, UI.TYPE_LABEL, SLATE.darkened(0.2))
 		got.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		col.add_child(got)
 
@@ -847,20 +849,19 @@ func _grid(columns: int) -> GridContainer:
 	grid.add_theme_constant_override("v_separation", 10)
 	return grid
 
-## Card surface: a lifted dark tile with a saturated rim in the product's own
+## Card surface: a lifted cream tile with a saturated rim in the product's own
 ## colour, so a shelf reads as a set of different things rather than one repeated
-## thing. The rim is now doing most of that work — on a dark page it is the only
-## part of the card carrying chroma.
+## thing.
 func _card(fill: Color, border: Color = Color(0, 0, 0, 0)) -> PanelContainer:
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", _surface(fill, border.lerp(fill, .65), 16))
+	panel.add_theme_stylebox_override("panel", _surface(fill, border.lerp(fill, .35), 16))
 	return panel
 
 func _surface(fill: Color, border: Color, radius: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill
 	style.border_color = border
-	style.set_border_width_all(1)
+	style.set_border_width_all(2)
 	style.set_corner_radius_all(radius)
 	style.set_content_margin_all(14)
 	style.shadow_color = Color(0,0,0,.17)

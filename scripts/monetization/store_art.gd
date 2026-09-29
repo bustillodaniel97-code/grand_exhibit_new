@@ -85,7 +85,7 @@ static func make_ribbon(text: String, color: Color) -> PanelContainer:
 ## stated basis is the exact pattern store reviews call misleading.
 static func make_strikethrough(text: String, size: int = UI.TYPE_LABEL) -> Label:
 	var l := UI.make_label(text, size)
-	l.add_theme_color_override("font_color", Color("c1cece"))
+	l.add_theme_color_override("font_color", UI.TEXT_DIM)
 	l.draw.connect(func() -> void:
 		var y: float = l.size.y * 0.56
 		l.draw_line(Vector2(0, y), Vector2(l.size.x, y), UI.DANGER, 2.0, true))
