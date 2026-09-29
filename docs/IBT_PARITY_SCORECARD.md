@@ -13,6 +13,7 @@ Sources on IBT: `docs/research/IBT_LEVEL_STRUCTURE.md`, `docs/research/IBT_FLOOR
 | Bottleneck guidance | Statistics sheet + red "limits income" badge on the department sheet | ✅ |
 | Offline earnings, welcome-back ×2 | Welcome Back popup (ad ×, gem ×) | ✅ |
 | Quests (3 at a time) + milestone bar | Goals bar, milestones with gems and loot boxes | ✅ |
+| Daily login rewards | Daily Gifts: a seven-day calendar (gems, minutes of income, dig energy, x2 time, a Specialist Case on day 7). A missed day never resets the week | ✅ |
 | Reputation level unlocks features | Reputation: Managers (Rep 3), Dig Site (Rep 2), Boss Expedition (Rep 7) | ✅ |
 
 ## Levels and growth

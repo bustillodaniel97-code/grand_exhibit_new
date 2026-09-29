@@ -148,6 +148,8 @@ func counter(name: String) -> int:
 			return m
 		"rep":
 			return GameState.rep_level()
+		"gifts":
+			return int((GameState.event_state.get("daily_gifts", {}) as Dictionary).get("total", 0))
 	return int((_state()["counters"] as Dictionary).get(name, 0))
 
 func check_all() -> void:

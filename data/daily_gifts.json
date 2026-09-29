@@ -1,0 +1,18 @@
+{
+  "_doc": [
+    "Daily Gifts: a seven-day calendar of login rewards. One gift per calendar",
+    "day (the player's local date). Missing a day never resets progress: the",
+    "next visit simply gives the next gift, and after day 7 the week repeats.",
+    "cash_minutes pays that many minutes of the current museum's income, so the",
+    "gift stays worth having in every museum; boost_hours stacks onto x2 income."
+  ],
+  "days": [
+    {"gems": 5},
+    {"cash_minutes": 20},
+    {"dig_energy": 15},
+    {"gems": 10},
+    {"boost_hours": 2},
+    {"cash_minutes": 60},
+    {"gems": 20, "cards_box": "specialist_case"}
+  ]
+}

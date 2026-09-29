@@ -26,7 +26,7 @@ keystores or store credentials. Those come from the build machine.
 - **Textures**: S3TC/BPTC import is on alongside ETC2/ASTC, which desktop exports need.
 - **Icons**: `assets/desktop/icon.ico` (Windows) and `icon.icns` (macOS) are made
   from the store icon.
-- **Achievements**: `data/achievements.json` lists 16 achievements, tracked locally
+- **Achievements**: `data/achievements.json` lists 17 achievements, tracked locally
   on every build by `autoload/platform_services.gd`. When a store SDK is present,
   each unlock is mirrored to the store, and `sync_store()` back-fills anything
   earned before the SDK was attached.

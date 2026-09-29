@@ -22,6 +22,7 @@
     {"id": "FIRST_MANAGER", "name": "Delegation", "desc": "Hire your first manager.", "on": "manager_obtained", "count": "managers", "need": 1},
     {"id": "REP_TEN", "name": "Household Name", "desc": "Reach reputation 10.", "on": "reputation_level_up", "count": "rep", "need": 10},
     {"id": "FIRST_VIP", "name": "Very Important Visitor", "desc": "Collect a VIP's tip.", "on": "vip_tipped", "count": "vip_tips", "need": 1},
+    {"id": "WEEK_OF_GIFTS", "name": "Regular", "desc": "Claim seven Daily Gifts.", "on": "daily_gift_claimed", "count": "gifts", "need": 7},
     {"id": "ROYAL_VISIT", "name": "By Royal Appointment", "desc": "Collect a Royal Patron's tip.", "on": "vip_tipped", "count": "royal_tips", "need": 1}
   ]
 }

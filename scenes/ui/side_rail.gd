@@ -32,6 +32,8 @@ const SETTINGS_PATH := "res://scenes/meta/settings_screen.tscn"
 const VISITORS_PATH := "res://scenes/meta/visitor_guide.tscn"
 const CAFE_PATH := "res://scenes/events/cafe_screen.tscn"
 const CafeSystem := preload("res://scripts/events/cafe_system.gd")
+const GIFTS_PATH := "res://scenes/meta/daily_gifts_screen.tscn"
+const DailyGifts := preload("res://scripts/meta/daily_gifts.gd")
 const WingSystem := preload("res://scripts/meta/wing_system.gd")
 
 const TILE := 72          # wide enough for the longest caption, still a 52px target
@@ -47,6 +49,7 @@ var _col: VBoxContainer
 var _prestige_item: Control
 var _floors_item: Control
 var _cafe_item: Control
+var _gifts_item: Control
 var _strip: Control          # QuestsBar, when it exists
 var _timer: Timer
 var _celebrated: Dictionary = {}
@@ -66,6 +69,10 @@ func _ready() -> void:
 	_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_col)
 
+	# Today's gift, until it is opened.
+	_gifts_item = _rail_item("Gift", "star", Chrome.ACTION, func() -> void: Popups.open(GIFTS_PATH))
+	_gifts_item.visible = false
+	_col.add_child(_gifts_item)
 	# The Pop-Up Café tile only exists while an event is live.
 	_cafe_item = _rail_item("Café", "cart", Chrome.DANGER, func() -> void: Popups.open(CAFE_PATH))
 	_cafe_item.visible = false
@@ -180,6 +187,12 @@ func refresh() -> void:
 	var nxt: Dictionary = WingSystem.next_wing(GameState.current_venue)
 	var ready: bool = not nxt.is_empty() and WingSystem.status(GameState.current_venue, str(nxt["id"])) == WingSystem.STATUS_READY
 	(_floors_item.get_child(0) as CanvasItem).modulate = Color(1.3, 1.15, 0.6) if ready else Color.WHITE
+	var gift_ready: bool = GameState.ready_flag and DailyGifts.available()
+	if _gifts_item.visible != gift_ready:
+		_gifts_item.visible = gift_ready
+		_reposition()
+	if gift_ready:
+		(_gifts_item.get_child(0) as CanvasItem).modulate = Color(1.3, 1.15, 0.6)
 	var cafe_live: bool = CafeSystem.is_live()
 	if _cafe_item.visible != cafe_live:
 		_cafe_item.visible = cafe_live

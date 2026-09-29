@@ -33,6 +33,8 @@ signal wing_renovated(venue_id: String, wing_id: String)
 signal artifact_recovered(venue_id: String, artifact_id: String, quality: int)
 ## A VIP visitor's tip was collected (scripts/meta/visitor_system.gd).
 signal vip_tipped(type_id: String, amount)
+## Today's Daily Gift was claimed (day 1-7 of the week).
+signal daily_gift_claimed(day: int)
 ## Fired by the decor screen after dismissal, so the installation is visible.
 signal decor_focus_requested(venue_id: String, decor_id: String)
 signal unlock_changed(feature: String, unlocked: bool)
