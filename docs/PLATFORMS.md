@@ -7,8 +7,8 @@ keystores or store credentials. Those come from the build machine.
 
 | Target | Preset | Feature tag | Store backend |
 |---|---|---|---|
-| Google Play | Android Release | – | Play Billing + AdMob (see `autoload/iap_service.gd`, `ad_service.gd`) |
-| App Store | iOS | – | StoreKit backend in (`app_store.gd`); Game Center to wire |
+| Google Play | Android Release | – | Play Billing (`play_billing.gd`), AdMob (`admob_ads.gd`), Play Games achievements |
+| App Store | iOS | – | StoreKit (`app_store.gd`), AdMob (`admob_ads.gd`), Game Center achievements |
 | Steam (Windows) | Windows Desktop (Steam) | `steam` | GodotSteam |
 | Steam Deck / Linux | Linux (Steam Deck) | `steam` | GodotSteam |
 | Steam (macOS) | macOS | `steam` | GodotSteam |
@@ -79,20 +79,62 @@ packaged as **MSIX**:
    IAP (Windows.Services.Store) would need a GDExtension. Until then, ship the
    Store build premium or with the gem store off.
 
+## Android / Google Play
+
+1. Export the "Android Release" preset (`tools/build_android.sh`; keystore
+   details come from the build machine, see `docs/ANDROID_RELEASE.md`).
+2. **Purchases**: install the Play Billing plugin. `scripts/monetization/play_billing.gd`
+   drives it behind IAPService.
+3. **Ads**: install the Poing Studios **godot-admob-plugin** into
+   `addons/admob/` and enable it (Project > Project Settings > Plugins).
+   Put the AdMob **app id** in the plugin's Android export settings; it lands in
+   the manifest. `scripts/monetization/admob_ads.gd` finds the plugin's classes by
+   name at runtime (the project compiles without the addon), so AdService uses
+   real ads as soon as the plugin is in the build, in debug and release builds
+   alike, and the simulator only runs where there's no SDK. Ad units come from
+   `data/store_iap.json` `ads.units`; they're Google's public **test** units
+   today, which always fill and earn nothing. Replace them (and set
+   `is_test` to false) before release. Rewarded ads pay only after the ad closes
+   with a reward (a reward reported just after the close is honoured), the
+   game is muted while an ad is up, and without the player's consent every
+   request is non-personalized (`npa=1`). The content rating and the
+   child-directed flag come from the `policy` block. The adapter is tested
+   against a fake plugin (`tests/monetization/test_admob.gd`); what needs a
+   device is the real SDK's fill and callbacks.
+4. **Achievements**: install the **godot-play-game-services** plugin (singleton
+   `GodotPlayGameServices`) and set the Play Games project id in its export
+   settings. Create the 17 achievements in the Play Console, then paste the ids
+   it generates into `data/achievements.json` `platform_ids.play_games`
+   (`"FIRST_UPGRADE": "CgkI..."`). `platform_services.gd` waits for the
+   automatic sign-in, sends everything earned so far, then each new unlock,
+   and Settings gets a button that opens the Play Games achievements screen.
+   An achievement with no Play Console id stays local.
+
 ## iOS / App Store
 
 1. On a Mac with Xcode, install the Godot 4.4.1 export templates, then export
    the "iOS" preset. Enter the Team ID in the export dialog; it isn't stored here.
 2. Add Godot's official iOS plugins (godot-ios-plugins) to the export:
-   **InAppStore** for purchases and GameCenter for achievements.
+   **InAppStore** for purchases and **GameCenter** for achievements.
    `scripts/monetization/app_store.gd` already drives InAppStore behind
    IAPService: localized prices, purchases finished only after the grant is
    saved, and a player-initiated Restore Purchases for the ad-free unlock.
    It's tested against a fake plugin (`tests/monetization/test_app_store.gd`);
    what needs a device is that the plugin's method names match. Create the
-   products in App Store Connect with the ids in `data/store_iap.json`. Game
-   Center achievements can use the same IDs through `platform_services.gd`.
-3. The layout is portrait only, and the 1024×1024 icon comes from
+   products in App Store Connect with the ids in `data/store_iap.json`.
+3. **Achievements**: turn on Game Center for the app and create the 17
+   achievements in App Store Connect. Their ids are ours (`FIRST_UPGRADE`, ...)
+   with `platform_ids.game_center_prefix` in front (empty by default), unless
+   `platform_ids.game_center` maps one. `platform_services.gd` authenticates at
+   launch, reads the answer from the plugin's event queue, back-fills what was
+   earned (quietly), then awards each new unlock with Game Center's banner.
+   Tested against a fake (`tests/meta/test_platform_achievements.gd`).
+4. **Ads**: the same godot-admob-plugin as Android, with the iOS app id in its
+   iOS export settings and `ads.ios_units` in `data/store_iap.json` (Google's
+   test units today). Add the `GADApplicationIdentifier` and
+   SKAdNetwork items the plugin's docs list, and an App Tracking Transparency
+   prompt if ads are ever personalized.
+5. The layout is portrait only, and the 1024×1024 icon comes from
    `assets/android/play_icon_512.png`, which needs a real 1024 master before
    submission.
 

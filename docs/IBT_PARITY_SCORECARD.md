@@ -35,8 +35,8 @@ Sources on IBT: `docs/research/IBT_LEVEL_STRUCTURE.md`, `docs/research/IBT_FLOOR
 | Business Mode (match-3 boss fights) | Inspection (match-3) on the Event tab; Boss Expedition inside the Dig Site | ✅ |
 | (none) | **Dig Site**: excavation mini game themed per museum (fossils, shipwreck, tomb, ice cave…). Pick vs brush, cracks, energy; artifacts join the museum's collection and raise its income | ✅ (beyond IBT) |
 | Franchise Frenzy event with its own café area and currency | **Pop-Up Café**: a 3-day event every 5 days with its own 3D toy diorama, themed per museum (Dino Diner, Harbour Chowder Hut, Oasis Tea Tent, Royal Patisserie…). Café coins (earned offline too) upgrade four stations; every level is a star on a 10-step reward track (gems, manager cases). A café stand on every museum's plaza opens it | ✅ |
-| Store: gem packs, bundles, boosts, passes | Store with offers, gems, resources, passes (stub billing) | ✅ (billing SDK to wire) |
-| Rewarded ads (×2 income, free gems, instant cash) | Boost dock + ad refills (debug ad service; AdMob to wire) | ✅ (SDK to wire) |
+| Store: gem packs, bundles, boosts, passes | Store with offers, gems, resources, passes. Play Billing and StoreKit backends written and tested against fake plugins | ✅ (install the plugins, test on devices) |
+| Rewarded ads (×2 income, free gems, instant cash) | Boost dock + ad refills. AdMob backend (`admob_ads.gd`) behind AdService: one shared rewarded ad, reward tokens, late-reward grace, muted game under the ad, non-personalized without consent; interstitials skip a break rather than spend a slot when none is loaded. Tested against a fake plugin | ✅ (install the plugin + real unit ids) |
 
 ## Presentation
 
@@ -52,8 +52,8 @@ Sources on IBT: `docs/research/IBT_LEVEL_STRUCTURE.md`, `docs/research/IBT_FLOOR
 
 | Target | Status |
 |---|---|
-| Android | ✅ preset + build script (billing/ads SDKs to wire). The game pack is about 45 MB: exports leave out the 2D floor's sprite sheets |
-| iOS | 🟡 preset and StoreKit backend (`app_store.gd`, tested against a fake plugin); needs a Mac with Xcode, the InAppStore plugin on a device, Game Center |
+| Android | ✅ preset + build script; Play Billing, AdMob and Play Games achievement backends written and tested against fakes (plugins to install). The game pack is about 45 MB: exports leave out the 2D floor's sprite sheets |
+| iOS | 🟡 preset, StoreKit (`app_store.gd`), AdMob and Game Center achievement backends, each tested against a fake plugin; needs a Mac with Xcode and the plugins on a device |
 | Steam (Win/Linux/Deck/macOS) | 🟡 presets, window/letterbox, achievements layer; install GodotSteam, create the app |
 | Epic | 🟡 preset + EOS seam |
 | Microsoft Store | 🟡 Windows build + MSIX packaging steps |
@@ -62,7 +62,7 @@ See `docs/PLATFORMS.md`.
 
 ## Open items (next)
 
-1. Install the real SDK plugins and test on devices: Play Billing and StoreKit backends are written and tested against fakes; AdMob, GodotSteam and EOS still need adapters.
+1. Install the real SDK plugins and test on devices: Play Billing, StoreKit, AdMob, Play Games and Game Center backends are written and tested against fakes. Paste the Play Console achievement ids into `data/achievements.json`, and swap the Google test ad units for real ones. GodotSteam and EOS are detected but untested.
 2. Profile on a low-end phone. The graphics switch is in (Low drops shadows,
    MSAA, glow and tilt-shift and caps the crowd; Auto falls back to Low when
    the museum averages under 40 fps), but it hasn't been measured on hardware.
