@@ -45,6 +45,11 @@ keystores or store credentials. Those come from the build machine.
    `data/achievements.json` (`FIRST_UPGRADE`, `SECOND_FLOOR`, …).
 5. Export "Windows Desktop (Steam)", "Linux (Steam Deck)" and "macOS", then
    upload each with SteamPipe (`steamcmd +run_app_build`).
+   **Steam Cloud** needs no code: in Steamworks, turn on Auto-Cloud with the
+   save file `grand_exhibit_save.json` (and `.bak`) under the Godot user data
+   folder: root `WinAppDataRoaming`, path `Godot/app_userdata/Grand Exhibit`
+   on Windows; `LinuxXdgDataHome` + `godot/app_userdata/Grand Exhibit` on
+   Linux/Deck; `MacAppSupport` + `Godot/app_userdata/Grand Exhibit` on macOS.
 6. **Steam Deck**: the portrait window letterboxes on the Deck's 16:10 screen,
    and the touch screen works as a mouse. Declare "Partial controller support"
    until a gamepad cursor is added.
@@ -109,6 +114,22 @@ packaged as **MSIX**:
    automatic sign-in, sends everything earned so far, then each new unlock,
    and Settings gets a button that opens the Play Games achievements screen.
    An achievement with no Play Console id stays local.
+5. **Cloud save**: turn on *Saved Games* in the Play Console (Play Games
+   Services > Configuration). `scripts/platform/cloud_save.gd` uses the same
+   plugin: after sign-in it downloads the cloud copy; one further along
+   (museums, then milestones, then reputation) is offered in Settings (load it,
+   or keep this phone's) and never applied silently; otherwise this phone's
+   save is uploaded, and again whenever the app goes to the background (at most
+   every 5 minutes). Tested against a fake (`tests/meta/test_cloud_save.gd`).
+6. **Notifications**: install the **godot-notification-scheduler** plugin
+   (singleton `NotificationSchedulerPlugin`) and put its notification icon in
+   `res://assets/NotificationSchedulerPlugin/android`. Reminders
+   (`scripts/meta/reminders.gd`: vault full, Daily Gift, café opening or last
+   call, dig energy full) are scheduled when the app is backgrounded and
+   cancelled when the player returns: never at night (22:00 to 08:00 moves to
+   08:00), at most 4, an hour apart. Permission is requested once, right after
+   the first Daily Gift. Settings has an on/off switch. Tested against a fake
+   (`tests/meta/test_reminders.gd`).
 
 ## iOS / App Store
 
@@ -129,12 +150,17 @@ packaged as **MSIX**:
    launch, reads the answer from the plugin's event queue, back-fills what was
    earned (quietly), then awards each new unlock with Game Center's banner.
    Tested against a fake (`tests/meta/test_platform_achievements.gd`).
-4. **Ads**: the same godot-admob-plugin as Android, with the iOS app id in its
+4. **Notifications**: the same godot-notification-scheduler plugin (it ships
+   an iOS part) and the same reminders as Android.
+5. **Cloud save**: not wired on iOS yet. Game Center saved games or iCloud
+   key-value storage need a plugin; `cloud_save.gd` is the place for a second
+   backend.
+6. **Ads**: the same godot-admob-plugin as Android, with the iOS app id in its
    iOS export settings and `ads.ios_units` in `data/store_iap.json` (Google's
    test units today). Add the `GADApplicationIdentifier` and
    SKAdNetwork items the plugin's docs list, and an App Tracking Transparency
    prompt if ads are ever personalized.
-5. The layout is portrait only, and the 1024×1024 icon comes from
+7. The layout is portrait only, and the 1024×1024 icon comes from
    `assets/android/play_icon_512.png`, which needs a real 1024 master before
    submission.
 

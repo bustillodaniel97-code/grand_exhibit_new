@@ -46,7 +46,10 @@ Sources on IBT: `docs/research/IBT_LEVEL_STRUCTURE.md`, `docs/research/IBT_FLOOR
 | Big showpiece items | Hero exhibits (T. rex, mammoth, blue whale, sarcophagus, reef tanks, orreries…) grow and gain light beams, gold rings and sparkles as the gallery levels | ✅ |
 | Light, chunky UI | Toy chrome: cream cards, chunky borders, green actions, on every screen including the Store | ✅ |
 | Onboarding with a pointing hand | First-run walkthrough: collect → upgrade → open a hall → floors → Dig Site; replayable from Settings | ✅ |
-| Settings | Music, sound, graphics (Auto / High / Low), fullscreen on PC, replay walkthrough | ✅ |
+| Settings | Music, sound, graphics (Auto / High / Low), language, notifications, cloud save, fullscreen on PC, replay walkthrough | ✅ |
+| Many languages (IBT: about 15) | English, Spanish, French, German, Brazilian Portuguese and Italian: every string, data names included (1,410), switchable live, Automatic follows the device; pipeline in `docs/LOCALIZATION.md`. Non-Latin scripts need a fallback font first | 🟡 (6 of ~15) |
+| Push notifications | Local reminders when the player is away: vault full, Daily Gift, café opening / last call, dig energy full. Quiet hours, spacing, a cap, an off switch, permission asked after the first gift | ✅ (plugin to install) |
+| Cloud save | Play Games saved games: a further-along cloud save is offered, never applied silently; this phone's is uploaded otherwise and on backgrounding. Steam via Auto-Cloud | ✅ Android/Steam · ⬜ iOS |
 
 ## Platforms
 
