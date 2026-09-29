@@ -76,14 +76,16 @@ func _tick(dt: float) -> void:
 			BigNumber.from_float(rates["effective_visitors_per_s"]).scale(dt)).to_save()
 
 ## Effective stat for a dept track (speed/value): base + per_level*(level-1), x steps, x manager.
-func dept_stat(venue_id: String, dept_id: String, track: String) -> float:
+func dept_stat(venue_id: String, dept_id: String, track: String, managers: Dictionary = {}) -> float:
 	var def: Dictionary = DataLoader.dept_def(dept_id)
 	var t: Dictionary = def.get("tracks", {}).get(track, {})
 	var level: int = GameState.dept_level(venue_id, dept_id, track)
 	var stat: float = float(t.get("base_stat", 1.0)) + float(t.get("per_level", 0.0)) * float(level - 1)
 	stat *= DataLoader.track_step_multiplier(dept_id, track, level)
 	if track in ["speed", "value"]:
-		stat *= manager_multiplier_for(dept_id)
+		# `managers` (from manager_multipliers) spares the hot path a pass over
+		# every manager per stat.
+		stat *= float(managers[dept_id]) if managers.has(dept_id) else manager_multiplier_for(dept_id)
 	return stat
 
 # --- Items: the upgrade atom -------------------------------------------------
@@ -109,11 +111,14 @@ func _item_step() -> float:
 func _units_of(d: Dictionary) -> float:
 	var items: Variant = d.get("items")
 	if items is Array and int(d.get("staff", -1)) == (items as Array).size():
-		var step: float = _item_step()
-		var total := 0.0
+		# Sum the levels above 1 as integers and scale once: the same value as
+		# adding 1 + (L-1)*step per item, at a fraction of the per-item work.
+		var extra := 0
 		for it in items:
-			total += 1.0 + float(maxi(int(it.get("lv", 1)), 1) - 1) * step
-		return total
+			var lv: int = it.get("lv", 1)
+			if lv > 1:
+				extra += lv - 1
+		return float((items as Array).size()) + float(extra) * _item_step()
 	return -1.0
 
 func item_mult(level: int) -> float:
@@ -299,6 +304,20 @@ func _allocate_item_pending(venue_id: String, gained: BigNumber, drained: BigNum
 		it["pending"] = p.to_save()
 
 ## Product of assigned managers' multipliers for a department.
+## manager_multiplier_for for every department in one pass over the managers.
+func manager_multipliers() -> Dictionary:
+	var out := {"promotions": 1.0, "ticket": 1.0, "archive": 1.0, "gallery": 1.0}
+	for mid in GameState.managers_state.keys():
+		var st: Dictionary = GameState.managers_state[mid]
+		var dept := str(st.get("assigned_to", ""))
+		if dept == "" or not out.has(dept):
+			continue
+		var def: Dictionary = DataLoader.get_manager_def(mid)
+		if def.get("specialty", "") != dept:
+			continue
+		out[dept] = float(out[dept]) * ManagerSystem.productivity_multiplier(def, st)
+	return out
+
 func manager_multiplier_for(dept_id: String) -> float:
 	var mult: float = 1.0
 	for mid in GameState.managers_state.keys():
@@ -329,17 +348,22 @@ func income_multiplier(venue_id: String) -> float:
 	return mult
 
 func decor_set_multiplier() -> float:
-	var mult: float = 1.0
-	var owned: Array = []
+	# Hot path (income_multiplier -> venue_rates): a dictionary for the owned
+	# pieces, and no walk over the sets at all while nothing is placed.
+	var owned: Dictionary = {}
 	for vid in GameState.venues_state.keys():
-		for slot in GameState.venues_state[vid].get("decor", {}).keys():
-			owned.append(str(GameState.venues_state[vid]["decor"][slot]))
+		var placed: Dictionary = GameState.venues_state[vid].get("decor", {})
+		for slot in placed:
+			owned[str(placed[slot])] = true
+	if owned.is_empty():
+		return 1.0
+	var mult: float = 1.0
 	for set_id in DataLoader.decor_sets.keys():
 		var pieces: Array = DataLoader.decor_sets[set_id].get("pieces", [])
 		if pieces.size() > 0:
 			var complete: bool = true
 			for p in pieces:
-				if str(p) not in owned:
+				if not owned.has(str(p)):
 					complete = false
 					break
 			if complete:
@@ -349,7 +373,9 @@ func decor_set_multiplier() -> float:
 ## Visitor flow only — the half of the sim that satisfaction is measured FROM, so
 ## it must not depend on satisfaction. Split out of venue_rates to keep that
 ## one-way: flows -> rating -> value. Everything here is visitors/s.
-func venue_flows(venue_id: String) -> Dictionary:
+func venue_flows(venue_id: String, managers: Dictionary = {}) -> Dictionary:
+	if managers.is_empty():
+		managers = manager_multipliers()
 	var arrival: float = 0.0
 	var serve: float = 0.0
 	var transport: float = 0.0
@@ -360,15 +386,15 @@ func venue_flows(venue_id: String) -> Dictionary:
 		var units: float = _units_of(depts.get(dept_id, {}))
 		if units < 0.0:
 			units = dept_units(venue_id, dept_id)
-		var spd: float = dept_stat(venue_id, dept_id, "speed")
+		var spd: float = dept_stat(venue_id, dept_id, "speed", managers)
 		match dept_id:
 			"promotions": arrival = units * spd
 			"ticket": serve = units * spd
-			"archive": transport = units * spd * dept_stat(venue_id, "archive", "value")
+			"archive": transport = units * spd * dept_stat(venue_id, "archive", "value", managers)
 	var gallery_units: float = _units_of(depts.get("gallery", {}))
 	if gallery_units < 0.0:
 		gallery_units = dept_units(venue_id, "gallery")
-	var gallery_bonus: float = gallery_units * dept_stat(venue_id, "gallery", "value") * dept_stat(venue_id, "gallery", "speed")
+	var gallery_bonus: float = gallery_units * dept_stat(venue_id, "gallery", "value", managers) * dept_stat(venue_id, "gallery", "speed", managers)
 	return {
 		"arrival_per_s": arrival, "serve_per_s": serve, "transport_per_s": transport,
 		"effective_visitors_per_s": minf(arrival, serve), "gallery_bonus": gallery_bonus,
@@ -397,7 +423,8 @@ func venue_rates(venue_id: String) -> Dictionary:
 	#   4. One number is legible: the HUD badge reads "x1.42" and the decor screen
 	#      names the input costing the player the other 0.58.
 	var venue: Dictionary = DataLoader.get_venue(venue_id)
-	var flows: Dictionary = venue_flows(venue_id)
+	var managers: Dictionary = manager_multipliers()
+	var flows: Dictionary = venue_flows(venue_id, managers)
 	var arrival: float = flows["arrival_per_s"]
 	var serve: float = flows["serve_per_s"]
 	var transport: float = flows["transport_per_s"]
@@ -406,7 +433,7 @@ func venue_rates(venue_id: String) -> Dictionary:
 	var base_value := BigNumber.from_parts(
 		float(venue.get("base_value_m", 2.0)), int(venue.get("base_value_e", 0)))
 	var value_per_visitor: BigNumber = base_value.scale(
-		dept_stat(venue_id, "ticket", "value") * dept_stat(venue_id, "promotions", "value")
+		dept_stat(venue_id, "ticket", "value", managers) * dept_stat(venue_id, "promotions", "value", managers)
 		* (1.0 + gallery_bonus) * income_multiplier(venue_id) * float(sat["income_mult"]))
 	var effective_visitors: float = flows["effective_visitors_per_s"]
 	var actual_choke_id: String = "promotions" if arrival <= serve else "ticket"
