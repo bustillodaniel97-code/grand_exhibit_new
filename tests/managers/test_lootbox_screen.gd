@@ -69,6 +69,9 @@ func run() -> void:
 
 	screen.queue_free()
 	await process_frame
+	# Let the last button click finish playing: a playback still mixing at
+	# quit is reported as a leaked click.ogg under a loaded machine.
+	await create_timer(0.8).timeout
 	print("DONE failures=", failures)
 	quit(0 if failures == 0 else 1)
 
