@@ -381,6 +381,14 @@
       "rewarded_interstitial": "ca-app-pub-3940256099942544/5354046379",
       "interstitial": "ca-app-pub-3940256099942544/1033173712"
     },
+    "ios_app_id": "ca-app-pub-3940256099942544~1458002511",
+    "ios_units": {
+      "rewarded": "ca-app-pub-3940256099942544/1712485313",
+      "rewarded_interstitial": "ca-app-pub-3940256099942544/6978759866",
+      "interstitial": "ca-app-pub-3940256099942544/4411468910"
+    },
+    "test_device_ids": [],
+    "_sdk_note": "AdService reads 'units' on Android and 'ios_units' on iOS and passes them to scripts/monetization/admob_ads.gd. The app ids go into the AdMob plugin's export settings (docs/PLATFORMS.md), not here. test_device_ids marks your own phones as test devices once production ids are in.",
     "_placements_note": "AdService.KNOWN_PLACEMENTS are GAME-side names (instant_cash, free_gems, income_x2, welcome_back, insight_rush, free_lootbox). All rewarded placements share one ad unit; the placement name is what the reward token and analytics key on."
   }
 }

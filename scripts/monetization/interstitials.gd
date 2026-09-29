@@ -76,6 +76,10 @@ static func can_show() -> bool:
 ## "venue_switch"). Returns true only when one was actually requested.
 static func maybe_show(trigger: String) -> bool:
 	var reason: String = blocked_reason()
+	if reason == "" and not AdService.interstitial_available():
+		# The SDK has none loaded: don't spend today's slot on a blank break.
+		AdService.prepare_interstitial()
+		reason = "not_loaded"
 	if reason != "":
 		Analytics.log_event("interstitial_suppressed", {"trigger": trigger, "reason": reason})
 		return false
@@ -91,6 +95,8 @@ static func maybe_show(trigger: String) -> bool:
 ## device clock. Called once at boot from the shell.
 static func note_session_start() -> void:
 	_session_start_ms = Time.get_ticks_msec()
+	if not Entitlements.no_ads():
+		AdService.prepare_interstitial()
 
 static func _session_seconds() -> int:
 	if _session_start_ms < 0:

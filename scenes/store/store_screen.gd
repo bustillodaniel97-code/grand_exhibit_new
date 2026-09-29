@@ -171,8 +171,11 @@ func _build_shop_header() -> Control:
 	header.add_theme_constant_override("separation", 10)
 	var title := _display("Museum Store", 32, INK)
 	header.add_child(title)
-	if IAPService.debug_iap or AdService.debug_ads:
-		var simulated := "Purchases and ads are simulated" if IAPService.debug_iap and AdService.debug_ads else ("Purchases are simulated" if IAPService.debug_iap else "Ads are simulated")
+	# Simulated only when the debug flag is on AND no real store/SDK answers.
+	var sim_iap: bool = IAPService.debug_iap and not IAPService.using_real_billing()
+	var sim_ads: bool = AdService.debug_ads and not AdService.using_real_ads()
+	if sim_iap or sim_ads:
+		var simulated := "Purchases and ads are simulated" if sim_iap and sim_ads else ("Purchases are simulated" if sim_iap else "Ads are simulated")
 		var simulation := _label("PLAYTEST · " + simulated, 14, BRASS.darkened(0.25))
 		simulation.name = "SimulationNotice"
 		header.add_child(simulation)

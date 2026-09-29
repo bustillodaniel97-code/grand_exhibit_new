@@ -89,6 +89,7 @@ static func reset_choice() -> void:
 ## whenever the choice changes.
 static func apply() -> void:
 	Analytics.set_consent(status() == "granted")
+	AdService.set_personalized(personalized_ads())
 
 ## Boot-time resolution. A debug build auto-grants so developer telemetry works
 ## without a dialog in front of every test run; a release build must ask, and until
