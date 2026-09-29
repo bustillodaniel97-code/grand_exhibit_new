@@ -8,7 +8,8 @@ Variety comes from the game side:
   - materials are named by ROLE (skin, hair, shirt, pants, shoe) so Godot can
     recolour each surface per look;
   - accessories are separate meshes named acc_* (hat, cap, backpack, glasses,
-    bag, vest, bow, camera) and are shown or hidden per look.
+    bag, vest, bow, camera, and the visitor-type pieces: top hat, beret, crown,
+    shades, cape, scarf) and are shown or hidden per look.
 Animations: walk (loop), idle (loop), cheer. The model faces -Y in Blender,
 which is +Z in Godot (Godot's model-front convention).
 """
@@ -126,6 +127,32 @@ def accessories():
     acc.append(accessory("acc_camera", [bind(box((0.1, 0.05, 0.07), (0, -0.16, 0.38), cam, bev=0.015), "torso"),
                                         bind(cyl(0.022, 0.03, (0, -0.19, 0.38), role("acc_lens", "#7FD4E8", 0.1),
                                                  rot=(math.pi / 2, 0, 0), bev=0.005), "torso")]))
+    # Visitor types unlocked by reputation (data/visitor_types.json).
+    silk, ribbon = role("acc_tophat", "#26232E", 0.25), role("acc_ribbon", "#B0303A", 0.35)
+    acc.append(accessory("acc_tophat", [bind(cyl(0.23, 0.025, (0, 0.03, 0.885), silk, bev=0.01), "head"),
+                                        bind(cyl(0.145, 0.25, (0, 0.03, 1.01), silk, r2=0.155, bev=0.02), "head"),
+                                        bind(cyl(0.162, 0.045, (0, 0.03, 0.925), ribbon, bev=0.008), "head")]))
+    beret = role("acc_beret", "#7A1F3D", 0.5)
+    acc.append(accessory("acc_beret", [bind(sphere(0.2, (0.03, 0.04, 0.9), beret, scale=(1.08, 1.08, 0.36)), "head"),
+                                       bind(cyl(0.018, 0.04, (0.03, 0.04, 0.975), beret, bev=0.006), "head")]))
+    gold, gem = role("acc_gold", "#F2C14E", 0.18), role("acc_gem", "#E0314B", 0.1)
+    crown = [bind(cyl(0.155, 0.08, (0, 0.03, 0.92), gold, r2=0.17, bev=0.012), "head")]
+    for i in range(6):
+        a = i * math.tau / 6
+        x, y = 0.15 * math.sin(a), 0.03 - 0.15 * math.cos(a)
+        crown.append(bind(cyl(0.032, 0.08, (x, y, 0.99), gold, r2=0.004, bev=0.0, verts=10), "head"))
+        crown.append(bind(sphere(0.016, (x, y, 1.035), gold, seg=10), "head"))
+    crown.append(bind(sphere(0.03, (0, -0.135, 0.925), gem, scale=(1, 0.5, 1.2), seg=12), "head"))
+    acc.append(accessory("acc_crown", crown))
+    lens = role("acc_shades", "#16161E", 0.08)
+    acc.append(accessory("acc_shades", [bind(box((0.1, 0.02, 0.06), (sx * 0.072, -0.205, 0.68), lens, bev=0.015), "head")
+                                        for sx in (-1, 1)] + [bind(rod((-0.03, -0.21, 0.69), (0.03, -0.21, 0.69), 0.01, lens), "head")]))
+    cape, trim = role("acc_cape", "#A4263A", 0.45), role("acc_trim", "#FFF4E0", 0.6)
+    acc.append(accessory("acc_cape", [bind(box((0.34, 0.035, 0.36), (0, 0.155, 0.35), cape, bev=0.015, rot=(-0.12, 0, 0)), "torso"),
+                                      bind(torus(0.11, 0.035, (0, 0.01, 0.53), trim), "torso")]))
+    scarf = role("acc_scarf", "#2F8FD8", 0.55)
+    acc.append(accessory("acc_scarf", [bind(torus(0.1, 0.038, (0, 0, 0.535), scarf), "torso"),
+                                       bind(box((0.06, 0.03, 0.16), (0.07, -0.13, 0.44), scarf, bev=0.012, rot=(0.15, 0, 0.1)), "torso")]))
     return acc
 
 
@@ -217,7 +244,7 @@ def main():
     print("EXPORTED", os.path.relpath(path, toy.ROOT))
     if "--preview" in sys.argv:
         for o in meshes:
-            o.hide_render = o.name not in ("body", "acc_backpack", "acc_cap")
+            o.hide_render = o.name not in ("body", "acc_crown", "acc_cape")
         toy.preview(os.path.join(toy.ROOT, "docs", "visual-overhaul", "chibi_preview.png"), target=(0, 0, 0.45), dist=2.6,
                     tilt_deg=70, lens=50, res=(800, 800))
 

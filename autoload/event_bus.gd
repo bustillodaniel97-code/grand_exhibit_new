@@ -31,6 +31,8 @@ signal decor_purchased(venue_id: String, decor_id: String)
 signal wing_renovated(venue_id: String, wing_id: String)
 ## The Dig Site recovered an artifact into a museum's collection (quality 1-3).
 signal artifact_recovered(venue_id: String, artifact_id: String, quality: int)
+## A VIP visitor's tip was collected (scripts/meta/visitor_system.gd).
+signal vip_tipped(type_id: String, amount)
 ## Fired by the decor screen after dismissal, so the installation is visible.
 signal decor_focus_requested(venue_id: String, decor_id: String)
 signal unlock_changed(feature: String, unlocked: bool)

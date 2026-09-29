@@ -94,6 +94,12 @@ func _seed() -> void:
 		gs.add_cash(BigNumber.from_float(float(_args["cash"])))
 	if _args.has("gems"):
 		gs.gems += int(_args["gems"])
+	# rep=N: start at reputation level N (visitor types, rep-gated features).
+	if _args.has("rep"):
+		var th: Array = root.get_node("DataLoader").core.get("reputation", {}).get("thresholds_mantissa", [])
+		var rl := clampi(int(_args["rep"]), 1, maxi(th.size(), 1))
+		if not th.is_empty():
+			gs.reputation_xp = BigNumber.from_float(float(th[rl - 1]))
 	# Backdate first launch so day-gated features (Inspection Frenzy) unlock.
 	if _args.has("days"):
 		gs.first_launch_unix -= int(_args["days"]) * 86400

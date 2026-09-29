@@ -14,6 +14,7 @@ const PopupLayerScene := preload("res://scenes/ui/popup_layer.tscn")
 const AdaptiveMusic := preload("res://scenes/audio/adaptive_music.gd")
 
 const Consent := preload("res://scripts/monetization/consent.gd")
+const VisitorSystem := preload("res://scripts/meta/visitor_system.gd")
 const Interstitials := preload("res://scripts/monetization/interstitials.gd")
 
 const WELCOME_BACK_PATH := "res://scenes/ui/welcome_back.tscn"
@@ -142,4 +143,10 @@ func show_toast(text: String) -> void:
 
 func _on_reputation_level_up(level: int, rewards: Dictionary) -> void:
 	var gems: int = int(rewards.get("gems", 0))
-	show_toast("Reputation %d! +%d gems" % [level, gems])
+	var text := "Reputation %d! +%d gems" % [level, gems]
+	var names: Array = []
+	for t in VisitorSystem.unlocked_at(level):
+		names.append(str(t.get("name", "")))
+	if not names.is_empty():
+		text += "\nNew visitors: " + ", ".join(PackedStringArray(names))
+	show_toast(text)

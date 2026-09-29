@@ -38,6 +38,8 @@ var expedition_state: Dictionary = {}
 var dig_state: Dictionary = {}
 ## Achievements (autoload/platform_services.gd): unlocked ids + event counters.
 var achievements_state: Dictionary = {}
+## Visitor Guide (scripts/meta/visitor_system.gd): types met, VIP tips.
+var visitors_state: Dictionary = {}
 var event_state: Dictionary = {}
 var first_launch_unix: int = 0
 var last_seen_unix: int = 0
@@ -73,6 +75,7 @@ func reset_to_new_game() -> void:
 	event_state = {}
 	dig_state = {}
 	achievements_state = {}
+	visitors_state = {}
 	first_launch_unix = ClockGuard.now()
 	last_seen_unix = first_launch_unix
 	offer_state = {}
@@ -291,6 +294,7 @@ func to_save_dict() -> Dictionary:
 		"boosts": boosts, "rv_state": rv_state, "daily_deals": daily_deals,
 		"expedition_state": expedition_state, "event_state": event_state,
 		"dig_state": dig_state, "achievements_state": achievements_state,
+		"visitors_state": visitors_state,
 		"first_launch_unix": first_launch_unix, "last_seen_unix": last_seen_unix,
 		"offer_state": offer_state, "settings": settings,
 	}
@@ -342,6 +346,7 @@ func from_save_dict(d: Dictionary) -> void:
 	event_state = d.get("event_state", event_state)
 	dig_state = (d.get("dig_state", {}) as Dictionary).duplicate(true)
 	achievements_state = (d.get("achievements_state", {}) as Dictionary).duplicate(true)
+	visitors_state = (d.get("visitors_state", {}) as Dictionary).duplicate(true)
 	first_launch_unix = int(d.get("first_launch_unix", first_launch_unix))
 	last_seen_unix = int(d.get("last_seen_unix", last_seen_unix))
 	offer_state = d.get("offer_state", offer_state)

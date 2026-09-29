@@ -15,11 +15,17 @@ const ToyCamera := preload("res://scenes/venue3d/toy_camera.gd")
 const TILT_SHIFT := preload("res://scenes/venue3d/tilt_shift.gdshader")
 const POP_FONT := preload("res://assets/fonts/Quicksand-Bold.ttf")
 const WingSystem := preload("res://scripts/meta/wing_system.gd")
+const VisitorSystem := preload("res://scripts/meta/visitor_system.gd")
 
 ## A visitor paid at ticket window `index` (world position of the counter top).
 signal ticket_sold(index: int, at: Vector3)
 ## A wing finished its renovation reveal (after WingSystem opened it).
 signal wing_revealed(wing_id: String)
+
+## The VIP carrying the current tip bubble (VisitorSystem), or null.
+var tip_carrier: Node3D = null
+var _vips: Array = []
+var _tip_clock := 0.0
 
 const FLOOR_TOP := 0.17
 const WALL_T := 0.16
@@ -339,19 +345,64 @@ func _look(role := "visitor", dept := "") -> Dictionary:
 		acc.append("acc_camera")
 	if _rng.randf() < 0.15:
 		acc.append("acc_bag")
-	var age := _rng.randf()
-	if age < 0.2:
-		look["scale"] = 0.78  # kids
-	elif age > 0.88:
+	if _rng.randf() > 0.88:
 		look["hair"] = "#E8E4DC"
-	return look
+	# Reputation decides who walks in (locals, little explorers, students,
+	# tourists, critics, then the VIPs); each type dresses the part.
+	return VisitorSystem.dress(look, VisitorSystem.pick(_rng.randf()), _rng)
 
 func _spawn(look: Dictionary, at: Vector3) -> Npc:
 	var n := Npc.new()
 	add_child(n)
 	n.global_position = at
 	n.setup(look)
+	if look.has("type"):
+		n.set_meta("vtype", str(look["type"]))
+		if VisitorSystem.is_vip(str(look["type"])):
+			_vip_ring(n)
 	return n
+
+## VIPs walk on a slowly turning gold ring, so they read at a glance.
+func _vip_ring(n: Node3D) -> void:
+	var ring := MeshInstance3D.new()
+	ring.name = "VipRing"
+	var tm := TorusMesh.new()
+	tm.inner_radius = 0.26
+	tm.outer_radius = 0.34
+	tm.rings = 24
+	tm.ring_segments = 6
+	ring.mesh = tm
+	var m := StandardMaterial3D.new()
+	m.albedo_color = GOLD
+	m.emission_enabled = true
+	m.emission = GOLD
+	m.emission_energy_multiplier = 0.6
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ring.material_override = m
+	ring.scale = Vector3(1.0, 0.25, 1.0)
+	ring.position.y = 0.03
+	n.add_child(ring)
+	_vips.append(n)
+
+## Hand the ready tip to a VIP in the museum (checked about once a second).
+func _assign_tip(delta: float) -> void:
+	_tip_clock -= delta
+	if _tip_clock > 0.0:
+		return
+	_tip_clock = 1.0
+	_vips = _vips.filter(func(v: Variant) -> bool: return is_instance_valid(v))
+	if tip_carrier != null and not is_instance_valid(tip_carrier):
+		tip_carrier = null
+	if tip_carrier != null or _vips.is_empty() or not VisitorSystem.tip_ready():
+		return
+	for v in _vips:
+		if bool((v as Node).get_meta("visiting", false)):
+			tip_carrier = v
+			return
+
+## Where a visitor's tip bubble floats (above the head, hats included).
+func head_anchor(n: Node3D) -> Vector3:
+	return n.global_position + Vector3(0.0, 1.35 * n.scale.y, 0.0)
 
 func _staff() -> void:
 	for w in _windows:
@@ -390,6 +441,7 @@ func _process(delta: float) -> void:
 	_drive(delta)
 	if not _nav_ready:
 		return
+	_assign_tip(delta)
 	_spawn_clock -= delta
 	if _visitors < visitor_target and _spawn_clock <= 0.0:
 		_spawn_clock = _rng.randf_range(0.6, 1.8)
@@ -402,6 +454,9 @@ func _process(delta: float) -> void:
 func _visit(n: Npc, inside := false) -> void:
 	_visitors += 1
 	n.speed = _rng.randf_range(0.9, 1.25)
+	n.set_meta("visiting", true)
+	if not inside:
+		VisitorSystem.note_arrival(str(n.get_meta("vtype", "local")))
 	if not inside:
 		await _walk(n, _door_out + Vector3(_rng.randf_range(-0.6, 0.6), 0, 0))
 		if not _alive(n):
@@ -442,6 +497,12 @@ func _visit(n: Npc, inside := false) -> void:
 			return
 	if int(n.get_meta("floor", 0)) != 0:
 		await _travel(n, int(n.get_meta("floor", 0)), 0)
+	if not _alive(n):
+		return
+	# Past the last exhibit a VIP's untapped tip goes back in the pot.
+	n.set_meta("visiting", false)
+	if tip_carrier == n:
+		tip_carrier = null
 	for to in [_exit_in, _exit_out]:
 		if not _alive(n):
 			return

@@ -24,7 +24,7 @@ Sources on IBT: `docs/research/IBT_LEVEL_STRUCTURE.md`, `docs/research/IBT_FLOOR
 | Grandeur climbs with the bank | Grandeur Humble → Legendary: banners, red carpet and spotlights, gold statues, a gold dome, fireworks | ✅ (beyond IBT) |
 | Decor is levelable department items | Placed decor levels 1–10 (+income, +decor points, +reputation), priced in each museum's economy | ✅ |
 | Decor themed per bank | Each museum stocks its own four-piece themed set, unlocked by its milestones and shown locked in advance, plus the classic catalogue | ✅ |
-| New client types per reputation level | Visitor looks vary (hats, cameras, kids…), but reputation doesn't unlock named visitor types yet | 🟡 |
+| New client types per reputation level | Visitor Guide: 8 visitor types unlocked by reputation (locals, little explorers, students, tourists, critics, then VIP collectors, celebrities and royal patrons), each dressed as a toy in the museum and shown live in the guide. VIPs walk on a gold ring and carry a tappable tip bubble (30–90 s of income, on a cooldown) | ✅ (beyond IBT) |
 
 ## Meta and events
 
@@ -61,10 +61,9 @@ See `docs/PLATFORMS.md`.
 
 ## Open items (next)
 
-1. Named visitor types unlocked by reputation (IBT's client cards), including VIPs who pay more.
-2. A museum-specific event area (IBT's Franchise Frenzy café) in 3D.
-3. Wire the real SDKs: Play Billing, AdMob, StoreKit, GodotSteam, EOS.
-4. Profile on a low-end phone. The graphics switch is in (Low drops shadows,
+1. A museum-specific event area (IBT's Franchise Frenzy café) in 3D.
+2. Wire the real SDKs: Play Billing, AdMob, StoreKit, GodotSteam, EOS.
+3. Profile on a low-end phone. The graphics switch is in (Low drops shadows,
    MSAA, glow and tilt-shift and caps the crowd; Auto falls back to Low when
    the museum averages under 40 fps), but it hasn't been measured on hardware.
-5. Drop the 2D floor's sprite art from mobile exports now that every museum is 3D. It's about 160 MB, most of the current build.
+4. Drop the 2D floor's sprite art from mobile exports now that every museum is 3D. It's about 160 MB, most of the current build.

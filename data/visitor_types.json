@@ -1,0 +1,37 @@
+{
+  "_doc": [
+    "Visitor types (the Visitor Guide). Reputation unlocks new kinds of visitor",
+    "in every museum; `weight` is how often each unlocked type walks in. `acc`",
+    "are chibi accessory meshes (tools/blender/toybox/characters.py) and `colors`",
+    "override the random outfit by material role. VIPs carry a tip bubble when a",
+    "tip is ready: tapping it pays `tip_seconds` of current income. One tip at a",
+    "time, then `vip_cooldown_s` before the next VIP brings one. Tips reward",
+    "active play; the idle economy does not depend on them."
+  ],
+  "vip_cooldown_s": 90,
+  "types": [
+    {"id": "local", "one": "A local", "name": "Locals", "rep": 1, "weight": 34,
+     "desc": "Neighbours who pop in on the way home."},
+    {"id": "kids", "one": "A little explorer", "name": "Little Explorers", "rep": 1, "weight": 16,
+     "desc": "Small, loud, and certain the dinosaur winked at them.",
+     "scale": 0.78, "acc_any": [["acc_cap", "acc_bow"]], "acc": ["acc_backpack"]},
+    {"id": "student", "one": "A student", "name": "Students", "rep": 2, "weight": 16,
+     "desc": "Sketchbooks out, deadlines looming.",
+     "acc": ["acc_backpack", "acc_glasses"]},
+    {"id": "tourist", "one": "A tourist", "name": "Tourists", "rep": 3, "weight": 14,
+     "desc": "Came for the gift shop, stayed for everything else.",
+     "acc": ["acc_hat", "acc_camera"], "colors": {"shirt": ["#FF8A3D", "#3FB8AF", "#F25C8A", "#FFD23F"]}},
+    {"id": "collector", "one": "A collector", "name": "Collectors", "rep": 4, "weight": 5, "vip": true, "tip_seconds": 30,
+     "desc": "Old money with an eye for the rare. Tips generously.",
+     "acc": ["acc_tophat"], "colors": {"shirt": ["#3A3350"], "pants": ["#1E1B2A"], "hair": ["#E8E4DC", "#6B6B70"]}},
+    {"id": "critic", "one": "An art critic", "name": "Art Critics", "rep": 6, "weight": 8,
+     "desc": "One good review and the whole town comes.",
+     "acc": ["acc_beret", "acc_scarf", "acc_glasses"], "colors": {"shirt": ["#2B2245"], "pants": ["#2B2245"]}},
+    {"id": "celebrity", "one": "A celebrity", "name": "Celebrities", "rep": 8, "weight": 3, "vip": true, "tip_seconds": 45,
+     "desc": "Here for the selfie. The photos go everywhere.",
+     "acc": ["acc_shades", "acc_scarf"], "colors": {"shirt": ["#FF4FA3", "#FFFFFF", "#B45CF0"], "acc_scarf": ["#FFD23F", "#FFFFFF", "#3FD0E0"]}},
+    {"id": "royal", "one": "A royal patron", "name": "Royal Patrons", "rep": 11, "weight": 1.5, "vip": true, "tip_seconds": 90,
+     "desc": "A visit by royal appointment. The whole museum stands a little straighter.",
+     "acc": ["acc_crown", "acc_cape"], "colors": {"shirt": ["#FFF4E0"], "pants": ["#A4263A"]}}
+  ]
+}

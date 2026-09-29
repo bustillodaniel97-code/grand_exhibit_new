@@ -20,9 +20,11 @@ const Popups := preload("res://scripts/ui/popup_manager.gd")
 const WingSystem := preload("res://scripts/meta/wing_system.gd")
 const WINGS_PATH := "res://scenes/meta/wings_screen.tscn"
 const Juice := preload("res://scripts/ui/juice.gd")
+const VisitorSystem := preload("res://scripts/meta/visitor_system.gd")
 
 const TAP_SLOP := 14.0     # px a press may travel and still count as a tap
 const CHIP := Vector2(52, 52)
+const TIP := Vector2(92, 52)
 
 ## Venues that have generated 3D art (tools/blender/toybox -> art3d/venues/<id>).
 static func supports(venue_id: String) -> bool:
@@ -46,6 +48,8 @@ var _floor_bar: VBoxContainer
 var _floor_btns: Array[Button] = []   # top floor first, ground last
 var _ground_focus := Vector3.ZERO
 var _tier_set := false
+var _tip_btn: Button
+var _bob := 0.0
 
 func _ready() -> void:
 	name = "VenueFloor"
@@ -73,6 +77,17 @@ func _ready() -> void:
 	_chips_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_chips_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_chips_layer)
+
+	# A VIP's tip bubble: one at a time, floating over the carrier's head.
+	_tip_btn = _round_button("VipTip", Color("#FFD34D"), Color("#B0741A"))
+	_tip_btn.custom_minimum_size = TIP
+	_tip_btn.size = TIP
+	_tip_btn.text = "Tip!"
+	_tip_btn.icon = UI.icon_texture("star", 22)
+	_tip_btn.add_theme_font_size_override("font_size", 17)
+	_tip_btn.tooltip_text = "A VIP wants to tip you"
+	_tip_btn.visible = false
+	_tip_btn.pressed.connect(_on_vip_tip)
 
 	_floor_bar = VBoxContainer.new()
 	_floor_bar.name = "FloorSelector"
@@ -355,6 +370,7 @@ func _process(delta: float) -> void:
 	_style_floor_bar()
 	var cam: Camera3D = world.camera
 	var bounds := Rect2(Vector2.ZERO, size).grow(-8.0)
+	_place_tip(cam, bounds, delta)
 	for i in _chips.size():
 		var anchor: Vector3 = world.station_anchor(i)
 		var p := cam.unproject_position(anchor)
@@ -379,6 +395,35 @@ func _on_station_cash(index: int) -> void:
 	Juice.coin_burst(_chips[index].get_global_rect().get_center())
 	UI.play_sfx(self, "buy")
 	_refresh_stations()
+
+func _place_tip(cam: Camera3D, bounds: Rect2, delta: float) -> void:
+	var carrier: Node3D = world.tip_carrier
+	if carrier == null or not is_instance_valid(carrier):
+		_tip_btn.visible = false
+		return
+	_bob += delta
+	var anchor: Vector3 = world.head_anchor(carrier)
+	var p := cam.unproject_position(anchor)
+	_tip_btn.visible = not cam.is_position_behind(anchor) and bounds.has_point(p)
+	_tip_btn.position = p - Vector2(TIP.x * 0.5, TIP.y + 4.0 * sin(_bob * 4.0))
+
+func _on_vip_tip() -> void:
+	var carrier: Node3D = world.tip_carrier
+	if carrier == null or not is_instance_valid(carrier):
+		return
+	var type_id := str(carrier.get_meta("vtype", ""))
+	var amount: BigNumber = VisitorSystem.collect_tip(type_id)
+	world.tip_carrier = null
+	_tip_btn.visible = false
+	if amount.is_zero():
+		return
+	if carrier.has_method("play"):
+		carrier.call("play", "cheer")
+	world.pop_text(world.head_anchor(carrier), "+$" + amount.to_notation(), Color("#FFE680"), true)
+	Juice.coin_burst(_tip_btn.get_global_rect().get_center())
+	UI.play_sfx(self, "buy")
+	var who := str(VisitorSystem.type_def(type_id).get("one", "A VIP"))
+	EventBus.toast_requested.emit("%s tipped $%s!" % [who, amount.to_notation()])
 
 func _on_ticket_sold(_index: int, at: Vector3) -> void:
 	world.pop_text(at, "+$" + _value_text)

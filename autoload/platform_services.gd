@@ -34,6 +34,10 @@ func _ready() -> void:
 	# Counters only events can know.
 	EventBus.department_upgraded.connect(func(_v: String, _d: String, _t: String, _l: int) -> void: _bump("upgrades"))
 	EventBus.item_upgraded.connect(func(_v: String, _d: String, _i: int, _l: int) -> void: _bump("upgrades"))
+	EventBus.vip_tipped.connect(func(type_id: String, _amount: Variant) -> void:
+		if type_id == "royal":
+			_bump("royal_tips")
+		_bump("vip_tips"))
 	# Catch up once the save is loaded (and mirror to a newly attached store).
 	var t := get_tree().create_timer(2.0)
 	t.timeout.connect(func() -> void:
