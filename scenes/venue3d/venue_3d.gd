@@ -1239,7 +1239,9 @@ func _environment() -> void:
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
+	_env = env
 	var sun := DirectionalLight3D.new()
+	_sun = sun
 	sun.rotation_degrees = Vector3(-52.0, -32.0, 0.0)
 	sun.light_energy = 0.62
 	sun.light_color = Color("#fff3df")
@@ -1270,6 +1272,30 @@ func _tilt_shift() -> void:
 	mat.shader = TILT_SHIFT
 	rect.material = mat
 	layer.add_child(rect)
+	_tilt = rect
+
+## Graphics quality: "high" (shadows, MSAA, tilt-shift, glow, full crowd) or
+## "low" for weaker phones (none of those, a smaller crowd). The floor picks it
+## from settings, or drops to low by itself if the frame rate sags ("auto").
+var quality := "high"
+var _env: Environment
+var _sun: DirectionalLight3D
+var _tilt: ColorRect
+
+func apply_quality(q: String) -> void:
+	quality = "low" if q == "low" else "high"
+	var high := quality == "high"
+	if _sun:
+		_sun.shadow_enabled = high
+	if _env:
+		_env.glow_enabled = high
+	if _tilt:
+		_tilt.visible = high
+	var vp := get_viewport()
+	if vp:
+		vp.msaa_3d = Viewport.MSAA_4X if high else Viewport.MSAA_DISABLED
+	if not high:
+		visitor_target = mini(visitor_target, 14)
 
 # ------------------------------------------------------------------ navigation
 func _bake_nav() -> void:

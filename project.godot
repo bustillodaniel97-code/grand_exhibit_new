@@ -13,6 +13,7 @@ config_version=5
 config/windows_native_icon="res://assets/desktop/icon.ico"
 config/macos_native_icon="res://assets/desktop/icon.icns"
 config/name="Grand Exhibit"
+config/version="1.0.0"
 config/description="Idle museum tycoon - build, staff, and prestige your museum empire."
 run/main_scene="res://scenes/main.tscn"
 ; A phone idle game must not render flat out. Uncapped, this renders as fast as

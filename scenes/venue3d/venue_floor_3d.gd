@@ -101,6 +101,7 @@ func build(vid: String) -> void:
 	world.venue_id = vid
 	world.ticket_sold.connect(_on_ticket_sold)
 	_viewport.add_child(world)
+	_apply_quality_setting()
 	_ground_focus = world.camera.focus
 	_build_floor_bar()
 	_refresh_stations()
@@ -117,7 +118,7 @@ func set_rates(rates: Dictionary) -> void:
 	if vpv is BigNumber:
 		_value_text = vpv.to_notation()
 	var arrival := float(rates.get("arrival_per_s", 0.3))
-	world.visitor_target = clampi(int(round(10.0 + arrival * 14.0)), 10, 30)
+	world.visitor_target = clampi(int(round(10.0 + arrival * 14.0)), 10, 30 if world.quality == "high" else 14)
 	# Hero exhibits follow the gallery's value track (tier 1..4 across its cap).
 	var cap: int = Economy.track_max_level(venue_id, "value")
 	var lvl: int = GameState.dept_level(venue_id, "gallery", "value")
@@ -314,9 +315,43 @@ func _draw_arrow(b: Button) -> void:
 	b.draw_line(c + Vector2(0, 10), c + Vector2(0, -9), ink, 4.0, true)
 	b.draw_polyline(PackedVector2Array([c + Vector2(-8, -1), c + Vector2(0, -10), c + Vector2(8, -1)]), ink, 4.0, true)
 
-func _process(_delta: float) -> void:
+## settings["gfx"]: "high", "low" or "auto" (default). Auto starts high and
+## watches the frame rate; a sustained dip below 40 fps switches to low and
+## remembers it for next time (settings["gfx_auto_low"]).
+func _apply_quality_setting() -> void:
+	var q := str(GameState.settings.get("gfx", "auto"))
+	if q == "auto":
+		q = "low" if bool(GameState.settings.get("gfx_auto_low", false)) else "high"
+	world.apply_quality(q)
+	_fps_samples.clear()
+
+var _fps_samples: Array[float] = []
+var _fps_clock := 0.0
+
+func _watch_fps(delta: float) -> void:
+	if str(GameState.settings.get("gfx", "auto")) != "auto" or world.quality == "low":
+		return
+	_fps_clock += delta
+	if _fps_clock < 1.0:
+		return
+	_fps_clock = 0.0
+	_fps_samples.append(Engine.get_frames_per_second())
+	if _fps_samples.size() > 8:
+		_fps_samples.pop_front()
+	# Ignore the first seconds (navigation bake, shader warm-up).
+	if _fps_samples.size() == 8:
+		var total := 0.0
+		for f in _fps_samples:
+			total += f
+		if total / 8.0 < 40.0:
+			GameState.settings["gfx_auto_low"] = true
+			world.apply_quality("low")
+
+func _process(delta: float) -> void:
 	if world == null or world.camera == null:
 		return
+	if is_visible_in_tree():
+		_watch_fps(delta)
 	_style_floor_bar()
 	var cam: Camera3D = world.camera
 	var bounds := Rect2(Vector2.ZERO, size).grow(-8.0)

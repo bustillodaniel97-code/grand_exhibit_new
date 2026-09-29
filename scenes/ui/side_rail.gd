@@ -28,6 +28,7 @@ const DECOR_PATH := "res://scenes/meta/decor_screen.tscn"
 const PRESTIGE_PATH := "res://scenes/meta/prestige_screen.tscn"
 const STATISTICS_PATH := "res://scenes/meta/statistics_screen.tscn"
 const WINGS_PATH := "res://scenes/meta/wings_screen.tscn"
+const SETTINGS_PATH := "res://scenes/meta/settings_screen.tscn"
 const WingSystem := preload("res://scripts/meta/wing_system.gd")
 
 const TILE := 72          # wide enough for the longest caption, still a 52px target
@@ -65,6 +66,7 @@ func _ready() -> void:
 	_col.add_child(_rail_item("Decor", "star", Chrome.TEAL, _on_decor_pressed))
 	_floors_item = _rail_item("Floors", "home", Chrome.BRASS, _on_floors_pressed)
 	_col.add_child(_floors_item)
+	_col.add_child(_rail_item("Settings", "gear", Chrome.DIM, func() -> void: Popups.open(SETTINGS_PATH)))
 	_prestige_item = _rail_item("Next Museum", "trophy", Chrome.BRASS, _on_prestige_pressed)
 	_col.add_child(_prestige_item)
 
