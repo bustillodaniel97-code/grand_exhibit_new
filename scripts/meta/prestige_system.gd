@@ -161,7 +161,7 @@ static func block_reason() -> String:
 		for track in core_tracks():
 			if GameState.dept_level(vid, str(track[0]), str(track[1])) < cap:
 				return TranslationServer.translate("Operations %d%% — upgrade %s to Lv.%d") % [
-					int(round(operations_progress(vid) * 100.0)), str(track[2]), cap]
+					int(round(operations_progress(vid) * 100.0)), TranslationServer.translate(str(track[2])), cap]
 	if not decor_met(vid):
 		return TranslationServer.translate("Furnish this museum: %s") % decor_summary(vid)
 	if not wings_met(vid):
