@@ -1,0 +1,358 @@
+{
+ "_doc": [
+  "Pop-Up Cafe: the museum's timed event area (Idle Bank Tycoon's event cafe).",
+  "While the event is live, each station earns cafe coins every second, offline",
+  "too (up to offline_cap_hours). Coins buy station levels; every level bought",
+  "is a star, and stars climb the reward track. Income per station is",
+  "base_income x level x milestone_mult^(level / milestone_every); a level costs",
+  "base_cost x growth^(level-1) (open_cost opens a closed station). Coins and",
+  "levels reset each event. The cafe is themed after the museum the player is",
+  "in when the event starts; `palette` recolours the c_* role materials of the",
+  "art3d/cafe kit (tools/blender/toybox/cafe.py). Pacing: about 130-170 stars in",
+  "the first hours and 240-255 by the end for any player who checks in twice a",
+  "day or more (tools: simulate before changing growth)."
+ ],
+ "unlock_rep": 3,
+ "duration_hours": 72,
+ "cooldown_hours": 48,
+ "offline_cap_hours": 8,
+ "max_level": 100,
+ "milestone_every": 25,
+ "milestone_mult": 1.5,
+ "stations": [
+  {
+   "id": "bar",
+   "kit": "coffee_bar",
+   "base_income": 1.0,
+   "open_cost": 0,
+   "base_cost": 8,
+   "growth": 1.19,
+   "pos": [
+    -2.6,
+    2.3
+   ]
+  },
+  {
+   "id": "case",
+   "kit": "pastry_case",
+   "base_income": 8.0,
+   "open_cost": 300,
+   "base_cost": 120,
+   "growth": 1.2,
+   "pos": [
+    2.6,
+    2.3
+   ]
+  },
+  {
+   "id": "cart",
+   "kit": "food_cart",
+   "base_income": 60.0,
+   "open_cost": 12000,
+   "base_cost": 4000,
+   "growth": 1.21,
+   "pos": [
+    -3.3,
+    -1.0
+   ]
+  },
+  {
+   "id": "kiosk",
+   "kit": "gift_kiosk",
+   "base_income": 450.0,
+   "open_cost": 600000,
+   "base_cost": 200000,
+   "growth": 1.22,
+   "pos": [
+    3.3,
+    -1.0
+   ]
+  }
+ ],
+ "tables": [
+  [
+   -1.1,
+   0.6
+  ],
+  [
+   1.2,
+   1.0
+  ],
+  [
+   0.0,
+   -1.3
+  ]
+ ],
+ "rewards": [
+  {
+   "stars": 10,
+   "gems": 5
+  },
+  {
+   "stars": 25,
+   "cards_box": "field_case"
+  },
+  {
+   "stars": 50,
+   "gems": 15
+  },
+  {
+   "stars": 80,
+   "cards_box": "field_case"
+  },
+  {
+   "stars": 110,
+   "gems": 25
+  },
+  {
+   "stars": 140,
+   "cards_box": "specialist_case"
+  },
+  {
+   "stars": 170,
+   "gems": 40
+  },
+  {
+   "stars": 200,
+   "cards_box": "specialist_case"
+  },
+  {
+   "stars": 225,
+   "gems": 60
+  },
+  {
+   "stars": 250,
+   "cards_box": "executive_case"
+  }
+ ],
+ "themes": {
+  "whispering_pines": {
+   "name": "Dino Diner",
+   "stations": {
+    "bar": "Fern Coffee Bar",
+    "case": "Fossil Cookies",
+    "cart": "Volcano Smoothies",
+    "kiosk": "Dino Plush Stand"
+   },
+   "palette": {
+    "c_floor_a": "#FFE7C2",
+    "c_floor_b": "#7CC46A",
+    "c_wall": "#FFF4E0",
+    "c_trim": "#7A4A2A",
+    "c_awning_a": "#3FA64A",
+    "c_awning_b": "#FFF4E0",
+    "c_accent": "#F2A33A",
+    "c_sign": "#2E5A2E"
+   }
+  },
+  "copper_kettle": {
+   "name": "Harbour Chowder Hut",
+   "stations": {
+    "bar": "Kettle Tea Bar",
+    "case": "Anchor Scones",
+    "cart": "Chowder Cart",
+    "kiosk": "Ship-in-a-Bottle Stall"
+   },
+   "palette": {
+    "c_floor_a": "#F2E6D0",
+    "c_floor_b": "#3F7FBF",
+    "c_wall": "#FFFFFF",
+    "c_trim": "#2F4A6A",
+    "c_awning_a": "#2F6FB0",
+    "c_awning_b": "#FFFFFF",
+    "c_accent": "#E0524A",
+    "c_sign": "#1F3550"
+   }
+  },
+  "grand_river": {
+   "name": "Delta Gelato",
+   "stations": {
+    "bar": "Espresso Bar",
+    "case": "Olive Bread Case",
+    "cart": "Gelato Cart",
+    "kiosk": "Amphora Gift Stall"
+   },
+   "palette": {
+    "c_floor_a": "#FFF1DA",
+    "c_floor_b": "#E8A05A",
+    "c_wall": "#FFF8EC",
+    "c_trim": "#8A5A2B",
+    "c_awning_a": "#2FA6A0",
+    "c_awning_b": "#FFF8EC",
+    "c_accent": "#E36FA8",
+    "c_sign": "#5A3A22"
+   }
+  },
+  "sunspire": {
+   "name": "Oasis Tea Tent",
+   "stations": {
+    "bar": "Mint Tea Bar",
+    "case": "Date Cake Case",
+    "cart": "Sun Lemonade Cart",
+    "kiosk": "Scarab Charm Stall"
+   },
+   "palette": {
+    "c_floor_a": "#FFE9B8",
+    "c_floor_b": "#E3A21A",
+    "c_wall": "#FFF1D6",
+    "c_trim": "#8A5A12",
+    "c_awning_a": "#1F6FB0",
+    "c_awning_b": "#FFD23F",
+    "c_accent": "#2FA6A0",
+    "c_sign": "#3A2A10"
+   }
+  },
+  "cloudrest": {
+   "name": "Summit Cocoa Lodge",
+   "stations": {
+    "bar": "Hot Cocoa Bar",
+    "case": "Snowcap Cupcakes",
+    "cart": "Marshmallow Cart",
+    "kiosk": "Crystal Gift Stall"
+   },
+   "palette": {
+    "c_floor_a": "#EAF4FF",
+    "c_floor_b": "#8FB8E8",
+    "c_wall": "#FFFFFF",
+    "c_trim": "#5A4A3A",
+    "c_awning_a": "#E0524A",
+    "c_awning_b": "#FFFFFF",
+    "c_accent": "#3A78D8",
+    "c_sign": "#2B3A5A"
+   }
+  },
+  "aurora_world": {
+   "name": "Longhouse Honey Hall",
+   "stations": {
+    "bar": "Honey Cider Bar",
+    "case": "Cinnamon Knots",
+    "cart": "Aurora Berry Cart",
+    "kiosk": "Rune Charm Stall"
+   },
+   "palette": {
+    "c_floor_a": "#F5E6C8",
+    "c_floor_b": "#6A8FBF",
+    "c_wall": "#EFE3CC",
+    "c_trim": "#5A3A22",
+    "c_awning_a": "#2FA6A0",
+    "c_awning_b": "#B45CF0",
+    "c_accent": "#F2C14E",
+    "c_sign": "#2B2245"
+   }
+  },
+  "celestial_conservatory": {
+   "name": "Stardust Cafe",
+   "stations": {
+    "bar": "Galaxy Latte Bar",
+    "case": "Moon Pie Case",
+    "cart": "Comet Cone Cart",
+    "kiosk": "Star Map Stall"
+   },
+   "palette": {
+    "c_floor_a": "#EDE6FF",
+    "c_floor_b": "#5B3F8C",
+    "c_wall": "#F7F2FF",
+    "c_trim": "#2B2245",
+    "c_awning_a": "#5B3F8C",
+    "c_awning_b": "#FFD23F",
+    "c_accent": "#3FD0E0",
+    "c_sign": "#1B1538"
+   }
+  },
+  "ironwood_citadel": {
+   "name": "Castle Kitchen",
+   "stations": {
+    "bar": "Squire's Brew Bar",
+    "case": "Royal Pie Case",
+    "cart": "Roast Chestnut Cart",
+    "kiosk": "Toy Shield Stall"
+   },
+   "palette": {
+    "c_floor_a": "#E6DCC4",
+    "c_floor_b": "#8A7A6A",
+    "c_wall": "#EFE6D2",
+    "c_trim": "#5A3A22",
+    "c_awning_a": "#C0392B",
+    "c_awning_b": "#F2C14E",
+    "c_accent": "#2F6FB0",
+    "c_sign": "#3A2A1A"
+   }
+  },
+  "pelagic_crown": {
+   "name": "Coral Cafe",
+   "stations": {
+    "bar": "Seafoam Latte Bar",
+    "case": "Shell Macarons",
+    "cart": "Kelp Smoothie Cart",
+    "kiosk": "Pearl Trinket Stall"
+   },
+   "palette": {
+    "c_floor_a": "#E6FAFF",
+    "c_floor_b": "#2FB0B0",
+    "c_wall": "#FFFFFF",
+    "c_trim": "#1F5A6A",
+    "c_awning_a": "#FF7A6A",
+    "c_awning_b": "#FFFFFF",
+    "c_accent": "#FFD23F",
+    "c_sign": "#12405A"
+   }
+  },
+  "chronos_spire": {
+   "name": "Tick-Tock Tearoom",
+   "stations": {
+    "bar": "Clockwork Tea Bar",
+    "case": "Cog Biscuits",
+    "cart": "Steam Bun Cart",
+    "kiosk": "Pocket Watch Stall"
+   },
+   "palette": {
+    "c_floor_a": "#F5E9D2",
+    "c_floor_b": "#B08A4A",
+    "c_wall": "#FFF4E0",
+    "c_trim": "#4A3A2A",
+    "c_awning_a": "#2E5A4A",
+    "c_awning_b": "#F2C14E",
+    "c_accent": "#C0392B",
+    "c_sign": "#2A2016"
+   }
+  },
+  "empyrean_palace": {
+   "name": "Royal Patisserie",
+   "stations": {
+    "bar": "Chocolate Bar",
+    "case": "Crown Eclairs",
+    "cart": "Rose Sorbet Cart",
+    "kiosk": "Tiara Stall"
+   },
+   "palette": {
+    "c_floor_a": "#FFFFFF",
+    "c_floor_b": "#E8C35A",
+    "c_wall": "#FFF8EC",
+    "c_trim": "#8A5A12",
+    "c_awning_a": "#B45CF0",
+    "c_awning_b": "#FFFFFF",
+    "c_accent": "#E36FA8",
+    "c_sign": "#3A1F4A"
+   }
+  },
+  "infinite_museum": {
+   "name": "Cafe at the End of Time",
+   "stations": {
+    "bar": "Infinity Espresso",
+    "case": "Paradox Pastries",
+    "cart": "Wormhole Waffles",
+    "kiosk": "Relic Replica Stall"
+   },
+   "palette": {
+    "c_floor_a": "#F0E8FF",
+    "c_floor_b": "#3A78D8",
+    "c_wall": "#FFFFFF",
+    "c_trim": "#2B2245",
+    "c_awning_a": "#FF4FA3",
+    "c_awning_b": "#3FD0E0",
+    "c_accent": "#FFD23F",
+    "c_sign": "#101C3A"
+   }
+  }
+ }
+}

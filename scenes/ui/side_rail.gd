@@ -30,6 +30,8 @@ const STATISTICS_PATH := "res://scenes/meta/statistics_screen.tscn"
 const WINGS_PATH := "res://scenes/meta/wings_screen.tscn"
 const SETTINGS_PATH := "res://scenes/meta/settings_screen.tscn"
 const VISITORS_PATH := "res://scenes/meta/visitor_guide.tscn"
+const CAFE_PATH := "res://scenes/events/cafe_screen.tscn"
+const CafeSystem := preload("res://scripts/events/cafe_system.gd")
 const WingSystem := preload("res://scripts/meta/wing_system.gd")
 
 const TILE := 72          # wide enough for the longest caption, still a 52px target
@@ -44,6 +46,7 @@ const FALLBACK_TOP := 210
 var _col: VBoxContainer
 var _prestige_item: Control
 var _floors_item: Control
+var _cafe_item: Control
 var _strip: Control          # QuestsBar, when it exists
 var _timer: Timer
 var _celebrated: Dictionary = {}
@@ -63,6 +66,10 @@ func _ready() -> void:
 	_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_col)
 
+	# The Pop-Up Café tile only exists while an event is live.
+	_cafe_item = _rail_item("Café", "cart", Chrome.DANGER, func() -> void: Popups.open(CAFE_PATH))
+	_cafe_item.visible = false
+	_col.add_child(_cafe_item)
 	_col.add_child(_rail_item("Stats", "disc", Chrome.TEAL, _on_stats_pressed))
 	_col.add_child(_rail_item("Decor", "star", Chrome.TEAL, _on_decor_pressed))
 	_floors_item = _rail_item("Floors", "home", Chrome.BRASS, _on_floors_pressed)
@@ -173,6 +180,15 @@ func refresh() -> void:
 	var nxt: Dictionary = WingSystem.next_wing(GameState.current_venue)
 	var ready: bool = not nxt.is_empty() and WingSystem.status(GameState.current_venue, str(nxt["id"])) == WingSystem.STATUS_READY
 	(_floors_item.get_child(0) as CanvasItem).modulate = Color(1.3, 1.15, 0.6) if ready else Color.WHITE
+	var cafe_live: bool = CafeSystem.is_live()
+	if _cafe_item.visible != cafe_live:
+		_cafe_item.visible = cafe_live
+		_reposition()
+		if cafe_live and GameState.ready_flag:
+			var days := int(round(float(CafeSystem.config().get("duration_hours", 72)) / 24.0))
+			EventBus.toast_requested.emit("%s is open! A pop-up café for %d days" % [str(CafeSystem.theme().get("name", "The Pop-Up Café")), days])
+	if cafe_live:
+		(_cafe_item.get_child(0) as CanvasItem).modulate = Color(1.3, 1.15, 0.6) if CafeSystem.any_claimable() else Color.WHITE
 	if show_prestige and not bool(_celebrated.get(GameState.current_venue, false)) \
 			and not Popups.is_open():
 		_celebrated[GameState.current_venue] = true

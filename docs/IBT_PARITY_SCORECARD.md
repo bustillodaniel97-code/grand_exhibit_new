@@ -33,7 +33,7 @@ Sources on IBT: `docs/research/IBT_LEVEL_STRUCTURE.md`, `docs/research/IBT_FLOOR
 | Managers (cards, levels, assignment) | Managers: cards, levels, ranks, posts per department | ✅ |
 | Business Mode (match-3 boss fights) | Inspection (match-3) on the Event tab; Boss Expedition inside the Dig Site | ✅ |
 | (none) | **Dig Site**: excavation mini game themed per museum (fossils, shipwreck, tomb, ice cave…). Pick vs brush, cracks, energy; artifacts join the museum's collection and raise its income | ✅ (beyond IBT) |
-| Franchise Frenzy event with its own area | Events framework (Inspection Frenzy) | 🟡 |
+| Franchise Frenzy event with its own café area and currency | **Pop-Up Café**: a 3-day event every 5 days with its own 3D toy diorama, themed per museum (Dino Diner, Harbour Chowder Hut, Oasis Tea Tent, Royal Patisserie…). Café coins (earned offline too) upgrade four stations; every level is a star on a 10-step reward track (gems, manager cases). A café stand on every museum's plaza opens it | ✅ |
 | Store: gem packs, bundles, boosts, passes | Store with offers, gems, resources, passes (stub billing) | ✅ (billing SDK to wire) |
 | Rewarded ads (×2 income, free gems, instant cash) | Boost dock + ad refills (debug ad service; AdMob to wire) | ✅ (SDK to wire) |
 
@@ -61,8 +61,7 @@ See `docs/PLATFORMS.md`.
 
 ## Open items (next)
 
-1. A museum-specific event area (IBT's Franchise Frenzy café) in 3D.
-2. Wire the real SDKs: Play Billing, AdMob, StoreKit, GodotSteam, EOS.
-3. Profile on a low-end phone. The graphics switch is in (Low drops shadows,
+1. Wire the real SDKs: Play Billing, AdMob, StoreKit, GodotSteam, EOS.
+2. Profile on a low-end phone. The graphics switch is in (Low drops shadows,
    MSAA, glow and tilt-shift and caps the crowd; Auto falls back to Low when
    the museum averages under 40 fps), but it hasn't been measured on hardware.

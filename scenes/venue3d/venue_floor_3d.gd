@@ -19,6 +19,7 @@ const UI := preload("res://scripts/ui/ui_kit.gd")
 const Popups := preload("res://scripts/ui/popup_manager.gd")
 const WingSystem := preload("res://scripts/meta/wing_system.gd")
 const WINGS_PATH := "res://scenes/meta/wings_screen.tscn"
+const CAFE_PATH := "res://scenes/events/cafe_screen.tscn"
 const Juice := preload("res://scripts/ui/juice.gd")
 const VisitorSystem := preload("res://scripts/meta/visitor_system.gd")
 
@@ -154,6 +155,9 @@ func theme_id() -> String:
 func simulate_tap(pos: Vector2) -> void:
 	var hit: Dictionary = world.pick(pos)
 	if hit.is_empty():
+		return
+	if bool(hit.get("cafe", false)):
+		Popups.open(CAFE_PATH)
 		return
 	var wing := str(hit.get("wing", ""))
 	if wing != "" and not bool(hit.get("open", true)):

@@ -16,6 +16,7 @@ const TILT_SHIFT := preload("res://scenes/venue3d/tilt_shift.gdshader")
 const POP_FONT := preload("res://assets/fonts/Quicksand-Bold.ttf")
 const WingSystem := preload("res://scripts/meta/wing_system.gd")
 const VisitorSystem := preload("res://scripts/meta/visitor_system.gd")
+const CafeSystem := preload("res://scripts/events/cafe_system.gd")
 
 ## A visitor paid at ticket window `index` (world position of the counter top).
 signal ticket_sold(index: int, at: Vector3)
@@ -108,6 +109,10 @@ var _grand_tier := 0
 var _heroes: Array = []
 var exhibit_tier := 1
 var _decor_nodes := {}  # slot -> {id, node}
+## The Pop-Up Café's stand on the plaza (tap to enter): centre and sign.
+var cafe_spot := Vector3.INF
+var _cafe_sign: Label3D
+var _cafe_clock := 0.0
 
 func _ready() -> void:
 	_rng.seed = 20260928
@@ -120,7 +125,9 @@ func _ready() -> void:
 	add_child(_region)
 	_shell = _scene("res://art3d/venues/%s/shell.glb" % venue_id).instantiate()
 	_region.add_child(_shell)
+	_cafe_site()
 	_scatter()
+	_place_cafe_stand()
 	_read_floors()
 	_place_all()
 	_place_floors()
@@ -439,6 +446,10 @@ func _staff() -> void:
 
 func _process(delta: float) -> void:
 	_drive(delta)
+	_cafe_clock -= delta
+	if _cafe_clock <= 0.0:
+		_cafe_clock = 1.0
+		_refresh_cafe_sign()
 	if not _nav_ready:
 		return
 	_assign_tip(delta)
@@ -602,8 +613,21 @@ func _scatter() -> void:
 	if g == null:
 		return
 	var ex: Dictionary = g.get_meta("extras", {})
-	_instance_field(str(ex.get("trees_kind", "tree")), ex.get("trees", []))
-	_instance_field("bush", ex.get("bushes", []))
+	_instance_field(str(ex.get("trees_kind", "tree")), _clear_cafe_lot(ex.get("trees", [])))
+	_instance_field("bush", _clear_cafe_lot(ex.get("bushes", [])))
+
+## Drop scatter spots (flat [x, z, rot, scale, ...]) under the café stand.
+func _clear_cafe_lot(flat: Array) -> Array:
+	if cafe_spot == Vector3.INF:
+		return flat
+	var out: Array = []
+	for i in flat.size() / 4:
+		var x := float(flat[i * 4])
+		var z := float(flat[i * 4 + 1])
+		if absf(x - cafe_spot.x) < 1.6 and absf(z - cafe_spot.z) < 1.3:
+			continue
+		out.append_array(flat.slice(i * 4, i * 4 + 4))
+	return out
 
 func _instance_field(kind: String, flat: Array) -> void:
 	var n := flat.size() / 4
@@ -988,6 +1012,12 @@ func pick(screen: Vector2) -> Dictionary:
 		return {}
 	var o := camera.project_ray_origin(screen)
 	var d := camera.project_ray_normal(screen)
+	if cafe_spot != Vector3.INF:
+		# The stand is about 2 tall: test the ray at its middle and at its roof.
+		for h in [0.8, 2.0]:
+			var ch: Variant = Plane(Vector3.UP, h).intersects_ray(o, d)
+			if ch != null and absf((ch as Vector3).x - cafe_spot.x) < 1.3 and absf((ch as Vector3).z - cafe_spot.z) < 1.0:
+				return {"point": ch, "cafe": true, "wing": "", "open": true, "dept": ""}
 	for i in range(floors.size() - 1, -1, -1):
 		var f: Dictionary = floors[i]
 		var hit: Variant = Plane(Vector3.UP, float(f["y"])).intersects_ray(o, d)
@@ -1001,6 +1031,76 @@ func pick(screen: Vector2) -> Dictionary:
 	if g == null:
 		return {}
 	return {"point": g, "wing": "", "open": true, "dept": dept_at(g)}
+
+# ------------------------------------------------------------------ café
+## The Pop-Up Café's stand goes on the plaza where it is farthest from the
+## doors, the exit and the fountain, and it is placed BEFORE the navigation
+## bake so visitors walk around it. It is always there: open (with the time
+## left) while an event is live, shuttered otherwise.
+func _cafe_site() -> void:
+	if not ResourceLoader.exists("res://art3d/cafe/cafe_stand.glb"):
+		return
+	var z := H + 1.55
+	var avoid: Array = [_door_out.x, _exit_out.x, W - 3.0]
+	var best_x := -1.0
+	var best := -1.0
+	var x := 1.4
+	while x <= W - 1.4:
+		var score := 99.0
+		for a in avoid:
+			score = minf(score, absf(x - float(a)))
+		if score > best:
+			best = score
+			best_x = x
+		x += 0.25
+	if best < 2.0:
+		# No room between the doors: the lawn beside the building instead.
+		best_x = -3.2
+		z = H + 1.2
+	cafe_spot = Vector3(best_x, 0.08, z)
+
+func _place_cafe_stand() -> void:
+	if cafe_spot == Vector3.INF:
+		return
+	var node: Node3D = (load("res://art3d/cafe/cafe_stand.glb") as PackedScene).instantiate()
+	var palette: Dictionary = ((CafeSystem.config().get("themes", {}) as Dictionary).get(venue_id, {}) as Dictionary).get("palette", {})
+	for child in node.find_children("*", "MeshInstance3D", true, false):
+		var mi := child as MeshInstance3D
+		for sidx in mi.mesh.get_surface_count():
+			var src := mi.mesh.surface_get_material(sidx)
+			if src != null and palette.has(src.resource_name):
+				var m := src.duplicate() as StandardMaterial3D
+				m.albedo_color = Color(str(palette[src.resource_name]))
+				mi.set_surface_override_material(sidx, m)
+	node.name = "CafeStand"
+	node.position = cafe_spot
+	_region.add_child(node)
+	_cafe_sign = Label3D.new()
+	_cafe_sign.font = POP_FONT
+	_cafe_sign.font_size = 40
+	_cafe_sign.outline_size = 10
+	_cafe_sign.outline_modulate = Color("#2B2245")
+	_cafe_sign.pixel_size = 0.006
+	_cafe_sign.width = 260.0
+	_cafe_sign.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_cafe_sign.position = cafe_spot + Vector3(0.0, 3.1, -0.62)
+	add_child(_cafe_sign)
+	_refresh_cafe_sign()
+
+func _refresh_cafe_sign() -> void:
+	if _cafe_sign == null:
+		return
+	if not CafeSystem.unlocked():
+		_cafe_sign.text = "Pop-Up Café\nRep %d" % int(CafeSystem.config().get("unlock_rep", 3))
+		_cafe_sign.modulate = Color("#E6DCC4")
+		return
+	var w := CafeSystem.tick()
+	if bool(w.get("live", false)):
+		_cafe_sign.text = "Café OPEN\n%s" % CafeSystem.fmt_left(int(w["ends_at"]) - ClockGuard.now())
+		_cafe_sign.modulate = Color("#FFF3B0")
+	else:
+		_cafe_sign.text = "Café closed"
+		_cafe_sign.modulate = Color("#E6DCC4")
 
 # ------------------------------------------------------------------ decor
 ## Placed decor (DecorSystem) stands at the theme's decor anchor for its slot.
