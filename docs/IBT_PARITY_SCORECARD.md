@@ -53,7 +53,7 @@ Sources on IBT: `docs/research/IBT_LEVEL_STRUCTURE.md`, `docs/research/IBT_FLOOR
 | Target | Status |
 |---|---|
 | Android | ✅ preset + build script (billing/ads SDKs to wire). The game pack is about 45 MB: exports leave out the 2D floor's sprite sheets |
-| iOS | 🟡 preset; needs a Mac with Xcode, StoreKit/Game Center plugins |
+| iOS | 🟡 preset and StoreKit backend (`app_store.gd`, tested against a fake plugin); needs a Mac with Xcode, the InAppStore plugin on a device, Game Center |
 | Steam (Win/Linux/Deck/macOS) | 🟡 presets, window/letterbox, achievements layer; install GodotSteam, create the app |
 | Epic | 🟡 preset + EOS seam |
 | Microsoft Store | 🟡 Windows build + MSIX packaging steps |
@@ -62,7 +62,7 @@ See `docs/PLATFORMS.md`.
 
 ## Open items (next)
 
-1. Wire the real SDKs: Play Billing, AdMob, StoreKit, GodotSteam, EOS.
+1. Install the real SDK plugins and test on devices: Play Billing and StoreKit backends are written and tested against fakes; AdMob, GodotSteam and EOS still need adapters.
 2. Profile on a low-end phone. The graphics switch is in (Low drops shadows,
    MSAA, glow and tilt-shift and caps the crowd; Auto falls back to Low when
    the museum averages under 40 fps), but it hasn't been measured on hardware.

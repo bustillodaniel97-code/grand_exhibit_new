@@ -1,6 +1,7 @@
 extends Node
-## IAPService — store-kit agnostic purchase stub. Real implementation swaps in
-## Google Play Billing / StoreKit behind the same three methods.
+## IAPService — store-agnostic purchases. Google Play Billing (play_billing.gd)
+## or StoreKit (app_store.gd) behind the same three methods, and a simulator in
+## debug builds without either plugin.
 ##
 ## Changes from v1 that a real billing SDK forces anyway:
 ##  · `iap_result` carries a receipt. Play Billing hands back a purchase token and
@@ -22,6 +23,7 @@ signal restore_completed(product_ids: Array)
 signal prices_updated()
 
 const PlayBilling := preload("res://scripts/monetization/play_billing.gd")
+const AppStore := preload("res://scripts/monetization/app_store.gd")
 const Entitlements := preload("res://scripts/monetization/entitlements.gd")
 
 const _SIM_ROUNDTRIP_SECONDS := 0.3
@@ -56,9 +58,12 @@ func _ready() -> void:
 ## nothing rather than hand out free purchases, and debug_iap is derived from the
 ## build type so the simulator is not reachable there at all.
 func _init_billing() -> void:
+	# Google Play on Android, StoreKit on iOS: whichever plugin the build carries.
 	var backend: RefCounted = PlayBilling.new()
 	if not backend.available():
-		return
+		backend = AppStore.new()
+		if not backend.available():
+			return
 	_bind_billing(backend)
 	backend.start()
 
@@ -102,6 +107,9 @@ func confirm_delivery(token: String) -> void:
 		billing.confirm_delivery(token)
 
 func _process(delta: float) -> void:
+	# Event-queue stores (StoreKit) answer only when polled.
+	if billing != null and billing.has_method("poll"):
+		billing.poll()
 	if billing == null or not GameState.ready_flag:
 		return
 	_retry_elapsed += delta
@@ -154,7 +162,12 @@ func purchase(product_id: String) -> void:
 ## the account owns; the stub reports the non-consumables recorded locally.
 func restore_purchases() -> void:
 	if billing != null:
-		billing.reconcile()  # answers on ownership_reconciled -> restore_completed
+		# Answers on ownership_reconciled -> restore_completed. StoreKit's restore
+		# may ask for an Apple ID, so it has its own player-initiated entry point.
+		if billing.has_method("restore"):
+			billing.restore()
+		else:
+			billing.reconcile()
 		return
 	var owned: Array = []
 	var ents: Dictionary = GameState.rv_state.get("entitlements", {}) if GameState else {}

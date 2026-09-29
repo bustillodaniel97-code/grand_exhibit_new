@@ -8,7 +8,7 @@ keystores or store credentials. Those come from the build machine.
 | Target | Preset | Feature tag | Store backend |
 |---|---|---|---|
 | Google Play | Android Release | – | Play Billing + AdMob (see `autoload/iap_service.gd`, `ad_service.gd`) |
-| App Store | iOS | – | StoreKit + Game Center (to wire) |
+| App Store | iOS | – | StoreKit backend in (`app_store.gd`); Game Center to wire |
 | Steam (Windows) | Windows Desktop (Steam) | `steam` | GodotSteam |
 | Steam Deck / Linux | Linux (Steam Deck) | `steam` | GodotSteam |
 | Steam (macOS) | macOS | `steam` | GodotSteam |
@@ -83,8 +83,15 @@ packaged as **MSIX**:
 
 1. On a Mac with Xcode, install the Godot 4.4.1 export templates, then export
    the "iOS" preset. Enter the Team ID in the export dialog; it isn't stored here.
-2. Wire StoreKit and Game Center through Godot iOS plugins. Game Center
-   achievements can use the same IDs through `platform_services.gd`.
+2. Add Godot's official iOS plugins (godot-ios-plugins) to the export:
+   **InAppStore** for purchases and GameCenter for achievements.
+   `scripts/monetization/app_store.gd` already drives InAppStore behind
+   IAPService: localized prices, purchases finished only after the grant is
+   saved, and a player-initiated Restore Purchases for the ad-free unlock.
+   It's tested against a fake plugin (`tests/monetization/test_app_store.gd`);
+   what needs a device is that the plugin's method names match. Create the
+   products in App Store Connect with the ids in `data/store_iap.json`. Game
+   Center achievements can use the same IDs through `platform_services.gd`.
 3. The layout is portrait only, and the 1024×1024 icon comes from
    `assets/android/play_icon_512.png`, which needs a real 1024 master before
    submission.
