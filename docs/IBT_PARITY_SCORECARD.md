@@ -49,6 +49,7 @@ Sources on IBT: `docs/research/IBT_LEVEL_STRUCTURE.md`, `docs/research/IBT_FLOOR
 | Settings | Music, sound, graphics (Auto / High / Low), language, notifications, cloud save, fullscreen on PC, replay walkthrough | ✅ |
 | Many languages (IBT: about 15) | English, Spanish, French, German, Brazilian Portuguese and Italian: every string, data names included (1,410), switchable live, Automatic follows the device; pipeline in `docs/LOCALIZATION.md`. Non-Latin scripts need a fallback font first | 🟡 (6 of ~15) |
 | Push notifications | Local reminders when the player is away: vault full, Daily Gift, café opening / last call, dig energy full. Quiet hours, spacing, a cap, an off switch, permission asked after the first gift | ✅ (plugin to install) |
+| Seasonal events | The Pop-Up Café dresses for the season it opens in: Frost Fair (snow), Blossom Tea Garden (petals), Summer Fête (confetti), Harvest Moon (leaves), each with its own name, stations and colours | ✅ (beyond IBT) |
 | Cloud save | Play Games saved games: a further-along cloud save is offered, never applied silently; this phone's is uploaded otherwise and on backgrounding. Steam via Auto-Cloud | ✅ Android/Steam · ⬜ iOS |
 
 ## Platforms

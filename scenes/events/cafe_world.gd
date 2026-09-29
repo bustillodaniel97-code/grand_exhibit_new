@@ -27,6 +27,7 @@ var _tints := {}
 func _ready() -> void:
 	_rng.randomize()
 	_environment()
+	_weather(str(CafeSystem.theme().get("weather", "")))
 	var palette: Dictionary = CafeSystem.theme().get("palette", {})
 	add_child(_kit("cafe_shell", palette))
 	_sign(str(CafeSystem.theme().get("name", "Pop-Up Cafe")), palette)
@@ -241,8 +242,12 @@ func _sign(text: String, palette: Dictionary) -> void:
 	l.outline_modulate = Color(str(palette.get("c_sign", "#2B2245"))).darkened(0.3)
 	l.modulate = Color("#FFF3B0")
 	l.pixel_size = 0.0075
-	l.width = 520.0
-	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# One line on the board: longer names (seasons, other languages) get a
+	# smaller font instead of wrapping off it.
+	var fit := 72
+	while fit > 40 and POP_FONT.get_string_size(tr(text), HORIZONTAL_ALIGNMENT_LEFT, -1, fit).x > 520.0:
+		fit -= 4
+	l.font_size = fit
 	l.position = Vector3(0.0, 3.55, -3.06)
 	add_child(l)
 
@@ -277,8 +282,66 @@ func _environment() -> void:
 	pm.size = Vector2(40.0, 40.0)
 	lawn.mesh = pm
 	var gm := StandardMaterial3D.new()
-	gm.albedo_color = Color("#5E9E48")
+	# Winter's café sits on snow.
+	gm.albedo_color = Color("#EAF2FA") if str(CafeSystem.theme().get("weather", "")) == "snow" else Color("#5E9E48")
 	gm.roughness = 0.9
 	lawn.material_override = gm
 	lawn.position.y = -0.01
 	add_child(lawn)
+
+## The season's weather over the terrace: snow, petals, confetti or leaves
+## drifting down. CPU particles on unshaded quads, light enough for any phone;
+## Low graphics halves them.
+const WEATHER := {
+	"snow": {"colors": ["#FFFFFF", "#EAF4FF"], "size": Vector2(0.08, 0.08), "fall": 0.7, "sway": 0.25},
+	"petals": {"colors": ["#FFB3CF", "#FFD6E5", "#FF8FB8"], "size": Vector2(0.13, 0.09), "fall": 0.55, "sway": 0.6},
+	"confetti": {"colors": ["#FFC83D", "#FF6B5B", "#3FB6F2", "#7CD66E", "#C77DFF"], "size": Vector2(0.1, 0.06), "fall": 0.9, "sway": 0.5},
+	"leaves": {"colors": ["#E8792A", "#C9493A", "#F2C14A", "#9A5A2A"], "size": Vector2(0.15, 0.1), "fall": 0.6, "sway": 0.7},
+}
+
+func _weather(kind: String) -> void:
+	if not WEATHER.has(kind):
+		return
+	var spec: Dictionary = WEATHER[kind]
+	var low := str(GameState.settings.get("gfx", "auto")) == "low" or bool(GameState.settings.get("gfx_auto_low", false))
+	var p := CPUParticles3D.new()
+	p.name = "Weather"
+	p.amount = 70 if low else 150
+	p.lifetime = 9.0
+	p.preprocess = 9.0
+	p.position = Vector3(0.0, 7.0, 0.0)
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	p.emission_box_extents = Vector3(7.5, 0.1, 5.5)
+	p.direction = Vector3(0.3, -1.0, 0.0)
+	p.spread = 20.0
+	p.gravity = Vector3(0.0, -0.15, 0.0)
+	p.initial_velocity_min = float(spec["fall"]) * 0.7
+	p.initial_velocity_max = float(spec["fall"])
+	p.angular_velocity_min = -90.0
+	p.angular_velocity_max = 90.0
+	p.angle_min = 0.0
+	p.angle_max = 360.0
+	p.tangential_accel_min = -float(spec["sway"])
+	p.tangential_accel_max = float(spec["sway"])
+	# Each flake picks one of the season's colours (constant steps, no blends).
+	var colors: Array = spec["colors"]
+	var offs := PackedFloat32Array()
+	var cols := PackedColorArray()
+	for i in colors.size():
+		offs.append(float(i) / float(colors.size()))
+		cols.append(Color(str(colors[i])))
+	var ramp := Gradient.new()
+	ramp.offsets = offs
+	ramp.colors = cols
+	ramp.interpolation_mode = Gradient.GRADIENT_INTERPOLATE_CONSTANT
+	p.color_initial_ramp = ramp
+	var quad := QuadMesh.new()
+	quad.size = spec["size"]
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	mat.vertex_color_use_as_albedo = true
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	quad.material = mat
+	p.mesh = quad
+	add_child(p)

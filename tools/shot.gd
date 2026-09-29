@@ -27,6 +27,7 @@ extends SceneTree
 ##   floor=I         glide the 3D camera to floor I (0 = ground) before capture
 ##   lang=CODE       play in a language (es, fr, de, pt_BR, it, en)
 ##   wish=TYPE       accept a VIP request from TYPE (collector, celebrity, royal)
+##   cafe_season=ID  dress the live Pop-Up Café for a season (frost_fair, ...)
 
 const MAIN := "res://scenes/main.tscn"
 const DESIGN := Vector2i(720, 1280)
@@ -104,6 +105,10 @@ func _seed() -> void:
 		var rl := clampi(int(_args["rep"]), 1, maxi(th.size(), 1))
 		if not th.is_empty():
 			gs.reputation_xp = BigNumber.from_float(float(th[rl - 1]))
+	if _args.has("cafe_season"):
+		var CS: GDScript = load("res://scripts/events/cafe_system.gd")
+		CS.call("tick")
+		(CS.call("_raw") as Dictionary)["season"] = String(_args["cafe_season"])
 	if _args.has("wish"):
 		(load("res://scripts/meta/visitor_system.gd") as GDScript).call("accept_request", String(_args["wish"]))
 	# Backdate first launch so day-gated features (Inspection Frenzy) unlock.

@@ -105,6 +105,7 @@ static func tick(now: int = -1) -> Dictionary:
 static func _open_new(s: Dictionary, cycle: int, now: int) -> void:
 	s["cycle"] = cycle
 	s["theme"] = GameState.current_venue
+	s["season"] = str(season_at(now).get("id", ""))
 	s["coins"] = 0.0
 	var levels := {}
 	for st in stations():
@@ -125,11 +126,62 @@ static func _settle(s: Dictionary, until: int) -> void:
 	s["earned"] = float(s.get("earned", 0.0)) + gain
 	s["t"] = until
 
-## The café the current event is themed after.
+## The café the current event is themed after: the museum's café, dressed for
+## the season the event opened in (name, stations, palette, weather).
 static func theme() -> Dictionary:
 	var themes: Dictionary = config().get("themes", {})
 	var vid := str(_raw().get("theme", GameState.current_venue))
-	return themes.get(vid, themes.get("whispering_pines", {}))
+	var base: Dictionary = themes.get(vid, themes.get("whispering_pines", {}))
+	var se := season()
+	if se.is_empty():
+		return base
+	var t: Dictionary = base.duplicate(true)
+	t["name"] = str(se.get("name", t.get("name", "")))
+	var st: Dictionary = (t.get("stations", {}) as Dictionary)
+	st.merge(se.get("stations", {}), true)
+	t["stations"] = st
+	t["palette"] = se.get("palette", t.get("palette", {}))
+	t["weather"] = str(se.get("weather", ""))
+	t["season"] = str(se.get("id", ""))
+	return t
+
+# ------------------------------------------------------------------- seasons
+
+static func seasons() -> Array:
+	return config().get("seasons", [])
+
+## "MM-DD" -> MMDD as an int (1201 for December 1st).
+static func _md(s: String) -> int:
+	var parts := s.split("-")
+	if parts.size() != 2:
+		return -1
+	return int(parts[0]) * 100 + int(parts[1])
+
+## The season `unix` falls in on the player's local calendar, or {}. A window
+## may wrap the new year (from 12-01 to 01-06).
+static func season_at(unix: int) -> Dictionary:
+	var bias := int(Time.get_time_zone_from_system().get("bias", 0)) * 60
+	var d := Time.get_datetime_dict_from_unix_time(unix + bias)
+	var md := int(d["month"]) * 100 + int(d["day"])
+	for se in seasons():
+		var from := _md(str((se as Dictionary).get("from", "")))
+		var to := _md(str((se as Dictionary).get("to", "")))
+		if from < 0 or to < 0:
+			continue
+		var inside := (md >= from and md <= to) if from <= to else (md >= from or md <= to)
+		if inside:
+			return se
+	return {}
+
+## The season the current event opened in, or {}.
+static func season() -> Dictionary:
+	var id := str(_raw().get("season", ""))
+	if id == "":
+		return {}
+	for se in seasons():
+		if str((se as Dictionary).get("id", "")) == id:
+			return se
+	return {}
 
 static func station_name(id: String) -> String:
 	return str(TranslationServer.translate(str((theme().get("stations", {}) as Dictionary).get(id, id.capitalize()))))

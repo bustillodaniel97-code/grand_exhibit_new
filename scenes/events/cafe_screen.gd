@@ -129,7 +129,8 @@ func refresh() -> void:
 	if not CafeSystem.unlocked():
 		_time.text = ""
 	elif live:
-		_time.text = tr("Ends in %s") % CafeSystem.fmt_left(int(w["ends_at"]) - now)
+		var seasonal := not CafeSystem.season().is_empty()
+		_time.text = (tr("Seasonal · ends in %s") if seasonal else tr("Ends in %s")) % CafeSystem.fmt_left(int(w["ends_at"]) - now)
 	else:
 		_time.text = "Closed"
 	_coins.text = tr("%s coins") % BigNumber.from_float(CafeSystem.coins()).to_notation()

@@ -304,8 +304,28 @@ msgid "Aurora Berry Cart"
 msgstr "Carrinho de frutas Aurora"
 
 #: data/cafe_event.json
+msgid "Beach Toy Stall"
+msgstr "Barraca de brinquedos de praia"
+
+#: data/cafe_event.json
+msgid "Berry Tart Case"
+msgstr "Vitrine de tortas de frutas vermelhas"
+
+#: data/cafe_event.json
+msgid "Blossom Latte Bar"
+msgstr "Bar de lattes florido"
+
+#: data/cafe_event.json
+msgid "Blossom Tea Garden"
+msgstr "Jardim de chá florido"
+
+#: data/cafe_event.json
 msgid "Cafe at the End of Time"
 msgstr "Café do Fim dos Tempos"
+
+#: data/cafe_event.json
+msgid "Caramel Apple Cart"
+msgstr "Carrinho de maçã do amor"
 
 #: data/cafe_event.json
 msgid "Castle Kitchen"
@@ -376,6 +396,10 @@ msgid "Fossil Cookies"
 msgstr "Biscoitos fósseis"
 
 #: data/cafe_event.json
+msgid "Frost Fair Café"
+msgstr "Café da Feira de Inverno"
+
+#: data/cafe_event.json
 msgid "Galaxy Latte Bar"
 msgstr "Bar de lattes Galáxia"
 
@@ -384,16 +408,36 @@ msgid "Gelato Cart"
 msgstr "Carrinho de gelato"
 
 #: data/cafe_event.json
+msgid "Gingerbread Case"
+msgstr "Vitrine de pão de gengibre"
+
+#: data/cafe_event.json
 msgid "Harbour Chowder Hut"
 msgstr "Quiosque de caldeirada do Porto"
+
+#: data/cafe_event.json
+msgid "Harvest Moon Café"
+msgstr "Café Lua da Colheita"
 
 #: data/cafe_event.json
 msgid "Honey Cider Bar"
 msgstr "Bar de sidra com mel"
 
 #: data/cafe_event.json
+msgid "Hot Chocolate Bar"
+msgstr "Bar de chocolate quente"
+
+#: data/cafe_event.json
 msgid "Hot Cocoa Bar"
 msgstr "Bar de chocolate quente"
+
+#: data/cafe_event.json
+msgid "Ice Lolly Cart"
+msgstr "Carrinho de picolé"
+
+#: data/cafe_event.json
+msgid "Iced Coffee Bar"
+msgstr "Bar de café gelado"
 
 #: data/cafe_event.json
 msgid "Infinity Espresso"
@@ -432,6 +476,10 @@ msgid "Olive Bread Case"
 msgstr "Vitrine de pão de azeitona"
 
 #: data/cafe_event.json
+msgid "Paper Lantern Stall"
+msgstr "Barraca de lanternas de papel"
+
+#: data/cafe_event.json
 msgid "Paradox Pastries"
 msgstr "Doces Paradoxo"
 
@@ -440,8 +488,20 @@ msgid "Pearl Trinket Stall"
 msgstr "Barraca de bijuterias de pérola"
 
 #: data/cafe_event.json
+msgid "Petal Macaron Case"
+msgstr "Vitrine de macarons de pétalas"
+
+#: data/cafe_event.json
+msgid "Pink Lemonade Cart"
+msgstr "Carrinho de limonada rosa"
+
+#: data/cafe_event.json
 msgid "Pocket Watch Stall"
 msgstr "Barraca de relógios de bolso"
+
+#: data/cafe_event.json
+msgid "Pumpkin Pie Case"
+msgstr "Vitrine de torta de abóbora"
 
 #: data/cafe_event.json
 msgid "Relic Replica Stall"
@@ -476,6 +536,10 @@ msgid "Seafoam Latte Bar"
 msgstr "Bar de lattes Espuma do Mar"
 
 #: data/cafe_event.json
+msgid "Seed Packet Stall"
+msgstr "Barraca de pacotes de sementes"
+
+#: data/cafe_event.json
 msgid "Shell Macarons"
 msgstr "Macarons de concha"
 
@@ -484,8 +548,16 @@ msgid "Ship-in-a-Bottle Stall"
 msgstr "Barraca de barcos na garrafa"
 
 #: data/cafe_event.json
+msgid "Snow Globe Stall"
+msgstr "Barraca de globos de neve"
+
+#: data/cafe_event.json
 msgid "Snowcap Cupcakes"
 msgstr "Cupcakes Pico Nevado"
+
+#: data/cafe_event.json
+msgid "Spiced Cider Bar"
+msgstr "Bar de sidra com especiarias"
 
 #: data/cafe_event.json
 msgid "Squire's Brew Bar"
@@ -502,6 +574,10 @@ msgstr "Café Poeira Estelar"
 #: data/cafe_event.json
 msgid "Steam Bun Cart"
 msgstr "Carrinho de pãezinhos no vapor"
+
+#: data/cafe_event.json
+msgid "Summer Fête Café"
+msgstr "Café da Festa de Verão"
 
 #: data/cafe_event.json
 msgid "Summit Cocoa Lodge"
@@ -3396,81 +3472,86 @@ msgid "Reward track · every level you buy is a star"
 msgstr "Trilha de recompensas · cada nível comprado é uma estrela"
 
 #: scenes/events/cafe_screen.gd:127
-#: scenes/events/cafe_world.gd:32
+#: scenes/events/cafe_world.gd:33
 msgid "Pop-Up Cafe"
 msgstr "Café temporário"
 
-#: scenes/events/cafe_screen.gd:132
+#: scenes/events/cafe_screen.gd:133
 #: scenes/store/store_screen.gd:249
 #: scenes/store/store_screen.gd:307
 #, c-format
 msgid "Ends in %s"
 msgstr "Termina em %s"
 
-#: scenes/events/cafe_screen.gd:134
+#: scenes/events/cafe_screen.gd:133
+#, c-format
+msgid "Seasonal · ends in %s"
+msgstr "Sazonal · termina em %s"
+
+#: scenes/events/cafe_screen.gd:135
 msgid "Closed"
 msgstr "Fechado"
 
-#: scenes/events/cafe_screen.gd:135
+#: scenes/events/cafe_screen.gd:136
 #, c-format
 msgid "%s coins"
 msgstr "%s moedas"
 
-#: scenes/events/cafe_screen.gd:136
+#: scenes/events/cafe_screen.gd:137
 #: scenes/ui/hud.gd:121
 #, c-format
 msgid "+%s / sec"
 msgstr "+%s / s"
 
-#: scenes/events/cafe_screen.gd:141
+#: scenes/events/cafe_screen.gd:142
 #, c-format
 msgid "The Pop-Up Café opens at reputation %d."
 msgstr "O café temporário abre com reputação %d."
 
-#: scenes/events/cafe_screen.gd:143
+#: scenes/events/cafe_screen.gd:144
 #, c-format
 msgid "The café is closed.\nThe next pop-up opens in %s."
 msgstr "O café está fechado.\nO próximo abre em %s."
 
-#: scenes/events/cafe_screen.gd:148
+#: scenes/events/cafe_screen.gd:149
 #, c-format
 msgid "Closed · earns +%s/s"
 msgstr "Fechado · rende +%s/s"
 
-#: scenes/events/cafe_screen.gd:151
+#: scenes/events/cafe_screen.gd:152
 msgid "Max"
 msgstr "Máx."
 
-#: scenes/events/cafe_screen.gd:153
+#: scenes/events/cafe_screen.gd:154
 #, c-format
 msgid "Open\n%s"
 msgstr "Abrir\n%s"
 
-#: scenes/events/cafe_screen.gd:153
+#: scenes/events/cafe_screen.gd:154
 #, c-format
 msgid "Upgrade\n%s"
 msgstr "Melhorar\n%s"
 
-#: scenes/events/cafe_screen.gd:190
+#: scenes/events/cafe_screen.gd:191
 msgid "The café is closed right now"
 msgstr "O café está fechado agora"
 
-#: scenes/events/cafe_screen.gd:193
+#: scenes/events/cafe_screen.gd:194
 #, c-format
 msgid "%s is at max level"
 msgstr "%s está no nível máximo"
 
-#: scenes/events/cafe_screen.gd:197
+#: scenes/events/cafe_screen.gd:198
 #, c-format
 msgid "Need %s more café coins"
 msgstr "Faltam %s moedas do café"
 
-#: scenes/events/cafe_screen.gd:230
+#: scenes/events/cafe_screen.gd:231
 #: scripts/meta/daily_gifts.gd:66
 msgid "Manager case"
 msgstr "Caixa de gerentes"
 
-#: scenes/events/cafe_screen.gd:231
+#: scenes/events/cafe_screen.gd:232
 #: scenes/events/expedition_screen.gd:619
 #: scenes/events/expedition_screen.gd:631
 #: scenes/events/inspection_screen.gd:301
@@ -3478,43 +3559,43 @@ msgstr "Caixa de gerentes"
 msgid "%d gems"
 msgstr "%d gemas"
 
-#: scenes/events/cafe_screen.gd:244
+#: scenes/events/cafe_screen.gd:245
 msgid "Claim"
 msgstr "Resgatar"
 
-#: scenes/events/cafe_screen.gd:244
+#: scenes/events/cafe_screen.gd:245
 msgid "Got it"
 msgstr "Entendi"
 
-#: scenes/events/cafe_screen.gd:244
+#: scenes/events/cafe_screen.gd:245
 msgid "Locked"
 msgstr "Bloqueado"
 
-#: scenes/events/cafe_screen.gd:252
+#: scenes/events/cafe_screen.gd:253
 #, c-format
 msgid "%d more stars to go"
 msgstr "Faltam %d estrelas"
 
-#: scenes/events/cafe_screen.gd:258
+#: scenes/events/cafe_screen.gd:259
 #, c-format
 msgid "+%d gems"
 msgstr "+%d gemas"
 
-#: scenes/events/cafe_screen.gd:263
+#: scenes/events/cafe_screen.gd:264
 #, c-format
 msgid "+%d manager cards"
 msgstr "+%d cartas de gerente"
 
-#: scenes/events/cafe_world.gd:106
+#: scenes/events/cafe_world.gd:107
 msgid "Level up!"
 msgstr "Subiu de nível!"
 
-#: scenes/events/cafe_world.gd:94
+#: scenes/events/cafe_world.gd:95
 #, c-format
 msgid "%s\nClosed"
 msgstr "%s\nFechado"
 
-#: scenes/events/cafe_world.gd:94
+#: scenes/events/cafe_world.gd:95
 #, c-format
 msgid "%s\nLv %d"
 msgstr "%s\nNv. %d"
@@ -5650,7 +5731,7 @@ msgid "A VIP has a wish"
 msgstr "Um VIP tem um desejo"
 
 #: scenes/venue3d/venue_floor_3d.gd:471
-#: scenes/venue3d/venue_floor_3d.gd:498
+#: scenes/venue3d/venue_floor_3d.gd:504
 #: scripts/meta/visitor_system.gd:254
 msgid "A VIP"
 msgstr "Um VIP"
@@ -5660,7 +5741,7 @@ msgstr "Um VIP"
 msgid "%s tipped $%s!"
 msgstr "%s deu $%s de gorjeta!"
 
-#: scenes/venue3d/venue_floor_3d.gd:500
+#: scenes/venue3d/venue_floor_3d.gd:506
 #, c-format
 msgid "%s is delighted! +$%s, +%d gems"
 msgstr "%s ficou encantado! +$%s, +%d gemas"

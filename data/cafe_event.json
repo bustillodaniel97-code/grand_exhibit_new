@@ -10,7 +10,8 @@
   "in when the event starts; `palette` recolours the c_* role materials of the",
   "art3d/cafe kit (tools/blender/toybox/cafe.py). Pacing: about 130-170 stars in",
   "the first hours and 240-255 by the end for any player who checks in twice a",
-  "day or more (tools: simulate before changing growth)."
+  "day or more (tools: simulate before changing growth).",
+  "`seasons`: an event that starts inside a season's from/to window (MM-DD, local date; it may wrap the new year) keeps the museum's caf\u00e9 but takes the season's name, stations, palette and `weather` (falling snow, petals, confetti or leaves)."
  ],
  "unlock_rep": 3,
  "duration_hours": 72,
@@ -354,5 +355,99 @@
     "c_sign": "#101C3A"
    }
   }
- }
+ },
+ "seasons": [
+  {
+   "id": "frost_fair",
+   "from": "12-01",
+   "to": "01-06",
+   "name": "Frost Fair Caf\u00e9",
+   "weather": "snow",
+   "stations": {
+    "bar": "Hot Chocolate Bar",
+    "case": "Gingerbread Case",
+    "cart": "Roast Chestnut Cart",
+    "kiosk": "Snow Globe Stall"
+   },
+   "palette": {
+    "c_floor_a": "#F4F8FF",
+    "c_floor_b": "#9FC8EE",
+    "c_wall": "#FFFFFF",
+    "c_trim": "#2E4A78",
+    "c_awning_a": "#D83A3A",
+    "c_awning_b": "#FFFFFF",
+    "c_accent": "#FFD24A",
+    "c_sign": "#1E3358"
+   }
+  },
+  {
+   "id": "blossom",
+   "from": "03-20",
+   "to": "04-30",
+   "name": "Blossom Tea Garden",
+   "weather": "petals",
+   "stations": {
+    "bar": "Blossom Latte Bar",
+    "case": "Petal Macaron Case",
+    "cart": "Pink Lemonade Cart",
+    "kiosk": "Seed Packet Stall"
+   },
+   "palette": {
+    "c_floor_a": "#FFF2F6",
+    "c_floor_b": "#A8DDA0",
+    "c_wall": "#FFFAF4",
+    "c_trim": "#8A5A6A",
+    "c_awning_a": "#FF9EC2",
+    "c_awning_b": "#FFFFFF",
+    "c_accent": "#7FCB6E",
+    "c_sign": "#6A3450"
+   }
+  },
+  {
+   "id": "summer_fete",
+   "from": "07-01",
+   "to": "08-31",
+   "name": "Summer F\u00eate Caf\u00e9",
+   "weather": "confetti",
+   "stations": {
+    "bar": "Iced Coffee Bar",
+    "case": "Berry Tart Case",
+    "cart": "Ice Lolly Cart",
+    "kiosk": "Beach Toy Stall"
+   },
+   "palette": {
+    "c_floor_a": "#FFF6D8",
+    "c_floor_b": "#4FD0C8",
+    "c_wall": "#FFFFFF",
+    "c_trim": "#1F6A8A",
+    "c_awning_a": "#FFC83D",
+    "c_awning_b": "#FF6B5B",
+    "c_accent": "#3FB6F2",
+    "c_sign": "#154A63"
+   }
+  },
+  {
+   "id": "harvest_moon",
+   "from": "10-01",
+   "to": "11-15",
+   "name": "Harvest Moon Caf\u00e9",
+   "weather": "leaves",
+   "stations": {
+    "bar": "Spiced Cider Bar",
+    "case": "Pumpkin Pie Case",
+    "cart": "Caramel Apple Cart",
+    "kiosk": "Paper Lantern Stall"
+   },
+   "palette": {
+    "c_floor_a": "#FCEBD2",
+    "c_floor_b": "#C9793A",
+    "c_wall": "#FFF3E2",
+    "c_trim": "#5A3420",
+    "c_awning_a": "#E8792A",
+    "c_awning_b": "#5B3A6E",
+    "c_accent": "#F2C14A",
+    "c_sign": "#3A2230"
+   }
+  }
+ ]
 }
