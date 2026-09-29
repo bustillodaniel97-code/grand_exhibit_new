@@ -189,6 +189,8 @@ func _check_tap_zones() -> void:
 	check("ticket" in _taps, "ticket hall tap zone -> ticket")
 
 func _check_sheet_wiring() -> void:
+	# This suite drives the 2D floor's internals; the 3D floor has test_floor_3d.
+	(load("res://scenes/venue/venue_view.gd") as GDScript).set("use_3d", false)
 	var vv: Control = (load("res://scenes/venue/venue_view.tscn") as PackedScene).instantiate()
 	root.add_child(vv)
 	var floor_node: Node = vv.find_child("VenueFloor", true, false)

@@ -14,6 +14,8 @@ func run() -> void:
  ec.set_process(false)
  gs.reset_to_new_game();gs.ready_flag=true
  var ps: GDScript = load("res://scripts/meta/prestige_system.gd")
+ # This suite drives the 2D floor's internals; the 3D floor has test_floor_3d.
+ (load("res://scenes/venue/venue_view.gd") as GDScript).set("use_3d", false)
  var view: Control = load("res://scenes/venue/venue_view.tscn").instantiate()
  view.size=Vector2(720,980);root.add_child(view)
  await process_frame

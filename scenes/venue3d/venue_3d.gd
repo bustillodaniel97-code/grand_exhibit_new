@@ -13,6 +13,10 @@ extends Node3D
 const Npc := preload("res://scenes/venue3d/toy_npc.gd")
 const ToyCamera := preload("res://scenes/venue3d/toy_camera.gd")
 const TILT_SHIFT := preload("res://scenes/venue3d/tilt_shift.gdshader")
+const POP_FONT := preload("res://assets/fonts/Quicksand-Bold.ttf")
+
+## A visitor paid at ticket window `index` (world position of the counter top).
+signal ticket_sold(index: int, at: Vector3)
 
 const FLOOR_TOP := 0.17
 const WALL_T := 0.16
@@ -65,6 +69,7 @@ var _door_in := Vector3.ZERO
 var _exit_in := Vector3.ZERO
 var _exit_out := Vector3.ZERO
 var _vehicles: Array = []
+var _open_windows := 1
 
 func _ready() -> void:
 	_rng.seed = 20260928
@@ -152,10 +157,11 @@ func _place_all() -> void:
 			var base := _v2(_room_by_id(str(st.get("room", ""))).get("rect", room["rect"]))
 			var at := base + _v2(st["at"])
 			var f := _v2(st.get("front"), Vector2(1, 0))
-			_place("ticket_counter", {"at": [at.x + f.x * 0.15, at.y + f.y * 0.15], "front": [f.x, f.y]})
+			var counter := _place("ticket_counter", {"at": [at.x + f.x * 0.15, at.y + f.y * 0.15], "front": [f.x, f.y]})
 			var spot := at + f * 0.85
 			_windows.append({"spot": Vector3(spot.x, FLOOR_TOP, spot.y), "look": Vector3(at.x, 0.5, at.y),
-				"clerk": Vector3(at.x - f.x * 0.55, FLOOR_TOP, at.y - f.y * 0.55), "front": f})
+				"clerk": Vector3(at.x - f.x * 0.55, FLOOR_TOP, at.y - f.y * 0.55), "front": f,
+				"top": Vector3(at.x, FLOOR_TOP + 0.75, at.y), "nodes": [counter]})
 
 func _place(kind: String, spec: Dictionary) -> Node3D:
 	var node := _kit(kind)
@@ -269,6 +275,7 @@ func _staff() -> void:
 	for w in _windows:
 		var clerk := _spawn(_look("staff", "ticket"), w["clerk"])
 		clerk.face(w["spot"])
+		(w["nodes"] as Array).append(clerk)
 	for room in rooms:
 		var origin := _v2(room["rect"])
 		var dept := str(room.get("dept", ""))
@@ -304,10 +311,12 @@ func _visit(n: Npc, inside := false) -> void:
 		await _walk(n, _door_out + Vector3(_rng.randf_range(-0.6, 0.6), 0, 0))
 		await _walk(n, _door_in)
 	if not inside and not _windows.is_empty():
-		var w: Dictionary = _windows[_rng.randi() % _windows.size()]
+		var wi := _rng.randi() % mini(_open_windows, _windows.size())
+		var w: Dictionary = _windows[wi]
 		await _walk(n, w["spot"] + Vector3(_rng.randf_range(-0.2, 0.2), 0, _rng.randf_range(-0.2, 0.2)))
 		n.face(w["look"])
 		await get_tree().create_timer(_rng.randf_range(1.2, 2.6)).timeout
+		ticket_sold.emit(wi, w["top"])
 	for i in _rng.randi_range(2, 3):
 		if _views.is_empty():
 			break
@@ -328,6 +337,76 @@ func _walk(n: Npc, to: Vector3) -> void:
 	n.walk_to(to)
 	if n.is_walking():
 		await n.arrived
+
+# ------------------------------------------------------------------ game hooks
+## How many ticket windows the player owns: the rest stand empty (counter and
+## clerk hidden), so buying a station visibly opens a new desk.
+func set_open_windows(n: int) -> void:
+	_open_windows = clampi(n, 1, maxi(_windows.size(), 1))
+	for i in _windows.size():
+		for node in _windows[i]["nodes"]:
+			(node as Node3D).visible = i < _open_windows
+
+func window_count() -> int:
+	return _windows.size()
+
+func open_windows() -> int:
+	return mini(_open_windows, _windows.size())
+
+## World anchor above ticket counter `index` (for the 2D station chips).
+func station_anchor(index: int) -> Vector3:
+	if index < 0 or index >= _windows.size():
+		return Vector3.ZERO
+	return _windows[index]["top"]
+
+## Screen point -> the ground point under it (floor height), or null.
+func ground_at(screen: Vector2) -> Variant:
+	if camera == null:
+		return null
+	var plane := Plane(Vector3.UP, FLOOR_TOP)
+	return plane.intersects_ray(camera.project_ray_origin(screen), camera.project_ray_normal(screen))
+
+## The department whose room contains world point `p` ("" for lobby/outside).
+## Rooms that `merge_into` another count as that room's department.
+func dept_at(p: Vector3) -> String:
+	for r in rooms:
+		var rect: Array = r["rect"]
+		if Rect2(float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3])).has_point(Vector2(p.x, p.z)):
+			if r.has("merge_into"):
+				return str(_room_by_id(str(r["merge_into"])).get("dept", ""))
+			return str(r.get("dept", ""))
+	return ""
+
+## Centre of a department's main room on the floor (for camera focus / tests).
+func dept_center(dept: String) -> Vector3:
+	for r in rooms:
+		if str(r.get("dept", "")) == dept:
+			var rect: Array = r["rect"]
+			return Vector3(float(rect[0]) + float(rect[2]) * 0.5, FLOOR_TOP, float(rect[1]) + float(rect[3]) * 0.5)
+	return Vector3.ZERO
+
+## A floating "+$12" that rises and fades above a point.
+func pop_text(at: Vector3, text: String, color := Color("#FFD34D"), big := false) -> void:
+	var l := Label3D.new()
+	l.text = text
+	l.font = POP_FONT
+	l.font_size = 64 if big else 44
+	l.outline_size = 14
+	l.modulate = color
+	l.outline_modulate = Color("#3A2A10")
+	l.pixel_size = 0.006
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.no_depth_test = true
+	l.render_priority = 10
+	l.outline_render_priority = 9
+	add_child(l)
+	l.global_position = at
+	var tw := l.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(l, "position:y", at.y + 1.4, 1.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(l, "scale", Vector3.ONE * 1.15, 0.18).from(Vector3.ONE * 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(l, "modulate:a", 0.0, 0.35).set_delay(0.75)
+	tw.chain().tween_callback(l.queue_free)
 
 # ------------------------------------------------------------------ traffic
 func _traffic() -> void:
@@ -402,7 +481,7 @@ func _camera() -> void:
 	camera = ToyCamera.new()
 	add_child(camera)
 	camera.bounds = Rect2(-3.0, -3.0, W + 6.0, H + 12.0)
-	camera.frame(Rect2(0.0, 0.0, W, H + 3.0), 0.6)
+	camera.frame(Rect2(-0.5, -3.0, W + 1.0, H + 4.0), 0.6)
 	camera.current = true
 
 func _tilt_shift() -> void:

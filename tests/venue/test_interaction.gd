@@ -64,6 +64,8 @@ func _process(delta: float) -> bool:
 	if _frame == 3:
 		# Build the venue view here (not in _initialize): venue_view._ready
 		# only runs once the SceneTree is fully up.
+		# This suite drives the 2D floor's internals; the 3D floor has test_floor_3d.
+		(load("res://scenes/venue/venue_view.gd") as GDScript).set("use_3d", false)
 		_vv = (load("res://scenes/venue/venue_view.tscn") as PackedScene).instantiate()
 		root.add_child(_vv)  # full-rect anchors fill the 720x1280 logical viewport
 		_floor = _vv.find_child("VenueFloor", true, false)

@@ -10,10 +10,17 @@ const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 const Popups := preload("res://scripts/ui/popup_manager.gd")
 const DeptPanel := preload("res://scenes/venue/dept_panel.gd")
 const FloorScene := preload("res://scenes/venue/floor/venue_floor.tscn")
+const Floor3D := preload("res://scenes/venue3d/venue_floor_3d.gd")
+
+## Venues with generated toy-diorama art (art3d/venues/<id>) show the 3D floor;
+## the rest keep the 2D isometric floor until their art lands. Suites that drive
+## the 2D floor's internals through the shell switch this off.
+static var use_3d := true
 
 const QUESTS_BAR_PATH := "res://scenes/meta/quests_bar.tscn"
 
 var _floor: Control
+var _vbox: VBoxContainer
 var _sheet_dim: ColorRect
 var _sheet: PanelContainer
 var _sheet_title: Label
@@ -36,6 +43,7 @@ func _ready() -> void:
 	vbox.set_anchors_preset(Control.PRESET_FULL_RECT)
 	vbox.add_theme_constant_override("separation", 0)
 	add_child(vbox)
+	_vbox = vbox
 
 	# Quests bar from the meta branch — slim strip over the floor top
 	# (embed by path only; no cross-branch preload).
@@ -44,11 +52,7 @@ func _ready() -> void:
 		qb.custom_minimum_size = Vector2(0, 132)
 		vbox.add_child(qb)
 
-	_floor = FloorScene.instantiate()
-	_floor.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_floor.dept_selected.connect(_open_sheet)
-	_floor.item_selected.connect(_open_item_sheet)
-	vbox.add_child(_floor)
+	_mount_floor()
 
 	_build_sheet()
 	resized.connect(_resize_sheet)
@@ -65,6 +69,24 @@ func _ready() -> void:
 	add_child(_timer)
 
 	_poll_rates()
+
+static func wants_3d(venue_id: String) -> bool:
+	return use_3d and Floor3D.supports(venue_id)
+
+## Put the right floor (3D diorama or 2D isometric) under the quests bar.
+## Both expose the same signals and set_rates/get_choke, so nothing else cares.
+func _mount_floor() -> void:
+	if _floor != null:
+		_vbox.remove_child(_floor)
+		_floor.queue_free()
+	if wants_3d(GameState.current_venue):
+		_floor = Floor3D.new()
+	else:
+		_floor = FloorScene.instantiate()
+	_floor.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_floor.dept_selected.connect(_open_sheet)
+	_floor.item_selected.connect(_open_item_sheet)
+	_vbox.add_child(_floor)
 
 # --- Bottom-sheet upgrade card -------------------------------------------------
 
@@ -241,8 +263,12 @@ func _notification(what: int) -> void:
 
 ## A panel contains venue-bound purchase callbacks and selected item indices.
 ## Retire it on graduation; relabelling a cached panel leaves its old target live.
-func _on_venue_changed(_from: String, _to: String) -> void:
+func _on_venue_changed(_from: String, to: String) -> void:
 	_sync_panel_venue()
+	# Graduating between a 3D-art venue and a 2D one swaps the floor kind;
+	# same-kind moves are handled by the floor's own retheme.
+	if (_floor is Floor3D) != wants_3d(to):
+		_mount_floor()
 
 func _sync_panel_venue() -> void:
 	if _panels_venue == GameState.current_venue:
