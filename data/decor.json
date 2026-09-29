@@ -606,7 +606,7 @@
       "req_milestones": 1,
       "visual": {
         "kind": "case"
-      }
+      , "col": "#C9A36A"}
     },
     {
       "id": "trex_statue",
@@ -626,7 +626,7 @@
       "req_milestones": 2,
       "visual": {
         "kind": "statue"
-      }
+      , "col": "#8FBF6A"}
     },
     {
       "id": "nature_banner",
@@ -744,7 +744,7 @@
         ],
         "height": 38.0,
         "plinth_h": 12.0
-      }
+      , "col": "#2FB0B0"}
     },
     {
       "id": "river_amphora",
@@ -789,7 +789,7 @@
       "req_milestones": 1,
       "visual": {
         "kind": "statue"
-      }
+      , "col": "#E8C35A"}
     },
     {
       "id": "scroll_shelf",
@@ -880,7 +880,7 @@
       "req_milestones": 1,
       "visual": {
         "kind": "vitrine"
-      }
+      , "col": "#1F6FB0"}
     },
     {
       "id": "sun_obelisk",
@@ -969,7 +969,7 @@
       "req_milestones": 1,
       "visual": {
         "kind": "vitrine"
-      }
+      , "col": "#8FD0F0"}
     },
     {
       "id": "eagle_hanging",
@@ -1061,7 +1061,7 @@
           1.4,
           1.1
         ]
-      }
+      , "col": "#6A8FBF"}
     },
     {
       "id": "longship_bench",
@@ -1151,7 +1151,7 @@
       "req_milestones": 1,
       "visual": {
         "kind": "case"
-      }
+      , "col": "#5B3F8C"}
     },
     {
       "id": "brass_orrery",
@@ -1175,7 +1175,7 @@
           1.4,
           1.1
         ]
-      }
+      , "col": "#C98A12"}
     },
     {
       "id": "stargazer_table",
@@ -1195,7 +1195,7 @@
       "req_milestones": 3,
       "visual": {
         "kind": "cafe_table"
-      }
+      , "col": "#3A2A6A"}
     },
     {
       "id": "shield_rack",
@@ -1263,7 +1263,7 @@
       "req_milestones": 2,
       "visual": {
         "kind": "cafe_table"
-      }
+      , "col": "#8A5A2B"}
     },
     {
       "id": "dragon_banner",
@@ -1330,7 +1330,7 @@
       "req_milestones": 1,
       "visual": {
         "kind": "vitrine"
-      }
+      , "col": "#FF7A6A"}
     },
     {
       "id": "abyss_tank",
@@ -1356,7 +1356,7 @@
         ],
         "height": 38.0,
         "plinth_h": 12.0
-      }
+      , "col": "#12405A"}
     },
     {
       "id": "coral_throne",
@@ -1380,7 +1380,7 @@
           1.4,
           1.1
         ]
-      }
+      , "col": "#FF6F91"}
     },
     {
       "id": "gear_planter",
@@ -1428,7 +1428,7 @@
           1.1,
           0.9
         ]
-      }
+      , "col": "#4A3A2A"}
     },
     {
       "id": "hourglass_case",
@@ -1448,7 +1448,7 @@
       "req_milestones": 2,
       "visual": {
         "kind": "vitrine"
-      }
+      , "col": "#B08A4A"}
     },
     {
       "id": "tick_bench",
@@ -1515,7 +1515,7 @@
       "req_milestones": 1,
       "visual": {
         "kind": "vitrine"
-      }
+      , "col": "#B45CF0"}
     },
     {
       "id": "royal_throne",
@@ -1539,7 +1539,7 @@
           1.4,
           1.1
         ]
-      }
+      , "col": "#E8B83A"}
     },
     {
       "id": "court_banner",
@@ -1610,7 +1610,7 @@
           1.4,
           1.1
         ]
-      }
+      , "col": "#3A78D8"}
     },
     {
       "id": "time_clock",
@@ -1634,7 +1634,7 @@
           1.1,
           0.9
         ]
-      }
+      , "col": "#2E5A4A"}
     },
     {
       "id": "infinite_throne",
@@ -1658,7 +1658,7 @@
           1.4,
           1.1
         ]
-      }
+      , "col": "#FF4FA3"}
     }
   ],
   "sets": [

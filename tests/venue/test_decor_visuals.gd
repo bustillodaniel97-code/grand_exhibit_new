@@ -223,6 +223,10 @@ func _check_each_category_appears() -> void:
 		var got: bool = DecorSystem.buy_decor(vid, did)
 		if not got and bool(DL.get_decor(did).get("event_exclusive", false)):
 			got = DecorSystem.grant_event_decor(did, vid)
+		# A museum's themed set is sold only in that museum (and behind its
+		# milestones). This check is about the painter, so place it directly.
+		if not got and not DecorSystem.stocked_here(vid, did):
+			got = DecorSystem.grant_event_decor(did, vid)
 		if not got:
 			missed.append("%s(acquire failed)" % did)
 			continue
