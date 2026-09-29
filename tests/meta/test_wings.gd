@@ -98,6 +98,35 @@ func run() -> void:
 	check(str(auto.back()["id"]) == "gilded_facade", "every museum ends with its facade")
 	check(WS.wings("whispering_pines").size() == 3, "authored wings are used as written")
 
+	# Every museum grows like a bank in the reference: at least a 2F and a 3F to
+	# renovate before the facade, and every authored floor is laid out sanely.
+	var short: Array = []
+	var bad: Array = []
+	for v in root.get_node("DataLoader").venue_order():
+		var ws: Array = WS.wings(v)
+		var floors := 0
+		for w in ws:
+			if int(w.get("floor", 0)) >= 1:
+				floors += 1
+			if not (w as Dictionary).has("layout"):
+				continue
+			var lay: Dictionary = w["layout"]
+			var r: Array = lay["rect"]
+			var rect := Rect2(float(r[0]), float(r[1]), float(r[2]), float(r[3])).grow(0.05)
+			var exit: Array = lay["lift"]["exit"]
+			if not rect.has_point(Vector2(float(exit[0]), float(exit[1]))):
+				bad.append("%s/%s lift exit" % [v, w["id"]])
+			for spec in lay.get("exhibits", []) + lay.get("props", []):
+				var at: Array = spec["at"]
+				var sz: Array = spec.get("size", [0.0, 0.0])
+				var box := Rect2(float(at[0]), float(at[1]), float(sz[0]), float(sz[1]))
+				if not rect.encloses(box):
+					bad.append("%s/%s %s" % [v, w["id"], spec["kind"]])
+		if floors < 2 or str(ws.back()["id"]) != "gilded_facade":
+			short.append("%s(%d)" % [v, floors])
+	check(short.is_empty(), "every museum has a 2F and a 3F before its facade (%s)" % ", ".join(PackedStringArray(short)))
+	check(bad.is_empty(), "authored floors keep their pieces and lift exit on the floor (%s)" % ", ".join(PackedStringArray(bad)))
+
 	root.get_node("EventBus").wing_renovated.disconnect(cb)
 	print("RESULT: ", "OK" if failures == 0 else "FAILED (%d)" % failures)
 	quit(1 if failures > 0 else 0)

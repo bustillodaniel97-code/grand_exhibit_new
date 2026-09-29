@@ -107,6 +107,674 @@
         "income_mult": 2.0, "cap_bonus": 5,
         "blurb": "Gild the columns, roll out the red carpet and put gold on the dome."
       }
+    ],
+    "copper_kettle": [
+      {
+        "id": "shipwreck_deck",
+        "name": "Shipwreck Deck",
+        "floor": 1,
+        "label": "2F",
+        "dept": "gallery",
+        "req_milestones": 1,
+        "price_seconds": 300,
+        "min_cost": [2, 3],
+        "income_mult": 1.3,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.2,
+        "blurb": "Raise the wreck: a blue whale, a reef tank and a touch pool on a new upper deck.",
+        "layout": {
+          "rect": [1.0, -9.0, 16.0, 9.0],
+          "y": 2.97,
+          "floor": ["planks", "#CFE8F2", "#B8DCEB"],
+          "wall": "#3F8FC6",
+          "exhibits": [
+            {"kind": "whale", "at": [2.0, -8.4], "size": [6.0, 1.6], "anchor": [5.0, -7.6], "views": [[-2.6, 1.7], [-0.87, 1.7], [0.87, 1.7], [2.6, 1.7]]},
+            {"kind": "tank", "at": [10.4, -8.4], "size": [2.8, 1.2], "anchor": [11.8, -7.8], "views": [[-1.0, 1.5], [1.0, 1.5]]},
+            {"kind": "coral", "at": [14.6, -8.2], "size": [1.7, 1.2], "anchor": [15.45, -7.6], "views": [[0.0, 1.5]]},
+            {"kind": "touch_pool", "at": [7.9, -4.6], "size": [2.2, 1.6], "anchor": [9.0, -3.8], "views": [[0.0, 1.7]]}
+          ],
+          "props": [
+            {"kind": "planter", "at": [1.45, -8.55]},
+            {"kind": "planter", "at": [16.55, -8.55]},
+            {"kind": "planter", "at": [1.45, -0.6]},
+            {"kind": "planter", "at": [16.55, -0.6]},
+            {"kind": "bench", "at": [4.0, -2.4], "len": 1.5, "axis": "x"},
+            {"kind": "bench", "at": [12.4, -2.4], "len": 1.5, "axis": "x"}
+          ],
+          "stations": [[5.8, -5.6], [13.2, -5.6]],
+          "lift": {"at": [12.0, 1.55], "enter": [12.0, 2.45], "exit": [12.0, -0.9]}
+        }
+      },
+      {
+        "id": "lighthouse_terrace",
+        "name": "Lighthouse Terrace",
+        "floor": 2,
+        "label": "3F",
+        "dept": "promotions",
+        "req_milestones": 2,
+        "price_seconds": 600,
+        "min_cost": [1, 6],
+        "income_mult": 1.3,
+        "staff_bonus": {"promotions": 2, "ticket": 1},
+        "cap_bonus_frac": 0.2,
+        "blurb": "A rooftop café by the lighthouse, with a spyglass on the harbour.",
+        "layout": {
+          "rect": [4.0, -16.0, 10, 7],
+          "exhibits": [
+            {"kind": "cafe_table", "at": [6.6, -10.9], "anchor": [6.6, -10.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "cafe_table", "at": [11.4, -10.9], "anchor": [11.4, -10.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "telescope", "at": [12.6, -14.4], "anchor": [12.6, -14.4], "views": [[0.0, 0.9]], "front": [0, 1]},
+            {"kind": "tank", "at": [4.9, -14.8], "size": [2.0, 1.0], "anchor": [5.9, -14.3], "views": [[0.0, 1.4]]}
+          ],
+          "props": [
+            {"kind": "topiary", "at": [4.45, -15.55]},
+            {"kind": "topiary", "at": [13.55, -15.55]},
+            {"kind": "topiary", "at": [4.45, -9.6]},
+            {"kind": "topiary", "at": [13.55, -9.6]},
+            {"kind": "kiosk", "at": [12.8, -10.3]}
+          ],
+          "marketer": [10.3, -12.4],
+          "dome": [9.0, -14.6],
+          "y": 5.77,
+          "floor": ["checker", "#FFFFFF", "#8FC6E8"],
+          "wall": "#2F6FB0",
+          "lift": {"at": [9.0, -8.5], "enter": [9.0, -7.75], "exit": [9.0, -9.9]}
+        }
+      },
+      {
+        "id": "gilded_facade",
+        "name": "Gilded Facade",
+        "floor": 0,
+        "label": "★",
+        "exterior": true,
+        "req_milestones": 3,
+        "price_seconds": 900,
+        "min_cost": [1, 8],
+        "income_mult": 1.8,
+        "cap_bonus_frac": 0.25,
+        "blurb": "Gild the columns, roll out the red carpet, light up the square."
+      }
+    ],
+    "grand_river": [
+      {
+        "id": "hall_of_antiquities",
+        "name": "Hall of Antiquities",
+        "floor": 1,
+        "label": "2F",
+        "dept": "gallery",
+        "req_milestones": 1,
+        "price_seconds": 300,
+        "min_cost": [2, 3],
+        "income_mult": 1.3,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.2,
+        "blurb": "Marble giants and painted urns in a new hall above the cloister.",
+        "layout": {
+          "rect": [1.0, -9.0, 16.0, 9.0],
+          "y": 2.97,
+          "floor": ["planks", "#F3E3C3", "#E6D2AC"],
+          "wall": "#C9A36A",
+          "exhibits": [
+            {"kind": "statue", "at": [2.4, -8.5], "size": [1.8, 1.8], "anchor": [3.3, -7.6], "views": [[0.0, 1.8]]},
+            {"kind": "statue", "at": [13.8, -8.5], "size": [1.8, 1.8], "anchor": [14.7, -7.6], "views": [[0.0, 1.8]]},
+            {"kind": "vitrine", "at": [10.6, -8.4], "size": [0.9, 1.8], "anchor": [11.05, -7.5], "views": [[0.0, 1.8]]},
+            {"kind": "case", "at": [7.9, -4.6], "size": [2.0, 0.9], "anchor": [8.9, -4.15], "views": [[0.0, 1.35]]}
+          ],
+          "props": [
+            {"kind": "planter", "at": [1.45, -8.55]},
+            {"kind": "planter", "at": [16.55, -8.55]},
+            {"kind": "planter", "at": [1.45, -0.6]},
+            {"kind": "planter", "at": [16.55, -0.6]},
+            {"kind": "bench", "at": [4.0, -2.4], "len": 1.5, "axis": "x"},
+            {"kind": "bench", "at": [12.4, -2.4], "len": 1.5, "axis": "x"}
+          ],
+          "stations": [[5.8, -5.6], [13.2, -5.6]],
+          "lift": {"at": [9.0, 3.55], "enter": [9.0, 4.45], "exit": [9.0, -0.9]}
+        }
+      },
+      {
+        "id": "sculpture_terrace",
+        "name": "Sculpture Terrace",
+        "floor": 2,
+        "label": "3F",
+        "dept": "promotions",
+        "req_milestones": 2,
+        "price_seconds": 600,
+        "min_cost": [1, 6],
+        "income_mult": 1.3,
+        "staff_bonus": {"promotions": 2, "ticket": 1},
+        "cap_bonus_frac": 0.2,
+        "blurb": "Statues in the open air and coffee with a view of the river.",
+        "layout": {
+          "rect": [4.0, -16.0, 10, 7],
+          "exhibits": [
+            {"kind": "cafe_table", "at": [6.6, -10.9], "anchor": [6.6, -10.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "cafe_table", "at": [11.4, -10.9], "anchor": [11.4, -10.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "telescope", "at": [12.6, -14.4], "anchor": [12.6, -14.4], "views": [[0.0, 0.9]], "front": [0, 1]},
+            {"kind": "statue", "at": [4.9, -14.8], "size": [1.2, 1.2], "anchor": [5.5, -14.2], "views": [[0.0, 1.5]]}
+          ],
+          "props": [
+            {"kind": "topiary", "at": [4.45, -15.55]},
+            {"kind": "topiary", "at": [13.55, -15.55]},
+            {"kind": "topiary", "at": [4.45, -9.6]},
+            {"kind": "topiary", "at": [13.55, -9.6]},
+            {"kind": "kiosk", "at": [12.8, -10.3]}
+          ],
+          "marketer": [10.3, -12.4],
+          "dome": [9.0, -14.6],
+          "y": 5.77,
+          "floor": ["checker", "#FFF8EC", "#E8C35A"],
+          "wall": "#8A5A2B",
+          "lift": {"at": [9.0, -8.5], "enter": [9.0, -7.75], "exit": [9.0, -9.9]}
+        }
+      },
+      {
+        "id": "gilded_facade",
+        "name": "Gilded Facade",
+        "floor": 0,
+        "label": "★",
+        "exterior": true,
+        "req_milestones": 3,
+        "price_seconds": 900,
+        "min_cost": [1, 8],
+        "income_mult": 1.8,
+        "cap_bonus_frac": 0.25,
+        "blurb": "Gild the columns, roll out the red carpet, light up the square."
+      }
+    ],
+    "celestial_conservatory": [
+      {
+        "id": "planetarium_deck",
+        "name": "Planetarium Deck",
+        "floor": 1,
+        "label": "2F",
+        "dept": "gallery",
+        "req_milestones": 1,
+        "price_seconds": 300,
+        "min_cost": [2, 3],
+        "income_mult": 1.3,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.2,
+        "blurb": "A great brass orrery and an astronomical clock under a new glass deck.",
+        "layout": {
+          "rect": [1.0, -9.0, 17.0, 9.0],
+          "y": 2.97,
+          "floor": ["checker", "#EDE6FF", "#C9B8F0"],
+          "wall": "#5B3F8C",
+          "exhibits": [
+            {"kind": "orrery", "at": [2.5, -8.6], "size": [2.4, 1.8], "anchor": [3.7, -7.7], "views": [[0.0, 1.8]]},
+            {"kind": "clockwork", "at": [12.8, -8.5], "size": [1.8, 1.5], "anchor": [13.7, -7.75], "views": [[0.0, 1.65]]},
+            {"kind": "vitrine", "at": [15.9, -8.3], "size": [0.9, 1.6], "anchor": [16.35, -7.5], "views": [[0.0, 1.7]]},
+            {"kind": "case", "at": [8.5, -4.6], "size": [2.0, 0.9], "anchor": [9.5, -4.15], "views": [[0.0, 1.35]]}
+          ],
+          "props": [
+            {"kind": "planter", "at": [1.45, -8.55]},
+            {"kind": "planter", "at": [17.55, -8.55]},
+            {"kind": "planter", "at": [1.45, -0.6]},
+            {"kind": "planter", "at": [17.55, -0.6]},
+            {"kind": "bench", "at": [4.5, -2.4], "len": 1.5, "axis": "x"},
+            {"kind": "bench", "at": [12.9, -2.4], "len": 1.5, "axis": "x"}
+          ],
+          "stations": [[6.3, -5.6], [13.7, -5.6]],
+          "lift": {"at": [9.8, 0.55], "enter": [9.8, 1.45], "exit": [9.8, -0.9]}
+        }
+      },
+      {
+        "id": "star_terrace",
+        "name": "Star Terrace",
+        "floor": 2,
+        "label": "3F",
+        "dept": "promotions",
+        "req_milestones": 2,
+        "price_seconds": 600,
+        "min_cost": [1, 6],
+        "income_mult": 1.3,
+        "staff_bonus": {"promotions": 2, "ticket": 1},
+        "cap_bonus_frac": 0.2,
+        "blurb": "Telescopes, comet cones and the whole sky overhead.",
+        "layout": {
+          "rect": [4.5, -16.0, 10, 7],
+          "exhibits": [
+            {"kind": "cafe_table", "at": [7.1, -10.9], "anchor": [7.1, -10.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "cafe_table", "at": [11.9, -10.9], "anchor": [11.9, -10.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "telescope", "at": [13.1, -14.4], "anchor": [13.1, -14.4], "views": [[0.0, 0.9]], "front": [0, 1]},
+            {"kind": "orrery", "at": [5.4, -14.8], "size": [1.4, 1.1], "anchor": [6.1, -14.25], "views": [[0.0, 1.45]]}
+          ],
+          "props": [
+            {"kind": "topiary", "at": [4.95, -15.55]},
+            {"kind": "topiary", "at": [14.05, -15.55]},
+            {"kind": "topiary", "at": [4.95, -9.6]},
+            {"kind": "topiary", "at": [14.05, -9.6]},
+            {"kind": "kiosk", "at": [13.3, -10.3]}
+          ],
+          "marketer": [10.8, -12.4],
+          "dome": [9.5, -14.6],
+          "y": 5.77,
+          "floor": ["checker", "#F7F2FF", "#8FB8E8"],
+          "wall": "#2B2245",
+          "lift": {"at": [9.5, -8.5], "enter": [9.5, -7.75], "exit": [9.5, -9.9]}
+        }
+      },
+      {
+        "id": "gilded_facade",
+        "name": "Gilded Facade",
+        "floor": 0,
+        "label": "★",
+        "exterior": true,
+        "req_milestones": 3,
+        "price_seconds": 900,
+        "min_cost": [1, 8],
+        "income_mult": 1.8,
+        "cap_bonus_frac": 0.25,
+        "blurb": "Gild the columns, roll out the red carpet, light up the square."
+      }
+    ],
+    "pelagic_crown": [
+      {
+        "id": "abyss_gallery",
+        "name": "Abyss Gallery",
+        "floor": 1,
+        "label": "2F",
+        "dept": "gallery",
+        "req_milestones": 1,
+        "price_seconds": 300,
+        "min_cost": [2, 3],
+        "income_mult": 1.3,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.2,
+        "blurb": "The deep sea upstairs: a blue whale, the Coral Throne and a touch pool.",
+        "layout": {
+          "rect": [1.0, -9.0, 18.0, 9.0],
+          "y": 2.97,
+          "floor": ["planks", "#E6FAFF", "#BFEFF5"],
+          "wall": "#2FB0B0",
+          "exhibits": [
+            {"kind": "whale", "at": [2.4, -8.4], "size": [6.0, 1.6], "anchor": [5.4, -7.6], "views": [[-2.6, 1.7], [-0.87, 1.7], [0.87, 1.7], [2.6, 1.7]]},
+            {"kind": "throne", "at": [13.2, -8.5], "size": [1.8, 1.4], "anchor": [14.1, -7.8], "views": [[0.0, 1.6]]},
+            {"kind": "coral", "at": [16.6, -8.2], "size": [1.7, 1.2], "anchor": [17.45, -7.6], "views": [[0.0, 1.5]]},
+            {"kind": "touch_pool", "at": [8.9, -4.6], "size": [2.2, 1.6], "anchor": [10.0, -3.8], "views": [[0.0, 1.7]]}
+          ],
+          "props": [
+            {"kind": "planter", "at": [1.45, -8.55]},
+            {"kind": "planter", "at": [18.55, -8.55]},
+            {"kind": "planter", "at": [1.45, -0.6]},
+            {"kind": "planter", "at": [18.55, -0.6]},
+            {"kind": "bench", "at": [5.0, -2.4], "len": 1.5, "axis": "x"},
+            {"kind": "bench", "at": [13.4, -2.4], "len": 1.5, "axis": "x"}
+          ],
+          "stations": [[6.8, -5.6], [14.2, -5.6]],
+          "lift": {"at": [14.5, 0.55], "enter": [14.5, 1.45], "exit": [14.5, -0.9]}
+        }
+      },
+      {
+        "id": "crown_deck",
+        "name": "Crown Deck",
+        "floor": 2,
+        "label": "3F",
+        "dept": "promotions",
+        "req_milestones": 2,
+        "price_seconds": 600,
+        "min_cost": [1, 6],
+        "income_mult": 1.3,
+        "staff_bonus": {"promotions": 2, "ticket": 1},
+        "cap_bonus_frac": 0.2,
+        "blurb": "The crown of the museum: a sun deck over the lagoon.",
+        "layout": {
+          "rect": [5.0, -16.0, 10, 7],
+          "exhibits": [
+            {"kind": "cafe_table", "at": [7.6, -10.9], "anchor": [7.6, -10.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "cafe_table", "at": [12.4, -10.9], "anchor": [12.4, -10.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "telescope", "at": [13.6, -14.4], "anchor": [13.6, -14.4], "views": [[0.0, 0.9]], "front": [0, 1]},
+            {"kind": "coral", "at": [5.9, -14.8], "size": [1.5, 1.0], "anchor": [6.65, -14.3], "views": [[0.0, 1.4]]}
+          ],
+          "props": [
+            {"kind": "topiary", "at": [5.45, -15.55]},
+            {"kind": "topiary", "at": [14.55, -15.55]},
+            {"kind": "topiary", "at": [5.45, -9.6]},
+            {"kind": "topiary", "at": [14.55, -9.6]},
+            {"kind": "kiosk", "at": [13.8, -10.3]}
+          ],
+          "marketer": [11.3, -12.4],
+          "dome": [10.0, -14.6],
+          "y": 5.77,
+          "floor": ["checker", "#FFFFFF", "#7FD4E8"],
+          "wall": "#12405A",
+          "lift": {"at": [10.0, -8.5], "enter": [10.0, -7.75], "exit": [10.0, -9.9]}
+        }
+      },
+      {
+        "id": "gilded_facade",
+        "name": "Gilded Facade",
+        "floor": 0,
+        "label": "★",
+        "exterior": true,
+        "req_milestones": 3,
+        "price_seconds": 900,
+        "min_cost": [1, 8],
+        "income_mult": 1.8,
+        "cap_bonus_frac": 0.25,
+        "blurb": "Gild the columns, roll out the red carpet, light up the square."
+      }
+    ],
+    "sunspire": [
+      {
+        "id": "floor_1",
+        "name": "Upper Galleries",
+        "floor": 1,
+        "label": "2F",
+        "rooms": ["gallery", "upper_colonnade", "obelisk_hall", "sun_landing"],
+        "req_milestones": 1,
+        "price_seconds": 300,
+        "min_cost": [2, 3],
+        "income_mult": 1.4,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.25,
+        "blurb": "Open the upper galleries: more rooms, more exhibits, more visitors."
+      },
+      {
+        "id": "sun_terrace",
+        "name": "Sun Terrace",
+        "floor": 2,
+        "label": "3F",
+        "dept": "gallery",
+        "req_milestones": 2,
+        "price_seconds": 600,
+        "min_cost": [1, 6],
+        "income_mult": 1.3,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.2,
+        "blurb": "A golden sarcophagus and a pharaoh's statue under the open sky.",
+        "layout": {
+          "rect": [5.3, -8.0, 10, 8],
+          "y": 5.77,
+          "floor": ["checker", "#FFE9B8", "#E3A21A"],
+          "wall": "#1F6FB0",
+          "lift": {"at": [10.3, 0.45], "enter": [10.3, 1.35], "exit": [10.3, -0.9]},
+          "exhibits": [
+            {"kind": "cafe_table", "at": [7.1, -1.9], "anchor": [7.1, -1.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "telescope", "at": [13.7, -1.7], "anchor": [13.7, -1.7], "views": [[0.0, 0.9]], "front": [0, 1]},
+            {"kind": "casket", "at": [6.2, -7.2], "size": [1.4, 1.4], "anchor": [6.9, -6.5], "views": [[0.0, 1.6]]},
+            {"kind": "statue", "at": [12.6, -7.3], "size": [1.6, 1.6], "anchor": [13.4, -6.5], "views": [[0.0, 1.7]]}
+          ],
+          "props": [
+            {"kind": "topiary", "at": [5.75, -7.55]},
+            {"kind": "topiary", "at": [14.85, -7.55]},
+            {"kind": "topiary", "at": [5.75, -0.6]},
+            {"kind": "topiary", "at": [14.85, -0.6]}
+          ],
+          "stations": [[7.6, -4.4], [13.0, -4.4]],
+          "dome": [10.3, -6.5]
+        }
+      },
+      {
+        "id": "gilded_facade",
+        "name": "Gilded Facade",
+        "floor": 0,
+        "label": "★",
+        "exterior": true,
+        "req_milestones": 3,
+        "price_seconds": 900,
+        "min_cost": [1, 8],
+        "income_mult": 1.8,
+        "cap_bonus_frac": 0.25,
+        "blurb": "Gild the columns, roll out the red carpet, light up the square."
+      }
+    ],
+    "cloudrest": [
+      {
+        "id": "floor_1",
+        "name": "Upper Galleries",
+        "floor": 1,
+        "label": "2F",
+        "rooms": ["gallery", "span", "east_gallery", "west_landing"],
+        "req_milestones": 1,
+        "price_seconds": 300,
+        "min_cost": [2, 3],
+        "income_mult": 1.4,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.25,
+        "blurb": "Open the upper galleries: more rooms, more exhibits, more visitors."
+      },
+      {
+        "id": "summit_deck",
+        "name": "Summit Deck",
+        "floor": 2,
+        "label": "3F",
+        "dept": "gallery",
+        "req_milestones": 2,
+        "price_seconds": 600,
+        "min_cost": [1, 6],
+        "income_mult": 1.3,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.2,
+        "blurb": "Above the clouds: a sky-stone orrery and an explorer's statue.",
+        "layout": {
+          "rect": [0.6, -8.0, 10, 8],
+          "y": 5.77,
+          "floor": ["checker", "#EAF4FF", "#8FB8E8"],
+          "wall": "#3A78D8",
+          "lift": {"at": [5.6, 0.45], "enter": [5.6, 1.35], "exit": [5.6, -0.9]},
+          "exhibits": [
+            {"kind": "cafe_table", "at": [2.4, -1.9], "anchor": [2.4, -1.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "telescope", "at": [9.0, -1.7], "anchor": [9.0, -1.7], "views": [[0.0, 0.9]], "front": [0, 1]},
+            {"kind": "orrery", "at": [1.5, -7.3], "size": [1.8, 1.4], "anchor": [2.4, -6.6], "views": [[0.0, 1.6]]},
+            {"kind": "statue", "at": [8.0, -7.3], "size": [1.4, 1.4], "anchor": [8.7, -6.6], "views": [[0.0, 1.6]]}
+          ],
+          "props": [
+            {"kind": "topiary", "at": [1.05, -7.55]},
+            {"kind": "topiary", "at": [10.15, -7.55]},
+            {"kind": "topiary", "at": [1.05, -0.6]},
+            {"kind": "topiary", "at": [10.15, -0.6]}
+          ],
+          "stations": [[2.9, -4.4], [8.3, -4.4]],
+          "dome": [5.6, -6.5]
+        }
+      },
+      {
+        "id": "gilded_facade",
+        "name": "Gilded Facade",
+        "floor": 0,
+        "label": "★",
+        "exterior": true,
+        "req_milestones": 3,
+        "price_seconds": 900,
+        "min_cost": [1, 8],
+        "income_mult": 1.8,
+        "cap_bonus_frac": 0.25,
+        "blurb": "Gild the columns, roll out the red carpet, light up the square."
+      }
+    ],
+    "aurora_world": [
+      {
+        "id": "floor_1",
+        "name": "Upper Galleries",
+        "floor": 1,
+        "label": "2F",
+        "rooms": ["northwing", "observatory"],
+        "req_milestones": 1,
+        "price_seconds": 300,
+        "min_cost": [2, 3],
+        "income_mult": 1.4,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.25,
+        "blurb": "Open the upper galleries: more rooms, more exhibits, more visitors."
+      },
+      {
+        "id": "aurora_deck",
+        "name": "Aurora Deck",
+        "floor": 2,
+        "label": "3F",
+        "dept": "gallery",
+        "req_milestones": 2,
+        "price_seconds": 600,
+        "min_cost": [1, 6],
+        "income_mult": 1.3,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.2,
+        "blurb": "Watch the northern lights beside a jarl's armour and a runestone giant.",
+        "layout": {
+          "rect": [8.5, -8.0, 10, 8],
+          "y": 5.77,
+          "floor": ["planks", "#F5E6C8", "#E6D2AC"],
+          "wall": "#6A8FBF",
+          "lift": {"at": [17.6, 0.45], "enter": [17.6, 1.35], "exit": [17.6, -0.9]},
+          "exhibits": [
+            {"kind": "cafe_table", "at": [10.3, -1.9], "anchor": [10.3, -1.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "telescope", "at": [16.9, -1.7], "anchor": [16.9, -1.7], "views": [[0.0, 0.9]], "front": [0, 1]},
+            {"kind": "armor", "at": [9.4, -7.3], "size": [1.5, 1.2], "anchor": [10.15, -6.7], "views": [[0.0, 1.5]]},
+            {"kind": "statue", "at": [15.9, -7.3], "size": [1.4, 1.4], "anchor": [16.6, -6.6], "views": [[0.0, 1.6]]}
+          ],
+          "props": [
+            {"kind": "topiary", "at": [8.95, -7.55]},
+            {"kind": "topiary", "at": [18.05, -7.55]},
+            {"kind": "topiary", "at": [8.95, -0.6]},
+            {"kind": "topiary", "at": [18.05, -0.6]}
+          ],
+          "stations": [[10.8, -4.4], [16.2, -4.4]],
+          "dome": [13.5, -6.5]
+        }
+      },
+      {
+        "id": "gilded_facade",
+        "name": "Gilded Facade",
+        "floor": 0,
+        "label": "★",
+        "exterior": true,
+        "req_milestones": 3,
+        "price_seconds": 900,
+        "min_cost": [1, 8],
+        "income_mult": 1.8,
+        "cap_bonus_frac": 0.25,
+        "blurb": "Gild the columns, roll out the red carpet, light up the square."
+      }
+    ],
+    "ironwood_citadel": [
+      {
+        "id": "floor_1",
+        "name": "Upper Galleries",
+        "floor": 1,
+        "label": "2F",
+        "rooms": ["gallery"],
+        "req_milestones": 1,
+        "price_seconds": 300,
+        "min_cost": [2, 3],
+        "income_mult": 1.4,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.25,
+        "blurb": "Open the upper galleries: more rooms, more exhibits, more visitors."
+      },
+      {
+        "id": "keep_battlements",
+        "name": "Keep Battlements",
+        "floor": 2,
+        "label": "3F",
+        "dept": "gallery",
+        "req_milestones": 2,
+        "price_seconds": 600,
+        "min_cost": [1, 6],
+        "income_mult": 1.3,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.2,
+        "blurb": "The keep's battlements: the Iron Throne and a knight in full plate.",
+        "layout": {
+          "rect": [4.5, -11.0, 10, 8],
+          "y": 5.77,
+          "floor": ["checker", "#E6DCC4", "#B9AC90"],
+          "wall": "#8A7A6A",
+          "lift": {"at": [9.5, 0.45], "enter": [9.5, 1.35], "exit": [9.5, -3.9]},
+          "exhibits": [
+            {"kind": "cafe_table", "at": [6.3, -4.9], "anchor": [6.3, -4.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "telescope", "at": [12.9, -4.7], "anchor": [12.9, -4.7], "views": [[0.0, 0.9]], "front": [0, 1]},
+            {"kind": "throne", "at": [5.4, -10.3], "size": [1.8, 1.4], "anchor": [6.3, -9.6], "views": [[0.0, 1.6]]},
+            {"kind": "armor", "at": [11.7, -10.3], "size": [1.5, 1.2], "anchor": [12.45, -9.7], "views": [[0.0, 1.5]]}
+          ],
+          "props": [
+            {"kind": "topiary", "at": [4.95, -10.55]},
+            {"kind": "topiary", "at": [14.05, -10.55]},
+            {"kind": "topiary", "at": [4.95, -3.6]},
+            {"kind": "topiary", "at": [14.05, -3.6]}
+          ],
+          "stations": [[6.8, -7.4], [12.2, -7.4]],
+          "dome": [9.5, -9.5]
+        }
+      },
+      {
+        "id": "gilded_facade",
+        "name": "Gilded Facade",
+        "floor": 0,
+        "label": "★",
+        "exterior": true,
+        "req_milestones": 3,
+        "price_seconds": 900,
+        "min_cost": [1, 8],
+        "income_mult": 1.8,
+        "cap_bonus_frac": 0.25,
+        "blurb": "Gild the columns, roll out the red carpet, light up the square."
+      }
+    ],
+    "empyrean_palace": [
+      {
+        "id": "floor_1",
+        "name": "Upper Galleries",
+        "floor": 1,
+        "label": "2F",
+        "rooms": ["promotions"],
+        "req_milestones": 1,
+        "price_seconds": 300,
+        "min_cost": [2, 3],
+        "income_mult": 1.4,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.25,
+        "blurb": "Open the upper galleries: more rooms, more exhibits, more visitors."
+      },
+      {
+        "id": "crown_terrace",
+        "name": "Crown Terrace",
+        "floor": 2,
+        "label": "3F",
+        "dept": "gallery",
+        "req_milestones": 2,
+        "price_seconds": 600,
+        "min_cost": [1, 6],
+        "income_mult": 1.3,
+        "staff_bonus": {"gallery": 2},
+        "cap_bonus_frac": 0.2,
+        "blurb": "The palace's crown: a golden throne and a queen's statue by the dome.",
+        "layout": {
+          "rect": [11.5, -8.0, 10, 8],
+          "y": 5.77,
+          "floor": ["checker", "#FFFFFF", "#E8C35A"],
+          "wall": "#B45CF0",
+          "lift": {"at": [18.3, 0.45], "enter": [18.3, 1.35], "exit": [18.3, -0.9]},
+          "exhibits": [
+            {"kind": "cafe_table", "at": [13.3, -1.9], "anchor": [13.3, -1.9], "views": [[-0.75, 0.2], [0.75, 0.2]]},
+            {"kind": "telescope", "at": [19.9, -1.7], "anchor": [19.9, -1.7], "views": [[0.0, 0.9]], "front": [0, 1]},
+            {"kind": "throne", "at": [12.4, -7.3], "size": [1.9, 1.4], "anchor": [13.35, -6.6], "views": [[0.0, 1.6]]},
+            {"kind": "statue", "at": [18.8, -7.3], "size": [1.5, 1.5], "anchor": [19.55, -6.55], "views": [[0.0, 1.65]]}
+          ],
+          "props": [
+            {"kind": "topiary", "at": [11.95, -7.55]},
+            {"kind": "topiary", "at": [21.05, -7.55]},
+            {"kind": "topiary", "at": [11.95, -0.6]},
+            {"kind": "topiary", "at": [21.05, -0.6]}
+          ],
+          "stations": [[13.8, -4.4], [19.2, -4.4]],
+          "dome": [16.5, -6.5]
+        }
+      },
+      {
+        "id": "gilded_facade",
+        "name": "Gilded Facade",
+        "floor": 0,
+        "label": "★",
+        "exterior": true,
+        "req_milestones": 3,
+        "price_seconds": 900,
+        "min_cost": [1, 8],
+        "income_mult": 1.8,
+        "cap_bonus_frac": 0.25,
+        "blurb": "Gild the columns, roll out the red carpet, light up the square."
+      }
     ]
   }
 }

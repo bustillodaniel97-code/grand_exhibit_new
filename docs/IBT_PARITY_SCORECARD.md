@@ -21,7 +21,7 @@ Sources on IBT: `docs/research/IBT_LEVEL_STRUCTURE.md`, `docs/research/IBT_FLOOR
 | IBT | Grand Exhibit | Status |
 |---|---|---|
 | A ladder of banks, each bigger and grander | 12 museums, from a small-town hall to the Infinite Museum, each a distinct 3D building | ✅ |
-| Banks grow mid-level: derelict areas renovated in order, next one shown ahead | Floors and wings (2F, 3F, …, Gilded Facade) open by goal milestones. They sit grey under dust sheets until renovated, then colour floods in. Glass lifts take visitors up | ✅ |
+| Banks grow mid-level: derelict areas renovated in order, next one shown ahead | Every museum has at least a 2F and a 3F plus the Gilded Facade, opened in order by goal milestones (Chronos Spire and the Infinite Museum have four storeys). Each new floor follows the museum's niche: Shipwreck Deck, Hall of Antiquities, Planetarium Deck, Abyss Gallery, Sun Terrace, Keep Battlements… Floors sit grey under dust sheets until renovated, then colour floods in. Glass lifts and skybridges take visitors up | ✅ |
 | Grandeur climbs with the bank | Grandeur Humble → Legendary: banners, red carpet and spotlights, gold statues, a gold dome, fireworks | ✅ (beyond IBT) |
 | Decor is levelable department items | Placed decor levels 1–10 (+income, +decor points, +reputation), priced in each museum's economy | ✅ |
 | Decor themed per bank | Each museum stocks its own four-piece themed set, unlocked by its milestones and shown locked in advance, plus the classic catalogue | ✅ |

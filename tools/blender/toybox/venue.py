@@ -576,7 +576,9 @@ class Builder:
         self.add("crown", txt)
 
     def upper_floors(self):
-        prev_top = FLOOR_TOP
+        # Authored floors come after the theme's own storeys (WingSystem order),
+        # so the first one's lift rises from the top theme storey.
+        prev_top = self.base(max(self.levels))
         for w in self.wings:
             self.upper_floor(w, prev_top)
             prev_top = w["layout"]["y"]
