@@ -160,7 +160,7 @@ func _next_charge_text() -> String:
 	if int(st.get("count", 0)) >= _max_charges():
 		return ""
 	var secs: int = maxi(int(st.get("ready_at", 0)) - ClockGuard.now(), 0)
-	return "Next free charge in %d:%02d" % [secs / 3600, (secs % 3600) / 60]
+	return tr("Next free charge in %d:%02d") % [secs / 3600, (secs % 3600) / 60]
 
 ## --- tier cards ---------------------------------------------------------------
 
@@ -192,15 +192,15 @@ func _refresh_status() -> void:
 			continue
 		if box_id == FIELD_BOX:
 			var count := int(charge_state().get("count", 0))
-			price_l.text = "FREE %d/%d" % [count, _max_charges()]
+			price_l.text = tr("FREE %d/%d") % [count, _max_charges()]
 			var next := _next_charge_text()
 			if next != "":
 				price_l.text += "   (%s)" % next
 			open_btn.text = "Open (watch ad)" if count > 0 else "Recharging — tap for details"
 		else:
 			var price := int(DataLoader.get_lootbox(box_id).get("price_gems", 0))
-			price_l.text = "%d Gems" % price
-			open_btn.text = "Buy & Open" if GameState.gems >= price else "Need %d Gems" % price
+			price_l.text = tr("%d Gems") % price
+			open_btn.text = "Buy & Open" if GameState.gems >= price else tr("Need %d Gems") % price
 		# Blocked actions stay live: their handlers explain the exact reason.
 		open_btn.disabled = false
 
@@ -218,7 +218,7 @@ func _build_tier_card(box_id: String) -> Dictionary:
 	name_l.add_theme_color_override("font_color", INK)
 	box.add_child(name_l)
 	var desc := Label.new()
-	desc.text = "%d manager cards  ·  +%s Insight  ·  +%d Gems" % [
+	desc.text = tr("%d manager cards  ·  +%s Insight  ·  +%d Gems") % [
 		int(def.get("cards_total", 0)),
 		BigNumber.from_float(float(def.get("insight_bonus_m", 0.0))).to_notation(),
 		int(def.get("gems_bonus", 0))]
@@ -226,7 +226,7 @@ func _build_tier_card(box_id: String) -> Dictionary:
 	desc.add_theme_color_override("font_color", DIM)
 	box.add_child(desc)
 	var odds := Label.new()
-	odds.text = "Published odds: " + LootboxSystem.rates_text(box_id)
+	odds.text = tr("Published odds: %s") % LootboxSystem.rates_text(box_id)
 	odds.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	odds.add_theme_font_size_override("font_size", 16)
 	odds.add_theme_color_override("font_color", SLATE)
@@ -238,7 +238,7 @@ func _build_tier_card(box_id: String) -> Dictionary:
 	if box_id == FIELD_BOX:
 		price_l.text = "FREE"
 	else:
-		price_l.text = "%d Gems" % int(def.get("price_gems", 0))
+		price_l.text = tr("%d Gems") % int(def.get("price_gems", 0))
 	box.add_child(price_l)
 	# buttons row
 	var row := HBoxContainer.new()
@@ -321,7 +321,7 @@ func _show_rates(box_id: String) -> void:
 	var p: Dictionary = _popup_panel(SLATE)
 	var box: VBoxContainer = p["box"]
 	var title := Label.new()
-	title.text = "%s — published drop rates" % str(def.get("name", box_id))
+	title.text = tr("%s — published drop rates") % tr(str(def.get("name", box_id)))
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.add_theme_font_size_override("font_size", 22)
 	title.add_theme_color_override("font_color", INK)
@@ -342,7 +342,7 @@ func _show_reveal(box_id: String, results: Dictionary) -> void:
 	var box: VBoxContainer = p["box"]
 	UI.play_sfx(self, "buy")
 	var title := Label.new()
-	title.text = "%s opened!" % str(DataLoader.get_lootbox(box_id).get("name", box_id))
+	title.text = tr("%s opened!") % tr(str(DataLoader.get_lootbox(box_id).get("name", box_id)))
 	UI.apply_display_font(title, title.text)
 	title.add_theme_font_size_override("font_size", 26)
 	title.add_theme_color_override("font_color", INK)
@@ -367,13 +367,13 @@ func _show_reveal(box_id: String, results: Dictionary) -> void:
 		text.add_child(UI.make_display_label("%dx  %s" % [
 			int(entry.get("n", 1)), str(def.get("name", entry.get("id", "?")))],
 			UI.TYPE_HEADING, INK))
-		text.add_child(ManagerBadge.pill(rarity.to_upper(),
+		text.add_child(ManagerBadge.pill(ManagerBadge.rarity_name(rarity).to_upper(),
 			RARITY_COLORS.get(rarity, UI.LOCKED)))
 		row.visible = false
 		box.add_child(row)
 		rows.append(row)
 	var bonus := Label.new()
-	bonus.text = "Bonus: +%s Insight  ·  +%d Gems" % [
+	bonus.text = tr("Bonus: +%s Insight  ·  +%d Gems") % [
 		(results.get("insight", BigNumber.zero()) as BigNumber).to_notation(),
 		int(results.get("gems", 0))]
 	bonus.add_theme_font_size_override("font_size", 20)

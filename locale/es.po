@@ -1,0 +1,6025 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Grand Exhibit\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
+
+#: autoload/economy.gd:486
+msgid "Flow unavailable"
+msgstr "Flujo no disponible"
+
+#: autoload/economy.gd:487
+msgid "Add staff to begin serving visitors."
+msgstr "Contrata personal para empezar a atender visitantes."
+
+#: autoload/economy.gd:493
+#, c-format
+msgid "%s is at this venue's ceiling"
+msgstr "%s está al máximo de este museo"
+
+#: autoload/economy.gd:494
+msgid "The venue is complete. Move on to unlock the next capacity tier."
+msgstr "El museo está completo. Avanza para desbloquear el siguiente nivel de capacidad."
+
+#: autoload/economy.gd:497
+#, c-format
+msgid "%s is fully upgraded here"
+msgstr "%s está totalmente mejorado aquí"
+
+#: autoload/economy.gd:498
+msgid "Finish the remaining objectives to unlock the next venue."
+msgstr "Completa los objetivos restantes para desbloquear el siguiente museo."
+
+#: autoload/economy.gd:501
+msgid "Add or improve café hosts to serve guests faster."
+msgstr "Añade o mejora camareros del café para servir más rápido."
+
+#: autoload/economy.gd:503
+msgid "Hire or improve marketers to bring visitors in faster."
+msgstr "Contrata o mejora publicistas para atraer visitantes más rápido."
+
+#: autoload/economy.gd:504
+msgid "Add or improve cashier stations to clear the queue faster."
+msgstr "Añade o mejora taquillas para vaciar la cola más rápido."
+
+#: autoload/economy.gd:505
+msgid "Add or improve porters and carts to bank counter cash faster."
+msgstr "Añade o mejora mozos y carritos para depositar el dinero del mostrador más rápido."
+
+#: autoload/economy.gd:508
+#, c-format
+msgid "%s needs attention"
+msgstr "%s necesita atención"
+
+#: autoload/economy.gd:509
+msgid "Upgrade this department."
+msgstr "Mejora este departamento."
+
+#: autoload/economy.gd:530
+#: scenes/meta/prestige_screen.gd:282
+#: scenes/ui/side_rail.gd:81
+#: scenes/venue/dept_panel.gd:62
+msgid "Decor"
+msgstr "Decoración"
+
+#: autoload/economy.gd:530
+msgid "Queues"
+msgstr "Colas"
+
+#: autoload/economy.gd:530
+#: scenes/meta/decor_screen.gd:301
+msgid "Rest Areas"
+msgstr "Zonas de descanso"
+
+#: autoload/economy.gd:636
+#, c-format
+msgid "%d of %d decor points"
+msgstr "%d de %d puntos de decoración"
+
+#: autoload/economy.gd:637
+msgid "queue never clears"
+msgstr "la cola nunca se vacía"
+
+#: autoload/economy.gd:638
+#, c-format
+msgid "%.0fs wait · %s of %s/s"
+msgstr "%.0fs de espera · %s de %s/s"
+
+#: autoload/economy.gd:640
+#, c-format
+msgid "%d of %d seats"
+msgstr "%d de %d asientos"
+
+#: autoload/economy.gd:703
+msgid "The crowd loves this place."
+msgstr "Al público le encanta este lugar."
+
+#: autoload/economy.gd:706
+#, c-format
+msgid "The halls look bare — %s."
+msgstr "Las salas se ven vacías — %s."
+
+#: autoload/economy.gd:708
+#, c-format
+msgid "Queues are slow — %s."
+msgstr "Las colas van lentas — %s."
+
+#: autoload/economy.gd:710
+#, c-format
+msgid "Nowhere to sit — %s."
+msgstr "No hay dónde sentarse — %s."
+
+#: autoload/iap_service.gd:212
+#: scenes/store/store_screen.gd:636
+msgid "Unavailable"
+msgstr "No disponible"
+
+#: autoload/platform_services.gd:194
+msgid "A cloud save with more progress was found. Open Settings to load it."
+msgstr "Se encontró una partida en la nube con más progreso. Abre Ajustes para cargarla."
+
+#: autoload/platform_services.gd:393
+#, c-format
+msgid "Achievement: %s"
+msgstr "Logro: %s"
+
+#: data/achievements.json
+msgid "Buy 100 upgrades."
+msgstr "Compra 100 mejoras."
+
+#: data/achievements.json
+msgid "Buy your first upgrade."
+msgstr "Compra tu primera mejora."
+
+#: data/achievements.json
+msgid "By Royal Appointment"
+msgstr "Por encargo real"
+
+#: data/achievements.json
+msgid "Claim seven Daily Gifts."
+msgstr "Reclama siete regalos diarios."
+
+#: data/achievements.json
+msgid "Collect a Royal Patron's tip."
+msgstr "Cobra la propina de un mecenas real."
+
+#: data/achievements.json
+msgid "Collect a VIP's tip."
+msgstr "Cobra la propina de un VIP."
+
+#: data/achievements.json
+msgid "Complete Collection"
+msgstr "Colección completa"
+
+#: data/achievements.json
+msgid "Complete a museum goal milestone."
+msgstr "Completa un hito de objetivos del museo."
+
+#: data/achievements.json
+msgid "Complete a museum's artifact collection."
+msgstr "Completa la colección de artefactos de un museo."
+
+#: data/achievements.json
+msgid "Curator of Wonders"
+msgstr "Curador de maravillas"
+
+#: data/achievements.json
+msgid "Delegation"
+msgstr "Delegar"
+
+#: data/achievements.json
+msgid "Dig It"
+msgstr "¡A excavar!"
+
+#: data/achievements.json
+msgid "Going Up"
+msgstr "Hacia arriba"
+
+#: data/achievements.json
+msgid "Gold on the Dome"
+msgstr "Oro en la cúpula"
+
+#: data/achievements.json
+msgid "Hire your first manager."
+msgstr "Contrata a tu primer gerente."
+
+#: data/achievements.json
+msgid "Household Name"
+msgstr "Nombre conocido"
+
+#: data/achievements.json
+#: data/quests_milestones.json
+msgid "Local Buzz"
+msgstr "Rumor local"
+
+#: data/achievements.json
+msgid "Moving Up"
+msgstr "Subiendo de nivel"
+
+#: data/achievements.json
+msgid "Open for Business"
+msgstr "Abierto al público"
+
+#: data/achievements.json
+msgid "Open the final museum."
+msgstr "Abre el último museo."
+
+#: data/achievements.json
+msgid "Open your second museum."
+msgstr "Abre tu segundo museo."
+
+#: data/achievements.json
+msgid "Open your sixth museum."
+msgstr "Abre tu sexto museo."
+
+#: data/achievements.json
+msgid "Raise a museum to Grand."
+msgstr "Lleva un museo a Grandioso."
+
+#: data/achievements.json
+msgid "Raise a museum to Magnificent."
+msgstr "Lleva un museo a Magnífico."
+
+#: data/achievements.json
+msgid "Reach reputation 10."
+msgstr "Alcanza reputación 10."
+
+#: data/achievements.json
+msgid "Recover a three-star artifact."
+msgstr "Recupera un artefacto de tres estrellas."
+
+#: data/achievements.json
+msgid "Recover an artifact at a dig site."
+msgstr "Recupera un artefacto en una excavación."
+
+#: data/achievements.json
+msgid "Regular"
+msgstr "Habitual"
+
+#: data/achievements.json
+msgid "Renovate a second floor."
+msgstr "Renueva una segunda planta."
+
+#: data/achievements.json
+msgid "Renovator"
+msgstr "Reformista"
+
+#: data/achievements.json
+msgid "Simply Grand"
+msgstr "Simplemente grandioso"
+
+#: data/achievements.json
+msgid "Steady Hands"
+msgstr "Pulso firme"
+
+#: data/achievements.json
+#: data/venues.json
+msgid "The Infinite Museum"
+msgstr "El Museo Infinito"
+
+#: data/achievements.json
+msgid "Very Important Visitor"
+msgstr "Visitante muy importante"
+
+#: data/balance_core.json
+msgid "Bonus revenue per visitor. Staff = docents, Speed = tour flow, Value = bonus per visitor."
+msgstr "Ingresos extra por visitante. Personal = guías, Velocidad = flujo de la visita, Valor = extra por visitante."
+
+#: data/balance_core.json
+msgid "Brings visitors to the museum. Staff = marketers, Speed = campaign reach, Value = audience quality (richer visitors pay more)."
+msgstr "Atrae visitantes al museo. Personal = publicistas, Velocidad = alcance de campaña, Valor = calidad del público (los visitantes con más dinero pagan más)."
+
+#: data/balance_core.json
+msgid "Promotions Office"
+msgstr "Oficina de Promoción"
+
+#: data/balance_core.json
+msgid "Staff cart earnings from ticket halls to the vault. Staff = porters, Speed = cart rate, Value = cart capacity."
+msgstr "El personal lleva en carritos lo recaudado de las taquillas a la cámara. Personal = mozos, Velocidad = ritmo de carritos, Valor = capacidad del carrito."
+
+#: data/balance_core.json
+msgid "The Archive"
+msgstr "El Archivo"
+
+#: data/balance_core.json
+msgid "Ticket Halls"
+msgstr "Taquillas"
+
+#: data/balance_core.json
+msgid "Visitors queue and pay here. Staff = windows, Speed = serve rate, Value = admission price."
+msgstr "Aquí los visitantes hacen cola y pagan. Personal = ventanillas, Velocidad = ritmo de atención, Valor = precio de la entrada."
+
+#: data/cafe_event.json
+msgid "Amphora Gift Stall"
+msgstr "Puesto de regalos Ánfora"
+
+#: data/cafe_event.json
+msgid "Anchor Scones"
+msgstr "Scones del Ancla"
+
+#: data/cafe_event.json
+msgid "Aurora Berry Cart"
+msgstr "Carrito de bayas Aurora"
+
+#: data/cafe_event.json
+msgid "Cafe at the End of Time"
+msgstr "Café del Fin de los Tiempos"
+
+#: data/cafe_event.json
+msgid "Castle Kitchen"
+msgstr "Cocina del Castillo"
+
+#: data/cafe_event.json
+msgid "Chocolate Bar"
+msgstr "Barra de chocolate"
+
+#: data/cafe_event.json
+msgid "Chowder Cart"
+msgstr "Carrito de sopa marinera"
+
+#: data/cafe_event.json
+msgid "Cinnamon Knots"
+msgstr "Nudos de canela"
+
+#: data/cafe_event.json
+msgid "Clockwork Tea Bar"
+msgstr "Salón de té de relojería"
+
+#: data/cafe_event.json
+msgid "Cog Biscuits"
+msgstr "Galletas de engranaje"
+
+#: data/cafe_event.json
+msgid "Comet Cone Cart"
+msgstr "Carrito de cucuruchos Cometa"
+
+#: data/cafe_event.json
+msgid "Coral Cafe"
+msgstr "Café Coral"
+
+#: data/cafe_event.json
+msgid "Crown Eclairs"
+msgstr "Éclairs de la Corona"
+
+#: data/cafe_event.json
+msgid "Crystal Gift Stall"
+msgstr "Puesto de regalos de cristal"
+
+#: data/cafe_event.json
+msgid "Date Cake Case"
+msgstr "Vitrina de pastel de dátiles"
+
+#: data/cafe_event.json
+msgid "Delta Gelato"
+msgstr "Helados del Delta"
+
+#: data/cafe_event.json
+msgid "Dino Diner"
+msgstr "Dino Diner"
+
+#: data/cafe_event.json
+msgid "Dino Plush Stand"
+msgstr "Puesto de dinos de peluche"
+
+#: data/cafe_event.json
+msgid "Espresso Bar"
+msgstr "Barra de espresso"
+
+#: data/cafe_event.json
+msgid "Fern Coffee Bar"
+msgstr "Café del Helecho"
+
+#: data/cafe_event.json
+msgid "Fossil Cookies"
+msgstr "Galletas fósiles"
+
+#: data/cafe_event.json
+msgid "Galaxy Latte Bar"
+msgstr "Barra de lattes Galaxia"
+
+#: data/cafe_event.json
+msgid "Gelato Cart"
+msgstr "Carrito de helados"
+
+#: data/cafe_event.json
+msgid "Harbour Chowder Hut"
+msgstr "Chiringuito de sopa del Puerto"
+
+#: data/cafe_event.json
+msgid "Honey Cider Bar"
+msgstr "Barra de sidra con miel"
+
+#: data/cafe_event.json
+msgid "Hot Cocoa Bar"
+msgstr "Barra de chocolate caliente"
+
+#: data/cafe_event.json
+msgid "Infinity Espresso"
+msgstr "Espresso Infinito"
+
+#: data/cafe_event.json
+msgid "Kelp Smoothie Cart"
+msgstr "Carrito de batidos de algas"
+
+#: data/cafe_event.json
+msgid "Kettle Tea Bar"
+msgstr "Salón de té La Tetera"
+
+#: data/cafe_event.json
+msgid "Longhouse Honey Hall"
+msgstr "Salón de miel de la Casa Larga"
+
+#: data/cafe_event.json
+msgid "Marshmallow Cart"
+msgstr "Carrito de malvaviscos"
+
+#: data/cafe_event.json
+msgid "Mint Tea Bar"
+msgstr "Barra de té de menta"
+
+#: data/cafe_event.json
+msgid "Moon Pie Case"
+msgstr "Vitrina de pasteles lunares"
+
+#: data/cafe_event.json
+msgid "Oasis Tea Tent"
+msgstr "Jaima de té del Oasis"
+
+#: data/cafe_event.json
+msgid "Olive Bread Case"
+msgstr "Vitrina de pan de olivas"
+
+#: data/cafe_event.json
+msgid "Paradox Pastries"
+msgstr "Pasteles Paradoja"
+
+#: data/cafe_event.json
+msgid "Pearl Trinket Stall"
+msgstr "Puesto de baratijas de perla"
+
+#: data/cafe_event.json
+msgid "Pocket Watch Stall"
+msgstr "Puesto de relojes de bolsillo"
+
+#: data/cafe_event.json
+msgid "Relic Replica Stall"
+msgstr "Puesto de réplicas de reliquias"
+
+#: data/cafe_event.json
+msgid "Roast Chestnut Cart"
+msgstr "Carrito de castañas asadas"
+
+#: data/cafe_event.json
+msgid "Rose Sorbet Cart"
+msgstr "Carrito de sorbete de rosa"
+
+#: data/cafe_event.json
+msgid "Royal Patisserie"
+msgstr "Pastelería Real"
+
+#: data/cafe_event.json
+msgid "Royal Pie Case"
+msgstr "Vitrina de tartas reales"
+
+#: data/cafe_event.json
+msgid "Rune Charm Stall"
+msgstr "Puesto de amuletos rúnicos"
+
+#: data/cafe_event.json
+msgid "Scarab Charm Stall"
+msgstr "Puesto de amuletos de escarabajo"
+
+#: data/cafe_event.json
+msgid "Seafoam Latte Bar"
+msgstr "Barra de lattes Espuma de Mar"
+
+#: data/cafe_event.json
+msgid "Shell Macarons"
+msgstr "Macarons de concha"
+
+#: data/cafe_event.json
+msgid "Ship-in-a-Bottle Stall"
+msgstr "Puesto de barcos en botella"
+
+#: data/cafe_event.json
+msgid "Snowcap Cupcakes"
+msgstr "Cupcakes Cumbre Nevada"
+
+#: data/cafe_event.json
+msgid "Squire's Brew Bar"
+msgstr "Barra del Escudero"
+
+#: data/cafe_event.json
+msgid "Star Map Stall"
+msgstr "Puesto de cartas estelares"
+
+#: data/cafe_event.json
+msgid "Stardust Cafe"
+msgstr "Café Polvo de Estrellas"
+
+#: data/cafe_event.json
+msgid "Steam Bun Cart"
+msgstr "Carrito de bollos al vapor"
+
+#: data/cafe_event.json
+msgid "Summit Cocoa Lodge"
+msgstr "Refugio del cacao de la Cumbre"
+
+#: data/cafe_event.json
+msgid "Sun Lemonade Cart"
+msgstr "Carrito de limonada del Sol"
+
+#: data/cafe_event.json
+msgid "Tiara Stall"
+msgstr "Puesto de tiaras"
+
+#: data/cafe_event.json
+msgid "Tick-Tock Tearoom"
+msgstr "Salón de té Tic-Tac"
+
+#: data/cafe_event.json
+msgid "Toy Shield Stall"
+msgstr "Puesto de escudos de juguete"
+
+#: data/cafe_event.json
+msgid "Volcano Smoothies"
+msgstr "Batidos Volcán"
+
+#: data/cafe_event.json
+msgid "Wormhole Waffles"
+msgstr "Gofres Agujero de Gusano"
+
+#: data/decor.json
+msgid "A carved wooden archway from the original 1911 building."
+msgstr "Un arco de madera tallada del edificio original de 1911."
+
+#: data/decor.json
+msgid "A date palm in a scarab-carved pot."
+msgstr "Una palmera datilera en una maceta tallada con escarabajos."
+
+#: data/decor.json
+msgid "A fir dusted in real snow, somehow."
+msgstr "Un abeto espolvoreado de nieve de verdad, quién sabe cómo."
+
+#: data/decor.json
+msgid "A gleaming centerpiece. Coins tossed in are pure profit."
+msgstr "Una pieza central reluciente. Las monedas que tiran son ganancia pura."
+
+#: data/decor.json
+msgid "A hedge trimmed into the shape of the original hall."
+msgstr "Un seto recortado con la forma de la sala original."
+
+#: data/decor.json
+msgid "A living arch of coral in a shallow pool."
+msgstr "Un arco vivo de coral en un estanque poco profundo."
+
+#: data/decor.json
+msgid "A painted amphora from the river delta."
+msgstr "Un ánfora pintada del delta del río."
+
+#: data/decor.json
+msgid "A pearly nautilus older than the palace."
+msgstr "Un nautilo nacarado más antiguo que el palacio."
+
+#: data/decor.json
+msgid "A pine cone the size of a toddler. Visitors pose with it."
+msgstr "Una piña del tamaño de un niño pequeño. Los visitantes posan con ella."
+
+#: data/decor.json
+msgid "A poet in marble, laurel slightly askew."
+msgstr "Un poeta de mármol, con el laurel algo torcido."
+
+#: data/decor.json
+msgid "A red dragon on a field of iron."
+msgstr "Un dragón rojo sobre un campo de hierro."
+
+#: data/decor.json
+msgid "A row of benches down the long hall. Tired feet spend more."
+msgstr "Una fila de bancos a lo largo de la sala. Los pies cansados gastan más."
+
+#: data/decor.json
+msgid "A sapling grown from every seed at once."
+msgstr "Un brote nacido de todas las semillas a la vez."
+
+#: data/decor.json
+msgid "A slice of reef with clownfish on patrol."
+msgstr "Un trozo de arrecife con peces payaso de patrulla."
+
+#: data/decor.json
+msgid "A tiered deck over the gardens. Half the crowd sits here on purpose."
+msgstr "Una terraza escalonada sobre los jardines. Media multitud se sienta aquí a propósito."
+
+#: data/decor.json
+msgid "Abyss Tank"
+msgstr "Acuario abisal"
+
+#: data/decor.json
+msgid "Abyssal Set"
+msgstr "Conjunto abisal"
+
+#: data/decor.json
+msgid "Amphora Plinth"
+msgstr "Pedestal de ánfora"
+
+#: data/decor.json
+msgid "An amethyst geode split to show its heart."
+msgstr "Una geoda de amatista partida para mostrar su corazón."
+
+#: data/decor.json
+msgid "Anchor Bench"
+msgstr "Banco del Ancla"
+
+#: data/decor.json
+msgid "Ancient Obelisk"
+msgstr "Obelisco antiguo"
+
+#: data/decor.json
+msgid "Antiquity Set"
+msgstr "Conjunto de la Antigüedad"
+
+#: data/decor.json
+msgid "Athena Banner"
+msgstr "Estandarte de Atenea"
+
+#: data/decor.json
+msgid "Atrium Lounge"
+msgstr "Salón del atrio"
+
+#: data/decor.json
+msgid "Aurora Banner"
+msgstr "Estandarte Aurora"
+
+#: data/decor.json
+msgid "Aurora Orrery"
+msgstr "Planetario Aurora"
+
+#: data/decor.json
+msgid "Baby T. rex Statue"
+msgstr "Estatua de cría de T. rex"
+
+#: data/decor.json
+msgid "Blooms only after dark."
+msgstr "Solo florece de noche."
+
+#: data/decor.json
+msgid "Brass Fountain"
+msgstr "Fuente de latón"
+
+#: data/decor.json
+msgid "Bronze, friendly, and extremely photographed."
+msgstr "De bronce, simpático y fotografiadísimo."
+
+#: data/decor.json
+msgid "Canopic Case"
+msgstr "Vitrina canópica"
+
+#: data/decor.json
+msgid "Canvas awnings over garden seating. Somewhere to sit out the rain."
+msgstr "Toldos de lona sobre los asientos del jardín. Un sitio para esperar a que pase la lluvia."
+
+#: data/decor.json
+msgid "Carved by the expedition team at base camp."
+msgstr "Tallado por el equipo de la expedición en el campamento base."
+
+#: data/decor.json
+msgid "Carved from a retired longship's oars."
+msgstr "Tallado con los remos de un drakkar retirado."
+
+#: data/decor.json
+msgid "Carved runes that glow faintly at night."
+msgstr "Runas talladas que brillan tenuemente de noche."
+
+#: data/decor.json
+msgid "Catches the sunrise on its golden tip."
+msgstr "Atrapa el amanecer en su punta dorada."
+
+#: data/decor.json
+msgid "Classical Set"
+msgstr "Conjunto clásico"
+
+#: data/decor.json
+msgid "Climate-controlled case for the fragile good stuff."
+msgstr "Vitrina climatizada para lo bueno y frágil."
+
+#: data/decor.json
+msgid "Clipped into the shape of a crown."
+msgstr "Recortado con forma de corona."
+
+#: data/decor.json
+msgid "Clock of All Times"
+msgstr "Reloj de Todos los Tiempos"
+
+#: data/decor.json
+msgid "Clockmaker Set"
+msgstr "Conjunto del Relojero"
+
+#: data/decor.json
+#: data/quests_milestones.json
+msgid "Cloud Throne"
+msgstr "Trono de nubes"
+
+#: data/decor.json
+msgid "Cogwheel Planter"
+msgstr "Jardinera de engranajes"
+
+#: data/decor.json
+msgid "Column Gate"
+msgstr "Puerta de columnas"
+
+#: data/decor.json
+msgid "Comet Glass Case"
+msgstr "Vitrina de vidrio de cometa"
+
+#: data/decor.json
+msgid "Coral Arch Pool"
+msgstr "Estanque con arco de coral"
+
+#: data/decor.json
+msgid "Coral Throne"
+msgstr "Trono de coral"
+
+#: data/decor.json
+msgid "Court Banner"
+msgstr "Estandarte de la corte"
+
+#: data/decor.json
+msgid "Crests of every house that held the citadel."
+msgstr "Los blasones de todas las casas que tuvieron la ciudadela."
+
+#: data/decor.json
+msgid "Crystal Chandelier"
+msgstr "Araña de cristal"
+
+#: data/decor.json
+msgid "Crystal Geode Case"
+msgstr "Vitrina de geoda de cristal"
+
+#: data/decor.json
+msgid "Curator's Throne"
+msgstr "Trono del Curador"
+
+#: data/decor.json
+msgid "Deep armchairs under the atrium glass. Nobody leaves in a hurry."
+msgstr "Sillones mullidos bajo el cristal del atrio. Nadie se va con prisa."
+
+#: data/decor.json
+msgid "Dragon Banner"
+msgstr "Estandarte del dragón"
+
+#: data/decor.json
+msgid "Every museum you ever opened, orbiting."
+msgstr "Todos los museos que abriste, en órbita."
+
+#: data/decor.json
+msgid "Every peak the museum's founders climbed."
+msgstr "Todas las cumbres que escalaron los fundadores del museo."
+
+#: data/decor.json
+msgid "Expedition Totem"
+msgstr "Tótem de la expedición"
+
+#: data/decor.json
+msgid "Fossil Drawer Case"
+msgstr "Vitrina de cajones de fósiles"
+
+#: data/decor.json
+msgid "Founder's Crest Banner"
+msgstr "Estandarte del blasón fundador"
+
+#: data/decor.json
+msgid "Four jars, four gods, one very nervous curator."
+msgstr "Cuatro vasijas, cuatro dioses y un curador muy nervioso."
+
+#: data/decor.json
+msgid "Fresh flowers say: yes, we are open."
+msgstr "Las flores frescas dicen: sí, estamos abiertos."
+
+#: data/decor.json
+msgid "Frogs included at no extra charge."
+msgstr "Ranas incluidas sin coste extra."
+
+#: data/decor.json
+msgid "Frost Fir Planter"
+msgstr "Jardinera de abeto helado"
+
+#: data/decor.json
+msgid "Giant Pine-Cone Planter"
+msgstr "Jardinera de piña gigante"
+
+#: data/decor.json
+msgid "Glass fused when a comet grazed the desert."
+msgstr "Vidrio fundido cuando un cometa rozó el desierto."
+
+#: data/decor.json
+msgid "Golden Pharaoh Mask"
+msgstr "Máscara dorada del faraón"
+
+#: data/decor.json
+msgid "Golden Sarcophagus"
+msgstr "Sarcófago dorado"
+
+#: data/decor.json
+msgid "Grand Brass Orrery"
+msgstr "Gran planetario de latón"
+
+#: data/decor.json
+msgid "Great Eagle"
+msgstr "Gran águila"
+
+#: data/decor.json
+msgid "Green and violet silk that ripples like the lights."
+msgstr "Seda verde y violeta que ondea como las luces del norte."
+
+#: data/decor.json
+msgid "Hand-painted owls, foxes and one very serious badger."
+msgstr "Búhos, zorros y un tejón muy serio, pintados a mano."
+
+#: data/decor.json
+msgid "Heritage Arch"
+msgstr "Arco del patrimonio"
+
+#: data/decor.json
+msgid "Heritage Set"
+msgstr "Conjunto patrimonial"
+
+#: data/decor.json
+msgid "Heritage Topiary"
+msgstr "Topiario del patrimonio"
+
+#: data/decor.json
+msgid "Hourglass Case"
+msgstr "Vitrina de relojes de arena"
+
+#: data/decor.json
+msgid "Infinite Set"
+msgstr "Conjunto infinito"
+
+#: data/decor.json
+msgid "It shows every hour at once."
+msgstr "Marca todas las horas a la vez."
+
+#: data/decor.json
+msgid "It watches the entrance. Visitors swear it blinks."
+msgstr "Vigila la entrada. Los visitantes juran que parpadea."
+
+#: data/decor.json
+msgid "Ivy trained through antique gears."
+msgstr "Hiedra guiada entre engranajes antiguos."
+
+#: data/decor.json
+msgid "Jellyfish Column"
+msgstr "Columna de medusas"
+
+#: data/decor.json
+msgid "Keeps time to a hundredth of a second."
+msgstr "Da la hora al centésimo de segundo."
+
+#: data/decor.json
+msgid "Knight's Armour"
+msgstr "Armadura de caballero"
+
+#: data/decor.json
+msgid "Knighthood Set"
+msgstr "Conjunto de caballería"
+
+#: data/decor.json
+msgid "Knights not included."
+msgstr "Caballeros no incluidos."
+
+#: data/decor.json
+msgid "Lanternfish glow in the dark water."
+msgstr "Peces linterna brillan en el agua oscura."
+
+#: data/decor.json
+msgid "Laureate Statue"
+msgstr "Estatua del laureado"
+
+#: data/decor.json
+msgid "Lily Pond"
+msgstr "Estanque de nenúfares"
+
+#: data/decor.json
+msgid "Longship Bench"
+msgstr "Banco de drakkar"
+
+#: data/decor.json
+msgid "Marble Bust of Septimus"
+msgstr "Busto de mármol de Septimus"
+
+#: data/decor.json
+msgid "Moon jellies drift up a glass tube."
+msgstr "Medusas luna suben flotando por un tubo de cristal."
+
+#: data/decor.json
+msgid "Moonflower Planter"
+msgstr "Jardinera de flor de luna"
+
+#: data/decor.json
+msgid "Mosaic Floor"
+msgstr "Suelo de mosaico"
+
+#: data/decor.json
+msgid "Mown stripes and trestle tables. School groups can finally sit down."
+msgstr "Rayas de césped cortado y mesas de caballete. Por fin los grupos escolares pueden sentarse."
+
+#: data/decor.json
+msgid "Naturalist Set"
+msgstr "Conjunto naturalista"
+
+#: data/decor.json
+msgid "Nautilus Case"
+msgstr "Vitrina del nautilo"
+
+#: data/decor.json
+msgid "Nine worlds on brass arms."
+msgstr "Nueve mundos en brazos de latón."
+
+#: data/decor.json
+msgid "Nobody knows who Septimus was. Everyone agrees he matters."
+msgstr "Nadie sabe quién fue Septimus. Todos coinciden en que importa."
+
+#: data/decor.json
+msgid "Northern Lights Set"
+msgstr "Conjunto Aurora Boreal"
+
+#: data/decor.json
+msgid "Oak Bench"
+msgstr "Banco de roble"
+
+#: data/decor.json
+msgid "Orb, sceptre and a very small tiara."
+msgstr "Orbe, cetro y una tiara muy pequeña."
+
+#: data/decor.json
+msgid "Orbital Garden Set"
+msgstr "Conjunto Jardín Orbital"
+
+#: data/decor.json
+msgid "Orrery of Worlds"
+msgstr "Planetario de los Mundos"
+
+#: data/decor.json
+msgid "Padded alcoves off the main hall. The only silence in the building."
+msgstr "Rincones acolchados junto a la sala principal. El único silencio del edificio."
+
+#: data/decor.json
+msgid "Panorama Rest Deck"
+msgstr "Mirador de descanso panorámico"
+
+#: data/decor.json
+msgid "Pendulum Clock"
+msgstr "Reloj de péndulo"
+
+#: data/decor.json
+msgid "Pharaoh Set"
+msgstr "Conjunto del Faraón"
+
+#: data/decor.json
+msgid "Picnic Lawn"
+msgstr "Césped de pícnic"
+
+#: data/decor.json
+msgid "Polished every morning, dented every war."
+msgstr "Pulida cada mañana, abollada en cada guerra."
+
+#: data/decor.json
+msgid "Pull-out drawers of ammonites and fern prints."
+msgstr "Cajones con amonites y huellas de helecho."
+
+#: data/decor.json
+msgid "Queues feel classier behind velvet."
+msgstr "Las colas parecen más elegantes tras el terciopelo."
+
+#: data/decor.json
+msgid "Quiet Reading Nook"
+msgstr "Rincón de lectura tranquilo"
+
+#: data/decor.json
+msgid "Reading Lamps"
+msgstr "Lámparas de lectura"
+
+#: data/decor.json
+msgid "Reclaimed columns from a fallen temple."
+msgstr "Columnas recuperadas de un templo caído."
+
+#: data/decor.json
+msgid "Recovered from the deep desert. Priceless; please don't touch."
+msgstr "Recuperado en lo más hondo del desierto. No tiene precio; por favor, no tocar."
+
+#: data/decor.json
+msgid "Recovered on expedition. Not for sale."
+msgstr "Recuperado en una expedición. No está a la venta."
+
+#: data/decor.json
+msgid "Reef Tank"
+msgstr "Acuario de arrecife"
+
+#: data/decor.json
+msgid "Regalia Case"
+msgstr "Vitrina de las joyas reales"
+
+#: data/decor.json
+msgid "Relic Display Case"
+msgstr "Vitrina de reliquias"
+
+#: data/decor.json
+msgid "Reserved for you."
+msgstr "Reservado para ti."
+
+#: data/decor.json
+msgid "Round Table"
+msgstr "Mesa redonda"
+
+#: data/decor.json
+msgid "Royal Court Set"
+msgstr "Conjunto de la Corte Real"
+
+#: data/decor.json
+msgid "Royal Rose Topiary"
+msgstr "Topiario de rosas reales"
+
+#: data/decor.json
+msgid "Runestone Plinth"
+msgstr "Pedestal de piedra rúnica"
+
+#: data/decor.json
+msgid "Salvaged timber on anchor legs."
+msgstr "Madera recuperada sobre patas de ancla."
+
+#: data/decor.json
+msgid "Sand from twelve centuries."
+msgstr "Arena de doce siglos."
+
+#: data/decor.json
+msgid "Scarab Palm Pot"
+msgstr "Maceta de palmera con escarabajos"
+
+#: data/decor.json
+msgid "Scroll Library"
+msgstr "Biblioteca de pergaminos"
+
+#: data/decor.json
+msgid "Scrolls stacked like firewood."
+msgstr "Pergaminos apilados como leña."
+
+#: data/decor.json
+msgid "Sea grass that sways without any wind."
+msgstr "Hierba marina que se mece sin viento."
+
+#: data/decor.json
+msgid "Sea-Grass Urn"
+msgstr "Urna de hierba marina"
+
+#: data/decor.json
+msgid "Seven kilos of cut crystal. Do not tap."
+msgstr "Siete kilos de cristal tallado. No dar golpecitos."
+
+#: data/decor.json
+msgid "Shaded Terrace"
+msgstr "Terraza a la sombra"
+
+#: data/decor.json
+msgid "Shield Rack"
+msgstr "Soporte de escudos"
+
+#: data/decor.json
+msgid "Sphinx Statue"
+msgstr "Estatua de esfinge"
+
+#: data/decor.json
+msgid "Stargazer Tea Table"
+msgstr "Mesa de té del Astrónomo"
+
+#: data/decor.json
+msgid "Sturdy seating for weary visitors."
+msgstr "Asientos robustos para visitantes cansados."
+
+#: data/decor.json
+msgid "Summit Banner"
+msgstr "Estandarte de la cumbre"
+
+#: data/decor.json
+msgid "Summit Set"
+msgstr "Conjunto de la Cumbre"
+
+#: data/decor.json
+msgid "Sun Obelisk"
+msgstr "Obelisco solar"
+
+#: data/decor.json
+msgid "Tea, telescopes and very late nights."
+msgstr "Té, telescopios y noches muy largas."
+
+#: data/decor.json
+msgid "The museum crest, stitched in brass thread."
+msgstr "El blasón del museo, bordado en hilo de latón."
+
+#: data/decor.json
+msgid "The owl of wisdom, in gold thread."
+msgstr "El búho de la sabiduría, en hilo de oro."
+
+#: data/decor.json
+msgid "The palace crest on violet velvet."
+msgstr "El blasón del palacio sobre terciopelo violeta."
+
+#: data/decor.json
+msgid "The sky, wound up and ticking."
+msgstr "El cielo, con cuerda y haciendo tictac."
+
+#: data/decor.json
+msgid "The slats click, gently, as you sit."
+msgstr "Los listones hacen clic, suavemente, al sentarte."
+
+#: data/decor.json
+msgid "The star of the show. Please do not knock."
+msgstr "La estrella del espectáculo. Por favor, no golpear."
+
+#: data/decor.json
+msgid "Tick-Tock Bench"
+msgstr "Banco Tic-Tac"
+
+#: data/decor.json
+msgid "Tidepool Set"
+msgstr "Conjunto de charcas de marea"
+
+#: data/decor.json
+msgid "Two thousand tiles, one enormous jigsaw."
+msgstr "Dos mil azulejos, un rompecabezas enorme."
+
+#: data/decor.json
+msgid "Upholstered in something that feels like clouds."
+msgstr "Tapizado con algo que parece nube."
+
+#: data/decor.json
+msgid "Velvet Rope Line"
+msgstr "Fila con cordón de terciopelo"
+
+#: data/decor.json
+msgid "Visitor Bench Run"
+msgstr "Hilera de bancos para visitantes"
+
+#: data/decor.json
+msgid "Warm light makes plaques irresistible."
+msgstr "La luz cálida hace irresistibles las placas."
+
+#: data/decor.json
+msgid "Welcome Planter"
+msgstr "Jardinera de bienvenida"
+
+#: data/decor.json
+msgid "Where the Pelagic crown was said to sit."
+msgstr "Donde se dice que reposaba la corona pelágica."
+
+#: data/decor.json
+msgid "Wildlife Banner"
+msgstr "Estandarte de fauna"
+
+#: data/decor.json
+msgid "Wingspan wider than the ticket desk."
+msgstr "Con una envergadura mayor que la taquilla."
+
+#: data/decor.json
+msgid "World-Tree Sapling"
+msgstr "Brote del Árbol del Mundo"
+
+#: data/dig_sites.json
+msgid "Abyssal Reef"
+msgstr "Arrecife abisal"
+
+#: data/dig_sites.json
+msgid "Amber with Mosquito"
+msgstr "Ámbar con mosquito"
+
+#: data/dig_sites.json
+msgid "Aurora Crystal"
+msgstr "Cristal de aurora"
+
+#: data/dig_sites.json
+msgid "Aurora Stonefield"
+msgstr "Pedregal de la Aurora"
+
+#: data/dig_sites.json
+msgid "Automaton Head"
+msgstr "Cabeza de autómata"
+
+#: data/dig_sites.json
+msgid "Brass Astrolabe"
+msgstr "Astrolabio de latón"
+
+#: data/dig_sites.json
+msgid "Canopic Jar"
+msgstr "Vaso canopo"
+
+#: data/dig_sites.json
+msgid "Citadel Armory Vault"
+msgstr "Cámara del arsenal de la ciudadela"
+
+#: data/dig_sites.json
+msgid "Clockwork Catacombs"
+msgstr "Catacumbas de relojería"
+
+#: data/dig_sites.json
+msgid "Cloudpeak Ice Cave"
+msgstr "Cueva de hielo del Pico Nublado"
+
+#: data/dig_sites.json
+msgid "Cog of Ages"
+msgstr "Engranaje de las Eras"
+
+#: data/dig_sites.json
+msgid "Comet Glass"
+msgstr "Vidrio de cometa"
+
+#: data/dig_sites.json
+msgid "Coral Crown"
+msgstr "Corona de coral"
+
+#: data/dig_sites.json
+msgid "Coral Trident"
+msgstr "Tridente de coral"
+
+#: data/dig_sites.json
+msgid "Crest Shield"
+msgstr "Escudo con blasón"
+
+#: data/dig_sites.json
+msgid "Crystal Geode"
+msgstr "Geoda de cristal"
+
+#: data/dig_sites.json
+msgid "Dragon Skull"
+msgstr "Cráneo de dragón"
+
+#: data/dig_sites.json
+msgid "Eagle Idol"
+msgstr "Ídolo del águila"
+
+#: data/dig_sites.json
+msgid "Empyrean Crown"
+msgstr "Corona empírea"
+
+#: data/dig_sites.json
+msgid "Explorer's Ice Axe"
+msgstr "Piolet del explorador"
+
+#: data/dig_sites.json
+msgid "Fossil Seed Pod"
+msgstr "Vaina de semillas fósil"
+
+#: data/dig_sites.json
+msgid "Giant Ammonite"
+msgstr "Amonites gigante"
+
+#: data/dig_sites.json
+msgid "Giant Pearl"
+msgstr "Perla gigante"
+
+#: data/dig_sites.json
+msgid "Golden Death Mask"
+msgstr "Máscara funeraria dorada"
+
+#: data/dig_sites.json
+msgid "Golden Laurel"
+msgstr "Laurel dorado"
+
+#: data/dig_sites.json
+msgid "Great Cog"
+msgstr "Gran engranaje"
+
+#: data/dig_sites.json
+msgid "Hourglass"
+msgstr "Reloj de arena"
+
+#: data/dig_sites.json
+msgid "Ionic Capital"
+msgstr "Capitel jónico"
+
+#: data/dig_sites.json
+msgid "Iron Crown"
+msgstr "Corona de hierro"
+
+#: data/dig_sites.json
+msgid "Iron Meteorite"
+msgstr "Meteorito de hierro"
+
+#: data/dig_sites.json
+msgid "Jade Seal"
+msgstr "Sello de jade"
+
+#: data/dig_sites.json
+msgid "Jeweled Egg"
+msgstr "Huevo enjoyado"
+
+#: data/dig_sites.json
+msgid "Knight's Helm"
+msgstr "Yelmo de caballero"
+
+#: data/dig_sites.json
+msgid "Lapis Scarab"
+msgstr "Escarabajo de lapislázuli"
+
+#: data/dig_sites.json
+msgid "Longsword"
+msgstr "Espada larga"
+
+#: data/dig_sites.json
+msgid "Marble Bust"
+msgstr "Busto de mármol"
+
+#: data/dig_sites.json
+msgid "Mask of Firsts"
+msgstr "Máscara de los Primeros"
+
+#: data/dig_sites.json
+msgid "Message in a Bottle"
+msgstr "Mensaje en una botella"
+
+#: data/dig_sites.json
+msgid "Meteor Garden"
+msgstr "Jardín de meteoritos"
+
+#: data/dig_sites.json
+msgid "Obelisk Shard"
+msgstr "Fragmento de obelisco"
+
+#: data/dig_sites.json
+msgid "Old Anchor"
+msgstr "Ancla vieja"
+
+#: data/dig_sites.json
+msgid "Orrery Gear"
+msgstr "Engranaje de planetario"
+
+#: data/dig_sites.json
+msgid "Painted Amphora"
+msgstr "Ánfora pintada"
+
+#: data/dig_sites.json
+msgid "Palace Treasury"
+msgstr "Tesoro del palacio"
+
+#: data/dig_sites.json
+msgid "Pearl Nautilus"
+msgstr "Nautilo de perla"
+
+#: data/dig_sites.json
+msgid "Pearl Oyster"
+msgstr "Ostra perlera"
+
+#: data/dig_sites.json
+msgid "Pendulum"
+msgstr "Péndulo"
+
+#: data/dig_sites.json
+msgid "Pinewood Fossil Beds"
+msgstr "Lechos fósiles del Pinar"
+
+#: data/dig_sites.json
+msgid "Pirate Doubloons"
+msgstr "Doblones piratas"
+
+#: data/dig_sites.json
+msgid "Pocket Watch"
+msgstr "Reloj de bolsillo"
+
+#: data/dig_sites.json
+msgid "Raptor Claw"
+msgstr "Garra de raptor"
+
+#: data/dig_sites.json
+msgid "Rift of Ages"
+msgstr "Grieta de las Eras"
+
+#: data/dig_sites.json
+msgid "River Delta Ruins"
+msgstr "Ruinas del delta del río"
+
+#: data/dig_sites.json
+msgid "Royal Scepter"
+msgstr "Cetro real"
+
+#: data/dig_sites.json
+msgid "Runestone"
+msgstr "Piedra rúnica"
+
+#: data/dig_sites.json
+msgid "Sea Serpent Skull"
+msgstr "Cráneo de serpiente marina"
+
+#: data/dig_sites.json
+msgid "Ship's Bell"
+msgstr "Campana del barco"
+
+#: data/dig_sites.json
+msgid "Silk Chest"
+msgstr "Cofre de seda"
+
+#: data/dig_sites.json
+msgid "Silver Coin Hoard"
+msgstr "Tesoro de monedas de plata"
+
+#: data/dig_sites.json
+msgid "Silver Torc"
+msgstr "Torques de plata"
+
+#: data/dig_sites.json
+msgid "Sky-Stone Meteorite"
+msgstr "Meteorito Piedra del Cielo"
+
+#: data/dig_sites.json
+msgid "Star Chart"
+msgstr "Carta estelar"
+
+#: data/dig_sites.json
+msgid "Star Shard"
+msgstr "Fragmento de estrella"
+
+#: data/dig_sites.json
+msgid "Sun Disc"
+msgstr "Disco solar"
+
+#: data/dig_sites.json
+msgid "Sunspire Dune Tomb"
+msgstr "Tumba de las dunas de Sunspire"
+
+#: data/dig_sites.json
+msgid "T. rex Skull"
+msgstr "Cráneo de T. rex"
+
+#: data/dig_sites.json
+msgid "Tidewater Shipwreck"
+msgstr "Naufragio de Tidewater"
+
+#: data/dig_sites.json
+msgid "Trilobite"
+msgstr "Trilobites"
+
+#: data/dig_sites.json
+msgid "Viking Helm"
+msgstr "Casco vikingo"
+
+#: data/dig_sites.json
+msgid "War Chest"
+msgstr "Cofre de guerra"
+
+#: data/dig_sites.json
+msgid "World Egg"
+msgstr "Huevo del Mundo"
+
+#: data/dig_sites.json
+msgid "Yeti Tooth"
+msgstr "Diente de yeti"
+
+#: data/events.json
+msgid "Expedition Mode"
+msgstr "Modo Expedición"
+
+#: data/events.json
+msgid "Local Dig Site"
+msgstr "Excavación local"
+
+#: data/events.json
+msgid "Lost Temple Gate"
+msgstr "Puerta del Templo Perdido"
+
+#: data/events.json
+msgid "Old Quarry"
+msgstr "Cantera vieja"
+
+#: data/events.json
+msgid "Riverbank Ruins"
+msgstr "Ruinas de la ribera"
+
+#: data/events.json
+msgid "Sunken Cave"
+msgstr "Cueva sumergida"
+
+#: data/lootboxes.json
+msgid "Executive Case"
+msgstr "Caja ejecutiva"
+
+#: data/lootboxes.json
+msgid "Field Case"
+msgstr "Caja de campo"
+
+#: data/lootboxes.json
+msgid "Specialist Case"
+msgstr "Caja de especialista"
+
+#: data/managers.json
+msgid "After-Hours Warden"
+msgstr "Vigilante nocturna"
+
+#: data/managers.json
+msgid "Alphabetizes the cart logs. Twice. Just in case."
+msgstr "Ordena alfabéticamente los registros de carritos. Dos veces. Por si acaso."
+
+#: data/managers.json
+msgid "Archivist Mabel Crumb"
+msgstr "Archivera Mabel Crumb"
+
+#: data/managers.json
+msgid "Barker Theo Wren"
+msgstr "Pregonero Theo Wren"
+
+#: data/managers.json
+msgid "Basement Cataloguer"
+msgstr "Catalogadora del sótano"
+
+#: data/managers.json
+msgid "Can seat an entire school field trip in eleven seconds flat."
+msgstr "Puede sentar a toda una excursión escolar en once segundos justos."
+
+#: data/managers.json
+msgid "Chief Hang Curator"
+msgstr "Jefe de montaje"
+
+#: data/managers.json
+msgid "Conservator Nadia Frost"
+msgstr "Conservadora Nadia Frost"
+
+#: data/managers.json
+msgid "Curatrix Seraphine Loam"
+msgstr "Curadora Seraphine Loam"
+
+#: data/managers.json
+msgid "Dinosaur Wing Lead"
+msgstr "Jefe del ala de dinosaurios"
+
+#: data/managers.json
+msgid "Docent Poppy Vale"
+msgstr "Guía Poppy Vale"
+
+#: data/managers.json
+msgid "Donated the museum's very first exhibit. Never actually left."
+msgstr "Donó la primerísima pieza del museo. Nunca llegó a irse."
+
+#: data/managers.json
+msgid "Dug up half the dinosaur wing himself."
+msgstr "Desenterró él solo media ala de dinosaurios."
+
+#: data/managers.json
+msgid "Front Steps Crier"
+msgstr "Pregonero de la escalinata"
+
+#: data/managers.json
+msgid "Gala Director Cosmo Bright"
+msgstr "Director de galas Cosmo Bright"
+
+#: data/managers.json
+msgid "Gate Operations Chief"
+msgstr "Jefe de operaciones de acceso"
+
+#: data/managers.json
+msgid "Hands out flyers with the fervor of a man who truly loves trilobites."
+msgstr "Reparte folletos con el fervor de un hombre que ama de verdad a los trilobites."
+
+#: data/managers.json
+msgid "Hangs every painting one inch to the left. Somehow, it always works."
+msgstr "Cuelga cada cuadro dos centímetros a la izquierda. No se sabe cómo, pero siempre funciona."
+
+#: data/managers.json
+msgid "Has never lost an artifact. Has never lost anything, actually."
+msgstr "Nunca ha perdido un artefacto. En realidad, nunca ha perdido nada."
+
+#: data/managers.json
+msgid "Head Usher Bram Toll"
+msgstr "Jefe de acomodadores Bram Toll"
+
+#: data/managers.json
+msgid "Her tapestries tour ends with applause and suspiciously full donation boxes."
+msgstr "Su visita a los tapices termina con aplausos y huchas sospechosamente llenas."
+
+#: data/managers.json
+msgid "His opening-night galas have a waiting list longer than the Nile exhibit."
+msgstr "Sus galas de estreno tienen una lista de espera más larga que la exposición del Nilo."
+
+#: data/managers.json
+msgid "Honorary Patron"
+msgstr "Mecenas honorario"
+
+#: data/managers.json
+msgid "Keeper Aloysius Finch"
+msgstr "Guardián Aloysius Finch"
+
+#: data/managers.json
+msgid "Keeps twelve lines moving at once and has never heard a complaint."
+msgstr "Mantiene doce filas en marcha a la vez y nunca ha oído una queja."
+
+#: data/managers.json
+msgid "Knows every exhibit by heart and every regular by name."
+msgstr "Se sabe cada pieza de memoria y a cada habitual por su nombre."
+
+#: data/managers.json
+msgid "Once turned a broken vending machine into front-page museum news."
+msgstr "Una vez convirtió una máquina expendedora rota en portada del museo."
+
+#: data/managers.json
+msgid "Only seen after closing time. The exhibits behave when she's around."
+msgstr "Solo se la ve tras el cierre. Las piezas se portan bien cuando ella anda cerca."
+
+#: data/managers.json
+msgid "Opening Night Host"
+msgstr "Anfitrión de la noche de estreno"
+
+#: data/managers.json
+msgid "Paleontologist Rex Marlowe"
+msgstr "Paleontólogo Rex Marlowe"
+
+#: data/managers.json
+msgid "Press Office Lead"
+msgstr "Jefe de prensa"
+
+#: data/managers.json
+msgid "Publicist Ivory Sloane"
+msgstr "Publicista Ivory Sloane"
+
+#: data/managers.json
+msgid "Restoration Bench"
+msgstr "Mesa de restauración"
+
+#: data/managers.json
+msgid "Speaks softly to the manuscripts. The manuscripts listen."
+msgstr "Habla bajito a los manuscritos. Los manuscritos escuchan."
+
+#: data/managers.json
+msgid "Storyteller June Pallas"
+msgstr "Cuentacuentos June Pallas"
+
+#: data/managers.json
+msgid "Tapestry Hall Guide"
+msgstr "Guía de la sala de tapices"
+
+#: data/managers.json
+msgid "The Founder's Ghost"
+msgstr "El fantasma del fundador"
+
+#: data/managers.json
+msgid "The Night Curator"
+msgstr "La curadora nocturna"
+
+#: data/managers.json
+msgid "Turnstile Marshal"
+msgstr "Jefa de torniquetes"
+
+#: data/managers.json
+msgid "Turnstile Tilda March"
+msgstr "Torniquetes Tilda March"
+
+#: data/managers.json
+msgid "Vault Keyholder"
+msgstr "Guardiana de la llave de la cámara"
+
+#: data/managers.json
+msgid "Welcome Desk Docent"
+msgstr "Guía del mostrador de bienvenida"
+
+#: data/quests_milestones.json
+msgid "Above the Clouds (PRESTIGE)"
+msgstr "Sobre las nubes (PRESTIGIO)"
+
+#: data/quests_milestones.json
+msgid "Abyssal Court"
+msgstr "Corte abisal"
+
+#: data/quests_milestones.json
+msgid "Age Gallery"
+msgstr "Galería de las Eras"
+
+#: data/quests_milestones.json
+msgid "All Ages United"
+msgstr "Todas las eras, unidas"
+
+#: data/quests_milestones.json
+msgid "Aquarium Complete"
+msgstr "Acuario completo"
+
+#: data/quests_milestones.json
+msgid "Archive of Note"
+msgstr "Archivo notable"
+
+#: data/quests_milestones.json
+msgid "Armory Muster"
+msgstr "Revista en la armería"
+
+#: data/quests_milestones.json
+msgid "Athenaeum Elite"
+msgstr "Élite del Ateneo"
+
+#: data/quests_milestones.json
+msgid "Aurora Apex (PRESTIGE)"
+msgstr "Cénit de la aurora (PRESTIGIO)"
+
+#: data/quests_milestones.json
+msgid "Borealis Ball"
+msgstr "Baile boreal"
+
+#: data/quests_milestones.json
+msgid "Buy 1 decor piece"
+msgstr "Compra 1 pieza de decoración"
+
+#: data/quests_milestones.json
+msgid "Buy 3 decor pieces"
+msgstr "Compra 3 piezas de decoración"
+
+#: data/quests_milestones.json
+msgid "Buy 6 decor pieces"
+msgstr "Compra 6 piezas de decoración"
+
+#: data/quests_milestones.json
+msgid "Celestial Court"
+msgstr "Corte celestial"
+
+#: data/quests_milestones.json
+msgid "Celestial Laurels"
+msgstr "Laureles celestiales"
+
+#: data/quests_milestones.json
+msgid "Century Club"
+msgstr "Club del Siglo"
+
+#: data/quests_milestones.json
+msgid "Chronos Crown"
+msgstr "Corona de Cronos"
+
+#: data/quests_milestones.json
+msgid "Citadel Court"
+msgstr "Corte de la ciudadela"
+
+#: data/quests_milestones.json
+msgid "Citadel of Wonder"
+msgstr "Ciudadela de maravillas"
+
+#: data/quests_milestones.json
+msgid "Clockwork Reserve"
+msgstr "Reserva de relojería"
+
+#: data/quests_milestones.json
+msgid "Cloud Gate"
+msgstr "Puerta de las nubes"
+
+#: data/quests_milestones.json
+msgid "Constellation Wing"
+msgstr "Ala de las constelaciones"
+
+#: data/quests_milestones.json
+msgid "Continent's Choice"
+msgstr "Elección del continente"
+
+#: data/quests_milestones.json
+msgid "Coral Conservatory"
+msgstr "Conservatorio de coral"
+
+#: data/quests_milestones.json
+msgid "Coral Procession"
+msgstr "Procesión de coral"
+
+#: data/quests_milestones.json
+msgid "Crown Treasury"
+msgstr "Tesoro de la corona"
+
+#: data/quests_milestones.json
+msgid "Deepwater Gallery"
+msgstr "Galería de aguas profundas"
+
+#: data/quests_milestones.json
+msgid "Desert Beacon"
+msgstr "Faro del desierto"
+
+#: data/quests_milestones.json
+msgid "Doors Open"
+msgstr "Puertas abiertas"
+
+#: data/quests_milestones.json
+msgid "Eagle's Exhibit"
+msgstr "La exposición del águila"
+
+#: data/quests_milestones.json
+msgid "Earn 500 total cash"
+msgstr "Gana 500 en total"
+
+#: data/quests_milestones.json
+msgid "Earn 500K total cash"
+msgstr "Gana 500K en total"
+
+#: data/quests_milestones.json
+msgid "Earn 50K total cash"
+msgstr "Gana 50K en total"
+
+#: data/quests_milestones.json
+msgid "Earn 5K total cash"
+msgstr "Gana 5K en total"
+
+#: data/quests_milestones.json
+msgid "Earn 5M total cash"
+msgstr "Gana 5M en total"
+
+#: data/quests_milestones.json
+msgid "Empyrean Gala"
+msgstr "Gala empírea"
+
+#: data/quests_milestones.json
+msgid "Eternal Exhibit"
+msgstr "Exposición eterna"
+
+#: data/quests_milestones.json
+msgid "Eternity Lounge"
+msgstr "Salón de la eternidad"
+
+#: data/quests_milestones.json
+msgid "First Ascent"
+msgstr "Primera ascensión"
+
+#: data/quests_milestones.json
+msgid "First Chime"
+msgstr "Primera campanada"
+
+#: data/quests_milestones.json
+msgid "First Dive"
+msgstr "Primera inmersión"
+
+#: data/quests_milestones.json
+msgid "First Light"
+msgstr "Primera luz"
+
+#: data/quests_milestones.json
+msgid "First Tide"
+msgstr "Primera marea"
+
+#: data/quests_milestones.json
+msgid "Glass Ascent"
+msgstr "Ascenso de cristal"
+
+#: data/quests_milestones.json
+msgid "Glasshouse Gala"
+msgstr "Gala del invernadero"
+
+#: data/quests_milestones.json
+msgid "Globe's Gallery"
+msgstr "Galería del globo"
+
+#: data/quests_milestones.json
+msgid "Golden Hour"
+msgstr "Hora dorada"
+
+#: data/quests_milestones.json
+msgid "Grand Alignment (COMPLETE)"
+msgstr "Gran alineación (COMPLETO)"
+
+#: data/quests_milestones.json
+msgid "Grand Concourse"
+msgstr "Gran vestíbulo"
+
+#: data/quests_milestones.json
+msgid "Hall Complete"
+msgstr "Sala completa"
+
+#: data/quests_milestones.json
+msgid "Harbor Favorite"
+msgstr "Favorito del puerto"
+
+#: data/quests_milestones.json
+msgid "Hire 12 Promotions staff"
+msgstr "Contrata 12 empleados de Promoción"
+
+#: data/quests_milestones.json
+msgid "Hire 4 Archive staff"
+msgstr "Contrata 4 empleados de Archivo"
+
+#: data/quests_milestones.json
+msgid "Hire 4 Gallery staff"
+msgstr "Contrata 4 empleados de Galería"
+
+#: data/quests_milestones.json
+msgid "Hire 5 Promotions staff"
+msgstr "Contrata 5 empleados de Promoción"
+
+#: data/quests_milestones.json
+msgid "Hire a second Archive porter"
+msgstr "Contrata un segundo mozo de Archivo"
+
+#: data/quests_milestones.json
+msgid "Infinite Rotunda"
+msgstr "Rotonda infinita"
+
+#: data/quests_milestones.json
+msgid "Ironwood Ascendant (COMPLETE)"
+msgstr "Ascenso de Ironwood (COMPLETO)"
+
+#: data/quests_milestones.json
+msgid "Keep Feast"
+msgstr "Banquete del torreón"
+
+#: data/quests_milestones.json
+msgid "Leviathan Wing"
+msgstr "Ala del Leviatán"
+
+#: data/quests_milestones.json
+msgid "Living Orbit"
+msgstr "Órbita viva"
+
+#: data/quests_milestones.json
+msgid "Living Reef"
+msgstr "Arrecife vivo"
+
+#: data/quests_milestones.json
+msgid "Marble Steps"
+msgstr "Escalinata de mármol"
+
+#: data/quests_milestones.json
+msgid "Master of Ages (COMPLETE)"
+msgstr "Señor de las Eras (COMPLETO)"
+
+#: data/quests_milestones.json
+msgid "Millennium Bell"
+msgstr "Campana del milenio"
+
+#: data/quests_milestones.json
+msgid "Mirage No More"
+msgstr "Adiós al espejismo"
+
+#: data/quests_milestones.json
+msgid "Mirror Worlds"
+msgstr "Mundos espejo"
+
+#: data/quests_milestones.json
+msgid "Moon Salon"
+msgstr "Salón lunar"
+
+#: data/quests_milestones.json
+msgid "Mountain Crown"
+msgstr "Corona de la montaña"
+
+#: data/quests_milestones.json
+msgid "Northern Lights Hall"
+msgstr "Sala de la aurora boreal"
+
+#: data/quests_milestones.json
+msgid "Oasis of Art"
+msgstr "Oasis del arte"
+
+#: data/quests_milestones.json
+msgid "Ocean Crown"
+msgstr "Corona del océano"
+
+#: data/quests_milestones.json
+msgid "Ocean Showcase"
+msgstr "Escaparate del océano"
+
+#: data/quests_milestones.json
+msgid "Open 5 Ticket windows"
+msgstr "Abre 5 taquillas"
+
+#: data/quests_milestones.json
+msgid "Open the Gate"
+msgstr "Abre la puerta"
+
+#: data/quests_milestones.json
+msgid "Open the Gates"
+msgstr "Abre las puertas"
+
+#: data/quests_milestones.json
+msgid "Palace Doors"
+msgstr "Puertas del palacio"
+
+#: data/quests_milestones.json
+msgid "Palace Eternal (COMPLETE)"
+msgstr "Palacio eterno (COMPLETO)"
+
+#: data/quests_milestones.json
+msgid "Pearl Reserve"
+msgstr "Reserva de perlas"
+
+#: data/quests_milestones.json
+msgid "Pendulum Hall"
+msgstr "Sala del péndulo"
+
+#: data/quests_milestones.json
+msgid "Polar Premiere"
+msgstr "Estreno polar"
+
+#: data/quests_milestones.json
+msgid "Realm One"
+msgstr "Reino uno"
+
+#: data/quests_milestones.json
+msgid "Recruit 1 manager"
+msgstr "Recluta 1 gerente"
+
+#: data/quests_milestones.json
+msgid "Recruit 3 managers"
+msgstr "Recluta 3 gerentes"
+
+#: data/quests_milestones.json
+msgid "Recruit 6 managers"
+msgstr "Recluta 6 gerentes"
+
+#: data/quests_milestones.json
+msgid "River Eternal (PRESTIGE)"
+msgstr "Río eterno (PRESTIGIO)"
+
+#: data/quests_milestones.json
+msgid "Riverbank Debut"
+msgstr "Debut en la ribera"
+
+#: data/quests_milestones.json
+msgid "Riverfront Gala"
+msgstr "Gala junto al río"
+
+#: data/quests_milestones.json
+msgid "Royal Salon"
+msgstr "Salón real"
+
+#: data/quests_milestones.json
+msgid "Royal Standard"
+msgstr "Estandarte real"
+
+#: data/quests_milestones.json
+msgid "Scholar's Circle"
+msgstr "Círculo de eruditos"
+
+#: data/quests_milestones.json
+msgid "Serve 150 visitors"
+msgstr "Atiende a 150 visitantes"
+
+#: data/quests_milestones.json
+msgid "Serve 1K visitors"
+msgstr "Atiende a 1K visitantes"
+
+#: data/quests_milestones.json
+msgid "Serve 60K visitors"
+msgstr "Atiende a 60K visitantes"
+
+#: data/quests_milestones.json
+msgid "Serve 8K visitors"
+msgstr "Atiende a 8K visitantes"
+
+#: data/quests_milestones.json
+msgid "Singularity Vault"
+msgstr "Cámara de la singularidad"
+
+#: data/quests_milestones.json
+msgid "Skyline Collection"
+msgstr "Colección del horizonte"
+
+#: data/quests_milestones.json
+msgid "Sovereign of the Deep (COMPLETE)"
+msgstr "Soberano de las profundidades (COMPLETO)"
+
+#: data/quests_milestones.json
+msgid "Spire Spectacle"
+msgstr "Espectáculo de la aguja"
+
+#: data/quests_milestones.json
+msgid "Star Vault"
+msgstr "Cámara estelar"
+
+#: data/quests_milestones.json
+msgid "State Procession"
+msgstr "Procesión de Estado"
+
+#: data/quests_milestones.json
+msgid "Stormproof"
+msgstr "A prueba de tormentas"
+
+#: data/quests_milestones.json
+msgid "Summit Season"
+msgstr "Temporada de cumbres"
+
+#: data/quests_milestones.json
+msgid "Sun-Chaser's Muse"
+msgstr "Musa del cazador de soles"
+
+#: data/quests_milestones.json
+msgid "Sunspire Zenith (PRESTIGE)"
+msgstr "Cénit de Sunspire (PRESTIGIO)"
+
+#: data/quests_milestones.json
+msgid "The Endless Exhibition (COMPLETE)"
+msgstr "La exposición sin fin (COMPLETO)"
+
+#: data/quests_milestones.json
+msgid "Tidal Festival"
+msgstr "Festival de las mareas"
+
+#: data/quests_milestones.json
+msgid "Tidewater Crown"
+msgstr "Corona de Tidewater"
+
+#: data/quests_milestones.json
+msgid "Town Favorite"
+msgstr "Favorito del pueblo"
+
+#: data/quests_milestones.json
+msgid "Treasury Seal"
+msgstr "Sello del tesoro"
+
+#: data/quests_milestones.json
+msgid "Upgrade Archive Speed to Lv.10"
+msgstr "Mejora Velocidad de Archivo a Nv. 10"
+
+#: data/quests_milestones.json
+msgid "Upgrade Gallery Value to Lv.10"
+msgstr "Mejora Valor de Galería a Nv. 10"
+
+#: data/quests_milestones.json
+msgid "Upgrade Gallery Value to Lv.3"
+msgstr "Mejora Valor de Galería a Nv. 3"
+
+#: data/quests_milestones.json
+msgid "Upgrade Promotions Speed to Lv.10"
+msgstr "Mejora Velocidad de Promoción a Nv. 10"
+
+#: data/quests_milestones.json
+msgid "Upgrade Promotions Speed to Lv.3"
+msgstr "Mejora Velocidad de Promoción a Nv. 3"
+
+#: data/quests_milestones.json
+msgid "Upgrade Promotions Value to Lv.6"
+msgstr "Mejora Valor de Promoción a Nv. 6"
+
+#: data/quests_milestones.json
+msgid "Upgrade Ticket Halls Speed to Lv.10"
+msgstr "Mejora Velocidad de Taquillas a Nv. 10"
+
+#: data/quests_milestones.json
+msgid "Upgrade Ticket Halls Speed to Lv.3"
+msgstr "Mejora Velocidad de Taquillas a Nv. 3"
+
+#: data/quests_milestones.json
+msgid "Upgrade Ticket Halls Value to Lv.12"
+msgstr "Mejora Valor de Taquillas a Nv. 12"
+
+#: data/quests_milestones.json
+msgid "Upgrade Ticket Halls Value to Lv.6"
+msgstr "Mejora Valor de Taquillas a Nv. 6"
+
+#: data/quests_milestones.json
+msgid "Upgrade Ticket Station 1 to Lv.3"
+msgstr "Mejora la Taquilla 1 a Nv. 3"
+
+#: data/quests_milestones.json
+msgid "Upgrade Ticket Station 1 to Lv.8"
+msgstr "Mejora la Taquilla 1 a Nv. 8"
+
+#: data/quests_milestones.json
+msgid "Upgrade Ticket Station 2 to Lv.3"
+msgstr "Mejora la Taquilla 2 a Nv. 3"
+
+#: data/quests_milestones.json
+msgid "World Stage"
+msgstr "Escenario mundial"
+
+#: data/store_iap.json
+msgid "Ad-Free Pass"
+msgstr "Pase sin anuncios"
+
+#: data/store_iap.json
+msgid "Aurora World Kickstart"
+msgstr "Impulso Aurora World"
+
+#: data/store_iap.json
+msgid "Copper Kettle Kickstart"
+msgstr "Impulso Copper Kettle"
+
+#: data/store_iap.json
+msgid "Crate of Gems"
+msgstr "Caja de gemas"
+
+#: data/store_iap.json
+msgid "Curator's Archive"
+msgstr "Archivo del curador"
+
+#: data/store_iap.json
+msgid "Daily Cash Boost"
+msgstr "Impulso diario de efectivo"
+
+#: data/store_iap.json
+msgid "Daily Cash Surge"
+msgstr "Oleada diaria de efectivo"
+
+#: data/store_iap.json
+msgid "Daily Gem Trove"
+msgstr "Tesoro diario de gemas"
+
+#: data/store_iap.json
+msgid "Daily Insight Cache"
+msgstr "Alijo diario de saber"
+
+#: data/store_iap.json
+msgid "Daily Insight Drop"
+msgstr "Dosis diaria de saber"
+
+#: data/store_iap.json
+msgid "Director's Daily Combo"
+msgstr "Combo diario del director"
+
+#: data/store_iap.json
+msgid "Double the Pouch, same price — once per museum"
+msgstr "El doble de bolsa, mismo precio — una vez por museo"
+
+#: data/store_iap.json
+msgid "Empire of Gems"
+msgstr "Imperio de gemas"
+
+#: data/store_iap.json
+msgid "First Purchase Bonus"
+msgstr "Bono de primera compra"
+
+#: data/store_iap.json
+msgid "Four Hours of Takings"
+msgstr "Cuatro horas de recaudación"
+
+#: data/store_iap.json
+msgid "Grand River Kickstart"
+msgstr "Impulso Grand River"
+
+#: data/store_iap.json
+msgid "Hoard of Gems"
+msgstr "Tesoro de gemas"
+
+#: data/store_iap.json
+msgid "Inspection Prep Bundle"
+msgstr "Paquete de preparación para inspecciones"
+
+#: data/store_iap.json
+msgid "Morning Gem Snack"
+msgstr "Tentempié matutino de gemas"
+
+#: data/store_iap.json
+msgid "New Director Bundle"
+msgstr "Paquete de nuevo director"
+
+#: data/store_iap.json
+msgid "One Hour of Takings"
+msgstr "Una hora de recaudación"
+
+#: data/store_iap.json
+msgid "Pouch of Gems"
+msgstr "Bolsa de gemas"
+
+#: data/store_iap.json
+msgid "Removes every interstitial, permanently. Rewarded videos stay optional."
+msgstr "Elimina todos los anuncios intersticiales para siempre. Los vídeos con recompensa siguen siendo opcionales."
+
+#: data/store_iap.json
+msgid "Sack of Gems"
+msgstr "Saco de gemas"
+
+#: data/store_iap.json
+msgid "Sage's Compendium"
+msgstr "Compendio del sabio"
+
+#: data/store_iap.json
+msgid "Scholar's Notes"
+msgstr "Notas del erudito"
+
+#: data/store_iap.json
+msgid "Sixteen Hours of Takings"
+msgstr "Dieciséis horas de recaudación"
+
+#: data/store_iap.json
+msgid "Sunspire Kickstart"
+msgstr "Impulso Sunspire"
+
+#: data/store_iap.json
+msgid "Vault of Gems"
+msgstr "Cámara de gemas"
+
+#: data/store_iap.json
+msgid "Veteran Director Pack"
+msgstr "Paquete de director veterano"
+
+#: data/venues.json
+msgid "A desert icon of glass and gold, famous worldwide."
+msgstr "Un icono del desierto de cristal y oro, famoso en todo el mundo."
+
+#: data/venues.json
+msgid "A dusty small-town exhibit hall. Every empire starts somewhere."
+msgstr "Una polvorienta sala de exposiciones de pueblo. Todo imperio empieza en algún sitio."
+
+#: data/venues.json
+msgid "A four-storey monument to time, machinery, and the civilizations between."
+msgstr "Un monumento de cuatro plantas al tiempo, la maquinaria y las civilizaciones entre medias."
+
+#: data/venues.json
+msgid "A marble landmark drawing crowds from across the region."
+msgstr "Un emblema de mármol que atrae a multitudes de toda la región."
+
+#: data/venues.json
+msgid "A monumental palace museum ascending through royal courts into the clouds."
+msgstr "Un monumental palacio museo que asciende por cortes reales hasta las nubes."
+
+#: data/venues.json
+msgid "A moonlit glasshouse whose orbital collection circles a living conservatory."
+msgstr "Un invernadero a la luz de la luna cuya colección orbital gira alrededor de un jardín vivo."
+
+#: data/venues.json
+msgid "A mountain fortress museum of armories, royal halls, and guarded treasure."
+msgstr "Un museo fortaleza en la montaña, con armerías, salas reales y tesoros custodiados."
+
+#: data/venues.json
+msgid "A mountain-top fortress of wonders above the clouds."
+msgstr "Una fortaleza de maravillas en la cima de la montaña, sobre las nubes."
+
+#: data/venues.json
+msgid "A vast ocean palace where abyssal wonders gather beneath a coral crown."
+msgstr "Un vasto palacio oceánico donde las maravillas abisales se reúnen bajo una corona de coral."
+
+#: data/venues.json
+msgid "A working harbour aquarium: cold water, warm crowds, 750x the takings of the Pines."
+msgstr "Un acuario portuario en activo: agua fría, público cálido, 750 veces la recaudación de los Pinos."
+
+#: data/venues.json
+msgid "AGES ASCENT"
+msgstr "ASCENSO DE LAS ERAS"
+
+#: data/venues.json
+msgid "ARMORY ASCENT"
+msgstr "ASCENSO DE LA ARMERÍA"
+
+#: data/venues.json
+msgid "ATRIUM RECEPTION"
+msgstr "RECEPCIÓN DEL ATRIO"
+
+#: data/venues.json
+msgid "Aurora World Museum"
+msgstr "Museo Aurora World"
+
+#: data/venues.json
+msgid "BIOSPHERE RECEPTION"
+msgstr "RECEPCIÓN BIOSFERA"
+
+#: data/venues.json
+msgid "BOTANISTS SOCIETY"
+msgstr "SOCIEDAD DE BOTÁNICOS"
+
+#: data/venues.json
+msgid "CAMPUS ARRIVAL"
+msgstr "LLEGADA AL CAMPUS"
+
+#: data/venues.json
+msgid "CELESTIAL ROTUNDA"
+msgstr "ROTONDA CELESTIAL"
+
+#: data/venues.json
+msgid "CENTURIES GALLERY"
+msgstr "GALERÍA DE LOS SIGLOS"
+
+#: data/venues.json
+msgid "CHRONOS CROWN"
+msgstr "CORONA DE CRONOS"
+
+#: data/venues.json
+msgid "CLOUD GARDEN"
+msgstr "JARDÍN DE NUBES"
+
+#: data/venues.json
+msgid "COLLECTION OF AGES"
+msgstr "COLECCIÓN DE LAS ERAS"
+
+#: data/venues.json
+msgid "COLONNADE"
+msgstr "COLUMNATA"
+
+#: data/venues.json
+msgid "CONSERVATION"
+msgstr "CONSERVACIÓN"
+
+#: data/venues.json
+msgid "CONSERVATION DOCK"
+msgstr "MUELLE DE CONSERVACIÓN"
+
+#: data/venues.json
+msgid "CONSERVATION WORKSHOP"
+msgstr "TALLER DE CONSERVACIÓN"
+
+#: data/venues.json
+msgid "CORNER RECEPTION"
+msgstr "RECEPCIÓN DE LA ESQUINA"
+
+#: data/venues.json
+msgid "CRAFTSMEN GUILD"
+msgstr "GREMIO DE ARTESANOS"
+
+#: data/venues.json
+msgid "CROWN ASCENT"
+msgstr "ASCENSO DE LA CORONA"
+
+#: data/venues.json
+msgid "CROWN CONSERVATION"
+msgstr "CONSERVACIÓN DE LA CORONA"
+
+#: data/venues.json
+msgid "CROWN LAGOON"
+msgstr "LAGUNA DE LA CORONA"
+
+#: data/venues.json
+msgid "Celestial Conservatory"
+msgstr "Conservatorio Celestial"
+
+#: data/venues.json
+msgid "Chronos Spire"
+msgstr "Aguja de Cronos"
+
+#: data/venues.json
+msgid "Cloudrest Citadel"
+msgstr "Ciudadela de Cloudrest"
+
+#: data/venues.json
+msgid "DISCOVERY ASCENT"
+msgstr "ASCENSO DEL DESCUBRIMIENTO"
+
+#: data/venues.json
+msgid "DISCOVERY RECEPTION"
+msgstr "RECEPCIÓN DEL DESCUBRIMIENTO"
+
+#: data/venues.json
+msgid "DISCOVERY WING"
+msgstr "ALA DEL DESCUBRIMIENTO"
+
+#: data/venues.json
+msgid "DYNASTY GALLERY"
+msgstr "GALERÍA DE LA DINASTÍA"
+
+#: data/venues.json
+msgid "EAST ADMISSION ARCADE"
+msgstr "ARCADA DE ACCESO ESTE"
+
+#: data/venues.json
+msgid "EAST ARCADE"
+msgstr "ARCADA ESTE"
+
+#: data/venues.json
+msgid "EAST ARRIVAL"
+msgstr "LLEGADA ESTE"
+
+#: data/venues.json
+msgid "EAST CLOCK WALK"
+msgstr "PASEO DEL RELOJ ESTE"
+
+#: data/venues.json
+msgid "EAST CLOISTER"
+msgstr "CLAUSTRO ESTE"
+
+#: data/venues.json
+msgid "EAST COLLECTION LANDING"
+msgstr "RELLANO DE LA COLECCIÓN ESTE"
+
+#: data/venues.json
+msgid "EAST CONCOURSE"
+msgstr "VESTÍBULO ESTE"
+
+#: data/venues.json
+msgid "EAST GARDEN LOGGIA"
+msgstr "LOGIA DEL JARDÍN ESTE"
+
+#: data/venues.json
+msgid "EAST GATE"
+msgstr "PUERTA ESTE"
+
+#: data/venues.json
+msgid "EAST GATEHOUSE"
+msgstr "TORRE DE ENTRADA ESTE"
+
+#: data/venues.json
+msgid "EAST LANDING"
+msgstr "RELLANO ESTE"
+
+#: data/venues.json
+msgid "EAST TREASURY"
+msgstr "TESORO ESTE"
+
+#: data/venues.json
+msgid "ENGINE HALL"
+msgstr "SALA DE MÁQUINAS"
+
+#: data/venues.json
+msgid "ENGINEERS COURT"
+msgstr "PATIO DE INGENIEROS"
+
+#: data/venues.json
+msgid "ESCAPEMENT ASCENT"
+msgstr "ASCENSO DEL ESCAPE"
+
+#: data/venues.json
+msgid "EXPEDITION SOCIETY"
+msgstr "SOCIEDAD EXPEDICIONARIA"
+
+#: data/venues.json
+msgid "Empyrean Palace"
+msgstr "Palacio Empíreo"
+
+#: data/venues.json
+msgid "FEATHER WING"
+msgstr "ALA DE PLUMAS"
+
+#: data/venues.json
+msgid "FERN & SPORE HOUSE"
+msgstr "CASA DE HELECHOS Y ESPORAS"
+
+#: data/venues.json
+msgid "FERN RECEPTION"
+msgstr "RECEPCIÓN DE LOS HELECHOS"
+
+#: data/venues.json
+msgid "FORTRESS FORECOURT"
+msgstr "EXPLANADA DE LA FORTALEZA"
+
+#: data/venues.json
+msgid "FORTRESS GATEHOUSE"
+msgstr "TORRE DE ENTRADA DE LA FORTALEZA"
+
+#: data/venues.json
+msgid "FOUNDER ATRIUM"
+msgstr "ATRIO DEL FUNDADOR"
+
+#: data/venues.json
+msgid "FOUNDERS SOCIETY"
+msgstr "SOCIEDAD DE FUNDADORES"
+
+#: data/venues.json
+msgid "GARDEN CROSSING"
+msgstr "CRUCE DEL JARDÍN"
+
+#: data/venues.json
+msgid "GARDEN PORTICO"
+msgstr "PÓRTICO DEL JARDÍN"
+
+#: data/venues.json
+msgid "GLASSHOUSE ARRIVAL"
+msgstr "LLEGADA AL INVERNADERO"
+
+#: data/venues.json
+msgid "GLOBE GALLERY"
+msgstr "GALERÍA DEL GLOBO"
+
+#: data/venues.json
+msgid "Grand River Athenaeum"
+msgstr "Ateneo Grand River"
+
+#: data/venues.json
+msgid "HALL OF DYNASTIES"
+msgstr "SALA DE LAS DINASTÍAS"
+
+#: data/venues.json
+msgid "HALL OF THE GUARD"
+msgstr "SALA DE LA GUARDIA"
+
+#: data/venues.json
+msgid "HARBOR ARRIVAL"
+msgstr "LLEGADA AL PUERTO"
+
+#: data/venues.json
+msgid "HARBOR PROMENADE"
+msgstr "PASEO DEL PUERTO"
+
+#: data/venues.json
+msgid "HERBARIUM WALK"
+msgstr "PASEO DEL HERBARIO"
+
+#: data/venues.json
+msgid "HIGH FLIGHT HALL"
+msgstr "SALA DEL VUELO ALTO"
+
+#: data/venues.json
+msgid "HORTICULTURE WALK"
+msgstr "PASEO HORTÍCOLA"
+
+#: data/venues.json
+msgid "INFO"
+msgstr "INFO"
+
+#: data/venues.json
+msgid "INNER KEEP CONSERVATION"
+msgstr "CONSERVACIÓN DEL TORREÓN"
+
+#: data/venues.json
+msgid "Ironwood Citadel"
+msgstr "Ciudadela Ironwood"
+
+#: data/venues.json
+msgid "LAGOON RECEPTION"
+msgstr "RECEPCIÓN DE LA LAGUNA"
+
+#: data/venues.json
+msgid "LEVIATHAN WING"
+msgstr "ALA DEL LEVIATÁN"
+
+#: data/venues.json
+msgid "LIVING BIOSPHERES"
+msgstr "BIOSFERAS VIVAS"
+
+#: data/venues.json
+msgid "LODGE FOYER"
+msgstr "VESTÍBULO DEL REFUGIO"
+
+#: data/venues.json
+msgid "LUNAR COLLECTION"
+msgstr "COLECCIÓN LUNAR"
+
+#: data/venues.json
+msgid "MANUSCRIPT STUDY"
+msgstr "ESTUDIO DE MANUSCRITOS"
+
+#: data/venues.json
+msgid "MAP STUDY"
+msgstr "ESTUDIO DE MAPAS"
+
+#: data/venues.json
+msgid "MARINE CONSERVATION"
+msgstr "CONSERVACIÓN MARINA"
+
+#: data/venues.json
+msgid "MEMBERS LOUNGE"
+msgstr "SALÓN DE SOCIOS"
+
+#: data/venues.json
+msgid "MERIDIAN WALK"
+msgstr "PASEO DEL MERIDIANO"
+
+#: data/venues.json
+msgid "MINUTE GALLERY"
+msgstr "GALERÍA DE LOS MINUTOS"
+
+#: data/venues.json
+msgid "MOONSEED PALM HOUSE"
+msgstr "PALMERAL DE SEMILLA LUNAR"
+
+#: data/venues.json
+msgid "NATURAL HISTORY ASCENT"
+msgstr "ASCENSO DE HISTORIA NATURAL"
+
+#: data/venues.json
+msgid "NATURE HALL"
+msgstr "SALA DE LA NATURALEZA"
+
+#: data/venues.json
+msgid "NORTH CLOISTER"
+msgstr "CLAUSTRO NORTE"
+
+#: data/venues.json
+msgid "OBELISK CHAMBER"
+msgstr "CÁMARA DEL OBELISCO"
+
+#: data/venues.json
+msgid "OBSERVATORY ASCENT"
+msgstr "ASCENSO AL OBSERVATORIO"
+
+#: data/venues.json
+msgid "OCEAN DEPARTURE"
+msgstr "SALIDA AL OCÉANO"
+
+#: data/venues.json
+msgid "OPEN COURT"
+msgstr "PATIO ABIERTO"
+
+#: data/venues.json
+msgid "ORBITAL OBSERVATORY"
+msgstr "OBSERVATORIO ORBITAL"
+
+#: data/venues.json
+msgid "ORBITAL RECEPTION"
+msgstr "RECEPCIÓN ORBITAL"
+
+#: data/venues.json
+msgid "PALACE FORECOURT"
+msgstr "EXPLANADA DEL PALACIO"
+
+#: data/venues.json
+msgid "PATRONS LAB"
+msgstr "LABORATORIO DE MECENAS"
+
+#: data/venues.json
+msgid "PATRONS SALON"
+msgstr "SALÓN DE MECENAS"
+
+#: data/venues.json
+msgid "PATRONS TERRACE"
+msgstr "TERRAZA DE MECENAS"
+
+#: data/venues.json
+msgid "PENDULUM RECEPTION"
+msgstr "RECEPCIÓN DEL PÉNDULO"
+
+#: data/venues.json
+msgid "PETAL GARDEN"
+msgstr "JARDÍN DE PÉTALOS"
+
+#: data/venues.json
+msgid "PIER ADMISSIONS"
+msgstr "ENTRADAS DEL MUELLE"
+
+#: data/venues.json
+msgid "PIER CAFE"
+msgstr "CAFÉ DEL MUELLE"
+
+#: data/venues.json
+msgid "PRECISION CONSERVATION"
+msgstr "CONSERVACIÓN DE PRECISIÓN"
+
+#: data/venues.json
+msgid "PROCESSIONAL WAY"
+msgstr "VÍA PROCESIONAL"
+
+#: data/venues.json
+msgid "Pelagic Crown"
+msgstr "Corona Pelágica"
+
+#: data/venues.json
+msgid "RARE BOOK VAULT"
+msgstr "CÁMARA DE LIBROS RAROS"
+
+#: data/venues.json
+msgid "READING HALL"
+msgstr "SALA DE LECTURA"
+
+#: data/venues.json
+msgid "REAR COLONNADE"
+msgstr "COLUMNATA TRASERA"
+
+#: data/venues.json
+msgid "RECEPTION COURT"
+msgstr "PATIO DE RECEPCIÓN"
+
+#: data/venues.json
+msgid "REEF PAVILION"
+msgstr "PABELLÓN DEL ARRECIFE"
+
+#: data/venues.json
+msgid "REGALIA GALLERY"
+msgstr "GALERÍA DE LAS JOYAS REALES"
+
+#: data/venues.json
+msgid "RESEARCH PROMENADE"
+msgstr "PASEO DE LA INVESTIGACIÓN"
+
+#: data/venues.json
+msgid "ROYAL SALON"
+msgstr "SALÓN REAL"
+
+#: data/venues.json
+msgid "SALON ASCENT"
+msgstr "ASCENSO AL SALÓN"
+
+#: data/venues.json
+msgid "SALT GARDEN"
+msgstr "JARDÍN DE SAL"
+
+#: data/venues.json
+msgid "SCHOLARS COURT"
+msgstr "PATIO DE ERUDITOS"
+
+#: data/venues.json
+msgid "SEAFRONT WALK"
+msgstr "PASEO MARÍTIMO"
+
+#: data/venues.json
+msgid "SEED CONSERVATION"
+msgstr "CONSERVACIÓN DE SEMILLAS"
+
+#: data/venues.json
+msgid "SERVICE COURT"
+msgstr "PATIO DE SERVICIO"
+
+#: data/venues.json
+msgid "SHADE ARCADE"
+msgstr "ARCADA DE SOMBRA"
+
+#: data/venues.json
+msgid "SHALLOW REEFS"
+msgstr "ARRECIFES POCO PROFUNDOS"
+
+#: data/venues.json
+msgid "SKY BRIDGE"
+msgstr "PASARELA AÉREA"
+
+#: data/venues.json
+msgid "SOLAR COURT"
+msgstr "PATIO SOLAR"
+
+#: data/venues.json
+msgid "SOUTH CLOISTER"
+msgstr "CLAUSTRO SUR"
+
+#: data/venues.json
+msgid "SPECIMEN CONSERVATION"
+msgstr "CONSERVACIÓN DE ESPECÍMENES"
+
+#: data/venues.json
+msgid "STARGAZING TERRACE"
+msgstr "TERRAZA DE OBSERVACIÓN ESTELAR"
+
+#: data/venues.json
+msgid "STELLAR ORIGINS"
+msgstr "ORÍGENES ESTELARES"
+
+#: data/venues.json
+msgid "SUMMIT SOCIETY"
+msgstr "SOCIEDAD DE LA CUMBRE"
+
+#: data/venues.json
+msgid "Sunspire Gallery"
+msgstr "Galería Sunspire"
+
+#: data/venues.json
+msgid "TIDAL DISCOVERY"
+msgstr "DESCUBRIMIENTO DE MAREAS"
+
+#: data/venues.json
+msgid "TIDAL ENCOUNTERS"
+msgstr "ENCUENTROS DE MAREA"
+
+#: data/venues.json
+msgid "TOWER ARRIVAL"
+msgstr "LLEGADA A LA TORRE"
+
+#: data/venues.json
+msgid "The definitive world-class institution. Legends queue here."
+msgstr "La institución de talla mundial por excelencia. Aquí hacen cola las leyendas."
+
+#: data/venues.json
+msgid "The final world museum: every age, realm, and impossible collection in one."
+msgstr "El último museo del mundo: todas las eras, reinos y colecciones imposibles en uno."
+
+#: data/venues.json
+msgid "Tidewater Aquarium"
+msgstr "Acuario Tidewater"
+
+#: data/venues.json
+msgid "UNWRITTEN WORLD"
+msgstr "MUNDO NO ESCRITO"
+
+#: data/venues.json
+msgid "UPPER ARMORY"
+msgstr "ARMERÍA SUPERIOR"
+
+#: data/venues.json
+msgid "UPPER LANDING"
+msgstr "RELLANO SUPERIOR"
+
+#: data/venues.json
+msgid "WATCHMAKERS CLUB"
+msgstr "CLUB DE RELOJEROS"
+
+#: data/venues.json
+msgid "WELCOME DESKS"
+msgstr "MOSTRADORES DE BIENVENIDA"
+
+#: data/venues.json
+msgid "WEST ADMISSION ARCADE"
+msgstr "ARCADA DE ACCESO OESTE"
+
+#: data/venues.json
+msgid "WEST CLOISTER"
+msgstr "CLAUSTRO OESTE"
+
+#: data/venues.json
+msgid "WEST COLLECTION LANDING"
+msgstr "RELLANO DE LA COLECCIÓN OESTE"
+
+#: data/venues.json
+msgid "WEST GATE"
+msgstr "PUERTA OESTE"
+
+#: data/venues.json
+msgid "WEST HARBOR ADMISSIONS"
+msgstr "ENTRADAS DEL PUERTO OESTE"
+
+#: data/venues.json
+msgid "WEST LANDING"
+msgstr "RELLANO OESTE"
+
+#: data/venues.json
+msgid "WEST LOOKOUT"
+msgstr "MIRADOR OESTE"
+
+#: data/venues.json
+msgid "WEST PIER ARRIVAL"
+msgstr "LLEGADA AL MUELLE OESTE"
+
+#: data/venues.json
+msgid "WEST RECEPTION"
+msgstr "RECEPCIÓN OESTE"
+
+#: data/venues.json
+msgid "WEST TIDE GATE"
+msgstr "PUERTA DE LA MAREA OESTE"
+
+#: data/venues.json
+msgid "WEST WORLD GATE"
+msgstr "PUERTA DEL MUNDO OESTE"
+
+#: data/venues.json
+msgid "WHALE GALLERY"
+msgstr "GALERÍA DE LA BALLENA"
+
+#: data/venues.json
+msgid "WHALE HALL"
+msgstr "SALA DE LA BALLENA"
+
+#: data/venues.json
+msgid "WINDING ASCENT"
+msgstr "ASCENSO SINUOSO"
+
+#: data/venues.json
+msgid "WINDING LANDING"
+msgstr "RELLANO SINUOSO"
+
+#: data/venues.json
+msgid "WORLD CONSERVATION"
+msgstr "CONSERVACIÓN MUNDIAL"
+
+#: data/venues.json
+msgid "WORLDS GALLERY"
+msgstr "GALERÍA DE LOS MUNDOS"
+
+#: data/venues.json
+msgid "Whispering Pines Hall"
+msgstr "Sala de los Pinos Susurrantes"
+
+#: data/visitor_types.json
+msgid "A celebrity"
+msgstr "Una celebridad"
+
+#: data/visitor_types.json
+msgid "A collector"
+msgstr "Un coleccionista"
+
+#: data/visitor_types.json
+msgid "A little explorer"
+msgstr "Un pequeño explorador"
+
+#: data/visitor_types.json
+msgid "A local"
+msgstr "Un vecino"
+
+#: data/visitor_types.json
+msgid "A royal patron"
+msgstr "Un mecenas real"
+
+#: data/visitor_types.json
+msgid "A student"
+msgstr "Un estudiante"
+
+#: data/visitor_types.json
+msgid "A tourist"
+msgstr "Un turista"
+
+#: data/visitor_types.json
+msgid "A visit by royal appointment. The whole museum stands a little straighter."
+msgstr "Una visita por encargo real. Todo el museo se yergue un poco más."
+
+#: data/visitor_types.json
+msgid "An art critic"
+msgstr "Un crítico de arte"
+
+#: data/visitor_types.json
+msgid "Art Critics"
+msgstr "Críticos de arte"
+
+#: data/visitor_types.json
+msgid "Came for the gift shop, stayed for everything else."
+msgstr "Vino por la tienda de regalos y se quedó por todo lo demás."
+
+#: data/visitor_types.json
+msgid "Celebrities"
+msgstr "Celebridades"
+
+#: data/visitor_types.json
+msgid "Collectors"
+msgstr "Coleccionistas"
+
+#: data/visitor_types.json
+msgid "Here for the selfie. The photos go everywhere."
+msgstr "Vienen por el selfi. Las fotos llegan a todas partes."
+
+#: data/visitor_types.json
+msgid "Little Explorers"
+msgstr "Pequeños exploradores"
+
+#: data/visitor_types.json
+msgid "Locals"
+msgstr "Vecinos"
+
+#: data/visitor_types.json
+msgid "Neighbours who pop in on the way home."
+msgstr "Vecinos que se pasan de camino a casa."
+
+#: data/visitor_types.json
+msgid "Old money with an eye for the rare. Tips generously."
+msgstr "Viejas fortunas con buen ojo para lo raro. Dan propinas generosas."
+
+#: data/visitor_types.json
+msgid "One good review and the whole town comes."
+msgstr "Una buena reseña y viene todo el pueblo."
+
+#: data/visitor_types.json
+msgid "Royal Patrons"
+msgstr "Mecenas reales"
+
+#: data/visitor_types.json
+msgid "Sketchbooks out, deadlines looming."
+msgstr "Cuadernos de dibujo fuera, plazos encima."
+
+#: data/visitor_types.json
+msgid "Small, loud, and certain the dinosaur winked at them."
+msgstr "Pequeños, ruidosos y convencidos de que el dinosaurio les guiñó un ojo."
+
+#: data/visitor_types.json
+msgid "Students"
+msgstr "Estudiantes"
+
+#: data/visitor_types.json
+msgid "Tourists"
+msgstr "Turistas"
+
+#: data/wings.json
+msgid "A golden sarcophagus and a pharaoh's statue under the open sky."
+msgstr "Un sarcófago dorado y la estatua de un faraón a cielo abierto."
+
+#: data/wings.json
+msgid "A great brass orrery and an astronomical clock under a new glass deck."
+msgstr "Un gran planetario de latón y un reloj astronómico bajo una nueva cubierta de cristal."
+
+#: data/wings.json
+msgid "A modest hall with big ideas."
+msgstr "Una sala modesta con grandes ideas."
+
+#: data/wings.json
+msgid "A rooftop café by the lighthouse, with a spyglass on the harbour."
+msgstr "Un café en la azotea junto al faro, con catalejo sobre el puerto."
+
+#: data/wings.json
+msgid "A rooftop café under the dome, with a telescope and the best view in town. Members love it."
+msgstr "Un café en la azotea bajo la cúpula, con telescopio y las mejores vistas de la ciudad. A los socios les encanta."
+
+#: data/wings.json
+msgid "A second floor for the biggest bones in the collection: a woolly mammoth and a blue whale."
+msgstr "Una segunda planta para los huesos más grandes de la colección: un mamut lanudo y una ballena azul."
+
+#: data/wings.json
+msgid "Above the clouds: a sky-stone orrery and an explorer's statue."
+msgstr "Sobre las nubes: un planetario de piedra celeste y la estatua de un explorador."
+
+#: data/wings.json
+msgid "Abyss Gallery"
+msgstr "Galería del Abismo"
+
+#: data/wings.json
+msgid "Aurora Deck"
+msgstr "Cubierta Aurora"
+
+#: data/wings.json
+msgid "Banners up, hedges trimmed, doors polished."
+msgstr "Estandartes arriba, setos recortados, puertas pulidas."
+
+#: data/wings.json
+msgid "Crown Deck"
+msgstr "Cubierta de la Corona"
+
+#: data/wings.json
+msgid "Crown Terrace"
+msgstr "Terraza de la Corona"
+
+#: data/wings.json
+msgid "Fireworks every night. The whole city comes."
+msgstr "Fuegos artificiales cada noche. Viene toda la ciudad."
+
+#: data/wings.json
+msgid "Gild the columns, roll out the red carpet and put gold on the dome."
+msgstr "Dora las columnas, extiende la alfombra roja y pon oro en la cúpula."
+
+#: data/wings.json
+msgid "Gild the columns, roll out the red carpet, light up the square."
+msgstr "Dora las columnas, extiende la alfombra roja, ilumina la plaza."
+
+#: data/wings.json
+msgid "Gilded Facade"
+msgstr "Fachada dorada"
+
+#: data/wings.json
+msgid "Gold on the dome and statues in the square."
+msgstr "Oro en la cúpula y estatuas en la plaza."
+
+#: data/wings.json
+msgid "Grand"
+msgstr "Grandioso"
+
+#: data/wings.json
+msgid "Hall of Antiquities"
+msgstr "Sala de Antigüedades"
+
+#: data/wings.json
+msgid "Hall of Giants"
+msgstr "Sala de los Gigantes"
+
+#: data/wings.json
+msgid "Humble"
+msgstr "Modesto"
+
+#: data/wings.json
+msgid "Keep Battlements"
+msgstr "Almenas del torreón"
+
+#: data/wings.json
+msgid "Legendary"
+msgstr "Legendario"
+
+#: data/wings.json
+msgid "Lighthouse Terrace"
+msgstr "Terraza del faro"
+
+#: data/wings.json
+msgid "Magnificent"
+msgstr "Magnífico"
+
+#: data/wings.json
+msgid "Marble giants and painted urns in a new hall above the cloister."
+msgstr "Gigantes de mármol y urnas pintadas en una nueva sala sobre el claustro."
+
+#: data/wings.json
+msgid "Open the upper galleries: more rooms, more exhibits, more visitors."
+msgstr "Abre las galerías superiores: más salas, más piezas, más visitantes."
+
+#: data/wings.json
+msgid "Planetarium Deck"
+msgstr "Cubierta del planetario"
+
+#: data/wings.json
+msgid "Raise the wreck: a blue whale, a reef tank and a touch pool on a new upper deck."
+msgstr "Reflota el pecio: una ballena azul, un acuario de arrecife y un estanque táctil en una nueva cubierta superior."
+
+#: data/wings.json
+msgid "Red carpet, spotlights and a line out the door."
+msgstr "Alfombra roja, focos y una cola que sale por la puerta."
+
+#: data/wings.json
+msgid "Restored"
+msgstr "Restaurado"
+
+#: data/wings.json
+msgid "Sculpture Terrace"
+msgstr "Terraza de las esculturas"
+
+#: data/wings.json
+msgid "Shipwreck Deck"
+msgstr "Cubierta del naufragio"
+
+#: data/wings.json
+msgid "Sky Terrace"
+msgstr "Terraza del cielo"
+
+#: data/wings.json
+msgid "Star Terrace"
+msgstr "Terraza de las estrellas"
+
+#: data/wings.json
+msgid "Statues in the open air and coffee with a view of the river."
+msgstr "Estatuas al aire libre y café con vistas al río."
+
+#: data/wings.json
+msgid "Summit Deck"
+msgstr "Cubierta de la cumbre"
+
+#: data/wings.json
+msgid "Sun Terrace"
+msgstr "Terraza del sol"
+
+#: data/wings.json
+msgid "Telescopes, comet cones and the whole sky overhead."
+msgstr "Telescopios, cucuruchos cometa y todo el cielo encima."
+
+#: data/wings.json
+msgid "The crown of the museum: a sun deck over the lagoon."
+msgstr "La corona del museo: un solárium sobre la laguna."
+
+#: data/wings.json
+msgid "The deep sea upstairs: a blue whale, the Coral Throne and a touch pool."
+msgstr "El mar profundo, arriba: una ballena azul, el Trono de coral y un estanque táctil."
+
+#: data/wings.json
+msgid "The keep's battlements: the Iron Throne and a knight in full plate."
+msgstr "Las almenas del torreón: el Trono de Hierro y un caballero con armadura completa."
+
+#: data/wings.json
+msgid "The palace's crown: a golden throne and a queen's statue by the dome."
+msgstr "La corona del palacio: un trono dorado y la estatua de una reina junto a la cúpula."
+
+#: data/wings.json
+msgid "Upper Galleries"
+msgstr "Galerías superiores"
+
+#: data/wings.json
+msgid "Watch the northern lights beside a jarl's armour and a runestone giant."
+msgstr "Contempla la aurora boreal junto a la armadura de un jarl y un gigante de piedra rúnica."
+
+#: scenes/digsite/dig_pit.gd:241
+msgid "CRACK!"
+msgstr "¡CRAC!"
+
+#: scenes/digsite/dig_pit.gd:252
+#, c-format
+msgid "+%d Energy"
+msgstr "+%d de energía"
+
+#: scenes/digsite/dig_pit.gd:252
+#, c-format
+msgid "+%d Gems"
+msgstr "+%d gemas"
+
+#: scenes/digsite/dig_pit.gd:252
+msgid "+Cash!"
+msgstr "¡+Efectivo!"
+
+#: scenes/digsite/dig_site_screen.gd:102
+#, c-format
+msgid "%d gems: Full"
+msgstr "%d gemas: llenar"
+
+#: scenes/digsite/dig_site_screen.gd:130
+msgid "Pick\nfast · can crack"
+msgstr "Pico\nrápido · puede agrietar"
+
+#: scenes/digsite/dig_site_screen.gd:135
+msgid "Brush\ngentle · safe"
+msgstr "Pincel\nsuave · seguro"
+
+#: scenes/digsite/dig_site_screen.gd:141
+msgid "MUSEUM COLLECTION"
+msgstr "COLECCIÓN DEL MUSEO"
+
+#: scenes/digsite/dig_site_screen.gd:166
+#: scenes/ui/bottom_nav.gd:54
+msgid "Dig Site"
+msgstr "Excavación"
+
+#: scenes/digsite/dig_site_screen.gd:193
+msgid "Out of energy: it refills over time, or watch an ad"
+msgstr "Sin energía: se recarga con el tiempo, o mira un anuncio"
+
+#: scenes/digsite/dig_site_screen.gd:195
+msgid "Rock! Only the pick breaks it"
+msgstr "¡Roca! Solo el pico puede romperla"
+
+#: scenes/digsite/dig_site_screen.gd:215
+#, c-format
+msgid "Collection %d / %d · each find raises %s's income"
+msgstr "Colección %d / %d · cada hallazgo aumenta los ingresos de %s"
+
+#: scenes/digsite/dig_site_screen.gd:216
+msgid "the museum"
+msgstr "el museo"
+
+#: scenes/digsite/dig_site_screen.gd:218
+msgid "Artifact"
+msgstr "Artefacto"
+
+#: scenes/digsite/dig_site_screen.gd:218
+#, c-format
+msgid "Buried %s"
+msgstr "%s enterrado"
+
+#: scenes/digsite/dig_site_screen.gd:219
+#, c-format
+msgid "%s · %d%% uncovered · quality %s"
+msgstr "%s · %d%% descubierto · calidad %s"
+
+#: scenes/digsite/dig_site_screen.gd:245
+#, c-format
+msgid "Energy %d / %d%s"
+msgstr "Energía %d / %d%s"
+
+#: scenes/digsite/dig_site_screen.gd:257
+#, c-format
+msgid "+%d energy"
+msgstr "+%d de energía"
+
+#: scenes/digsite/dig_site_screen.gd:265
+#: scenes/events/expedition_screen.gd:263
+#: scenes/managers/lootbox_screen.gd:271
+#: scenes/ui/welcome_back.gd:132
+msgid "Not enough gems"
+msgstr "No tienes suficientes gemas"
+
+#: scenes/digsite/dig_site_screen.gd:280
+msgid "ARTIFACT RECOVERED!"
+msgstr "¡ARTEFACTO RECUPERADO!"
+
+#: scenes/digsite/dig_site_screen.gd:283
+#, c-format
+msgid "Quality %s"
+msgstr "Calidad %s"
+
+#: scenes/digsite/dig_site_screen.gd:285
+#, c-format
+msgid "Now on display: +%d%% museum income"
+msgstr "Ya en exposición: +%d%% de ingresos del museo"
+
+#: scenes/digsite/dig_site_screen.gd:287
+#, c-format
+msgid "+%d gems for a first find"
+msgstr "+%d gemas por un primer hallazgo"
+
+#: scenes/digsite/dig_site_screen.gd:289
+msgid "Collection complete! Set bonus active."
+msgstr "¡Colección completa! Bonificación de conjunto activa."
+
+#: scenes/digsite/dig_site_screen.gd:290
+msgid "Next dig site"
+msgstr "Siguiente excavación"
+
+#: scenes/digsite/dig_site_screen.gd:319
+#: scenes/managers/manager_badge.gd:46
+msgid "rare"
+msgstr "raro"
+
+#: scenes/digsite/dig_site_screen.gd:321
+#: scenes/managers/manager_badge.gd:48
+msgid "epic"
+msgstr "épico"
+
+#: scenes/digsite/dig_site_screen.gd:322
+#: scenes/managers/manager_badge.gd:51
+msgid "common"
+msgstr "común"
+
+#: scenes/digsite/dig_site_screen.gd:70
+msgid "DIG SITE"
+msgstr "EXCAVACIÓN"
+
+#: scenes/digsite/dig_site_screen.gd:76
+msgid "Boss Expedition"
+msgstr "Expedición del jefe"
+
+#: scenes/digsite/dig_site_screen.gd:97
+#, c-format
+msgid "Ad +%d"
+msgstr "Anuncio +%d"
+
+#: scenes/events/battle_view.gd:129
+msgid "Inspector"
+msgstr "Inspector"
+
+#: scenes/events/battle_view.gd:219
+msgid "Manager"
+msgstr "Gerente"
+
+#: scenes/events/battle_view.gd:39
+#: scenes/managers/manager_badge.gd:62
+msgid "Archive"
+msgstr "Archivo"
+
+#: scenes/events/battle_view.gd:39
+msgid "Filing"
+msgstr "Clasificación"
+
+#: scenes/events/battle_view.gd:39
+#: scenes/managers/manager_badge.gd:58
+msgid "Gallery"
+msgstr "Galería"
+
+#: scenes/events/battle_view.gd:39
+#: scenes/managers/manager_badge.gd:60
+#: scenes/meta/quests_bar.gd:499
+msgid "Promotions"
+msgstr "Promoción"
+
+#: scenes/events/battle_view.gd:39
+#: scenes/managers/manager_badge.gd:56
+msgid "Ticketing"
+msgstr "Taquilla"
+
+#: scenes/events/battle_view.gd:478
+msgid "Board reshuffled"
+msgstr "Tablero reorganizado"
+
+#: scenes/events/battle_view.gd:623
+#, c-format
+msgid "Moves %d"
+msgstr "Movimientos %d"
+
+#: scenes/events/battle_view.gd:658
+#, c-format
+msgid "AUDIT: %s   x%.1f"
+msgstr "AUDITORÍA: %s   x%.1f"
+
+#: scenes/events/battle_view.gd:660
+#, c-format
+msgid "  (chain %d)"
+msgstr "  (cadena %d)"
+
+#: scenes/events/cafe_screen.gd:103
+msgid "Reward track · every level you buy is a star"
+msgstr "Recorrido de recompensas · cada nivel que compras es una estrella"
+
+#: scenes/events/cafe_screen.gd:127
+#: scenes/events/cafe_world.gd:32
+msgid "Pop-Up Cafe"
+msgstr "Café emergente"
+
+#: scenes/events/cafe_screen.gd:132
+#: scenes/store/store_screen.gd:249
+#: scenes/store/store_screen.gd:307
+#, c-format
+msgid "Ends in %s"
+msgstr "Termina en %s"
+
+#: scenes/events/cafe_screen.gd:134
+msgid "Closed"
+msgstr "Cerrado"
+
+#: scenes/events/cafe_screen.gd:135
+#, c-format
+msgid "%s coins"
+msgstr "%s monedas"
+
+#: scenes/events/cafe_screen.gd:136
+#: scenes/ui/hud.gd:121
+#, c-format
+msgid "+%s / sec"
+msgstr "+%s / s"
+
+#: scenes/events/cafe_screen.gd:141
+#, c-format
+msgid "The Pop-Up Café opens at reputation %d."
+msgstr "El café emergente abre con reputación %d."
+
+#: scenes/events/cafe_screen.gd:143
+#, c-format
+msgid "The café is closed.\nThe next pop-up opens in %s."
+msgstr "El café está cerrado.\nEl próximo abre en %s."
+
+#: scenes/events/cafe_screen.gd:148
+#, c-format
+msgid "Closed · earns +%s/s"
+msgstr "Cerrado · gana +%s/s"
+
+#: scenes/events/cafe_screen.gd:151
+msgid "Max"
+msgstr "Máx."
+
+#: scenes/events/cafe_screen.gd:153
+#, c-format
+msgid "Open\n%s"
+msgstr "Abrir\n%s"
+
+#: scenes/events/cafe_screen.gd:153
+#, c-format
+msgid "Upgrade\n%s"
+msgstr "Mejorar\n%s"
+
+#: scenes/events/cafe_screen.gd:190
+msgid "The café is closed right now"
+msgstr "El café está cerrado ahora mismo"
+
+#: scenes/events/cafe_screen.gd:193
+#, c-format
+msgid "%s is at max level"
+msgstr "%s está al nivel máximo"
+
+#: scenes/events/cafe_screen.gd:197
+#, c-format
+msgid "Need %s more café coins"
+msgstr "Te faltan %s monedas del café"
+
+#: scenes/events/cafe_screen.gd:230
+#: scripts/meta/daily_gifts.gd:66
+msgid "Manager case"
+msgstr "Caja de gerentes"
+
+#: scenes/events/cafe_screen.gd:231
+#: scenes/events/expedition_screen.gd:619
+#: scenes/events/expedition_screen.gd:631
+#: scenes/events/inspection_screen.gd:301
+#, c-format
+msgid "%d gems"
+msgstr "%d gemas"
+
+#: scenes/events/cafe_screen.gd:244
+msgid "Claim"
+msgstr "Reclamar"
+
+#: scenes/events/cafe_screen.gd:244
+msgid "Got it"
+msgstr "Entendido"
+
+#: scenes/events/cafe_screen.gd:244
+msgid "Locked"
+msgstr "Bloqueado"
+
+#: scenes/events/cafe_screen.gd:252
+#, c-format
+msgid "%d more stars to go"
+msgstr "Faltan %d estrellas"
+
+#: scenes/events/cafe_screen.gd:258
+#, c-format
+msgid "+%d gems"
+msgstr "+%d gemas"
+
+#: scenes/events/cafe_screen.gd:263
+#, c-format
+msgid "+%d manager cards"
+msgstr "+%d cartas de gerente"
+
+#: scenes/events/cafe_world.gd:106
+msgid "Level up!"
+msgstr "¡Subida de nivel!"
+
+#: scenes/events/cafe_world.gd:94
+#, c-format
+msgid "%s\nClosed"
+msgstr "%s\nCerrado"
+
+#: scenes/events/cafe_world.gd:94
+#, c-format
+msgid "%s\nLv %d"
+msgstr "%s\nNv. %d"
+
+#: scenes/events/expedition_screen.gd:107
+#, c-format
+msgid "Expedition · Cycle %d"
+msgstr "Expedición · Ciclo %d"
+
+#: scenes/events/expedition_screen.gd:142
+msgid "THE EXPEDITION AWAITS"
+msgstr "LA EXPEDICIÓN TE ESPERA"
+
+#: scenes/events/expedition_screen.gd:146
+msgid "Fund a five-stage dig, assemble your best three managers, and uncover rare decor that cannot be bought in the shop."
+msgstr "Financia una excavación de cinco etapas, reúne a tus tres mejores gerentes y descubre decoración rara que no se puede comprar en la tienda."
+
+#: scenes/events/expedition_screen.gd:155
+msgid "RARE DECOR"
+msgstr "DECORACIÓN RARA"
+
+#: scenes/events/expedition_screen.gd:175
+msgid "UNLOCKS AT REP 7"
+msgstr "SE DESBLOQUEA CON REP 7"
+
+#: scenes/events/expedition_screen.gd:178
+#, c-format
+msgid "Currently Rep %d"
+msgstr "Rep actual %d"
+
+#: scenes/events/expedition_screen.gd:194
+msgid "Insight field lab"
+msgstr "Laboratorio de campo del saber"
+
+#: scenes/events/expedition_screen.gd:213
+msgid "Collect 1×"
+msgstr "Recoger 1×"
+
+#: scenes/events/expedition_screen.gd:217
+#, c-format
+msgid "Collected %s insight"
+msgstr "Recogiste %s de saber"
+
+#: scenes/events/expedition_screen.gd:217
+#: scenes/events/expedition_screen.gd:236
+#: scenes/events/expedition_screen.gd:259
+msgid "Nothing stored yet"
+msgstr "Aún no hay nada almacenado"
+
+#: scenes/events/expedition_screen.gd:226
+#, c-format
+msgid "%d Gems ×%d"
+msgstr "%d gemas ×%d"
+
+#: scenes/events/expedition_screen.gd:250
+#: scenes/events/expedition_screen.gd:267
+#, c-format
+msgid "Collected %s insight (×%s)"
+msgstr "Recogiste %s de saber (×%s)"
+
+#: scenes/events/expedition_screen.gd:252
+#: scenes/managers/lootbox_screen.gd:280
+#: scenes/managers/lootbox_screen.gd:288
+#: scenes/ui/welcome_back.gd:123
+msgid "Ad unavailable"
+msgstr "Anuncio no disponible"
+
+#: scenes/events/expedition_screen.gd:289
+#, c-format
+msgid "Stored %s / %s insight"
+msgstr "Almacenado %s / %s de saber"
+
+#: scenes/events/expedition_screen.gd:296
+msgid "Invest to reveal the dig site"
+msgstr "Invierte para revelar la excavación"
+
+#: scenes/events/expedition_screen.gd:315
+msgid "Funded"
+msgstr "Financiado"
+
+#: scenes/events/expedition_screen.gd:315
+#, c-format
+msgid "Invest %s"
+msgstr "Invertir %s"
+
+#: scenes/events/expedition_screen.gd:321
+#, c-format
+msgid "%s — +%s insight"
+msgstr "%s — +%s de saber"
+
+#: scenes/events/expedition_screen.gd:322
+msgid "Site"
+msgstr "Yacimiento"
+
+#: scenes/events/expedition_screen.gd:336
+msgid "Every dig site is funded — the Guardian is waiting."
+msgstr "Todas las excavaciones están financiadas: el Guardián te espera."
+
+#: scenes/events/expedition_screen.gd:338
+msgid "That site is already funded."
+msgstr "Ese yacimiento ya está financiado."
+
+#: scenes/events/expedition_screen.gd:340
+#, c-format
+msgid "Fund %s first."
+msgstr "Primero financia %s."
+
+#: scenes/events/expedition_screen.gd:340
+msgid "the next site"
+msgstr "el siguiente yacimiento"
+
+#: scenes/events/expedition_screen.gd:346
+#, c-format
+msgid "Needs %s — keep the museum earning."
+msgstr "Necesitas %s — mantén el museo generando ingresos."
+
+#: scenes/events/expedition_screen.gd:357
+msgid "The Temple Guardian stirs…"
+msgstr "El Guardián del Templo despierta…"
+
+#: scenes/events/expedition_screen.gd:366
+#, c-format
+msgid "Boss: %s"
+msgstr "Jefe: %s"
+
+#: scenes/events/expedition_screen.gd:366
+#: scenes/events/expedition_screen.gd:475
+#: data/events.json
+msgid "The Temple Guardian"
+msgstr "El Guardián del Templo"
+
+#: scenes/events/expedition_screen.gd:372
+msgid "Complete the invest track to unlock the boss."
+msgstr "Completa el recorrido de inversión para desbloquear al jefe."
+
+#: scenes/events/expedition_screen.gd:378
+#, c-format
+msgid "Your team: %d/3 selected"
+msgstr "Tu equipo: %d/3 seleccionados"
+
+#: scenes/events/expedition_screen.gd:395
+msgid "No managers yet — recruit one from a Store lootbox to field a team."
+msgstr "Aún no tienes gerentes: recluta uno con una caja de la Tienda para formar equipo."
+
+#: scenes/events/expedition_screen.gd:402
+#, c-format
+msgid "HP ~%d · %d moves · team power %d\nRewards: %s"
+msgstr "PV ~%d · %d movimientos · poder del equipo %d\nRecompensas: %s"
+
+#: scenes/events/expedition_screen.gd:409
+msgid "Fight the Guardian"
+msgstr "Luchar contra el Guardián"
+
+#: scenes/events/expedition_screen.gd:418
+msgid "Recruit a manager from the Store before facing the Guardian."
+msgstr "Recluta un gerente en la Tienda antes de enfrentarte al Guardián."
+
+#: scenes/events/expedition_screen.gd:421
+msgid "Pick up to 3 managers for the expedition team."
+msgstr "Elige hasta 3 gerentes para el equipo de la expedición."
+
+#: scenes/events/expedition_screen.gd:453
+#: scenes/events/inspection_screen.gd:256
+#, c-format
+msgid "%s stepped aside for %s"
+msgstr "%s cedió su puesto a %s"
+
+#: scenes/events/expedition_screen.gd:486
+msgid "Expedition failed"
+msgstr "La expedición fracasó"
+
+#: scenes/events/expedition_screen.gd:486
+msgid "The Guardian holds the temple.\nChase the audit colour or bring stronger managers."
+msgstr "El Guardián conserva el templo.\nPersigue el color de la auditoría o trae gerentes más fuertes."
+
+#: scenes/events/expedition_screen.gd:492
+msgid "Already claimed"
+msgstr "Ya reclamado"
+
+#: scenes/events/expedition_screen.gd:492
+msgid "This expedition is already written up."
+msgstr "Esta expedición ya está registrada."
+
+#: scenes/events/expedition_screen.gd:503
+#, c-format
+msgid "%s\nA new expedition begins (cycle %d)."
+msgstr "%s\nComienza una nueva expedición (ciclo %d)."
+
+#: scenes/events/expedition_screen.gd:503
+msgid "Guardian defeated"
+msgstr "Guardián derrotado"
+
+#: scenes/events/expedition_screen.gd:583
+#: scenes/events/inspection_screen.gd:507
+msgid "Retry"
+msgstr "Reintentar"
+
+#: scenes/events/expedition_screen.gd:587
+#: scenes/events/inspection_screen.gd:511
+msgid "Continue"
+msgstr "Continuar"
+
+#: scenes/events/expedition_screen.gd:621
+#: scenes/events/expedition_screen.gd:633
+#: scenes/events/inspection_screen.gd:303
+#: scenes/events/inspection_screen.gd:457
+#, c-format
+msgid "%s insight"
+msgstr "%s de saber"
+
+#: scenes/events/expedition_screen.gd:634
+#: scenes/events/inspection_screen.gd:458
+#, c-format
+msgid "Rewards: %s"
+msgstr "Recompensas: %s"
+
+#: scenes/events/expedition_screen.gd:634
+#: scenes/events/inspection_screen.gd:458
+msgid "none"
+msgstr "ninguna"
+
+#: scenes/events/inspection_screen.gd:130
+#: scenes/events/inspection_screen.gd:153
+#: data/events.json
+msgid "Inspection Frenzy"
+msgstr "Frenesí de inspecciones"
+
+#: scenes/events/inspection_screen.gd:138
+msgid "Assemble your inspection team"
+msgstr "Reúne a tu equipo de inspección"
+
+#: scenes/events/inspection_screen.gd:139
+msgid "Choose up to three managers, match their department colours, and clear six inspections to earn cases, gems, and insight."
+msgstr "Elige hasta tres gerentes, combina los colores de sus departamentos y supera seis inspecciones para ganar cajas, gemas y saber."
+
+#: scenes/events/inspection_screen.gd:142
+msgid "Available on Day 2"
+msgstr "Disponible el día 2"
+
+#: scenes/events/inspection_screen.gd:163
+#: scenes/events/inspection_screen.gd:323
+msgid "Start Inspection"
+msgstr "Empezar inspección"
+
+#: scenes/events/inspection_screen.gd:174
+#, c-format
+msgid "Your team  %d/%d"
+msgstr "Tu equipo  %d/%d"
+
+#: scenes/events/inspection_screen.gd:193
+msgid "Stages"
+msgstr "Etapas"
+
+#: scenes/events/inspection_screen.gd:199
+msgid "All stages cleared! Come back after the cooldown."
+msgstr "¡Todas las etapas superadas! Vuelve cuando acabe la espera."
+
+#: scenes/events/inspection_screen.gd:215
+msgid "You need a team first"
+msgstr "Primero necesitas un equipo"
+
+#: scenes/events/inspection_screen.gd:217
+msgid "Inspections are fought by managers. Recruit your first one from a lootbox in the Store, then come back and pick up to three."
+msgstr "Las inspecciones las libran los gerentes. Recluta el primero con una caja de la Tienda y vuelve para elegir hasta tres."
+
+#: scenes/events/inspection_screen.gd:227
+msgid "Match your managers' colours to charge them. The inspector audits one department at a time — clearing THAT colour charges far faster, and the audit moves as soon as you satisfy it."
+msgstr "Combina los colores de tus gerentes para cargarlos. El inspector audita un departamento cada vez: despejar ESE color carga mucho más rápido, y la auditoría cambia en cuanto lo satisfaces."
+
+#: scenes/events/inspection_screen.gd:272
+msgid "Cleared"
+msgstr "Superada"
+
+#: scenes/events/inspection_screen.gd:272
+#, c-format
+msgid "Stage %d"
+msgstr "Etapa %d"
+
+#: scenes/events/inspection_screen.gd:281
+msgid "pick a team to see the odds"
+msgstr "elige un equipo para ver las probabilidades"
+
+#: scenes/events/inspection_screen.gd:283
+#, c-format
+msgid "%d HP · %d moves"
+msgstr "%d PV · %d movimientos"
+
+#: scenes/events/inspection_screen.gd:285
+#, c-format
+msgid "clear stage %d first"
+msgstr "supera antes la etapa %d"
+
+#: scenes/events/inspection_screen.gd:313
+#, c-format
+msgid "\nTeam power %d"
+msgstr "\nPoder del equipo %d"
+
+#: scenes/events/inspection_screen.gd:316
+#, c-format
+msgid "Window OPEN — closes in %s%s"
+msgstr "Ventana ABIERTA — cierra en %s%s"
+
+#: scenes/events/inspection_screen.gd:322
+msgid "Next inspection: READY"
+msgstr "Próxima inspección: LISTA"
+
+#: scenes/events/inspection_screen.gd:327
+#, c-format
+msgid "Next inspection in %s"
+msgstr "Próxima inspección en %s"
+
+#: scenes/events/inspection_screen.gd:328
+msgid "On cooldown"
+msgstr "En espera"
+
+#: scenes/events/inspection_screen.gd:334
+#, c-format
+msgid "The inspectors need %s to write up the last visit."
+msgstr "Los inspectores necesitan %s para redactar la última visita."
+
+#: scenes/events/inspection_screen.gd:350
+msgid "Start the inspection first — the window is closed."
+msgstr "Primero empieza la inspección: la ventana está cerrada."
+
+#: scenes/events/inspection_screen.gd:353
+#, c-format
+msgid "Clear stage %d first."
+msgstr "Primero supera la etapa %d."
+
+#: scenes/events/inspection_screen.gd:356
+msgid "Recruit a manager from the Store to fight an inspection."
+msgstr "Recluta un gerente en la Tienda para librar una inspección."
+
+#: scenes/events/inspection_screen.gd:359
+#, c-format
+msgid "Pick up to %d managers first."
+msgstr "Primero elige hasta %d gerentes."
+
+#: scenes/events/inspection_screen.gd:379
+#, c-format
+msgid "Chief Inspector — Stage %d"
+msgstr "Inspector jefe — Etapa %d"
+
+#: scenes/events/inspection_screen.gd:390
+msgid "Continue with your board and damage intact,\nor retry this stage for free with a stronger team."
+msgstr "Continúa con tu tablero y el daño intactos,\no reintenta esta etapa gratis con un equipo más fuerte."
+
+#: scenes/events/inspection_screen.gd:390
+msgid "Out of moves"
+msgstr "Sin movimientos"
+
+#: scenes/events/inspection_screen.gd:397
+msgid "Already cleared"
+msgstr "Ya superada"
+
+#: scenes/events/inspection_screen.gd:397
+msgid "This stage was already signed off."
+msgstr "Esta etapa ya se aprobó."
+
+#: scenes/events/inspection_screen.gd:405
+#, c-format
+msgid "Stage %d cleared"
+msgstr "Etapa %d superada"
+
+#: scenes/events/inspection_screen.gd:495
+#, c-format
+msgid "Watch ad · restore 50% moves"
+msgstr "Ver anuncio · recupera 50% de movimientos"
+
+#: scenes/events/inspection_screen.gd:498
+#, c-format
+msgid "30 gems · full moves (%d left)"
+msgstr "30 gemas · movimientos completos (quedan %d)"
+
+#: scenes/events/inspection_screen.gd:511
+msgid "End attempt"
+msgstr "Terminar intento"
+
+#: scenes/events/inspection_screen.gd:532
+msgid "No gem continuations remain. You can retry this stage for free."
+msgstr "No quedan continuaciones con gemas. Puedes reintentar esta etapa gratis."
+
+#: scenes/events/inspection_screen.gd:535
+msgid "You need 30 gems to restore the full move allowance."
+msgstr "Necesitas 30 gemas para recuperar todos los movimientos."
+
+#: scenes/events/inspection_screen.gd:545
+msgid "No ad is ready yet. You can retry this stage for free."
+msgstr "Aún no hay ningún anuncio listo. Puedes reintentar esta etapa gratis."
+
+#: scenes/events/inspection_screen.gd:555
+msgid "The ad did not finish. Your attempt is still here."
+msgstr "El anuncio no terminó. Tu intento sigue aquí."
+
+#: scenes/main.gd:148
+#, c-format
+msgid "Reputation %d! +%d gems"
+msgstr "¡Reputación %d! +%d gemas"
+
+#: scenes/main.gd:153
+#, c-format
+msgid "\nNew visitors: %s"
+msgstr "\nNuevos visitantes: %s"
+
+#: scenes/managers/lootbox_screen.gd:163
+#, c-format
+msgid "Next free charge in %d:%02d"
+msgstr "Próxima carga gratis en %d:%02d"
+
+#: scenes/managers/lootbox_screen.gd:195
+#, c-format
+msgid "FREE %d/%d"
+msgstr "GRATIS %d/%d"
+
+#: scenes/managers/lootbox_screen.gd:199
+#: scenes/managers/lootbox_screen.gd:255
+msgid "Open (watch ad)"
+msgstr "Abrir (ver anuncio)"
+
+#: scenes/managers/lootbox_screen.gd:199
+msgid "Recharging — tap for details"
+msgstr "Recargando — toca para ver detalles"
+
+#: scenes/managers/lootbox_screen.gd:202
+#: scenes/managers/lootbox_screen.gd:241
+#: scripts/meta/decor_system.gd:394
+#, c-format
+msgid "%d Gems"
+msgstr "%d gemas"
+
+#: scenes/managers/lootbox_screen.gd:203
+#: scenes/managers/lootbox_screen.gd:258
+msgid "Buy & Open"
+msgstr "Comprar y abrir"
+
+#: scenes/managers/lootbox_screen.gd:203
+#, c-format
+msgid "Need %d Gems"
+msgstr "Necesitas %d gemas"
+
+#: scenes/managers/lootbox_screen.gd:221
+#, c-format
+msgid "%d manager cards  ·  +%s Insight  ·  +%d Gems"
+msgstr "%d cartas de gerente  ·  +%s de saber  ·  +%d gemas"
+
+#: scenes/managers/lootbox_screen.gd:229
+#, c-format
+msgid "Published odds: %s"
+msgstr "Probabilidades publicadas: %s"
+
+#: scenes/managers/lootbox_screen.gd:239
+msgid "FREE"
+msgstr "GRATIS"
+
+#: scenes/managers/lootbox_screen.gd:247
+msgid "Drop rates"
+msgstr "Probabilidades"
+
+#: scenes/managers/lootbox_screen.gd:277
+msgid "No free cases left — recharging"
+msgstr "No quedan cajas gratis — recargando"
+
+#: scenes/managers/lootbox_screen.gd:324
+#, c-format
+msgid "%s — published drop rates"
+msgstr "%s — probabilidades publicadas"
+
+#: scenes/managers/lootbox_screen.gd:335
+#: scripts/ui/popup_manager.gd:143
+#: scripts/ui/ui_kit.gd:454
+msgid "Close"
+msgstr "Cerrar"
+
+#: scenes/managers/lootbox_screen.gd:345
+#, c-format
+msgid "%s opened!"
+msgstr "¡%s abierta!"
+
+#: scenes/managers/lootbox_screen.gd:376
+#, c-format
+msgid "Bonus: +%s Insight  ·  +%d Gems"
+msgstr "Bono: +%s de saber  ·  +%d gemas"
+
+#: scenes/managers/lootbox_screen.gd:398
+msgid "Collect"
+msgstr "Recoger"
+
+#: scenes/managers/lootbox_screen.gd:57
+msgid "Recruitment Cases"
+msgstr "Cajas de reclutamiento"
+
+#: scenes/managers/lootbox_screen.gd:66
+msgid "Open cases to recruit managers and collect duplicates for rank-ups and trades."
+msgstr "Abre cajas para reclutar gerentes y reunir duplicados para subir de rango e intercambiar."
+
+#: scenes/managers/manager_badge.gd:148
+msgid "Personnel File Sealed"
+msgstr "Expediente sellado"
+
+#: scenes/managers/manager_badge.gd:177
+#, c-format
+msgid "NO. %s"
+msgstr "N.º %s"
+
+#: scenes/managers/manager_badge.gd:201
+msgid "Recruit this manager from a case to open their file."
+msgstr "Recluta a este gerente con una caja para abrir su expediente."
+
+#: scenes/managers/manager_badge.gd:311
+msgid "PROD"
+msgstr "PROD"
+
+#: scenes/managers/manager_badge.gd:312
+msgid "CARDS"
+msgstr "CARTAS"
+
+#: scenes/managers/manager_badge.gd:313
+msgid "AUDIT"
+msgstr "AUDIT."
+
+#: scenes/managers/manager_badge.gd:349
+#, c-format
+msgid "Rank %d/%d"
+msgstr "Rango %d/%d"
+
+#: scenes/managers/manager_badge.gd:362
+#, c-format
+msgid "%d TRAITS ON FILE"
+msgstr "%d RASGOS EN EXPEDIENTE"
+
+#: scenes/managers/manager_badge.gd:50
+msgid "legendary"
+msgstr "legendario"
+
+#: scenes/managers/manager_portrait.gd:145
+msgid "SEALED"
+msgstr "SELLADO"
+
+#: scenes/managers/managers_screen.gd:184
+#: scenes/managers/managers_screen.gd:218
+#: scenes/ui/bottom_nav.gd:53
+#: scenes/venue/dept_panel.gd:60
+msgid "Managers"
+msgstr "Gerentes"
+
+#: scenes/managers/managers_screen.gd:195
+msgid "Recruit"
+msgstr "Reclutar"
+
+#: scenes/managers/managers_screen.gd:217
+#, c-format
+msgid "%d of %d recruited"
+msgstr "%d de %d reclutados"
+
+#: scenes/managers/managers_screen.gd:218
+#, c-format
+msgid "%s team"
+msgstr "Equipo de %s"
+
+#: scenes/managers/managers_screen.gd:25
+msgid "All"
+msgstr "Todos"
+
+#: scenes/managers/managers_screen.gd:25
+msgid "Available"
+msgstr "Disponibles"
+
+#: scenes/managers/managers_screen.gd:25
+msgid "On duty"
+msgstr "De servicio"
+
+#: scenes/managers/managers_screen.gd:25
+msgid "Ready"
+msgstr "Listo"
+
+#: scenes/managers/managers_screen.gd:25
+msgid "Sealed"
+msgstr "Sellados"
+
+#: scenes/managers/managers_screen.gd:275
+msgid "No upgrades ready yet.\nEarn Insight or collect duplicate cards."
+msgstr "Aún no hay mejoras listas.\nGana saber o reúne cartas duplicadas."
+
+#: scenes/managers/managers_screen.gd:276
+msgid "No managers on duty.\nChoose Available to assign your team."
+msgstr "No hay gerentes de servicio.\nElige Disponibles para asignar a tu equipo."
+
+#: scenes/managers/managers_screen.gd:277
+msgid "No unassigned managers.\nRecruit more staff or stand someone down."
+msgstr "No hay gerentes sin asignar.\nRecluta más personal o retira a alguien."
+
+#: scenes/managers/managers_screen.gd:278
+msgid "Every manager in this roster is recruited."
+msgstr "Todos los gerentes de esta plantilla están reclutados."
+
+#: scenes/managers/managers_screen.gd:279
+msgid "No managers in this roster."
+msgstr "No hay gerentes en esta plantilla."
+
+#: scenes/managers/managers_screen.gd:348
+#, c-format
+msgid "%d of %d"
+msgstr "%d de %d"
+
+#: scenes/managers/managers_screen.gd:716
+#, c-format
+msgid "Find %s manager cards in recruitment cases. Each case shows its drop rates."
+msgstr "Consigue cartas de gerente de %s en cajas de reclutamiento. Cada caja muestra sus probabilidades."
+
+#: scenes/managers/managers_screen.gd:724
+msgid "Open recruitment cases"
+msgstr "Abrir cajas de reclutamiento"
+
+#: scenes/managers/managers_screen.gd:737
+msgid "Level Up — MAX LEVEL"
+msgstr "Subir nivel — NIVEL MÁX."
+
+#: scenes/managers/managers_screen.gd:738
+#, c-format
+msgid "Level Up — %s Insight"
+msgstr "Subir nivel — %s de saber"
+
+#: scenes/managers/managers_screen.gd:751
+msgid "Rank Up — MAX"
+msgstr "Subir rango — MÁX."
+
+#: scenes/managers/managers_screen.gd:752
+#, c-format
+msgid "Rank Up — %d duplicates (%d spare)"
+msgstr "Subir rango — %d duplicados (%d de sobra)"
+
+#: scenes/managers/managers_screen.gd:759
+#, c-format
+msgid "Trade %d"
+msgstr "Intercambiar %d"
+
+#: scenes/managers/managers_screen.gd:778
+#, c-format
+msgid "On duty — %s • %s (stand down)"
+msgstr "De servicio — %s • %s (retirar)"
+
+#: scenes/managers/managers_screen.gd:782
+#, c-format
+msgid "%s full • %s — choose replacement"
+msgstr "%s lleno • %s — elige a quién sustituir"
+
+#: scenes/managers/managers_screen.gd:787
+#, c-format
+msgid "Post to %s • %s (%d/%d)"
+msgstr "Asignar a %s • %s (%d/%d)"
+
+#: scenes/managers/managers_screen.gd:794
+msgid "Already at the level cap for this rank"
+msgstr "Ya está en el tope de nivel de este rango"
+
+#: scenes/managers/managers_screen.gd:799
+#, c-format
+msgid "Need %s more Insight"
+msgstr "Te faltan %s de saber"
+
+#: scenes/managers/managers_screen.gd:802
+#, c-format
+msgid "%s reached level %d"
+msgstr "%s alcanzó el nivel %d"
+
+#: scenes/managers/managers_screen.gd:809
+msgid "Already at maximum rank"
+msgstr "Ya está en el rango máximo"
+
+#: scenes/managers/managers_screen.gd:814
+#, c-format
+msgid "Need %d more duplicate card"
+msgstr "Te falta %d carta duplicada"
+
+#: scenes/managers/managers_screen.gd:815
+#, c-format
+msgid "Need %d more duplicate cards"
+msgstr "Te faltan %d cartas duplicadas"
+
+#: scenes/managers/managers_screen.gd:818
+#, c-format
+msgid "%s reached rank %d"
+msgstr "%s alcanzó el rango %d"
+
+#: scenes/managers/managers_screen.gd:858
+#, c-format
+msgid "Choose who %s replaces"
+msgstr "Elige a quién sustituye %s"
+
+#: scenes/managers/managers_screen.gd:862
+#, c-format
+msgid "%s has %d active post."
+msgstr "%s tiene %d puesto activo."
+
+#: scenes/managers/managers_screen.gd:862
+#, c-format
+msgid "%s has %d active posts."
+msgstr "%s tiene %d puestos activos."
+
+#: scenes/managers/managers_screen.gd:869
+#, c-format
+msgid "Incoming: %s  (+%d%% productivity)"
+msgstr "Entra: %s  (+%d%% de productividad)"
+
+#: scenes/managers/managers_screen.gd:881
+#, c-format
+msgid "Replace %s (+%d%%)\nTeam +%d%% → +%d%%"
+msgstr "Sustituir a %s (+%d%%)\nEquipo +%d%% → +%d%%"
+
+#: scenes/managers/managers_screen.gd:889
+#, c-format
+msgid "%s is now on duty in %s"
+msgstr "%s ya está de servicio en %s"
+
+#: scenes/managers/managers_screen.gd:893
+msgid "Team changed — review the active posts"
+msgstr "Equipo cambiado — revisa los puestos activos"
+
+#: scenes/managers/managers_screen.gd:895
+msgid "Keep current team"
+msgstr "Mantener el equipo actual"
+
+#: scenes/managers/managers_screen.gd:924
+#, c-format
+msgid "Trade %d cards of %s for 1 card of:"
+msgstr "Intercambia %d cartas de %s por 1 carta de:"
+
+#: scenes/managers/managers_screen.gd:930
+#, c-format
+msgid "You keep at least 1 card. You have %d."
+msgstr "Conservas al menos 1 carta. Tienes %d."
+
+#: scenes/managers/managers_screen.gd:940
+#, c-format
+msgid "%s  (%d cards owned)"
+msgstr "%s  (%d cartas)"
+
+#: scenes/managers/managers_screen.gd:946
+#, c-format
+msgid "Trade complete — 1 %s card received"
+msgstr "Intercambio completado — recibiste 1 carta de %s"
+
+#: scenes/managers/managers_screen.gd:951
+#, c-format
+msgid "Keep one card plus %d duplicates to trade"
+msgstr "Conserva una carta más %d duplicados para intercambiar"
+
+#: scenes/managers/managers_screen.gd:953
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: scenes/meta/daily_gifts_screen.gd:104
+msgid "Tomorrow"
+msgstr "Mañana"
+
+#: scenes/meta/daily_gifts_screen.gd:123
+msgid "Your next gift is ready tomorrow"
+msgstr "Tu próximo regalo estará listo mañana"
+
+#: scenes/meta/daily_gifts_screen.gd:131
+#, c-format
+msgid "Day %d gift: %s"
+msgstr "Regalo del día %d: %s"
+
+#: scenes/meta/daily_gifts_screen.gd:31
+msgid "Daily Gifts"
+msgstr "Regalos diarios"
+
+#: scenes/meta/daily_gifts_screen.gd:32
+msgid "A gift every day. Miss a day and your next gift simply waits for you."
+msgstr "Un regalo cada día. Si faltas un día, tu próximo regalo simplemente te espera."
+
+#: scenes/meta/daily_gifts_screen.gd:63
+#, c-format
+msgid "Claim Day %d gift"
+msgstr "Reclamar regalo del día %d"
+
+#: scenes/meta/daily_gifts_screen.gd:67
+msgid "Come back tomorrow"
+msgstr "Vuelve mañana"
+
+#: scenes/meta/daily_gifts_screen.gd:69
+#, c-format
+msgid "Gifts claimed: %d"
+msgstr "Regalos reclamados: %d"
+
+#: scenes/meta/daily_gifts_screen.gd:89
+#: scenes/ui/bottom_nav.gd:129
+#, c-format
+msgid "Day %d"
+msgstr "Día %d"
+
+#: scenes/meta/decor_screen.gd:131
+msgid "Furnishing required to complete this museum"
+msgstr "Mobiliario necesario para completar este museo"
+
+#: scenes/meta/decor_screen.gd:133
+msgid "Only installed pieces count. Cash designs can meet the full target."
+msgstr "Solo cuentan las piezas instaladas. Los diseños con efectivo pueden cubrir todo el objetivo."
+
+#: scenes/meta/decor_screen.gd:134
+msgid "Visitor rating — keep improving for extra income"
+msgstr "Valoración de los visitantes — sigue mejorando para ganar más"
+
+#: scenes/meta/decor_screen.gd:153
+#, c-format
+msgid "Visitors pay x%.2f"
+msgstr "Los visitantes pagan x%.2f"
+
+#: scenes/meta/decor_screen.gd:199
+#, c-format
+msgid " • +%d seats"
+msgstr " • +%d asientos"
+
+#: scenes/meta/decor_screen.gd:210
+msgid "Every museum stocks its own decor."
+msgstr "Cada museo tiene su propia decoración."
+
+#: scenes/meta/decor_screen.gd:211
+#, c-format
+msgid "Pieces you buy here fill this building's %d slots and stay here. Storage frees a slot without charging you again. The next museum is a new setting and starts its shelves fresh — but completed sets keep their bonus wherever you are."
+msgstr "Las piezas que compras aquí ocupan los %d huecos de este edificio y se quedan aquí. Guardarlas libera un hueco sin volver a cobrarte. El siguiente museo es un escenario nuevo y empieza con las estanterías vacías, pero los conjuntos completos conservan su bonificación estés donde estés."
+
+#: scenes/meta/decor_screen.gd:216
+#, c-format
+msgid "Exhibit Slots (%d/%d)"
+msgstr "Huecos de exposición (%d/%d)"
+
+#: scenes/meta/decor_screen.gd:239
+#, c-format
+msgid "%s • +%d%% income%s"
+msgstr "%s • +%d%% de ingresos%s"
+
+#: scenes/meta/decor_screen.gd:243
+#, c-format
+msgid "On display • %d decor pts"
+msgstr "En exposición • %d ptos. de decoración"
+
+#: scenes/meta/decor_screen.gd:247
+msgid "Put in storage"
+msgstr "Guardar en el almacén"
+
+#: scenes/meta/decor_screen.gd:252
+msgid "Empty Slot"
+msgstr "Hueco vacío"
+
+#: scenes/meta/decor_screen.gd:256
+msgid "Sets"
+msgstr "Conjuntos"
+
+#: scenes/meta/decor_screen.gd:265
+#, c-format
+msgid "Bonus +%d%% income"
+msgstr "Bonificación +%d%% de ingresos"
+
+#: scenes/meta/decor_screen.gd:266
+#, c-format
+msgid "%s — ACTIVE"
+msgstr "%s — ACTIVA"
+
+#: scenes/meta/decor_screen.gd:273
+msgid "Shop"
+msgstr "Tienda"
+
+#: scenes/meta/decor_screen.gd:276
+msgid "All slots full in this venue."
+msgstr "Todos los huecos de este museo están llenos."
+
+#: scenes/meta/decor_screen.gd:287
+#, c-format
+msgid "%s · only here"
+msgstr "%s · solo aquí"
+
+#: scenes/meta/decor_screen.gd:302
+msgid "Curiosities"
+msgstr "Curiosidades"
+
+#: scenes/meta/decor_screen.gd:318
+#, c-format
+msgid "%s • +%d%% income • %d pts%s"
+msgstr "%s • +%d%% de ingresos • %d ptos.%s"
+
+#: scenes/meta/decor_screen.gd:332
+#, c-format
+msgid "On display • slot %d"
+msgstr "En exposición • hueco %d"
+
+#: scenes/meta/decor_screen.gd:334
+#, c-format
+msgid "Install in museum • slot %d"
+msgstr "Instalar en el museo • hueco %d"
+
+#: scenes/meta/decor_screen.gd:336
+msgid "No free display slot"
+msgstr "No hay huecos de exposición libres"
+
+#: scenes/meta/decor_screen.gd:339
+msgid "Expedition reward"
+msgstr "Recompensa de expedición"
+
+#: scenes/meta/decor_screen.gd:342
+#, c-format
+msgid "Level %d / %d · now +%d%% income"
+msgstr "Nivel %d / %d · ahora +%d%% de ingresos"
+
+#: scenes/meta/decor_screen.gd:355
+#: scenes/meta/settings_screen.gd:73
+msgid "View"
+msgstr "Ver"
+
+#: scenes/meta/decor_screen.gd:358
+msgid "Storage"
+msgstr "Almacén"
+
+#: scenes/meta/decor_screen.gd:365
+msgid "In this museum's storage"
+msgstr "En el almacén de este museo"
+
+#: scenes/meta/decor_screen.gd:366
+msgid "Place — Free"
+msgstr "Colocar — gratis"
+
+#: scenes/meta/decor_screen.gd:376
+msgid "You had this in an earlier museum"
+msgstr "Ya lo tenías en un museo anterior"
+
+#: scenes/meta/decor_screen.gd:380
+#, c-format
+msgid "Buy — %s"
+msgstr "Comprar — %s"
+
+#: scenes/meta/decor_screen.gd:392
+#, c-format
+msgid "%s installed!"
+msgstr "¡%s instalado!"
+
+#: scenes/meta/decor_screen.gd:396
+msgid "Can't buy that right now."
+msgstr "Ahora no puedes comprarlo."
+
+#: scenes/meta/decor_screen.gd:401
+#, c-format
+msgid "%s placed."
+msgstr "%s colocado."
+
+#: scenes/meta/decor_screen.gd:405
+msgid "No free slot for that."
+msgstr "No hay hueco libre para eso."
+
+#: scenes/meta/decor_screen.gd:410
+#, c-format
+msgid "%s moved to storage — put it back any time, free."
+msgstr "%s pasó al almacén — vuelve a colocarlo cuando quieras, gratis."
+
+#: scenes/meta/decor_screen.gd:87
+#, c-format
+msgid "Decor — %s"
+msgstr "Decoración — %s"
+
+#: scenes/meta/prestige_screen.gd:168
+msgid "Museum complete"
+msgstr "Museo completo"
+
+#: scenes/meta/prestige_screen.gd:168
+msgid "Venues"
+msgstr "Museos"
+
+#: scenes/meta/prestige_screen.gd:171
+#, c-format
+msgid "%s has completed its milestones and core operation. The collection is yours to perfect."
+msgstr "%s ha completado sus hitos y su operación principal. La colección es tuya para perfeccionarla."
+
+#: scenes/meta/prestige_screen.gd:172
+#, c-format
+msgid "%s has completed its milestones and core operation. Your next chapter is ready."
+msgstr "%s ha completado sus hitos y su operación principal. Tu siguiente capítulo está listo."
+
+#: scenes/meta/prestige_screen.gd:174
+#, c-format
+msgid "Curator of %s — level %d of %d"
+msgstr "Curador de %s — nivel %d de %d"
+
+#: scenes/meta/prestige_screen.gd:207
+msgid "Venue readiness"
+msgstr "Preparación del museo"
+
+#: scenes/meta/prestige_screen.gd:212
+msgid "IN PROGRESS"
+msgstr "EN CURSO"
+
+#: scenes/meta/prestige_screen.gd:212
+#: scenes/meta/quests_bar.gd:335
+msgid "READY"
+msgstr "LISTO"
+
+#: scenes/meta/prestige_screen.gd:224
+#, c-format
+msgid "Milestones %d / %d"
+msgstr "Hitos %d / %d"
+
+#: scenes/meta/prestige_screen.gd:235
+#, c-format
+msgid "Core operation %d%%"
+msgstr "Operación principal %d%%"
+
+#: scenes/meta/prestige_screen.gd:245
+msgid "Furnish museum"
+msgstr "Amueblar el museo"
+
+#: scenes/meta/prestige_screen.gd:251
+msgid "The operation is complete. The next museum awaits."
+msgstr "La operación está completa. El siguiente museo te espera."
+
+#: scenes/meta/prestige_screen.gd:256
+#, c-format
+msgid "Next: %s"
+msgstr "Siguiente: %s"
+
+#: scenes/meta/prestige_screen.gd:260
+msgid "Your next museum"
+msgstr "Tu próximo museo"
+
+#: scenes/meta/prestige_screen.gd:272
+msgid "Visitors pay"
+msgstr "Los visitantes pagan"
+
+#: scenes/meta/prestige_screen.gd:273
+#, c-format
+msgid "%s more per head"
+msgstr "%s más por persona"
+
+#: scenes/meta/prestige_screen.gd:274
+msgid "Upgrades cost"
+msgstr "Las mejoras cuestan"
+
+#: scenes/meta/prestige_screen.gd:275
+#, c-format
+msgid "%s more — a bigger hall is a harder job"
+msgstr "%s más — una sala más grande es más trabajo"
+
+#: scenes/meta/prestige_screen.gd:279
+#, c-format
+msgid "%d empty slots"
+msgstr "%d huecos vacíos"
+
+#: scenes/meta/prestige_screen.gd:281
+#, c-format
+msgid " (%d more than here)"
+msgstr " (%d más que aquí)"
+
+#: scenes/meta/prestige_screen.gd:326
+#: scenes/ui/bottom_nav.gd:52
+msgid "Museum"
+msgstr "Museo"
+
+#: scenes/meta/prestige_screen.gd:329
+msgid "Venue preview · developed museum"
+msgstr "Vista previa · museo desarrollado"
+
+#: scenes/meta/prestige_screen.gd:333
+#: scenes/meta/prestige_screen.gd:346
+msgid "Explore all 12 museums"
+msgstr "Explora los 12 museos"
+
+#: scenes/meta/prestige_screen.gd:346
+msgid "Close museum collection"
+msgstr "Cerrar la colección de museos"
+
+#: scenes/meta/prestige_screen.gd:382
+msgid "You take this with you"
+msgstr "Te lo llevas contigo"
+
+#: scenes/meta/prestige_screen.gd:385
+msgid "This stays behind"
+msgstr "Esto se queda aquí"
+
+#: scenes/meta/prestige_screen.gd:390
+msgid "The end of the road"
+msgstr "El final del camino"
+
+#: scenes/meta/prestige_screen.gd:395
+msgid "There is no bigger museum. This one is yours to perfect."
+msgstr "No hay museo más grande. Este es tuyo para perfeccionarlo."
+
+#: scenes/meta/prestige_screen.gd:399
+msgid "Milestones"
+msgstr "Hitos"
+
+#: scenes/meta/prestige_screen.gd:428
+#, c-format
+msgid "+%d gems, %s"
+msgstr "+%d gemas, %s"
+
+#: scenes/meta/prestige_screen.gd:443
+msgid "FINAL MUSEUM"
+msgstr "ÚLTIMO MUSEO"
+
+#: scenes/meta/prestige_screen.gd:445
+#, c-format
+msgid "OPEN LEVEL %d — %s"
+msgstr "ABRIR NIVEL %d — %s"
+
+#: scenes/meta/prestige_screen.gd:459
+#, c-format
+msgid "One way. There is no coming back to %s."
+msgstr "Solo de ida. No hay vuelta atrás a %s."
+
+#: scenes/meta/prestige_screen.gd:474
+#, c-format
+msgid "Open %s?\n\nYou keep every coin, gem, manager and reputation level you have earned. %s and everything installed in it stays shut behind you."
+msgstr "¿Abrir %s?\n\nConservas todas las monedas, gemas, gerentes y niveles de reputación que has ganado. %s y todo lo instalado en él quedan cerrados tras de ti."
+
+#: scenes/meta/prestige_screen.gd:482
+#, c-format
+msgid "Welcome to %s!"
+msgstr "¡Bienvenido a %s!"
+
+#: scenes/meta/prestige_screen.gd:85
+msgid "Open your next museum?"
+msgstr "¿Abrir tu próximo museo?"
+
+#: scenes/meta/prestige_screen.gd:94
+#: scenes/meta/prestige_screen.gd:95
+#: scenes/meta/prestige_screen.gd:96
+msgid "Window"
+msgstr "Ventana"
+
+#: scenes/meta/prestige_screen.gd:98
+msgid "Open museum"
+msgstr "Abrir museo"
+
+#: scenes/meta/prestige_screen.gd:99
+msgid "Not yet"
+msgstr "Todavía no"
+
+#: scenes/meta/quests_bar.gd:151
+msgid "Show the next objective"
+msgstr "Muestra el siguiente objetivo"
+
+#: scenes/meta/quests_bar.gd:161
+msgid "Visitor rating and its income multiplier · Decor"
+msgstr "Valoración de los visitantes y su multiplicador de ingresos · Decoración"
+
+#: scenes/meta/quests_bar.gd:171
+msgid "x1.00 income"
+msgstr "x1,00 ingresos"
+
+#: scenes/meta/quests_bar.gd:337
+#, c-format
+msgid "BUILD %d%%"
+msgstr "OBRAS %d%%"
+
+#: scenes/meta/quests_bar.gd:339
+#, c-format
+msgid "DECOR %d%%"
+msgstr "DECORACIÓN %d%%"
+
+#: scenes/meta/quests_bar.gd:371
+#, c-format
+msgid "Goals\n%d / %d  ›"
+msgstr "Objetivos\n%d / %d  ›"
+
+#: scenes/meta/quests_bar.gd:387
+#, c-format
+msgid "x%.2f income"
+msgstr "x%.2f ingresos"
+
+#: scenes/meta/quests_bar.gd:405
+msgid "Done!"
+msgstr "¡Hecho!"
+
+#: scenes/meta/quests_bar.gd:410
+msgid "Museum ready — view completion"
+msgstr "Museo listo — ver finalización"
+
+#: scenes/meta/quests_bar.gd:452
+#, c-format
+msgid "Decor unlocks at Rep %d — it drives your rating"
+msgstr "La decoración se desbloquea con Rep %d — mejora tu valoración"
+
+#: scenes/meta/quests_bar.gd:485
+#, c-format
+msgid "%s — keep the museum running"
+msgstr "%s — mantén el museo en marcha"
+
+#: scenes/meta/quests_bar.gd:514
+#, c-format
+msgid "Tap %s on the floor to upgrade it"
+msgstr "Toca %s en la planta para mejorarlo"
+
+#: scenes/meta/quests_bar.gd:521
+#, c-format
+msgid "Tap station %d on the floor to upgrade it"
+msgstr "Toca el puesto %d en la planta para mejorarlo"
+
+#: scenes/meta/settings_screen.gd:129
+msgid "Cloud save found"
+msgstr "Partida en la nube encontrada"
+
+#: scenes/meta/settings_screen.gd:131
+#: scripts/platform/cloud_save.gd:110
+#, c-format
+msgid "%s · %d museums"
+msgstr "%s · %d museos"
+
+#: scenes/meta/settings_screen.gd:136
+msgid "Load cloud save"
+msgstr "Cargar la partida en la nube"
+
+#: scenes/meta/settings_screen.gd:143
+msgid "Keep this phone's"
+msgstr "Mantener la de este móvil"
+
+#: scenes/meta/settings_screen.gd:158
+msgid "Language"
+msgstr "Idioma"
+
+#: scenes/meta/settings_screen.gd:164
+msgid "Automatic"
+msgstr "Automático"
+
+#: scenes/meta/settings_screen.gd:35
+#: scenes/ui/side_rail.gd:85
+msgid "Settings"
+msgstr "Ajustes"
+
+#: scenes/meta/settings_screen.gd:36
+msgid "Music"
+msgstr "Música"
+
+#: scenes/meta/settings_screen.gd:37
+msgid "Sound effects"
+msgstr "Efectos de sonido"
+
+#: scenes/meta/settings_screen.gd:40
+msgid "Notifications"
+msgstr "Notificaciones"
+
+#: scenes/meta/settings_screen.gd:41
+msgid "Auto"
+msgstr "Auto"
+
+#: scenes/meta/settings_screen.gd:41
+msgid "Graphics"
+msgstr "Gráficos"
+
+#: scenes/meta/settings_screen.gd:41
+msgid "High"
+msgstr "Altos"
+
+#: scenes/meta/settings_screen.gd:41
+msgid "Low"
+msgstr "Bajos"
+
+#: scenes/meta/settings_screen.gd:42
+msgid "Low turns off shadows, anti-aliasing and the tilt-shift blur for older phones. Auto switches by itself if the museum runs slowly."
+msgstr "Bajos desactiva las sombras, el suavizado y el desenfoque tilt-shift en móviles antiguos. Auto cambia por sí solo si el museo va lento."
+
+#: scenes/meta/settings_screen.gd:48
+msgid "Fullscreen"
+msgstr "Pantalla completa"
+
+#: scenes/meta/settings_screen.gd:48
+msgid "Windowed"
+msgstr "Ventana"
+
+#: scenes/meta/settings_screen.gd:53
+msgid "Display"
+msgstr "Pantalla"
+
+#: scenes/meta/settings_screen.gd:56
+msgid "Replay walkthrough"
+msgstr "Repetir el tutorial"
+
+#: scenes/meta/settings_screen.gd:65
+msgid "Help"
+msgstr "Ayuda"
+
+#: scenes/meta/settings_screen.gd:68
+msgid "Epic Games Store"
+msgstr "Epic Games Store"
+
+#: scenes/meta/settings_screen.gd:68
+msgid "Google Play Games"
+msgstr "Google Play Juegos"
+
+#: scenes/meta/settings_screen.gd:68
+msgid "Steam"
+msgstr "Steam"
+
+#: scenes/meta/settings_screen.gd:69
+msgid "Game Center"
+msgstr "Game Center"
+
+#: scenes/meta/settings_screen.gd:69
+msgid "Offline"
+msgstr "Sin conexión"
+
+#: scenes/meta/settings_screen.gd:79
+#, c-format
+msgid "Achievements: %s · %d unlocked"
+msgstr "Logros: %s · %d desbloqueados"
+
+#: scenes/meta/settings_screen.gd:81
+#, c-format
+msgid "Grand Exhibit · v%s"
+msgstr "Grand Exhibit · v%s"
+
+#: scenes/meta/settings_screen.gd:87
+msgid "Off"
+msgstr "No"
+
+#: scenes/meta/settings_screen.gd:87
+msgid "On"
+msgstr "Sí"
+
+#: scenes/meta/statistics_screen.gd:118
+msgid "NEXT IMPROVEMENT"
+msgstr "PRÓXIMA MEJORA"
+
+#: scenes/meta/statistics_screen.gd:118
+msgid "READY FOR YOUR NEXT MUSEUM"
+msgstr "LISTO PARA TU PRÓXIMO MUSEO"
+
+#: scenes/meta/statistics_screen.gd:119
+msgid "Flow"
+msgstr "Flujo"
+
+#: scenes/meta/statistics_screen.gd:123
+#, c-format
+msgid "Improve %s"
+msgstr "Mejorar %s"
+
+#: scenes/meta/statistics_screen.gd:129
+msgid "Use the trophy button to open the next museum."
+msgstr "Usa el botón del trofeo para abrir el siguiente museo."
+
+#: scenes/meta/statistics_screen.gd:137
+msgid "Visitor flow"
+msgstr "Flujo de visitantes"
+
+#: scenes/meta/statistics_screen.gd:138
+msgid "Capacity per second · your slowest step sets the pace"
+msgstr "Capacidad por segundo · el paso más lento marca el ritmo"
+
+#: scenes/meta/statistics_screen.gd:156
+msgid "Management"
+msgstr "Gestión"
+
+#: scenes/meta/statistics_screen.gd:167
+#, c-format
+msgid "%d/%d posts"
+msgstr "%d/%d puestos"
+
+#: scenes/meta/statistics_screen.gd:168
+msgid "No boost"
+msgstr "Sin bonificación"
+
+#: scenes/meta/statistics_screen.gd:173
+msgid "Manage staff"
+msgstr "Gestionar personal"
+
+#: scenes/meta/statistics_screen.gd:174
+#, c-format
+msgid "Staff unlock at Rep %d"
+msgstr "El personal se desbloquea con Rep %d"
+
+#: scenes/meta/statistics_screen.gd:180
+#: scenes/venue/dept_panel.gd:167
+#: scenes/venue/dept_panel.gd:185
+#, c-format
+msgid "Managers unlock at Rep %d"
+msgstr "Los gerentes se desbloquean con Rep %d"
+
+#: scenes/meta/statistics_screen.gd:200
+msgid " · LIMIT"
+msgstr " · LÍMITE"
+
+#: scenes/meta/statistics_screen.gd:217
+msgid "BANKED INCOME"
+msgstr "INGRESOS DEPOSITADOS"
+
+#: scenes/meta/statistics_screen.gd:218
+#, c-format
+msgid "$%s / sec"
+msgstr "$%s / s"
+
+#: scenes/meta/statistics_screen.gd:223
+msgid "Per visitor"
+msgstr "Por visitante"
+
+#: scenes/meta/statistics_screen.gd:224
+msgid "Produced"
+msgstr "Producido"
+
+#: scenes/meta/statistics_screen.gd:233
+msgid "Visitor experience"
+msgstr "Experiencia del visitante"
+
+#: scenes/meta/statistics_screen.gd:234
+msgid "Rating"
+msgstr "Valoración"
+
+#: scenes/meta/statistics_screen.gd:235
+msgid "Deposit multiplier"
+msgstr "Multiplicador de depósito"
+
+#: scenes/meta/statistics_screen.gd:34
+msgid "Museum overview"
+msgstr "Resumen del museo"
+
+#: scenes/meta/visitor_guide.gd:111
+#, c-format
+msgid "VIP · tips %ds of income"
+msgstr "VIP · da propina de %ds de ingresos"
+
+#: scenes/meta/visitor_guide.gd:116
+#, c-format
+msgid "Welcomed: %d"
+msgstr "Recibidos: %d"
+
+#: scenes/meta/visitor_guide.gd:120
+#, c-format
+msgid "Reach reputation %d"
+msgstr "Alcanza reputación %d"
+
+#: scenes/meta/visitor_guide.gd:34
+msgid "Visitor Guide"
+msgstr "Guía de visitantes"
+
+#: scenes/meta/visitor_guide.gd:35
+msgid "Reputation brings new kinds of visitor to every museum. VIPs walk on a gold ring: tap the Tip! bubble over their heads for a bonus."
+msgstr "La reputación atrae nuevos tipos de visitantes a cada museo. Los VIP caminan sobre un anillo dorado: toca la burbuja ¡Propina! sobre su cabeza para un extra."
+
+#: scenes/meta/visitor_guide.gd:64
+#, c-format
+msgid "Tips collected: %d"
+msgstr "Propinas cobradas: %d"
+
+#: scenes/meta/visitor_guide.gd:69
+#, c-format
+msgid "VIPs start visiting at reputation %d."
+msgstr "Los VIP empiezan a venir con reputación %d."
+
+#: scenes/meta/visitor_guide.gd:71
+msgid " · Next VIP brings a tip"
+msgstr " · El próximo VIP trae propina"
+
+#: scenes/meta/visitor_guide.gd:74
+#, c-format
+msgid " · Next tip in %d:%02d"
+msgstr " · Próxima propina en %d:%02d"
+
+#: scenes/meta/wings_screen.gd:101
+msgid "GRANDEUR"
+msgstr "ESPLENDOR"
+
+#: scenes/meta/wings_screen.gd:114
+msgid "Every wing you renovate raises the museum's grandeur and dresses the outside."
+msgstr "Cada ala que renuevas aumenta el esplendor del museo y viste el exterior."
+
+#: scenes/meta/wings_screen.gd:147
+msgid "Open"
+msgstr "Abierta"
+
+#: scenes/meta/wings_screen.gd:149
+#, c-format
+msgid "Locked · %s"
+msgstr "Bloqueado · %s"
+
+#: scenes/meta/wings_screen.gd:152
+msgid "Opens after the floor below"
+msgstr "Se abre después de la planta de abajo"
+
+#: scenes/meta/wings_screen.gd:157
+#, c-format
+msgid "Renovate  $%s"
+msgstr "Renovar  $%s"
+
+#: scenes/meta/wings_screen.gd:168
+msgid "Not enough cash yet"
+msgstr "Aún no tienes suficiente efectivo"
+
+#: scenes/meta/wings_screen.gd:174
+#, c-format
+msgid "x%s income"
+msgstr "x%s ingresos"
+
+#: scenes/meta/wings_screen.gd:176
+#, c-format
+msgid "+%d %s slots"
+msgstr "+%d huecos de %s"
+
+#: scenes/meta/wings_screen.gd:180
+#, c-format
+msgid "+%d upgrade levels"
+msgstr "+%d niveles de mejora"
+
+#: scenes/meta/wings_screen.gd:37
+msgid "Floors & Grandeur"
+msgstr "Plantas y esplendor"
+
+#: scenes/store/store_screen.gd:172
+msgid "Museum Store"
+msgstr "Tienda del museo"
+
+#: scenes/store/store_screen.gd:178
+msgid "Ads are simulated"
+msgstr "Los anuncios son simulados"
+
+#: scenes/store/store_screen.gd:178
+msgid "Purchases and ads are simulated"
+msgstr "Las compras y los anuncios son simulados"
+
+#: scenes/store/store_screen.gd:178
+msgid "Purchases are simulated"
+msgstr "Las compras son simuladas"
+
+#: scenes/store/store_screen.gd:179
+#, c-format
+msgid "PLAYTEST · %s"
+msgstr "PRUEBAS · %s"
+
+#: scenes/store/store_screen.gd:251
+#: scenes/store/store_screen.gd:441
+#, c-format
+msgid "New deals in %s"
+msgstr "Nuevas ofertas en %s"
+
+#: scenes/store/store_screen.gd:259
+#: scenes/store/store_screen.gd:372
+#, c-format
+msgid "%d left today"
+msgstr "Quedan %d hoy"
+
+#: scenes/store/store_screen.gd:295
+#: scripts/monetization/store_pricing.gd:130
+msgid "BEST VALUE"
+msgstr "MEJOR VALOR"
+
+#: scenes/store/store_screen.gd:295
+msgid "START HERE"
+msgstr "EMPIEZA AQUÍ"
+
+#: scenes/store/store_screen.gd:328
+#, c-format
+msgid "Get it  %s"
+msgstr "Consíguelo  %s"
+
+#: scenes/store/store_screen.gd:347
+msgid "bought separately"
+msgstr "por separado"
+
+#: scenes/store/store_screen.gd:348
+#: scripts/monetization/store_pricing.gd:136
+#, c-format
+msgid "SAVE %d%%"
+msgstr "AHORRA %d%%"
+
+#: scenes/store/store_screen.gd:356
+msgid "Daily rewards"
+msgstr "Recompensas diarias"
+
+#: scenes/store/store_screen.gd:357
+msgid "Choose a reward. Watch an ad to collect it."
+msgstr "Elige una recompensa. Mira un anuncio para recogerla."
+
+#: scenes/store/store_screen.gd:364
+msgid "x2 Income"
+msgstr "Ingresos x2"
+
+#: scenes/store/store_screen.gd:369
+msgid "Instant Cash"
+msgstr "Efectivo instantáneo"
+
+#: scenes/store/store_screen.gd:375
+#, c-format
+msgid "%d Free Gems"
+msgstr "%d gemas gratis"
+
+#: scenes/store/store_screen.gd:396
+msgid "Watch"
+msgstr "Ver"
+
+#: scenes/store/store_screen.gd:426
+msgid "Get started"
+msgstr "Para empezar"
+
+#: scenes/store/store_screen.gd:428
+msgid "Shown once. These disappear after your first purchase."
+msgstr "Se muestran una sola vez. Desaparecen tras tu primera compra."
+
+#: scenes/store/store_screen.gd:437
+msgid "Daily deals"
+msgstr "Ofertas diarias"
+
+#: scenes/store/store_screen.gd:450
+#, c-format
+msgid "Reroll  %d"
+msgstr "Cambiar  %d"
+
+#: scenes/store/store_screen.gd:453
+#, c-format
+msgid "%d rerolls left today"
+msgstr "Quedan %d cambios hoy"
+
+#: scenes/store/store_screen.gd:478
+msgid "Value compared with the smallest pouch."
+msgstr "Valor comparado con la bolsa más pequeña."
+
+#: scenes/store/store_screen.gd:493
+msgid "Cash & insight"
+msgstr "Efectivo y saber"
+
+#: scenes/store/store_screen.gd:509
+msgid "Ad-free"
+msgstr "Sin anuncios"
+
+#: scenes/store/store_screen.gd:51
+#: scenes/store/store_screen.gd:477
+#: scripts/meta/prestige_system.gd:276
+msgid "Gems"
+msgstr "Gemas"
+
+#: scenes/store/store_screen.gd:51
+msgid "Offers"
+msgstr "Ofertas"
+
+#: scenes/store/store_screen.gd:51
+msgid "Passes"
+msgstr "Pases"
+
+#: scenes/store/store_screen.gd:51
+msgid "Resources"
+msgstr "Recursos"
+
+#: scenes/store/store_screen.gd:51
+msgid "Rewards"
+msgstr "Recompensas"
+
+#: scenes/store/store_screen.gd:517
+msgid "Ad-Free Pass active — interstitials are off."
+msgstr "Pase sin anuncios activo: los intersticiales están desactivados."
+
+#: scenes/store/store_screen.gd:530
+msgid "Restore purchases"
+msgstr "Restaurar compras"
+
+#: scenes/store/store_screen.gd:535
+msgid "Privacy choices"
+msgstr "Opciones de privacidad"
+
+#: scenes/store/store_screen.gd:544
+msgid "Prices shown are the store price; the amount charged is the amount displayed."
+msgstr "Los precios mostrados son los de la tienda; el importe cobrado es el que se muestra."
+
+#: scenes/store/store_screen.gd:545
+msgid "\"Bought separately\" compares the same contents at our smallest pack prices."
+msgstr "«Por separado» compara el mismo contenido con los precios de nuestros paquetes más pequeños."
+
+#: scenes/store/store_screen.gd:548
+msgid "This build serves non-personalized ads only."
+msgstr "Esta versión solo muestra anuncios no personalizados."
+
+#: scenes/store/store_screen.gd:556
+msgid "Privacy choices reset — you'll be asked again"
+msgstr "Opciones de privacidad restablecidas — se te volverá a preguntar"
+
+#: scenes/store/store_screen.gd:627
+msgid "Bought today"
+msgstr "Comprado hoy"
+
+#: scenes/store/store_screen.gd:630
+msgid "Owned"
+msgstr "En propiedad"
+
+#: scenes/store/store_screen.gd:633
+#: scenes/store/store_screen.gd:676
+msgid "Purchasing…"
+msgstr "Comprando…"
+
+#: scenes/store/store_screen.gd:656
+#: scripts/monetization/iap_catalog.gd:89
+msgid "Purchase already in progress"
+msgstr "Ya hay una compra en curso"
+
+#: scenes/store/store_screen.gd:711
+msgid "Thank you!"
+msgstr "¡Gracias!"
+
+#: scenes/store/store_screen.gd:799
+#, c-format
+msgid "%s of income"
+msgstr "%s de ingresos"
+
+#: scenes/store/store_screen.gd:809
+#, c-format
+msgid "Worth %s now"
+msgstr "Vale %s ahora"
+
+#: scenes/store/store_screen.gd:814
+#, c-format
+msgid "+%dh, stacks"
+msgstr "+%dh, acumulable"
+
+#: scenes/store/store_screen.gd:815
+#, c-format
+msgid "%s left"
+msgstr "Quedan %s"
+
+#: scenes/ui/boost_dock.gd:121
+msgid "Loading ad…"
+msgstr "Cargando anuncio…"
+
+#: scenes/ui/boost_dock.gd:123
+#, c-format
+msgid "x2 active · %s\nWatch ad to extend"
+msgstr "x2 activo · %s\nMira un anuncio para ampliar"
+
+#: scenes/ui/boost_dock.gd:125
+msgid "Double income\nWatch ad · x2"
+msgstr "Ingresos dobles\nVer anuncio · x2"
+
+#: scenes/ui/boost_dock.gd:128
+msgid "Instant cash\nWatch ad"
+msgstr "Efectivo instantáneo\nVer anuncio"
+
+#: scenes/ui/boost_dock.gd:128
+#: scenes/ui/boost_dock.gd:129
+msgid "Loading…"
+msgstr "Cargando…"
+
+#: scenes/ui/boost_dock.gd:129
+#, c-format
+msgid "Free gems\n%d left · Ad"
+msgstr "Gemas gratis\nQuedan %d · Anuncio"
+
+#: scenes/ui/boost_dock.gd:136
+msgid "Offer"
+msgstr "Oferta"
+
+#: scenes/ui/boost_dock.gd:136
+#, c-format
+msgid "Offer\n%s"
+msgstr "Oferta\n%s"
+
+#: scenes/ui/boost_dock.gd:44
+msgid "Watch an ad for free gems"
+msgstr "Mira un anuncio para conseguir gemas gratis"
+
+#: scenes/ui/boost_dock.gd:49
+msgid "Watch an ad for instant cash"
+msgstr "Mira un anuncio para conseguir efectivo al instante"
+
+#: scenes/ui/boost_dock.gd:60
+msgid "Watch an ad to double your income"
+msgstr "Mira un anuncio para duplicar tus ingresos"
+
+#: scenes/ui/boost_dock.gd:65
+msgid "A limited-time offer is waiting"
+msgstr "Te espera una oferta por tiempo limitado"
+
+#: scenes/ui/bottom_nav.gd:127
+#: scenes/ui/bottom_nav.gd:128
+#: scenes/ui/hud.gd:125
+#, c-format
+msgid "Rep %d"
+msgstr "Rep %d"
+
+#: scenes/ui/bottom_nav.gd:155
+#, c-format
+msgid "Unlocks at %s"
+msgstr "Se desbloquea en %s"
+
+#: scenes/ui/bottom_nav.gd:156
+#, c-format
+msgid "Unlock: %s"
+msgstr "Desbloqueo: %s"
+
+#: scenes/ui/bottom_nav.gd:170
+#: scenes/ui/bottom_nav.gd:175
+#, c-format
+msgid "Unlocks at Rep %d"
+msgstr "Se desbloquea con Rep %d"
+
+#: scenes/ui/bottom_nav.gd:180
+#, c-format
+msgid "Unlocks on Day %d"
+msgstr "Se desbloquea el día %d"
+
+#: scenes/ui/bottom_nav.gd:55
+msgid "Event"
+msgstr "Evento"
+
+#: scenes/ui/bottom_nav.gd:56
+msgid "Store"
+msgstr "Tienda"
+
+#: scenes/ui/hud.gd:123
+#, c-format
+msgid "%d gems · open gem shop"
+msgstr "%d gemas · abrir tienda de gemas"
+
+#: scenes/ui/hud.gd:46
+msgid "Rep 1"
+msgstr "Rep 1"
+
+#: scenes/ui/hud.gd:60
+msgid "Museum cash · open resource shop"
+msgstr "Efectivo del museo · abrir tienda de recursos"
+
+#: scenes/ui/hud.gd:88
+msgid "INSIGHT"
+msgstr "SABER"
+
+#: scenes/ui/side_rail.gd:202
+#, c-format
+msgid "%s is open! A pop-up café for %d days"
+msgstr "¡%s está abierto! Un café emergente durante %d días"
+
+#: scenes/ui/side_rail.gd:202
+#: scripts/meta/reminders.gd:94
+msgid "The Pop-Up Café"
+msgstr "El Café emergente"
+
+#: scenes/ui/side_rail.gd:219
+#, c-format
+msgid "Decor unlocks at Rep %d"
+msgstr "La decoración se desbloquea con Rep %d"
+
+#: scenes/ui/side_rail.gd:73
+msgid "Gift"
+msgstr "Regalo"
+
+#: scenes/ui/side_rail.gd:77
+msgid "Café"
+msgstr "Café"
+
+#: scenes/ui/side_rail.gd:80
+msgid "Stats"
+msgstr "Datos"
+
+#: scenes/ui/side_rail.gd:82
+msgid "Floors"
+msgstr "Plantas"
+
+#: scenes/ui/side_rail.gd:84
+msgid "Visitors"
+msgstr "Visitantes"
+
+#: scenes/ui/side_rail.gd:86
+msgid "Next Museum"
+msgstr "Próximo museo"
+
+#: scenes/ui/tutorial.gd:18
+msgid "Visitors pay at the ticket desks.\nTap the coin to collect your cash!"
+msgstr "Los visitantes pagan en las taquillas.\n¡Toca la moneda para recoger tu dinero!"
+
+#: scenes/ui/tutorial.gd:19
+msgid "Upgrade a desk so it serves visitors faster."
+msgstr "Mejora un mostrador para que atienda más rápido."
+
+#: scenes/ui/tutorial.gd:20
+msgid "Tap the Nature Hall to see its upgrades."
+msgstr "Toca la Sala de la Naturaleza para ver sus mejoras."
+
+#: scenes/ui/tutorial.gd:21
+msgid "Complete goals to open new floors and make your museum grander!"
+msgstr "¡Cumple objetivos para abrir nuevas plantas y hacer tu museo más grandioso!"
+
+#: scenes/ui/tutorial.gd:22
+msgid "Dig up artifacts at the Dig Site to grow your collection."
+msgstr "Desentierra artefactos en la Excavación para ampliar tu colección."
+
+#: scenes/ui/welcome_back.gd:118
+#: scenes/ui/welcome_back.gd:128
+msgid "Bonus claimed!"
+msgstr "¡Bono reclamado!"
+
+#: scenes/ui/welcome_back.gd:37
+msgid "Welcome back"
+msgstr "Bienvenido de nuevo"
+
+#: scenes/ui/welcome_back.gd:41
+msgid "Your museum kept earning while you were away."
+msgstr "Tu museo siguió ganando mientras no estabas."
+
+#: scenes/ui/welcome_back.gd:66
+msgid "Claim 1x"
+msgstr "Reclamar 1x"
+
+#: scenes/ui/welcome_back.gd:71
+msgid "Optional bonus"
+msgstr "Bono opcional"
+
+#: scenes/ui/welcome_back.gd:75
+#, c-format
+msgid "Watch Ad x%d"
+msgstr "Ver anuncio x%d"
+
+#: scenes/ui/welcome_back.gd:80
+#, c-format
+msgid "%d Gems x%d"
+msgstr "%d gemas x%d"
+
+#: scenes/ui/welcome_back.gd:91
+#, c-format
+msgid "away for %dh %dm"
+msgstr "fuera durante %dh %dm"
+
+#: scenes/venue/dept_panel.gd:12
+msgid "Admission value"
+msgstr "Valor de la entrada"
+
+#: scenes/venue/dept_panel.gd:12
+msgid "Service speed"
+msgstr "Velocidad de servicio"
+
+#: scenes/venue/dept_panel.gd:12
+#: scenes/venue/dept_panel.gd:13
+#: scenes/venue/dept_panel.gd:14
+#: scenes/venue/dept_panel.gd:15
+msgid "Team size"
+msgstr "Tamaño del equipo"
+
+#: scenes/venue/dept_panel.gd:121
+#, c-format
+msgid "Available museum income\n$%s"
+msgstr "Ingresos disponibles del museo\n$%s"
+
+#: scenes/venue/dept_panel.gd:122
+msgid "Collect available museum income, including the configured tip bonus"
+msgstr "Recoge los ingresos disponibles del museo, incluido el bono de propinas configurado"
+
+#: scenes/venue/dept_panel.gd:126
+#, c-format
+msgid "Collected $%s"
+msgstr "Recogido $%s"
+
+#: scenes/venue/dept_panel.gd:126
+msgid "No income waiting — keep the museum running"
+msgstr "No hay ingresos pendientes — mantén el museo en marcha"
+
+#: scenes/venue/dept_panel.gd:13
+msgid "Cart capacity"
+msgstr "Capacidad del carrito"
+
+#: scenes/venue/dept_panel.gd:13
+msgid "Delivery speed"
+msgstr "Velocidad de entrega"
+
+#: scenes/venue/dept_panel.gd:14
+msgid "Audience value"
+msgstr "Valor del público"
+
+#: scenes/venue/dept_panel.gd:14
+msgid "Campaign reach"
+msgstr "Alcance de la campaña"
+
+#: scenes/venue/dept_panel.gd:145
+msgid "Museum furnishings"
+msgstr "Mobiliario del museo"
+
+#: scenes/venue/dept_panel.gd:15
+msgid "Exhibit value"
+msgstr "Valor de las piezas"
+
+#: scenes/venue/dept_panel.gd:15
+msgid "Tour pace"
+msgstr "Ritmo de la visita"
+
+#: scenes/venue/dept_panel.gd:150
+msgid "Furnish this museum to open the next venue. Installed pieces improve income and visitor comfort. Cash designs can meet the full target."
+msgstr "Amuebla este museo para abrir el siguiente. Las piezas instaladas mejoran los ingresos y la comodidad de los visitantes. Los diseños con efectivo pueden cubrir todo el objetivo."
+
+#: scenes/venue/dept_panel.gd:152
+msgid "Choose furnishings"
+msgstr "Elegir mobiliario"
+
+#: scenes/venue/dept_panel.gd:160
+#: scenes/venue/dept_panel.gd:194
+#: scenes/venue/dept_panel.gd:234
+#, c-format
+msgid "Managers (%d)"
+msgstr "Gerentes (%d)"
+
+#: scenes/venue/dept_panel.gd:161
+#, c-format
+msgid "%d of %d posts filled · x%.2f output"
+msgstr "%d de %d puestos cubiertos · producción x%.2f"
+
+#: scenes/venue/dept_panel.gd:163
+msgid "Assigned managers multiply this department’s speed and value. Improve the slowest department to raise overall income. Your collection also powers audit teams."
+msgstr "Los gerentes asignados multiplican la velocidad y el valor de este departamento. Mejora el departamento más lento para subir los ingresos totales. Tu colección también impulsa los equipos de auditoría."
+
+#: scenes/venue/dept_panel.gd:170
+msgid "Choose a manager"
+msgstr "Elige un gerente"
+
+#: scenes/venue/dept_panel.gd:175
+#, c-format
+msgid "%s · Lv %d · Rank %d"
+msgstr "%s · Nv. %d · Rango %d"
+
+#: scenes/venue/dept_panel.gd:178
+msgid "Stand down"
+msgstr "Retirar"
+
+#: scenes/venue/dept_panel.gd:180
+#, c-format
+msgid "%s stood down from %s"
+msgstr "%s se retiró de %s"
+
+#: scenes/venue/dept_panel.gd:219
+#: scenes/venue/dept_panel.gd:259
+msgid "MAX"
+msgstr "MÁX."
+
+#: scenes/venue/dept_panel.gd:257
+#, c-format
+msgid "%.2fx · MAX"
+msgstr "%.2fx · MÁX."
+
+#: scenes/venue/dept_panel.gd:264
+#, c-format
+msgid "Upgrade\n$%s"
+msgstr "Mejorar\n$%s"
+
+#: scenes/venue/dept_panel.gd:273
+#: scenes/venue/dept_panel.gd:306
+#, c-format
+msgid "Need $%s more"
+msgstr "Te faltan $%s"
+
+#: scenes/venue/dept_panel.gd:290
+#, c-format
+msgid "%d team members · maximum"
+msgstr "%d miembros del equipo · máximo"
+
+#: scenes/venue/dept_panel.gd:291
+#, c-format
+msgid "Team %d → %d"
+msgstr "Equipo %d → %d"
+
+#: scenes/venue/dept_panel.gd:58
+msgid "Upgrades"
+msgstr "Mejoras"
+
+#: scenes/venue/dept_panel.gd:68
+msgid "Museum income"
+msgstr "Ingresos del museo"
+
+#: scenes/venue/dept_panel.gd:71
+msgid "Collect income"
+msgstr "Recoger ingresos"
+
+#: scenes/venue/dept_panel.gd:75
+msgid "Selected unit"
+msgstr "Unidad seleccionada"
+
+#: scenes/venue/dept_panel.gd:83
+#: scenes/venue/dept_panel.gd:106
+msgid "Upgrade"
+msgstr "Mejorar"
+
+#: scenes/venue/venue_view.gd:139
+msgid "Limits museum income"
+msgstr "Limita los ingresos del museo"
+
+#: scenes/venue3d/venue_3d.gd:1096
+#, c-format
+msgid "Pop-Up Café\nRep %d"
+msgstr "Café emergente\nRep %d"
+
+#: scenes/venue3d/venue_3d.gd:1101
+#, c-format
+msgid "Café OPEN\n%s"
+msgstr "Café ABIERTO\n%s"
+
+#: scenes/venue3d/venue_3d.gd:1104
+msgid "Café closed"
+msgstr "Café cerrado"
+
+#: scenes/venue3d/venue_3d.gd:1194
+msgid "EXHIBIT UPGRADED!"
+msgstr "¡PIEZA MEJORADA!"
+
+#: scenes/venue3d/venue_3d.gd:797
+msgid "Tap to renovate!"
+msgstr "¡Toca para renovar!"
+
+#: scenes/venue3d/venue_3d.gd:862
+#, c-format
+msgid "%s OPEN!"
+msgstr "¡%s ABIERTA!"
+
+#: scenes/venue3d/venue_3d.gd:948
+#, c-format
+msgid "GRANDEUR: %s!"
+msgstr "ESPLENDOR: ¡%s!"
+
+#: scenes/venue3d/venue_floor_3d.gd:290
+#, c-format
+msgid "Upgrade station %d"
+msgstr "Mejorar el puesto %d"
+
+#: scenes/venue3d/venue_floor_3d.gd:305
+#, c-format
+msgid "Station %d · Ready in %s"
+msgstr "Puesto %d · listo en %s"
+
+#: scenes/venue3d/venue_floor_3d.gd:309
+#, c-format
+msgid "Station %d · Level %d\nCollect $%s"
+msgstr "Puesto %d · Nivel %d\nRecoger $%s"
+
+#: scenes/venue3d/venue_floor_3d.gd:313
+#, c-format
+msgid "Station %d · Level %d\nOpen station upgrades"
+msgstr "Puesto %d · Nivel %d\nAbrir mejoras del puesto"
+
+#: scenes/venue3d/venue_floor_3d.gd:413
+#, c-format
+msgid "Cashier ready in %d:%02d"
+msgstr "Cajero listo en %d:%02d"
+
+#: scenes/venue3d/venue_floor_3d.gd:440
+msgid "Wish!"
+msgstr "¡Deseo!"
+
+#: scenes/venue3d/venue_floor_3d.gd:442
+msgid "A VIP has a wish"
+msgstr "Un VIP tiene un deseo"
+
+#: scenes/venue3d/venue_floor_3d.gd:471
+#: scenes/venue3d/venue_floor_3d.gd:498
+#: scripts/meta/visitor_system.gd:254
+msgid "A VIP"
+msgstr "Un VIP"
+
+#: scenes/venue3d/venue_floor_3d.gd:472
+#, c-format
+msgid "%s tipped $%s!"
+msgstr "¡%s dejó $%s de propina!"
+
+#: scenes/venue3d/venue_floor_3d.gd:500
+#, c-format
+msgid "%s is delighted! +$%s, +%d gems"
+msgstr "¡%s está encantado! +$%s, +%d gemas"
+
+#: scenes/venue3d/venue_floor_3d.gd:90
+#: scenes/venue3d/venue_floor_3d.gd:440
+msgid "Tip!"
+msgstr "¡Propina!"
+
+#: scenes/venue3d/venue_floor_3d.gd:93
+#: scenes/venue3d/venue_floor_3d.gd:442
+msgid "A VIP wants to tip you"
+msgstr "Un VIP quiere darte propina"
+
+#: scripts/meta/daily_gifts.gd:60
+#, c-format
+msgid "%d min of income"
+msgstr "%d min de ingresos"
+
+#: scripts/meta/daily_gifts.gd:62
+#, c-format
+msgid "%d dig energy"
+msgstr "%d de energía de excavación"
+
+#: scripts/meta/daily_gifts.gd:64
+#, c-format
+msgid "x2 income %dh"
+msgstr "ingresos x2 %dh"
+
+#: scripts/meta/decor_system.gd:271
+msgid "Entrance"
+msgstr "Entrada"
+
+#: scripts/meta/decor_system.gd:273
+msgid "Grounds"
+msgstr "Jardines"
+
+#: scripts/meta/decor_system.gd:278
+#: data/balance_core.json
+msgid "Grand Gallery"
+msgstr "Gran galería"
+
+#: scripts/meta/decor_system.gd:313
+msgid "Entrance Hall"
+msgstr "Vestíbulo de entrada"
+
+#: scripts/meta/decor_system.gd:395
+#, c-format
+msgid "%s Cash"
+msgstr "%s de efectivo"
+
+#: scripts/meta/decor_system.gd:73
+#, c-format
+msgid "Unlocks at goal milestone %d"
+msgstr "Se desbloquea en el hito %d"
+
+#: scripts/meta/prestige_system.gd:136
+#, c-format
+msgid "%d / %d furnishings · %d / %d decor points"
+msgstr "%d / %d muebles · %d / %d puntos de decoración"
+
+#: scripts/meta/prestige_system.gd:158
+#, c-format
+msgid "%d of %d milestones done"
+msgstr "%d de %d hitos completados"
+
+#: scripts/meta/prestige_system.gd:163
+#, c-format
+msgid "Operations %d%% — upgrade %s to Lv.%d"
+msgstr "Operación %d%% — mejora %s a Nv. %d"
+
+#: scripts/meta/prestige_system.gd:166
+#, c-format
+msgid "Furnish this museum: %s"
+msgstr "Amuebla este museo: %s"
+
+#: scripts/meta/prestige_system.gd:168
+#, c-format
+msgid "Renovate %s (%d / %d wings open)"
+msgstr "Renueva %s (%d / %d alas abiertas)"
+
+#: scripts/meta/prestige_system.gd:171
+msgid "This is the final museum"
+msgstr "Este es el último museo"
+
+#: scripts/meta/prestige_system.gd:266
+#, c-format
+msgid " + %s still on the floor"
+msgstr " + %s aún en la planta"
+
+#: scripts/meta/prestige_system.gd:275
+msgid "Every coin you own"
+msgstr "Cada moneda que tienes"
+
+#: scripts/meta/prestige_system.gd:277
+msgid "Insight"
+msgstr "Saber"
+
+#: scripts/meta/prestige_system.gd:278
+msgid "Your managers"
+msgstr "Tus gerentes"
+
+#: scripts/meta/prestige_system.gd:279
+#, c-format
+msgid "%d hired, %d cards — levels and posts intact"
+msgstr "%d contratados, %d cartas — niveles y puestos intactos"
+
+#: scripts/meta/prestige_system.gd:280
+msgid "Reputation"
+msgstr "Reputación"
+
+#: scripts/meta/prestige_system.gd:281
+#, c-format
+msgid "Level %d, and everything it unlocked"
+msgstr "Nivel %d y todo lo que desbloqueó"
+
+#: scripts/meta/prestige_system.gd:282
+msgid "Decor set bonuses"
+msgstr "Bonificaciones de conjuntos de decoración"
+
+#: scripts/meta/prestige_system.gd:283
+msgid "Pieces you bought keep counting, wherever they stand"
+msgstr "Las piezas que compraste siguen contando, estén donde estén"
+
+#: scripts/meta/prestige_system.gd:293
+msgid "The decor you installed"
+msgstr "La decoración que instalaste"
+
+#: scripts/meta/prestige_system.gd:294
+#, c-format
+msgid "%d of %d pieces stay bolted to %s"
+msgstr "%d de %d piezas se quedan fijadas en %s"
+
+#: scripts/meta/prestige_system.gd:295
+msgid "Department levels"
+msgstr "Niveles de departamento"
+
+#: scripts/meta/prestige_system.gd:296
+msgid "New building, new staff — every track restarts at 1"
+msgstr "Edificio nuevo, personal nuevo: todos los niveles vuelven a 1"
+
+#: scripts/meta/prestige_system.gd:297
+msgid "Your visitor rating"
+msgstr "Tu valoración de visitantes"
+
+#: scripts/meta/prestige_system.gd:298
+msgid "Bare halls and no seating rate low. Earn the stars back"
+msgstr "Salas vacías y sin asientos puntúan bajo. Recupera las estrellas"
+
+#: scripts/meta/prestige_system.gd:88
+msgid "Promotions Speed"
+msgstr "Velocidad de Promoción"
+
+#: scripts/meta/prestige_system.gd:89
+msgid "Ticket Speed"
+msgstr "Velocidad de Taquilla"
+
+#: scripts/meta/prestige_system.gd:90
+msgid "Archive Speed"
+msgstr "Velocidad de Archivo"
+
+#: scripts/meta/prestige_system.gd:91
+msgid "Gallery Value"
+msgstr "Valor de Galería"
+
+#: scripts/meta/reminders.gd:100
+#, c-format
+msgid "%s packs up soon. Spend your café coins while you can."
+msgstr "%s recoge pronto. Gasta tus monedas del café mientras puedas."
+
+#: scripts/meta/reminders.gd:103
+msgid "The Pop-Up Café is open!"
+msgstr "¡El café emergente está abierto!"
+
+#: scripts/meta/reminders.gd:104
+#, c-format
+msgid "%s is serving for a few days. Come and earn café coins."
+msgstr "%s abre durante unos días. Ven a ganar monedas del café."
+
+#: scripts/meta/reminders.gd:110
+msgid "Your dig site is ready"
+msgstr "Tu excavación está lista"
+
+#: scripts/meta/reminders.gd:111
+msgid "Energy is full. There are artifacts waiting to be uncovered."
+msgstr "La energía está llena. Hay artefactos esperando a ser descubiertos."
+
+#: scripts/meta/reminders.gd:78
+msgid "Your vault is full"
+msgstr "Tu cámara está llena"
+
+#: scripts/meta/reminders.gd:79
+#, c-format
+msgid "%s has earned all it can hold while you were away. Come and collect it!"
+msgstr "%s ha ganado todo lo que cabe mientras no estabas. ¡Ven a recogerlo!"
+
+#: scripts/meta/reminders.gd:84
+msgid "Your Daily Gift is waiting"
+msgstr "Tu regalo diario te espera"
+
+#: scripts/meta/reminders.gd:85
+msgid "Today's gift is still wrapped. Tap to claim it."
+msgstr "El regalo de hoy sigue envuelto. Toca para reclamarlo."
+
+#: scripts/meta/reminders.gd:89
+msgid "A new Daily Gift is ready"
+msgstr "Hay un nuevo regalo diario"
+
+#: scripts/meta/reminders.gd:90
+#, c-format
+msgid "Day %d: %s"
+msgstr "Día %d: %s"
+
+#: scripts/meta/reminders.gd:99
+msgid "The café closes in 2 hours"
+msgstr "El café cierra en 2 horas"
+
+#: scripts/meta/visitor_system.gd:256
+#, c-format
+msgid "%s would love to see %s's value at level %d"
+msgstr "%s quiere ver el valor de %s en el nivel %d"
+
+#: scripts/meta/visitor_system.gd:258
+#, c-format
+msgid "%s would love to see %s's speed at level %d"
+msgstr "%s quiere ver la velocidad de %s en el nivel %d"
+
+#: scripts/meta/visitor_system.gd:265
+#, c-format
+msgid "%s value %d/%d · %d:%02d"
+msgstr "%s valor %d/%d · %d:%02d"
+
+#: scripts/meta/visitor_system.gd:267
+#, c-format
+msgid "%s speed %d/%d · %d:%02d"
+msgstr "%s velocidad %d/%d · %d:%02d"
+
+#: scripts/meta/wing_system.gd:120
+msgid "Ready to renovate"
+msgstr "Lista para renovar"
+
+#: scripts/meta/wing_system.gd:121
+#, c-format
+msgid "Reach goal milestone %d (%d / %d)"
+msgstr "Alcanza el hito %d (%d / %d)"
+
+#: scripts/meta/wing_system.gd:82
+#, c-format
+msgid "Open the %s: more rooms, more exhibits, more visitors."
+msgstr "Abre %s: más salas, más piezas, más visitantes."
+
+#: scripts/monetization/daily_deals.gd:60
+msgid "No refreshes left today"
+msgstr "No quedan renovaciones hoy"
+
+#: scripts/monetization/iap_catalog.gd:135
+msgid "Purchase failed — please try again"
+msgstr "La compra falló — inténtalo de nuevo"
+
+#: scripts/monetization/iap_catalog.gd:156
+msgid "Purchase received. Saving will retry — please keep your progress on this device."
+msgstr "Compra recibida. Se reintentará el guardado: conserva tu progreso en este dispositivo."
+
+#: scripts/monetization/iap_catalog.gd:184
+msgid "Purchases restored"
+msgstr "Compras restauradas"
+
+#: scripts/monetization/iap_catalog.gd:186
+msgid "Nothing to restore"
+msgstr "No hay nada que restaurar"
+
+#: scripts/monetization/iap_catalog.gd:91
+msgid "You already own this"
+msgstr "Ya lo tienes"
+
+#: scripts/monetization/iap_catalog.gd:93
+msgid "Daily purchase limit reached — back tomorrow"
+msgstr "Límite diario de compras alcanzado — vuelve mañana"
+
+#: scripts/monetization/iap_catalog.gd:95
+msgid "Not available in your store right now"
+msgstr "No disponible en tu tienda en este momento"
+
+#: scripts/monetization/offer_system.gd:169
+msgid "Offer expired"
+msgstr "La oferta caducó"
+
+#: scripts/monetization/rv_placements.gd:107
+msgid "Your ad is already loading"
+msgstr "Tu anuncio ya se está cargando"
+
+#: scripts/monetization/rv_placements.gd:109
+msgid "No views left today — come back tomorrow"
+msgstr "No quedan visualizaciones hoy — vuelve mañana"
+
+#: scripts/monetization/rv_placements.gd:111
+#, c-format
+msgid "Ad unavailable for another %s"
+msgstr "Anuncio no disponible durante %s"
+
+#: scripts/monetization/rv_placements.gd:173
+msgid "Ad unavailable — try again soon"
+msgstr "Anuncio no disponible — inténtalo pronto"
+
+#: scripts/monetization/store_pricing.gd:133
+#, c-format
+msgid "+%d%% MORE PER $"
+msgstr "+%d%% MÁS POR $"
+
+#: scripts/platform/local_notifications.gd:58
+msgid "Museum news"
+msgstr "Noticias del museo"
+
+#: scripts/platform/local_notifications.gd:59
+msgid "Your vault, gifts, the café and the dig site"
+msgstr "Tu cámara, regalos, el café y la excavación"
+
+#: scripts/ui/event_team_card.gd:17
+msgid " · Add to team"
+msgstr " · Añadir al equipo"
+
+#: scripts/ui/event_team_card.gd:17
+msgid " · Remove from team"
+msgstr " · Quitar del equipo"
+
+#: scripts/ui/event_team_card.gd:49
+#, c-format
+msgid "Lv %d · Rank %d · Power %d"
+msgstr "Nv. %d · Rango %d · Poder %d"
+
+#: scripts/ui/event_team_card.gd:52
+msgid "+ Add to team"
+msgstr "+ Añadir al equipo"
+
+#: scripts/ui/event_team_card.gd:52
+msgid "IN TEAM  ✓"
+msgstr "EN EL EQUIPO  ✓"
+
+#: scripts/ui/popup_manager.gd:130
+msgid "MUSEUM"
+msgstr "MUSEO"
+
+#: scripts/ui/popup_manager.gd:143
+msgid "Back"
+msgstr "Atrás"
+
+#: scripts/ui/popup_manager.gd:148
+msgid "Close this screen"
+msgstr "Cierra esta pantalla"
+
+#: scripts/ui/popup_manager.gd:262
+#: scripts/ui/popup_manager.gd:263
+msgid "Grand Exhibit"
+msgstr "Grand Exhibit"
+
+#: scripts/ui/popup_manager.gd:54
+#: scripts/ui/popup_manager.gd:58
+msgid "Coming soon"
+msgstr "Próximamente"
+
+#~ msgid "PLAYTEST · "
+#~ msgstr "PRUEBAS · "

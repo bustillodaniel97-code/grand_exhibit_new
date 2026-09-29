@@ -171,7 +171,7 @@ func _build() -> void:
 	else:
 		root.add_child(_rules_card())
 		var team_head := UI.make_display_label(
-			"Your team  %d/%d" % [_selected.size(), MAX_TEAM], UI.TYPE_HEADING, INK)
+			tr("Your team  %d/%d") % [_selected.size(), MAX_TEAM], UI.TYPE_HEADING, INK)
 		root.add_child(team_head)
 		# The roster scrolls sideways like a hand of staff passes. A wrapping grid
 		# made ten managers consume nearly two entire phone screens and buried the
@@ -214,8 +214,7 @@ func _no_managers_card() -> Control:
 	card.add_child(v)
 	v.add_child(UI.make_display_label("You need a team first", UI.TYPE_TITLE, INK))
 	var body := UI.make_label(
-		"Inspections are fought by managers. Recruit your first one from a lootbox "
-		+ "in the Store, then come back and pick up to three.", UI.TYPE_BODY, DIM)
+		tr("Inspections are fought by managers. Recruit your first one from a lootbox in the Store, then come back and pick up to three."), UI.TYPE_BODY, DIM)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(body)
 	return card
@@ -225,9 +224,7 @@ func _rules_card() -> Control:
 	var card := PanelContainer.new()
 	card.add_theme_stylebox_override("panel", UI.make_dark_inset())
 	var body := UI.make_label(
-		"Match your managers' colours to charge them. The inspector audits one "
-		+ "department at a time — clearing THAT colour charges far faster, and the "
-		+ "audit moves as soon as you satisfy it.", UI.TYPE_BODY, DIM)
+		tr("Match your managers' colours to charge them. The inspector audits one department at a time — clearing THAT colour charges far faster, and the audit moves as soon as you satisfy it."), UI.TYPE_BODY, DIM)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_child(body)
 	return card
@@ -256,9 +253,9 @@ func _manager_card(pair: Dictionary) -> Control:
 		else:
 			if _selected.size() >= MAX_TEAM:
 				var dropped: String = str(_selected.pop_front())
-				_toast("%s stepped aside for %s" % [
-					str(DataLoader.get_manager_def(dropped).get("name", dropped)),
-					str(def.get("name", mid))])
+				_toast(tr("%s stepped aside for %s") % [
+					tr(str(DataLoader.get_manager_def(dropped).get("name", dropped))),
+					tr(str(def.get("name", mid)))])
 			_selected.append(mid)
 		_build())
 	return btn
@@ -272,7 +269,7 @@ func _stage_row(i: int, stage: Dictionary, es: Dictionary) -> Control:
 	row.add_theme_constant_override("separation", 12)
 	var unlocked: bool = i <= int(es.get("stage", 0))
 	var cleared: bool = i < int(es.get("stage", 0)) or es.get("completed", []).has(i)
-	var btn := UI.make_button(("Cleared" if cleared else "Stage %d" % (i + 1)),
+	var btn := UI.make_button(("Cleared" if cleared else tr("Stage %d") % (i + 1)),
 		ACCENT if unlocked and not cleared else Chrome.PANEL)
 	btn.custom_minimum_size = Vector2(160, UI.TOUCH_MIN + 4)
 	# Only an already-cleared stage is inert, and that is a state rather than a
@@ -283,9 +280,9 @@ func _stage_row(i: int, stage: Dictionary, es: Dictionary) -> Control:
 	var hp: float = BattleMath.stage_boss_hp(_event, i, power)
 	var odds := "pick a team to see the odds"
 	if power > 0.0:
-		odds = "%d HP · %d moves" % [int(round(hp)), BattleMath.stage_moves(_event, i)]
+		odds = tr("%d HP · %d moves") % [int(round(hp)), BattleMath.stage_moves(_event, i)]
 	elif not unlocked:
-		odds = "clear stage %d first" % i
+		odds = tr("clear stage %d first") % i
 	var info := UI.make_label("%s\n%s" % [_rewards_preview(stage.get("rewards", {})), odds],
 		UI.TYPE_BODY, DIM)
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -301,9 +298,9 @@ func _rewards_preview(rewards: Dictionary) -> String:
 	if box_id != "":
 		parts.append(str(DataLoader.get_lootbox(box_id).get("name", box_id)))
 	if int(rewards.get("gems", 0)) > 0:
-		parts.append("%d gems" % int(rewards["gems"]))
+		parts.append(tr("%d gems") % int(rewards["gems"]))
 	if float(rewards.get("insight_m", 0.0)) > 0.0:
-		parts.append("%s insight" % str(rewards.get("insight_m")))
+		parts.append(tr("%s insight") % str(rewards.get("insight_m")))
 	return " · ".join(parts)
 
 
@@ -313,21 +310,21 @@ func _refresh_window_status() -> void:
 	var now: int = ClockGuard.now()
 	var es: Dictionary = _es()
 	var power: float = _selected_team_power()
-	var team_line := "\nTeam power %d" % int(round(power)) if power > 0.0 else ""
+	var team_line := tr("\nTeam power %d") % int(round(power)) if power > 0.0 else ""
 	if _window_active(now):
 		var left: int = int(es["opened_at"]) + int(float(_event.get("duration_hours", 48)) * 3600.0) - now
-		_status_label.text = "Window OPEN — closes in %s%s" % [_fmt_hours(left), team_line]
+		_status_label.text = tr("Window OPEN — closes in %s%s") % [_fmt_hours(left), team_line]
 		_start_button.visible = false
 	else:
 		_start_button.visible = true
 		_start_button.disabled = false
 		if _cooldown_over(now):
-			_status_label.text = "Next inspection: READY" + team_line
+			_status_label.text = tr("Next inspection: READY") + team_line
 			_start_button.text = "Start Inspection"
 		else:
 			var wait: int = int(es.get("opened_at", 0)) \
 				+ int(float(_event.get("cooldown_hours", 72)) * 3600.0) - now
-			_status_label.text = "Next inspection in %s" % _fmt_hours(wait)
+			_status_label.text = tr("Next inspection in %s") % _fmt_hours(wait)
 			_start_button.text = "On cooldown"
 
 
@@ -353,13 +350,13 @@ func _on_play_stage(stage_index: int) -> void:
 		_toast("Start the inspection first — the window is closed.")
 		return
 	if int(stage_index) > int(es.get("stage", 0)):
-		_toast("Clear stage %d first." % int(es.get("stage", 0) + 1))
+		_toast(tr("Clear stage %d first.") % int(es.get("stage", 0) + 1))
 		return
 	if _owned_pairs().is_empty():
 		_toast("Recruit a manager from the Store to fight an inspection.")
 		return
 	if _selected.is_empty():
-		_toast("Pick up to %d managers first." % MAX_TEAM)
+		_toast(tr("Pick up to %d managers first.") % MAX_TEAM)
 		return
 	var stage: Dictionary = _event.get("stages", [])[stage_index]
 	var team: Array = []
@@ -379,7 +376,7 @@ func _open_battle(stage_index: int, team: Array, moves: int) -> void:
 	_battle.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_battle)
 	_battle.setup_battle({
-		"boss_name": "Chief Inspector — Stage %d" % (stage_index + 1),
+		"boss_name": tr("Chief Inspector — Stage %d") % (stage_index + 1),
 		"boss_hp": BattleMath.stage_boss_hp(_event, stage_index, _selected_team_power()),
 		"moves": moves,
 		"team": team,
@@ -390,8 +387,7 @@ func _open_battle(stage_index: int, team: Array, moves: int) -> void:
 func _on_battle_finished(result: String, stage_index: int) -> void:
 	Analytics.log_event("inspection_stage", {"stage": stage_index, "result": result})
 	if result != "win":
-		_queue_outcome("Out of moves", "Continue with your board and damage intact,\n"
-			+ "or retry this stage for free with a stronger team.",
+		_queue_outcome("Out of moves", tr("Continue with your board and damage intact,\nor retry this stage for free with a stronger team."),
 			UI.DANGER, stage_index)
 		return
 	var es: Dictionary = _es()
@@ -406,7 +402,7 @@ func _on_battle_finished(result: String, stage_index: int) -> void:
 	es["completed"].append(stage_index)
 	es["stage"] = maxi(int(es.get("stage", 0)), stage_index + 1)
 	EventBus.event_stage_completed.emit("inspection_frenzy", stage_index, applied)
-	_queue_outcome("Stage %d cleared" % (stage_index + 1), _applied_text(applied),
+	_queue_outcome(tr("Stage %d cleared") % (stage_index + 1), _applied_text(applied),
 		SAGE, stage_index)
 
 
@@ -456,10 +452,10 @@ func _applied_text(applied: Dictionary) -> String:
 		var def: Dictionary = DataLoader.get_manager_def(mid)
 		parts.append("%dx %s" % [int(cards[mid]), str(def.get("name", mid))])
 	if int(applied.get("gems", 0)) > 0:
-		parts.append("%d gems" % int(applied["gems"]))
+		parts.append(tr("%d gems") % int(applied["gems"]))
 	if float(applied.get("insight_m", 0.0)) > 0.0:
-		parts.append("%s insight" % str(applied["insight_m"]))
-	return "Rewards: " + (" · ".join(parts) if not parts.is_empty() else "none")
+		parts.append(tr("%s insight") % str(applied["insight_m"]))
+	return tr("Rewards: %s") % (" · ".join(parts) if not parts.is_empty() else tr("none"))
 
 
 func _show_outcome(title: String, body: String, tint: Color, stage_index: int) -> void:
@@ -499,7 +495,7 @@ func _show_outcome(title: String, body: String, tint: Color, stage_index: int) -
 		var ad := UI.make_button("Watch ad · restore 50% moves", ACCENT)
 		ad.pressed.connect(_request_continue_ad)
 		v.add_child(ad)
-		var gems := UI.make_button("30 gems · full moves (%d left)" % maxi(0,5-_premium_continues), BRASS)
+		var gems := UI.make_button(tr("30 gems · full moves (%d left)") % maxi(0,5-_premium_continues), BRASS)
 		gems.pressed.connect(_continue_with_gems)
 		v.add_child(gems)
 	var row := HBoxContainer.new()

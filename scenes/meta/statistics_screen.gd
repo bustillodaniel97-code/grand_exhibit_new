@@ -120,7 +120,7 @@ func _guidance_card(guide: Dictionary) -> Control:
 	box.add_child(_label(str(guide.get("detail", "")), 17, Chrome.DIM))
 	if bool(guide.get("actionable", false)):
 		var dept: String = str(guide.get("dept", ""))
-		var btn := _button("Improve %s" % _dept_display_name(dept), true)
+		var btn := _button(tr("Improve %s") % _dept_display_name(dept), true)
 		btn.pressed.connect(func() -> void:
 			Popups.close_top()
 			EventBus.department_requested.emit(dept))
@@ -164,20 +164,20 @@ func _management_card() -> Control:
 			GameState.current_venue, dept), 17, Chrome.DIM)
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(title)
-		var coverage := "%d/%d posts" % [assigned.size(), slots]
-		var benefit := "x%.2f" % mult if mult > 1.0001 else "No boost"
+		var coverage := tr("%d/%d posts") % [assigned.size(), slots]
+		var benefit := "x%.2f" % mult if mult > 1.0001 else tr("No boost")
 		row.add_child(_nowrap_label("%s  ·  %s" % [coverage, benefit], 16,
 			Chrome.TEAL if mult > 1.0001 else Chrome.DIM, 178.0))
 		box.add_child(row)
 	var open := _button(
 		"Manage staff" if GameState.feature_unlocked("managers")
-		else "Staff unlock at Rep %d" % int(
+		else tr("Staff unlock at Rep %d") % int(
 			DataLoader.core.get("unlocks", {}).get("managers_rep", 3)))
 	open.pressed.connect(func() -> void:
 		if GameState.feature_unlocked("managers"):
 			Popups.open(MANAGERS_PATH)
 		else:
-			EventBus.toast_requested.emit("Managers unlock at Rep %d" % int(
+			EventBus.toast_requested.emit(tr("Managers unlock at Rep %d") % int(
 				DataLoader.core.get("unlocks", {}).get("managers_rep", 3))))
 	box.add_child(open)
 	return card
@@ -197,7 +197,7 @@ func _rate_row(dept: String, value: float, peak: float, physical_limit: bool) ->
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(title)
 	head.add_child(_nowrap_label("%.2f/s%s" % [
-		value, " · LIMIT" if physical_limit else ""], 16,
+		value, tr(" · LIMIT") if physical_limit else ""], 16,
 		Chrome.BRASS if physical_limit else Chrome.DIM, 140.0))
 	var bar := ProgressBar.new()
 	bar.max_value = peak
@@ -215,7 +215,7 @@ func _earnings_card(rates: Dictionary) -> Control:
 	box.add_theme_constant_override("separation", 10)
 	card.add_child(box)
 	box.add_child(_label("BANKED INCOME", 12, Chrome.TEAL))
-	box.add_child(UI.make_display_label("$%s / sec" % (rates["banked_per_s"] as BigNumber).to_notation(), 32, Chrome.INK))
+	box.add_child(UI.make_display_label(tr("$%s / sec") % (rates["banked_per_s"] as BigNumber).to_notation(), 32, Chrome.INK))
 	var rule := Panel.new()
 	rule.custom_minimum_size.y = 1
 	rule.add_theme_stylebox_override("panel", Chrome.channel(Chrome.BORDER))
@@ -290,5 +290,5 @@ func _nowrap_label(text: String, size: int, color: Color,
 func _dept_display_name(dept: String) -> String:
 	var authored: String = DataLoader.venue_dept_name(GameState.current_venue, dept)
 	if authored != "":
-		return authored
-	return dept.capitalize()
+		return tr(authored)
+	return tr(dept.capitalize())

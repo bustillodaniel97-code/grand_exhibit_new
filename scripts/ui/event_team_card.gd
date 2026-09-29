@@ -4,6 +4,7 @@ const UI := preload("res://scripts/ui/ui_kit.gd")
 const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 const Portrait := preload("res://scenes/managers/manager_portrait.gd")
 const BattleMath := preload("res://scripts/events/battle_math.gd")
+const ManagerBadge := preload("res://scenes/managers/manager_badge.gd")
 
 static func make(pair: Dictionary, selected: bool) -> Button:
 	var definition: Dictionary = pair["def"]
@@ -13,7 +14,7 @@ static func make(pair: Dictionary, selected: bool) -> Button:
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(326, 148)
 	button.text = str(definition.get("name", pair["id"]))
-	button.tooltip_text = button.text + (" · Remove from team" if selected else " · Add to team")
+	button.tooltip_text = button.text + str(TranslationServer.translate(" · Remove from team") if selected else TranslationServer.translate(" · Add to team"))
 	Chrome.button(button, selected)
 	for style in ["normal", "hover", "pressed"]:
 		var surface := Chrome.panel(14, Chrome.RAISED if selected else Chrome.PANEL)
@@ -43,12 +44,12 @@ static func make(pair: Dictionary, selected: bool) -> Button:
 	var name_label := UI.make_display_label(button.text, 17, Chrome.INK)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.add_child(name_label)
-	info.add_child(UI.make_label("%s · %s" % [specialty.capitalize(),
-		str(definition.get("rarity", "common")).capitalize()], 14, tint.lerp(Chrome.INK, 0.28)))
-	info.add_child(UI.make_label("Lv %d · Rank %d · Power %d" % [int(state.get("level", 1)),
+	info.add_child(UI.make_label("%s · %s" % [ManagerBadge.specialty_name(specialty),
+		ManagerBadge.rarity_name(str(definition.get("rarity", "common"))).capitalize()], 14, tint.lerp(Chrome.INK, 0.28)))
+	info.add_child(UI.make_label(TranslationServer.translate("Lv %d · Rank %d · Power %d") % [int(state.get("level", 1)),
 		int(state.get("rank", 1)),
 		int(round(BattleMath.manager_attack(definition, state)))], 14, Chrome.DIM))
-	info.add_child(UI.make_display_label("IN TEAM  ✓" if selected else "+ Add to team", 14,
+	info.add_child(UI.make_display_label(TranslationServer.translate("IN TEAM  ✓") if selected else TranslationServer.translate("+ Add to team"), 14,
 		Chrome.TEAL if selected else Chrome.DIM))
 	for child in info.get_children(): child.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return button

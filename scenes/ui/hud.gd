@@ -118,11 +118,11 @@ func _apply_safe_area() -> void:
 func _on_any_change(_a: Variant=null,_b: Variant=null) -> void:refresh()
 func refresh() -> void:
 	_cash_lbl.text=GameState.cash.to_notation()
-	_rate_lbl.text="+%s / sec"%Economy.current_cash_per_second().to_notation()
+	_rate_lbl.text=tr("+%s / sec")%Economy.current_cash_per_second().to_notation()
 	_gems_lbl.text=BigNumber.from_float(GameState.gems).to_notation()
-	_gems_button.tooltip_text="%d gems · open gem shop"%GameState.gems
+	_gems_button.tooltip_text=tr("%d gems · open gem shop")%GameState.gems
 	_insight_lbl.text=GameState.insight.to_notation()
-	_lvl_lbl.text="Rep %d"%GameState.rep_level()
+	_lvl_lbl.text=tr("Rep %d")%GameState.rep_level()
 	_rep_bar.value=GameState.rep_progress()*100
 
 func _on_store_pressed(category: String="offers") -> void:

@@ -15,6 +15,15 @@ extends RefCounted
 ##   met        type id -> visitors of that type who have walked in
 ##   tips       lifetime tips collected
 ##   tip_ready  unix time the next tip becomes available
+##   request    the VIP request in play, or absent (see below)
+##
+## VIP requests ("VIP tips as quests"): now and then a VIP's bubble is a wish
+## instead of a tip, "A collector would love to see the Nature Hall's value at
+## level 12". Tapping it accepts; reaching the level before it expires pays
+## `tip_mult` times that VIP's tip plus a few gems. The target is the lowest
+## upgradeable speed/value track in the museum, `levels_ahead` above where it
+## stands, so it always points at something worth doing. One at a time;
+## letting it lapse costs nothing. Tuning: visitor_types.json "requests".
 
 static var _cfg: Dictionary = {}
 
@@ -144,3 +153,116 @@ static func collect_tip(id: String) -> BigNumber:
 	s["tip_ready"] = ClockGuard.now() + cooldown()
 	EventBus.vip_tipped.emit(id, amount)
 	return amount
+
+# ------------------------------------------------------------------ requests
+
+const REQUEST_TRACKS: Array[String] = ["speed", "value"]
+
+static func request_config() -> Dictionary:
+	return config().get("requests", {})
+
+## Whether the VIP now arriving with a ready bubble brings a wish rather than a
+## tip (`roll` in [0, 1)). Never while another request is in play.
+static func wants_request(roll: float) -> bool:
+	if not active_request().is_empty():
+		return false
+	return roll < float(request_config().get("chance", 0.0))
+
+## The request in play, or {} (an expired one is cleared here).
+static func active_request() -> Dictionary:
+	var s := _state()
+	var r: Variant = s.get("request", null)
+	if not r is Dictionary or (r as Dictionary).is_empty():
+		return {}
+	if ClockGuard.now() >= int((r as Dictionary).get("until", 0)):
+		s.erase("request")
+		Analytics.log_event("vip_request_expired", {"type": str((r as Dictionary).get("type", ""))})
+		return {}
+	return r
+
+## The target for a new request in `venue_id`: the lowest speed/value track
+## that still has room, `levels_ahead` above where it stands.
+static func pick_target(venue_id: String) -> Dictionary:
+	var ahead := maxi(1, int(request_config().get("levels_ahead", 3)))
+	var best: Dictionary = {}
+	for dept in DataLoader.core.get("departments", {}).keys():
+		for track in REQUEST_TRACKS:
+			var lv := GameState.dept_level(venue_id, str(dept), track)
+			var cap := Economy.track_max_level(venue_id, track)
+			if lv >= cap:
+				continue
+			if best.is_empty() or lv < int(best["level"]):
+				best = {"dept": str(dept), "track": track, "level": lv, "target": mini(lv + ahead, cap)}
+	return best
+
+## Accept the wish of the VIP of type `type_id`: it becomes the request in
+## play, and the VIP bubble goes on its cooldown as a tip would.
+static func accept_request(type_id: String) -> Dictionary:
+	if not is_vip(type_id) or not tip_ready() or not active_request().is_empty():
+		return {}
+	var target := pick_target(GameState.current_venue)
+	if target.is_empty():
+		return {}
+	var now := ClockGuard.now()
+	var r := {
+		"type": type_id, "venue": GameState.current_venue,
+		"dept": target["dept"], "track": target["track"], "target": int(target["target"]),
+		"from": now, "until": now + int(request_config().get("duration_s", 900)),
+	}
+	var s := _state()
+	s["request"] = r
+	s["tip_ready"] = now + cooldown()
+	Analytics.log_event("vip_request_accepted", {"type": type_id, "dept": r["dept"], "track": r["track"]})
+	return r
+
+static func request_level(r: Dictionary) -> int:
+	return GameState.dept_level(str(r.get("venue", "")), str(r.get("dept", "")), str(r.get("track", "")))
+
+static func request_seconds_left(r: Dictionary) -> int:
+	return maxi(0, int(r.get("until", 0)) - ClockGuard.now())
+
+## The reward for meeting request `r`: {cash, gems}.
+static func request_reward(r: Dictionary) -> Dictionary:
+	var type_id := str(r.get("type", ""))
+	var mult := float(request_config().get("tip_mult", 5))
+	var gems := int((request_config().get("gems", {}) as Dictionary).get(type_id, 0))
+	return {"cash": tip_value(type_id).scale(mult), "gems": gems}
+
+## Pay the request in play if its target is reached. Returns the reward
+## ({type, cash, gems}) or {} when there is nothing to pay.
+static func check_request() -> Dictionary:
+	var r := active_request()
+	if r.is_empty() or request_level(r) < int(r.get("target", 0)):
+		return {}
+	var reward := request_reward(r)
+	var cash: BigNumber = reward["cash"]
+	GameState.add_cash(cash)
+	GameState.add_gems(int(reward["gems"]))
+	var s := _state()
+	s.erase("request")
+	s["tips"] = int(s.get("tips", 0)) + 1
+	s["requests"] = int(s.get("requests", 0)) + 1
+	EventBus.vip_tipped.emit(str(r["type"]), cash)
+	Analytics.log_event("vip_request_met", {"type": str(r["type"]), "gems": int(reward["gems"])})
+	return {"type": str(r["type"]), "cash": cash, "gems": int(reward["gems"])}
+
+static func requests_met() -> int:
+	return int(_state().get("requests", 0))
+
+## "A collector would love to see the Nature Hall's value at level 12."
+static func request_text(r: Dictionary) -> String:
+	var who := str(TranslationServer.translate(str(type_def(str(r.get("type", ""))).get("one", "A VIP"))))
+	var dept := DataLoader.venue_dept_name(str(r.get("venue", "")), str(r.get("dept", "")))
+	var template := str(TranslationServer.translate("%s would love to see %s's value at level %d")) \
+		if str(r.get("track", "")) == "value" \
+		else str(TranslationServer.translate("%s would love to see %s's speed at level %d"))
+	return template % [who, dept, int(r.get("target", 0))]
+
+## Short line for the on-screen chip: "Nature Hall value 10/12 · 8:41".
+static func request_chip_text(r: Dictionary) -> String:
+	var dept := DataLoader.venue_dept_name(str(r.get("venue", "")), str(r.get("dept", "")))
+	var left := request_seconds_left(r)
+	var template := str(TranslationServer.translate("%s value %d/%d · %d:%02d")) \
+		if str(r.get("track", "")) == "value" \
+		else str(TranslationServer.translate("%s speed %d/%d · %d:%02d"))
+	return template % [dept, request_level(r), int(r.get("target", 0)), left / 60, left % 60]

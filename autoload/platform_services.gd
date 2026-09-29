@@ -30,6 +30,13 @@ extends Node
 
 signal achievement_unlocked(id: String, def: Dictionary)
 signal signed_in_changed(signed_in: bool)
+## A cloud save further along than this phone's is waiting for the player's
+## decision (Settings: load it, or keep this phone's).
+signal cloud_save_available(summary: Dictionary)
+
+const LocalNotifications := preload("res://scripts/platform/local_notifications.gd")
+const CloudSave := preload("res://scripts/platform/cloud_save.gd")
+const Reminders := preload("res://scripts/meta/reminders.gd")
 
 const PLAY_GAMES_SINGLETON := "GodotPlayGameServices"
 const GAME_CENTER_SINGLETON := "GameCenter"
@@ -41,10 +48,18 @@ var signed_in := false
 var _store: Object = null
 var _defs: Array = []
 var _platform_ids: Dictionary = {}
+## Local notifications (phones with the scheduler plugin); null elsewhere.
+var notifier: RefCounted = null
+## Cloud save (Play Games saved games); null elsewhere.
+var cloud: RefCounted = null
+## The cloud envelope awaiting the player's decision, or {}.
+var pending_cloud: Dictionary = {}
 
 func _ready() -> void:
 	_defs = _load_defs()
 	_detect_backend()
+	_init_notifications()
+	EventBus.daily_gift_claimed.connect(func(_day: int) -> void: _maybe_ask_notifications())
 	var signals := {}
 	for d in _defs:
 		signals[str(d.get("on", ""))] = true
@@ -116,6 +131,7 @@ func _bind_play_games(obj: Object) -> void:
 		obj.connect("userAuthenticated", _on_sign_in)
 	if obj.has_method("isAuthenticated"):
 		obj.call("isAuthenticated")
+	_bind_cloud(obj)
 
 ## Game Center shows its own sign-in sheet if needed; the answer is an
 ## "authentication" event in the queue _process drains.
@@ -134,6 +150,8 @@ func _on_sign_in(ok: bool) -> void:
 		signed_in_changed.emit(ok)
 	if ok:
 		sync_store()
+		if cloud != null:
+			cloud.download()
 
 ## Test seam: attach a fake store object as a mobile backend.
 func _use_store_for_test(kind: String, obj: Object) -> void:
@@ -146,9 +164,118 @@ func _use_store_for_test(kind: String, obj: Object) -> void:
 func _clear_store_for_test() -> void:
 	if _store != null and _store.has_signal("userAuthenticated") and _store.is_connected("userAuthenticated", _on_sign_in):
 		_store.disconnect("userAuthenticated", _on_sign_in)
+	if cloud != null:
+		cloud.unbind()
+	cloud = null
+	pending_cloud = {}
 	backend = "none"
 	_store = null
 	signed_in = false
+
+# ------------------------------------------------------------ cloud save
+
+func _bind_cloud(store: Object) -> void:
+	var c: RefCounted = CloudSave.new()
+	if c.bind(store):
+		cloud = c
+		c.loaded.connect(_on_cloud_loaded)
+
+## The cloud answered after sign-in. Further along than this phone: offer it.
+## Behind (or none): this phone's save becomes the cloud copy.
+func _on_cloud_loaded(envelope: Dictionary) -> void:
+	var local: Dictionary = GameState.to_save_dict()
+	if envelope.is_empty() or CloudSave.progress_of(envelope.get("state", {})) <= CloudSave.progress_of(local):
+		pending_cloud = {}
+		sync_cloud(true)
+		return
+	pending_cloud = envelope
+	Analytics.log_event("cloud_save_found", CloudSave.summary(envelope))
+	cloud_save_available.emit(CloudSave.summary(envelope))
+	EventBus.toast_requested.emit(tr("A cloud save with more progress was found. Open Settings to load it."))
+
+## Copy this phone's save to the cloud (rate-limited unless `force`). Never
+## while a further-along cloud save is waiting for the player's decision.
+func sync_cloud(force: bool = false) -> bool:
+	if cloud == null or not signed_in or not GameState.ready_flag or not pending_cloud.is_empty():
+		return false
+	return bool(cloud.upload(GameState.to_save_dict(), SaveSystem.SAVE_VERSION, ClockGuard.now(), force))
+
+func cloud_summary() -> Dictionary:
+	return {} if pending_cloud.is_empty() else CloudSave.summary(pending_cloud)
+
+## The player chose the cloud save: it replaces this phone's, which is saved to
+## disk, and the game restarts on it (reload = false in tests).
+func load_cloud_save(reload: bool = true) -> bool:
+	if pending_cloud.is_empty():
+		return false
+	var env: Dictionary = pending_cloud
+	var version := int(env.get("version", SaveSystem.SAVE_VERSION))
+	if version > SaveSystem.SAVE_VERSION:
+		return false  # written by a newer game version
+	pending_cloud = {}
+	var state: Dictionary = env.get("state", {})
+	if version < SaveSystem.SAVE_VERSION:
+		state = SaveSystem.migrate(state, version)
+	GameState.from_save_dict(state)
+	GameState.ready_flag = true
+	SaveSystem.save_now()
+	Analytics.log_event("cloud_save_loaded", CloudSave.summary(env))
+	if reload:
+		get_tree().call_deferred("change_scene_to_file", "res://scenes/main.tscn")
+	return true
+
+## The player kept this phone's save: it becomes the cloud copy.
+func keep_local_save() -> void:
+	pending_cloud = {}
+	sync_cloud(true)
+
+# ------------------------------------------------------------ reminders
+
+## Reminders (scripts/meta/reminders.gd) go to the phone's scheduler when the
+## app is backgrounded and are cancelled when the player returns.
+func _init_notifications() -> void:
+	var n: RefCounted = LocalNotifications.new()
+	if n.available() and n.start():
+		notifier = n
+		notifier.cancel_all()  # the player is here now
+
+## Test seam: attach a started notifier (or null).
+func _use_notifier_for_test(n: RefCounted) -> void:
+	notifier = n
+
+func notifications_available() -> bool:
+	return notifier != null
+
+## Schedule this absence's reminders. Returns how many were scheduled.
+func schedule_reminders(now: int = -1) -> int:
+	if notifier == null:
+		return 0
+	if not Reminders.enabled() or not notifier.has_permission():
+		notifier.cancel_all()
+		return 0
+	var t: int = now if now >= 0 else int(Reminders.MonoClock.now())
+	return int(notifier.schedule(Reminders.plan(t), t))
+
+func cancel_reminders() -> void:
+	if notifier != null:
+		notifier.cancel_all()
+
+## Ask for notification permission once, at a moment that explains itself:
+## right after the first Daily Gift ("we'll tell you when the next one is ready").
+func _maybe_ask_notifications() -> void:
+	if notifier == null or bool(GameState.settings.get("notifications_asked", false)):
+		return
+	GameState.settings["notifications_asked"] = true
+	if not notifier.has_permission():
+		notifier.request_permission()
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_WM_CLOSE_REQUEST:
+			schedule_reminders()
+			sync_cloud()
+		NOTIFICATION_APPLICATION_RESUMED:
+			cancel_reminders()
 
 func _process(_delta: float) -> void:
 	if _store == null:
@@ -263,7 +390,7 @@ func unlock(id: String) -> void:
 	if backend == "steam" and signed_in:
 		_store.call("storeStats")
 	achievement_unlocked.emit(id, def)
-	EventBus.toast_requested.emit("Achievement: %s" % str(def.get("name", id)))
+	EventBus.toast_requested.emit(tr("Achievement: %s") % tr(str(def.get("name", id))))
 	Analytics.log_event("achievement", {"id": id, "backend": backend})
 
 ## Resync every locally earned achievement to the store (first launch on a new

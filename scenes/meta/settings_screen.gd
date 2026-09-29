@@ -1,11 +1,12 @@
 extends Control
-## Settings: sound, music, graphics quality, fullscreen (PC), replay the
-## walkthrough, and the platform line (which store backend is live). Values
+## Settings: sound, music, graphics quality, language, fullscreen (PC), replay
+## the walkthrough, and the platform line (which store backend is live). Values
 ## live in GameState.settings and are saved with the game.
 
 const UI := preload("res://scripts/ui/ui_kit.gd")
 const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 const Popups := preload("res://scripts/ui/popup_manager.gd")
+const Languages := preload("res://scripts/ui/languages.gd")
 
 var _body: VBoxContainer
 
@@ -34,8 +35,12 @@ func _build() -> void:
 	_body.add_child(UI.make_display_label("Settings", 30, Chrome.INK))
 	_body.add_child(_toggle("Music", "music", true))
 	_body.add_child(_toggle("Sound effects", "sfx", true))
+	var ps_n := get_node_or_null("/root/PlatformServices")
+	if ps_n != null and bool(ps_n.call("notifications_available")):
+		_body.add_child(_toggle("Notifications", "notifications", true))
 	_body.add_child(_choice("Graphics", "gfx", ["auto", "high", "low"], ["Auto", "High", "Low"],
 		"Low turns off shadows, anti-aliasing and the tilt-shift blur for older phones. Auto switches by itself if the museum runs slowly."))
+	_body.add_child(_language_card())
 	if OS.has_feature("pc"):
 		var fs := Button.new()
 		fs.name = "Fullscreen"
@@ -69,9 +74,11 @@ func _build() -> void:
 		_style(ach, false)
 		ach.pressed.connect(func() -> void: ps.call("show_platform_achievements"))
 		_body.add_child(_row(store, ach))
-	_body.add_child(_label("Achievements: %s · %d unlocked" % [store, (ps.call("unlocked") as Array).size() if ps != null else 0], 14, Chrome.DIM))
+	if ps != null and not (ps.call("cloud_summary") as Dictionary).is_empty():
+		_body.add_child(_cloud_card(ps, ps.call("cloud_summary") as Dictionary))
+	_body.add_child(_label(tr("Achievements: %s · %d unlocked") % [store, (ps.call("unlocked") as Array).size() if ps != null else 0], 14, Chrome.DIM))
 	var version := str(ProjectSettings.get_setting("application/config/version", ""))
-	_body.add_child(_label("Grand Exhibit · v%s" % (version if version != "" else "1.0.0"), 13, Chrome.DIM))
+	_body.add_child(_label(tr("Grand Exhibit · v%s") % (version if version != "" else "1.0.0"), 13, Chrome.DIM))
 
 func _toggle(title: String, key: String, default_on: bool) -> Control:
 	var on := bool(GameState.settings.get(key, default_on))
@@ -111,6 +118,67 @@ func _choice(title: String, key: String, values: Array, labels: Array, note: Str
 		hb.add_child(b)
 	box.add_child(hb)
 	box.add_child(_label(note, 14, Chrome.DIM))
+	return _card(box)
+
+## A cloud save further along than this phone's: the player decides. Loading
+## restarts the game on it; keeping this phone's makes it the cloud copy.
+func _cloud_card(ps: Node, summary: Dictionary) -> Control:
+	var box := VBoxContainer.new()
+	box.name = "CloudSave"
+	box.add_theme_constant_override("separation", 8)
+	box.add_child(_label("Cloud save found", 20, Chrome.INK))
+	var venue := tr(str(DataLoader.get_venue(str(summary.get("venue", ""))).get("name", "")))
+	box.add_child(_label(tr("%s · %d museums") % [venue, int(summary.get("museums", 0))], 15, Chrome.DIM))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	var load_b := Button.new()
+	load_b.name = "LoadCloud"
+	load_b.text = "Load cloud save"
+	load_b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_style(load_b, true)
+	load_b.pressed.connect(func() -> void: ps.call("load_cloud_save"))
+	row.add_child(load_b)
+	var keep_b := Button.new()
+	keep_b.name = "KeepLocal"
+	keep_b.text = "Keep this phone's"
+	keep_b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_style(keep_b, false)
+	keep_b.pressed.connect(func() -> void:
+		ps.call("keep_local_save")
+		_build())
+	row.add_child(keep_b)
+	box.add_child(row)
+	return _card(box)
+
+## Automatic (the device's language) plus every complete catalog, each named
+## in its own language.
+func _language_card() -> Control:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	box.add_child(_label("Language", 20, Chrome.INK))
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	var cur := Languages.choice()
+	var picks: Array = [["auto", tr("Automatic")]]
+	picks.append_array(Languages.LANGUAGES)
+	for p in picks:
+		var code := str(p[0])
+		var b := Button.new()
+		b.name = "Lang_%s" % code
+		b.text = str(p[1])
+		if code != "auto":
+			b.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED  # endonyms stay as written
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.clip_text = true
+		_style(b, cur == code)
+		b.add_theme_font_size_override("font_size", 16)
+		b.pressed.connect(func() -> void:
+			Languages.set_choice(code)
+			_build())
+		grid.add_child(b)
+	box.add_child(grid)
 	return _card(box)
 
 func _row(title: String, control: Control) -> Control:

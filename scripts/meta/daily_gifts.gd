@@ -55,15 +55,15 @@ static func total() -> int:
 static func describe(gift: Dictionary) -> String:
 	var parts: Array = []
 	if gift.has("gems"):
-		parts.append("%d gems" % int(gift["gems"]))
+		parts.append(TranslationServer.translate("%d gems") % int(gift["gems"]))
 	if gift.has("cash_minutes"):
-		parts.append("%d min of income" % int(gift["cash_minutes"]))
+		parts.append(TranslationServer.translate("%d min of income") % int(gift["cash_minutes"]))
 	if gift.has("dig_energy"):
-		parts.append("%d dig energy" % int(gift["dig_energy"]))
+		parts.append(TranslationServer.translate("%d dig energy") % int(gift["dig_energy"]))
 	if gift.has("boost_hours"):
-		parts.append("x2 income %dh" % int(gift["boost_hours"]))
+		parts.append(TranslationServer.translate("x2 income %dh") % int(gift["boost_hours"]))
 	if gift.has("cards_box"):
-		parts.append(str(DataLoader.get_lootbox(str(gift["cards_box"])).get("name", "Manager case")))
+		parts.append(TranslationServer.translate(str(DataLoader.get_lootbox(str(gift["cards_box"])).get("name", "Manager case"))))
 	return " + ".join(PackedStringArray(parts))
 
 ## Claim today's gift. Returns what was granted ({} if already claimed today).

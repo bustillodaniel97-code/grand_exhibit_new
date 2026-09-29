@@ -70,7 +70,7 @@ static func unlocked_here(venue_id: String, decor_id: String) -> bool:
 static func lock_reason(venue_id: String, decor_id: String) -> String:
 	if unlocked_here(venue_id, decor_id):
 		return ""
-	return "Unlocks at goal milestone %d" % int(DataLoader.get_decor(decor_id).get("req_milestones", 0))
+	return TranslationServer.translate("Unlocks at goal milestone %d") % int(DataLoader.get_decor(decor_id).get("req_milestones", 0))
 
 # ----------------------------------------------------------------- price + levels
 ## Decor priced in THIS museum's economy: the authored price is in museum-one
@@ -391,5 +391,5 @@ static func cost_text(decor_id: String) -> String:
 	var def: Dictionary = DataLoader.get_decor(decor_id)
 	var gems_cost: int = int(def.get("cost_gems", 0))
 	if gems_cost > 0:
-		return "%d Gems" % gems_cost
-	return "%s Cash" % cash_cost(decor_id).to_notation()
+		return TranslationServer.translate("%d Gems") % gems_cost
+	return TranslationServer.translate("%s Cash") % cash_cost(decor_id).to_notation()

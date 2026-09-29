@@ -80,14 +80,46 @@ func dept_def(dept_id: String) -> Dictionary:
 ## Player-facing department name for this venue.  The simulation deliberately
 ## keeps stable ids such as "promotions", but authored venues are free to turn
 ## that same economic role into a café, concierge desk, or outreach booth.
-func venue_dept_name(venue_id: String, dept_id: String) -> String:
+## The name a museum gives a department ("Nature Hall"), in the player's
+## language. Pass localized = false for the English data name (for logic that
+## looks at the words, never for display).
+func venue_dept_name(venue_id: String, dept_id: String, localized: bool = true) -> String:
 	var theme: Variant = get_venue(venue_id).get("theme", {})
 	if theme is Dictionary:
 		for room in (theme as Dictionary).get("rooms", []):
 			if room is Dictionary and str((room as Dictionary).get("dept", "")) == dept_id:
-				return str((room as Dictionary).get("name",
-					dept_def(dept_id).get("name", dept_id.capitalize()))).capitalize()
-	return str(dept_def(dept_id).get("name", dept_id.capitalize()))
+				var raw := str((room as Dictionary).get("name",
+					dept_def(dept_id).get("name", dept_id.capitalize())))
+				return title_case(tr(raw)) if localized else raw.capitalize()
+	var generic := str(dept_def(dept_id).get("name", dept_id.capitalize()))
+	return tr(generic) if localized else generic
+
+## Room signs are written in capitals ("HALL OF THE GUARD"); panels show them
+## in title case. English keeps Godot's capitalize(); other languages leave
+## their short joining words lower-case ("Sala de la Naturaleza", "Halle der
+## Dynastien") and capitalise each part of a hyphenated word.
+const _TITLE_SMALL := ["a", "à", "al", "au", "aux", "da", "das", "de", "dei", "del", "della", "delle",
+	"der", "des", "di", "die", "do", "dos", "du", "e", "el", "em", "et", "im", "la", "las", "le",
+	"les", "los", "na", "no", "und", "von", "y", "zum", "zur"]
+
+func title_case(s: String) -> String:
+	if TranslationServer.get_locale().begins_with("en"):
+		return s.capitalize()
+	var words := s.to_lower().split(" ")
+	for i in words.size():
+		var w: String = words[i]
+		if i > 0 and w in _TITLE_SMALL:
+			continue
+		var parts := w.split("-")
+		for j in parts.size():
+			var p: String = parts[j]
+			var apo := p.find("'")
+			if apo >= 0 and apo <= 2 and apo + 1 < p.length():
+				parts[j] = p.substr(0, apo + 1) + p.substr(apo + 1, 1).to_upper() + p.substr(apo + 2)
+			elif p != "":
+				parts[j] = p.substr(0, 1).to_upper() + p.substr(1)
+		words[i] = "-".join(parts)
+	return " ".join(words)
 
 ## cost = base_cost * growth^level * venue_cost_mult * 10^venue_cost_exp
 ## venue_cost_exp defaulted so the SPEC §3 4-arg call form stays valid.

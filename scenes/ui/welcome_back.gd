@@ -72,12 +72,12 @@ func _ready() -> void:
 	optional.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(optional)
 
-	_ad_btn = UI.make_button("Watch Ad x%d" % int(ad_mult), Chrome.PANEL)
+	_ad_btn = UI.make_button(tr("Watch Ad x%d") % int(ad_mult), Chrome.PANEL)
 	_ad_btn.custom_minimum_size = Vector2(0, 56)
 	_ad_btn.pressed.connect(_on_watch_ad.bind(ad_mult))
 	vbox.add_child(_ad_btn)
 
-	_gem_btn = UI.make_button("%d Gems x%d" % [gem_cost, int(gem_mult)], Chrome.PANEL)
+	_gem_btn = UI.make_button(tr("%d Gems x%d") % [gem_cost, int(gem_mult)], Chrome.PANEL)
 	_gem_btn.custom_minimum_size = Vector2(0, 56)
 	_gem_btn.icon = UI.icon_texture("gems", 22)
 	_gem_btn.pressed.connect(_on_gem_claim.bind(gem_mult, gem_cost))
@@ -88,7 +88,7 @@ func setup(payload: Dictionary) -> void:
 	_amount = raw if raw is BigNumber else BigNumber.from_save(raw)
 	_seconds = int(payload.get("seconds", 0))
 	_amount_lbl.text = "+$" + _amount.to_notation()
-	_away_lbl.text = "away for %dh %dm" % [_seconds / 3600, (_seconds % 3600) / 60]
+	_away_lbl.text = tr("away for %dh %dm") % [_seconds / 3600, (_seconds % 3600) / 60]
 
 func _on_claim() -> void:
 	# 1x amount was already granted by SaveSystem.compute_offline_and_apply().

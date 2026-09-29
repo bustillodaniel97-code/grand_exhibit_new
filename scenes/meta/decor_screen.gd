@@ -84,7 +84,7 @@ func refresh() -> void:
 	var venue: Dictionary = DataLoader.get_venue(_venue_id)
 	var title: Label = find_child("Title", true, false)
 	if title:
-		title.text = "Decor — %s" % str(venue.get("name", _venue_id))
+		title.text = tr("Decor — %s") % str(venue.get("name", _venue_id))
 	var position := _scroll.scroll_vertical
 	for c in _list.get_children():
 		_list.remove_child(c)
@@ -150,7 +150,7 @@ func _build_rating() -> void:
 	score_l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	head.add_child(score_l)
 	var mult: float = float(sat["income_mult"])
-	var mult_l := UI.make_display_label("Visitors pay x%.2f" % mult, 18, SAGE if roundf(mult * 100.0) >= 100.0 else Chrome.DANGER)
+	var mult_l := UI.make_display_label(tr("Visitors pay x%.2f") % mult, 18, SAGE if roundf(mult * 100.0) >= 100.0 else Chrome.DANGER)
 	mult_l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	head.add_child(mult_l)
 
@@ -196,7 +196,7 @@ func _bar_kind(score: float) -> String:
 ## give a slot to a bench instead of a chandelier.
 func _seats_note(decor_id: String) -> String:
 	var seats: int = DecorSystem.piece_rest_seats(decor_id)
-	return " • +%d seats" % seats if seats > 0 else ""
+	return tr(" • +%d seats") % seats if seats > 0 else ""
 
 ## The one sentence that makes the whole system legible. Decor placement is per
 ## venue but ownership is not, and a player who moves museum and finds an empty
@@ -208,15 +208,12 @@ func _build_rule_note() -> void:
 	v.add_theme_constant_override("separation", 3)
 	card.add_child(v)
 	v.add_child(_label("Every museum stocks its own decor.", 15, BRASS))
-	var body: String = ("Pieces you buy here fill this building's %d slots and stay "
-		+ "here. Storage frees a slot without charging you again. The next museum "
-		+ "is a new setting and starts its shelves fresh — but completed sets keep "
-		+ "their bonus wherever you are.")
+	var body: String = (tr("Pieces you buy here fill this building's %d slots and stay here. Storage frees a slot without charging you again. The next museum is a new setting and starts its shelves fresh — but completed sets keep their bonus wherever you are."))
 	v.add_child(_label(body % DecorSystem.slots_total(_venue_id), 13, SLATE))
 	_list.add_child(card)
 
 func _build_slots() -> void:
-	_list.add_child(_header("Exhibit Slots (%d/%d)" % [
+	_list.add_child(_header(tr("Exhibit Slots (%d/%d)") % [
 		DecorSystem.slots_used(_venue_id), DecorSystem.slots_total(_venue_id)]))
 	_build_rule_note()
 	var grid := GridContainer.new()
@@ -239,11 +236,11 @@ func _build_slots() -> void:
 		if occupied:
 			var def: Dictionary = DataLoader.decor[did]
 			cv.add_child(_label(str(def.get("name", did)), 16, INK))
-			cv.add_child(_label("%s • +%d%% income%s" % [
+			cv.add_child(_label(tr("%s • +%d%% income%s") % [
 				str(def.get("slot_theme", "")).capitalize(),
 				int(round((float(def.get("income_mult", 1.0)) - 1.0) * 100.0)),
 				_seats_note(did)], 14, SAGE))
-			cv.add_child(_label("On display • %d decor pts" % [
+			cv.add_child(_label(tr("On display • %d decor pts") % [
 				int(round(DecorSystem.piece_decor_points(did)))], 13, SLATE))
 			# Free placement without free removal is a trap: the first pieces the
 			# player stood up would hold the slots for the rest of the museum.
@@ -265,8 +262,8 @@ func _build_sets_summary() -> void:
 		var name_l := _label("%s  %d/%d" % [str(sp["name"]), int(sp["have"]), int(sp["total"])], 16, INK)
 		name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hb.add_child(name_l)
-		var bonus_text: String = "Bonus +%d%% income" % int(round((float(sp["bonus_mult"]) - 1.0) * 100.0))
-		var bonus_l := _label(bonus_text + (" — ACTIVE" if bool(sp["complete"]) else ""), 15,
+		var bonus_text: String = tr("Bonus +%d%% income") % int(round((float(sp["bonus_mult"]) - 1.0) * 100.0))
+		var bonus_l := _label(tr("%s — ACTIVE") % bonus_text if bool(sp["complete"]) else bonus_text, 15,
 			SAGE if bool(sp["complete"]) else SLATE)
 		bonus_l.autowrap_mode = TextServer.AUTOWRAP_OFF  # squeezed by expand-fill name otherwise
 		hb.add_child(bonus_l)
@@ -287,7 +284,7 @@ func _build_shop() -> void:
 		var sv: Array = DataLoader.decor_sets[set_id].get("venues", [])
 		if not sv.is_empty() and _venue_id not in sv:
 			continue
-		groups.append({"name": str(DataLoader.decor_sets[set_id].get("name", set_id)) + (" · only here" if not sv.is_empty() else ""),
+		groups.append({"name": tr("%s · only here") % tr(str(DataLoader.decor_sets[set_id].get("name", set_id))) if not sv.is_empty() else tr(str(DataLoader.decor_sets[set_id].get("name", set_id))),
 			"pieces": DataLoader.decor_sets[set_id].get("pieces", [])})
 	# Rest areas get their own group: they are bought for a different reason than
 	# every other piece (seats, not spectacle) and burying them under
@@ -318,7 +315,7 @@ func _shop_row(decor_id: String, slots_full: bool) -> PanelContainer:
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hb.add_child(info)
 	info.add_child(_label(str(def.get("name", decor_id)), 18, INK))
-	var sub: String = "%s • +%d%% income • %d pts%s" % [
+	var sub: String = tr("%s • +%d%% income • %d pts%s") % [
 		str(def.get("slot_theme", "")).capitalize(),
 		int(round((float(def.get("income_mult", 1.0)) - 1.0) * 100.0)),
 		int(round(DecorSystem.piece_decor_points(decor_id))),
@@ -332,9 +329,9 @@ func _shop_row(decor_id: String, slots_full: bool) -> PanelContainer:
 	var here: int = DecorSystem.placed_slot(_venue_id, decor_id)
 	var next_slot: int = DecorSystem.first_free_slot(_venue_id)
 	if here >= 0:
-		info.add_child(_label("On display • slot %d" % [here + 1], 13, SAGE))
+		info.add_child(_label(tr("On display • slot %d") % [here + 1], 13, SAGE))
 	elif next_slot >= 0:
-		info.add_child(_label("Install in museum • slot %d" % [next_slot + 1], 13, ACCENT))
+		info.add_child(_label(tr("Install in museum • slot %d") % [next_slot + 1], 13, ACCENT))
 	else:
 		info.add_child(_label("No free display slot", 13, DIM))
 
@@ -342,7 +339,7 @@ func _shop_row(decor_id: String, slots_full: bool) -> PanelContainer:
 		info.add_child(_label("Expedition reward", 14, BRASS))
 	elif here >= 0:
 		var lv: int = DecorSystem.level(_venue_id, decor_id)
-		info.add_child(_label("Level %d / %d · now +%d%% income" % [lv, DecorSystem.MAX_LEVEL,
+		info.add_child(_label(tr("Level %d / %d · now +%d%% income") % [lv, DecorSystem.MAX_LEVEL,
 			int(round((DecorSystem.piece_mult(_venue_id, decor_id) - 1.0) * 100.0))], 14, INK))
 		if lv < DecorSystem.MAX_LEVEL:
 			var up_cost: BigNumber = DecorSystem.upgrade_cost(_venue_id, decor_id)
@@ -380,7 +377,7 @@ func _shop_row(decor_id: String, slots_full: bool) -> PanelContainer:
 		var lock: String = DecorSystem.lock_reason(_venue_id, decor_id)
 		if lock != "":
 			info.add_child(_label(lock, 13, BRASS))
-		var btn := UI.make_button("Buy — %s" % DecorSystem.cost_text(decor_id) if lock == "" else "Locked", SAGE)
+		var btn := UI.make_button(tr("Buy — %s") % DecorSystem.cost_text(decor_id) if lock == "" else "Locked", SAGE)
 		btn.add_theme_font_size_override("font_size", 18)
 		btn.disabled = slots_full or lock != "" or not DecorSystem.can_afford(decor_id)
 		btn.pressed.connect(func(): _on_buy(decor_id))
@@ -388,11 +385,11 @@ func _shop_row(decor_id: String, slots_full: bool) -> PanelContainer:
 	return row
 
 func _decor_name(decor_id: String) -> String:
-	return str(DataLoader.get_decor(decor_id).get("name", decor_id))
+	return tr(str(DataLoader.get_decor(decor_id).get("name", decor_id)))
 
 func _on_buy(decor_id: String) -> void:
 	if DecorSystem.buy_decor(_venue_id, decor_id):
-		EventBus.toast_requested.emit("%s installed!" % _decor_name(decor_id))
+		EventBus.toast_requested.emit(tr("%s installed!") % _decor_name(decor_id))
 		UI.play_sfx(self, "buy")
 		_show_installation(decor_id)
 	else:
@@ -401,7 +398,7 @@ func _on_buy(decor_id: String) -> void:
 
 func _on_place(decor_id: String) -> void:
 	if DecorSystem.place_decor(_venue_id, decor_id):
-		EventBus.toast_requested.emit("%s placed." % _decor_name(decor_id))
+		EventBus.toast_requested.emit(tr("%s placed.") % _decor_name(decor_id))
 		UI.play_sfx(self, "buy")
 		_show_installation(decor_id)
 	else:

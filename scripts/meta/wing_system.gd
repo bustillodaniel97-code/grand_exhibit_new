@@ -31,6 +31,11 @@ static func data() -> Dictionary:
 	return _data
 
 ## Every wing of a venue in unlock order, core ground floor excluded.
+## Drop the built wing lists (their generated blurbs are in the old language
+## after a language switch).
+static func clear_cache() -> void:
+	_cache.clear()
+
 static func wings(venue_id: String) -> Array:
 	if _cache.has(venue_id):
 		return _cache[venue_id]
@@ -74,7 +79,7 @@ static func _auto_wings(venue_id: String) -> Array:
 			"income_mult": float(auto.get("income_mult", 1.4)),
 			"staff_bonus": auto.get("staff_bonus", {}),
 			"cap_bonus_frac": float(auto.get("cap_bonus_frac", 0.25)),
-			"blurb": "Open the %s: more rooms, more exhibits, more visitors." % str(names[i]).to_lower(),
+			"blurb": TranslationServer.translate("Open the %s: more rooms, more exhibits, more visitors.") % TranslationServer.translate(str(names[i])),
 		})
 	var facade: Dictionary = (auto.get("facade", {}) as Dictionary).duplicate(true)
 	if not facade.is_empty():
@@ -113,7 +118,7 @@ static func requirement_text(venue_id: String, w: Dictionary) -> String:
 	var done: int = (GameState.venue_state(venue_id).get("milestones", []) as Array).size()
 	if done >= need:
 		return "Ready to renovate"
-	return "Reach goal milestone %d (%d / %d)" % [need, done, need]
+	return TranslationServer.translate("Reach goal milestone %d (%d / %d)") % [need, done, need]
 
 ## The next wing that is not open yet, or {} when the museum is fully built.
 static func next_wing(venue_id: String) -> Dictionary:

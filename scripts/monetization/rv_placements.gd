@@ -108,7 +108,7 @@ static func blocked_message(placement_id: String) -> String:
 		"daily_cap":
 			return "No views left today — come back tomorrow"
 		"cooldown":
-			return "Ad unavailable for another " + _fmt_short(cooldown_left(placement_id))
+			return TranslationServer.translate("Ad unavailable for another %s") % _fmt_short(cooldown_left(placement_id))
 		_:
 			return ""
 

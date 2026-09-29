@@ -6,9 +6,15 @@
     "override the random outfit by material role. VIPs carry a tip bubble when a",
     "tip is ready: tapping it pays `tip_seconds` of current income. One tip at a",
     "time, then `vip_cooldown_s` before the next VIP brings one. Tips reward",
-    "active play; the idle economy does not depend on them."
+    "active play; the idle economy does not depend on them.",
+    "`requests`: now and then (`chance`) a VIP's bubble is a wish instead of a",
+    "tip: a department track `levels_ahead` above where it stands. Tapping",
+    "accepts it; meeting it within `duration_s` pays `tip_mult` times that VIP's",
+    "tip plus `gems`. One request at a time; letting it lapse costs nothing."
   ],
   "vip_cooldown_s": 90,
+  "requests": {"chance": 0.4, "duration_s": 900, "levels_ahead": 3, "tip_mult": 5,
+    "gems": {"collector": 3, "celebrity": 5, "royal": 10}},
   "types": [
     {"id": "local", "one": "A local", "name": "Locals", "rep": 1, "weight": 34,
      "desc": "Neighbours who pop in on the way home."},

@@ -214,8 +214,8 @@ func _refresh_header() -> void:
 			total += 1
 			if ManagerSystem.cards(id) > 0:
 				have += 1
-		_roster_label.text = "%d of %d recruited" % [have, total]
-		_title_label.text = "Managers" if specialty.is_empty() else "%s team" % specialty.capitalize()
+		_roster_label.text = tr("%d of %d recruited") % [have, total]
+		_title_label.text = "Managers" if specialty.is_empty() else tr("%s team") % ManagerBadge.specialty_name(specialty)
 
 func _on_insight_changed(_value: Variant) -> void:
 	# Only Ready membership depends on currency. Other tabs retain their live
@@ -234,7 +234,7 @@ func _build_filters() -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	for key in FILTERS:
-		var button := _manager_button(str(FILTERS[key]), SLATE)
+		var button := _manager_button(tr(str(FILTERS[key])), SLATE)
 		button.name = "Filter_" + key
 		button.toggle_mode = true
 		button.custom_minimum_size.y = UI.TOUCH_MIN
@@ -266,7 +266,7 @@ func _refresh_filters() -> void:
 		for id in all_ids:
 			if _matches_filter(id, key): count += 1
 		var button: Button = _filter_buttons[key]
-		button.text = "%s · %d" % [FILTERS[key], count]
+		button.text = "%s · %d" % [tr(str(FILTERS[key])), count]
 		button.set_pressed_no_signal(key == _filter)
 		Chrome.button(button, key == _filter)
 	if is_instance_valid(_empty_label):
@@ -345,7 +345,7 @@ func _paint_dots(index: int) -> void:
 		else:
 			d.scale = Vector2.ONE
 			d.modulate = Color.WHITE
-	_counter.text = "%d of %d" % [index + 1, _ids.size()] if not _ids.is_empty() else "0 of 0"
+	_counter.text = tr("%d of %d") % ([index + 1, _ids.size()] if not _ids.is_empty() else [0, 0])
 
 # ------------------------------------------------------------------ data
 
@@ -713,8 +713,8 @@ func _rebuild_actions() -> void:
 	var def: Dictionary = DataLoader.get_manager_def(id)
 	if ManagerSystem.cards(id) <= 0:
 		var hint := UI.make_label(
-			"Find %s manager cards in recruitment cases. Each case shows its drop rates." %
-			str(def.get("rarity", "common")).capitalize(), UI.TYPE_BODY)
+			tr("Find %s manager cards in recruitment cases. Each case shows its drop rates.") %
+			ManagerBadge.rarity_name(str(def.get("rarity", "common"))).capitalize(), UI.TYPE_BODY)
 		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -735,7 +735,7 @@ func _rebuild_actions() -> void:
 	var can_level: bool = ManagerSystem.can_level_up(id)
 	var lvl_btn := _manager_button(
 		"Level Up — MAX LEVEL" if capped
-		else "Level Up — %s Insight" % ManagerSystem.level_up_cost(id).to_notation(),
+		else tr("Level Up — %s Insight") % ManagerSystem.level_up_cost(id).to_notation(),
 		SLATE if can_level else LOCKED)
 	Chrome.button(lvl_btn, can_level)
 	lvl_btn.icon = UI.icon_texture("insight", 20)
@@ -749,14 +749,14 @@ func _rebuild_actions() -> void:
 	var can_rank: bool = ManagerSystem.can_rank_up(id)
 	var rank_btn := _manager_button(
 		"Rank Up — MAX" if dup_cost <= 0
-		else "Rank Up — %d duplicates (%d spare)" % [dup_cost, maxi(ManagerSystem.cards(id) - 1, 0)],
+		else tr("Rank Up — %d duplicates (%d spare)") % [dup_cost, maxi(ManagerSystem.cards(id) - 1, 0)],
 		PLUM if can_rank else LOCKED)
 	Chrome.button(rank_btn, can_rank)
 	rank_btn.icon = UI.icon_texture("star", 20)
 	rank_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rank_btn.pressed.connect(func() -> void: _try_rank(id))
 	row.add_child(rank_btn)
-	var ex_btn := _manager_button("Trade %d" % ManagerSystem.exchange_ratio(), LOCKED)
+	var ex_btn := _manager_button(tr("Trade %d") % ManagerSystem.exchange_ratio(), LOCKED)
 	Chrome.button(ex_btn)
 	ex_btn.pressed.connect(func() -> void: _open_exchange(id))
 	row.add_child(ex_btn)
@@ -775,17 +775,17 @@ func _rebuild_actions() -> void:
 	Chrome.button(post_btn, true)
 	post_btn.add_theme_font_size_override("font_size", UI.TYPE_HEADING)
 	if ManagerSystem.assigned_to(id) == specialty:
-		post_btn.text = "On duty — %s • %s (stand down)" % [
-			specialty.capitalize(), boost_text]
+		post_btn.text = tr("On duty — %s • %s (stand down)") % [
+			ManagerBadge.specialty_name(specialty), boost_text]
 		post_btn.pressed.connect(func() -> void: ManagerSystem.unassign(id))
 	elif holders.size() >= slots:
-		post_btn.text = "%s full • %s — choose replacement" % [
-			specialty.capitalize(), boost_text]
+		post_btn.text = tr("%s full • %s — choose replacement") % [
+			ManagerBadge.specialty_name(specialty), boost_text]
 		post_btn.pressed.connect(
 			func() -> void: _open_post_replacement(id, specialty, holders))
 	else:
-		post_btn.text = "Post to %s • %s (%d/%d)" % [
-			specialty.capitalize(), boost_text, holders.size(), slots]
+		post_btn.text = tr("Post to %s • %s (%d/%d)") % [
+			ManagerBadge.specialty_name(specialty), boost_text, holders.size(), slots]
 		post_btn.pressed.connect(func() -> void: ManagerSystem.assign(id, specialty))
 	_actions.add_child(post_btn)
 
@@ -796,11 +796,11 @@ func _try_level(id: String) -> void:
 	var cost := ManagerSystem.level_up_cost(id)
 	if not GameState.insight.gte(cost):
 		EventBus.toast_requested.emit(
-			"Need %s more Insight" % cost.sub(GameState.insight).to_notation())
+			tr("Need %s more Insight") % cost.sub(GameState.insight).to_notation())
 		return
 	if ManagerSystem.level_up(id):
-		EventBus.toast_requested.emit("%s reached level %d" % [
-			str(DataLoader.get_manager_def(id).get("name", id)),
+		EventBus.toast_requested.emit(tr("%s reached level %d") % [
+			tr(str(DataLoader.get_manager_def(id).get("name", id))),
 			ManagerSystem.level(id)])
 
 func _try_rank(id: String) -> void:
@@ -810,13 +810,13 @@ func _try_rank(id: String) -> void:
 		return
 	var spendable := maxi(ManagerSystem.cards(id) - 1, 0)
 	if spendable < cost:
-		EventBus.toast_requested.emit(
-			"Need %d more duplicate card%s" % [
-				cost - spendable, "" if cost - spendable == 1 else "s"])
+		var short := cost - spendable
+		EventBus.toast_requested.emit(tr("Need %d more duplicate card") % short if short == 1
+			else tr("Need %d more duplicate cards") % short)
 		return
 	if ManagerSystem.rank_up(id):
-		EventBus.toast_requested.emit("%s reached rank %d" % [
-			str(DataLoader.get_manager_def(id).get("name", id)),
+		EventBus.toast_requested.emit(tr("%s reached rank %d") % [
+			tr(str(DataLoader.get_manager_def(id).get("name", id))),
 			ManagerSystem.rank(id)])
 
 ## Who currently holds `dept`, or "".
@@ -855,19 +855,18 @@ func _open_post_replacement(incoming_id: String, specialty: String,
 	var incoming_name := str(
 		DataLoader.get_manager_def(incoming_id).get("name", incoming_id))
 	var head := UI.make_display_label(
-		"Choose who %s replaces" % incoming_name, UI.TYPE_HEADING, INK)
+		tr("Choose who %s replaces") % incoming_name, UI.TYPE_HEADING, INK)
 	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(head)
 	var note := UI.make_label(
-		"%s has %d active post%s." % [
-			specialty.capitalize(), holders.size(),
-			"" if holders.size() == 1 else "s"], UI.TYPE_BODY)
+		(tr("%s has %d active post.") if holders.size() == 1 else tr("%s has %d active posts.")) % [
+			ManagerBadge.specialty_name(specialty), holders.size()], UI.TYPE_BODY)
 	note.add_theme_color_override("font_color", DIM)
 	box.add_child(note)
 	var incoming_def: Dictionary = DataLoader.get_manager_def(incoming_id)
 	var incoming_mult := ManagerSystem.productivity_multiplier(
 		incoming_def, ManagerSystem.state(incoming_id))
-	var incoming_note := UI.make_label("Incoming: %s  (+%d%% productivity)" % [
+	var incoming_note := UI.make_label(tr("Incoming: %s  (+%d%% productivity)") % [
 		incoming_name, roundi((incoming_mult - 1.0) * 100.0)], UI.TYPE_BODY)
 	incoming_note.add_theme_color_override("font_color", DEPT_COLORS.get(specialty, INK))
 	box.add_child(incoming_note)
@@ -879,16 +878,16 @@ func _open_post_replacement(incoming_id: String, specialty: String,
 			current_def, ManagerSystem.state(current))
 		var resulting_team := current_team / maxf(current_mult, 0.0001) * incoming_mult
 		var b := _manager_button(
-			"Replace %s (+%d%%)\nTeam +%d%% → +%d%%" % [
-				str(current_def.get("name", current)),
+			tr("Replace %s (+%d%%)\nTeam +%d%% → +%d%%") % [
+				tr(str(current_def.get("name", current))),
 				roundi((current_mult - 1.0) * 100.0),
 				roundi((current_team - 1.0) * 100.0),
 				roundi((resulting_team - 1.0) * 100.0)],
 			DEPT_COLORS.get(specialty, SLATE))
 		b.pressed.connect(func() -> void:
 			if ManagerSystem.replace_assignment(current, incoming_id, specialty):
-				EventBus.toast_requested.emit("%s is now on duty in %s" % [
-					incoming_name, specialty.capitalize()])
+				EventBus.toast_requested.emit(tr("%s is now on duty in %s") % [
+					incoming_name, ManagerBadge.specialty_name(specialty)])
 				dlg.queue_free()
 			else:
 				EventBus.toast_requested.emit("Team changed — review the active posts"))
@@ -922,13 +921,13 @@ func _open_exchange(from_id: String) -> void:
 	panel.add_child(box)
 	var ratio: int = ManagerSystem.exchange_ratio()
 	var head := Label.new()
-	head.text = "Trade %d cards of %s for 1 card of:" % [ratio, str(def.get("name", from_id))]
+	head.text = tr("Trade %d cards of %s for 1 card of:") % [ratio, tr(str(def.get("name", from_id)))]
 	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	head.add_theme_font_size_override("font_size", 20)
 	head.add_theme_color_override("font_color", INK)
 	box.add_child(head)
 	var note := Label.new()
-	note.text = "You keep at least 1 card. You have %d." % ManagerSystem.cards(from_id)
+	note.text = tr("You keep at least 1 card. You have %d.") % ManagerSystem.cards(from_id)
 	note.add_theme_font_size_override("font_size", 16)
 	note.add_theme_color_override("font_color", DIM)
 	box.add_child(note)
@@ -938,18 +937,18 @@ func _open_exchange(from_id: String) -> void:
 		var td: Dictionary = DataLoader.get_manager_def(tid)
 		if str(td.get("rarity", "")) != rarity:
 			continue
-		var b := _manager_button("%s  (%d cards owned)" % [str(td.get("name", tid)), ManagerSystem.cards(tid)],
+		var b := _manager_button(tr("%s  (%d cards owned)") % [tr(str(td.get("name", tid))), ManagerSystem.cards(tid)],
 			SLATE if ManagerSystem.can_exchange(from_id, tid) else LOCKED)
 		b.add_theme_font_size_override("font_size", 18)
 		var target: String = tid
 		b.pressed.connect(func() -> void:
 			if ManagerSystem.exchange(from_id, target):
-				EventBus.toast_requested.emit("Trade complete — 1 %s card received" %
-					str(DataLoader.get_manager_def(target).get("name", target)))
+				EventBus.toast_requested.emit(tr("Trade complete — 1 %s card received") %
+					tr(str(DataLoader.get_manager_def(target).get("name", target))))
 				dlg.queue_free()
 			else:
 				EventBus.toast_requested.emit(
-					"Keep one card plus %d duplicates to trade" % ratio))
+					tr("Keep one card plus %d duplicates to trade") % ratio))
 		box.add_child(b)
 	var cancel := _manager_button("Cancel", LOCKED)
 	Chrome.button(cancel)

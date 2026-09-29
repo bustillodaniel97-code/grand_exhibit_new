@@ -91,7 +91,7 @@ func refresh() -> void:
 		if s["sheet"] != null:
 			(s["sheet"] as Node3D).visible = lvl <= 0
 		var label: Label3D = s["label"]
-		label.text = "%s\nLv %d" % [CafeSystem.station_name(id), lvl] if lvl > 0 else "%s\nClosed" % CafeSystem.station_name(id)
+		label.text = tr("%s\nLv %d") % [CafeSystem.station_name(id), lvl] if lvl > 0 else tr("%s\nClosed") % CafeSystem.station_name(id)
 		label.modulate = Color("#FFF3B0") if lvl > 0 else Color("#E6DCC4")
 
 ## A station just levelled: bounce it and throw a sparkle of stars.

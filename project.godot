@@ -59,6 +59,11 @@ window/size/window_height_override=960
 window/stretch/aspect.pc="keep"
 window/handheld/orientation=1
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://locale/de.po", "res://locale/es.po", "res://locale/fr.po", "res://locale/it.po", "res://locale/pt_BR.po")
+locale/fallback="en"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

@@ -176,7 +176,7 @@ func _build_shop_header() -> Control:
 	var sim_ads: bool = AdService.debug_ads and not AdService.using_real_ads()
 	if sim_iap or sim_ads:
 		var simulated := "Purchases and ads are simulated" if sim_iap and sim_ads else ("Purchases are simulated" if sim_iap else "Ads are simulated")
-		var simulation := _label("PLAYTEST · " + simulated, 14, BRASS.darkened(0.25))
+		var simulation := _label(tr("PLAYTEST · %s") % tr(simulated), 14, BRASS.darkened(0.25))
 		simulation.name = "SimulationNotice"
 		header.add_child(simulation)
 	var wallet := HBoxContainer.new()
@@ -246,9 +246,9 @@ func _tick() -> void:
 			continue
 		match str(entry["kind"]):
 			"offer_expiry":
-				label.text = "Ends in " + _fmt_duration(Offers.seconds_left(str(entry["data"])))
+				label.text = tr("Ends in %s") % _fmt_duration(Offers.seconds_left(str(entry["data"])))
 			"deals_refresh":
-				label.text = "New deals in " + _fmt_duration(Deals.seconds_until_refresh())
+				label.text = tr("New deals in %s") % _fmt_duration(Deals.seconds_until_refresh())
 			"boost_timer":
 				label.text = _boost_text()
 			"cash_worth":
@@ -256,7 +256,7 @@ func _tick() -> void:
 			"instant_cash":
 				label.text = "+" + RV.instant_cash_value().to_notation()
 			"free_gems_left":
-				label.text = _placement_status("free_gems", "%d left today" % RV.remaining_free_gems())
+				label.text = _placement_status("free_gems", tr("%d left today") % RV.remaining_free_gems())
 
 # ---------------------------------------------------------------------- hero
 
@@ -292,7 +292,7 @@ func _build_hero() -> void:
 	top.add_theme_constant_override("separation", 8)
 	col.add_child(top)
 	var badge_text: String = "LIMITED OFFER" if offer_id != "" else (
-		"START HERE" if product_id == "starter_bundle" else "BEST VALUE")
+		tr("START HERE") if product_id == "starter_bundle" else tr("BEST VALUE"))
 	top.add_child(Art.make_ribbon(badge_text, PLUM if offer_id != "" else ACCENT))
 	var gap := Control.new()
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -304,7 +304,7 @@ func _build_hero() -> void:
 		top.add_child(pill)
 		var pill_label: Label = pill.get_meta("pill_label", null) as Label
 		if pill_label != null:
-			pill_label.text = "Ends in " + _fmt_duration(Offers.seconds_left(offer_id))
+			pill_label.text = tr("Ends in %s") % _fmt_duration(Offers.seconds_left(offer_id))
 			_tick_labels.append({"label": pill_label, "kind": "offer_expiry", "data": offer_id})
 
 	var body := HBoxContainer.new()
@@ -325,7 +325,7 @@ func _build_hero() -> void:
 	if anchor_row != null:
 		text.add_child(anchor_row)
 
-	var buy := _buy_button(product_id, "Get it  " + IAPService.localized_price(product_id),
+	var buy := _buy_button(product_id, tr("Get it  %s") % IAPService.localized_price(product_id),
 		ACCENT, HERO_BUY_H)
 	if offer_id != "":
 		buy.pressed.connect(func() -> void: _on_buy_pressed(
@@ -345,7 +345,7 @@ func _value_row(def: Dictionary) -> Control:
 	row.add_theme_constant_override("separation", 8)
 	row.add_child(Art.make_strikethrough(Pricing.format_usd(Pricing.alacarte_usd(def))))
 	row.add_child(_label("bought separately", UI.TYPE_CAPTION, DIM))
-	row.add_child(Art.make_ribbon("SAVE %d%%" % save, SAGE))
+	row.add_child(Art.make_ribbon(tr("SAVE %d%%") % save, SAGE))
 	return row
 
 # --------------------------------------------------------------- free rewards
@@ -369,10 +369,10 @@ func _build_free_rewards() -> void:
 	row.add_child(_free_card("Instant Cash", cash_val, "instant_cash", ACCENT,
 		func() -> void: RV.instant_cash()))
 
-	var gems_val := _label(_placement_status("free_gems", "%d left today" % RV.remaining_free_gems()),
+	var gems_val := _label(_placement_status("free_gems", tr("%d left today") % RV.remaining_free_gems()),
 		UI.TYPE_CAPTION, SLATE)
 	_tick_labels.append({"label": gems_val, "kind": "free_gems_left", "data": null})
-	row.add_child(_free_card("%d Free Gems" % RV.free_gems_amount(), gems_val, "free_gems", BRASS,
+	row.add_child(_free_card(tr("%d Free Gems") % RV.free_gems_amount(), gems_val, "free_gems", BRASS,
 		func() -> void: RV.free_gems()))
 
 ## Never disabled, even at the daily cap: rv_placements explains by toast, which is
@@ -438,7 +438,7 @@ func _build_daily_deals() -> void:
 	var header_row := HBoxContainer.new()
 	header_row.add_theme_constant_override("separation", 8)
 	_sections.add_child(header_row)
-	var countdown := _label("New deals in " + _fmt_duration(Deals.seconds_until_refresh()),
+	var countdown := _label(tr("New deals in %s") % _fmt_duration(Deals.seconds_until_refresh()),
 		UI.TYPE_LABEL, SLATE.darkened(0.2))
 	countdown.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	header_row.add_child(countdown)
@@ -447,10 +447,10 @@ func _build_daily_deals() -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header_row.add_child(spacer)
-	var force := _button("Reroll  %d" % Deals.force_cost(), SLATE)
+	var force := _button(tr("Reroll  %d") % Deals.force_cost(), SLATE)
 	force.icon = UI.icon_texture("gems", 18)
 	force.custom_minimum_size = Vector2(0, UI.TOUCH_MIN)
-	force.tooltip_text = "%d rerolls left today" % Deals.force_refreshes_left()
+	force.tooltip_text = tr("%d rerolls left today") % Deals.force_refreshes_left()
 	force.pressed.connect(func() -> void: Deals.force_refresh())
 	header_row.add_child(force)
 	var shelf: Array = Deals.shelf()
@@ -794,25 +794,25 @@ func _grants_text(def: Dictionary) -> String:
 	var g: Dictionary = def.get("grants", {})
 	var parts: Array = []
 	if int(g.get("gems", 0)) > 0:
-		parts.append("%d gems" % int(g["gems"]))
+		parts.append(tr("%d gems") % int(g["gems"]))
 	if float(g.get("cash_seconds", 0)) > 0.0:
-		parts.append("%s of income" % _fmt_duration(int(g["cash_seconds"])))
+		parts.append(tr("%s of income") % _fmt_duration(int(g["cash_seconds"])))
 	if float(g.get("insight_m", 0.0)) > 0.0:
-		parts.append(BigNumber.from_parts(float(g["insight_m"]), int(g.get("insight_e", 0))).to_notation() + " insight")
+		parts.append(tr("%s insight") % BigNumber.from_parts(float(g["insight_m"]), int(g.get("insight_e", 0))).to_notation())
 	if str(g.get("box", "")) != "":
-		parts.append(str(DataLoader.get_lootbox(str(g["box"])).get("name", str(g["box"]))))
+		parts.append(tr(str(DataLoader.get_lootbox(str(g["box"])).get("name", str(g["box"])))))
 	return "  +  ".join(parts)
 
 func _cash_worth_text(def: Dictionary) -> String:
 	var secs: float = float(def.get("grants", {}).get("cash_seconds", 0))
 	var worth: BigNumber = Economy.current_cash_per_second().scale(secs)
-	return "Worth " + worth.to_notation() + " now"
+	return tr("Worth %s now") % worth.to_notation()
 
 func _boost_text() -> String:
 	var rem: int = RV.income_x2_remaining_seconds()
 	if rem <= 0:
-		return "+%dh, stacks" % RV.boost_hours_per_view()
-	return _fmt_duration(rem) + " left"
+		return tr("+%dh, stacks") % RV.boost_hours_per_view()
+	return tr("%s left") % _fmt_duration(rem)
 
 func _fmt_duration(seconds: int) -> String:
 	seconds = maxi(seconds, 0)

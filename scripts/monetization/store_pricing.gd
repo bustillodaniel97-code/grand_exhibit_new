@@ -130,8 +130,8 @@ static func value_badge(def: Dictionary) -> String:
 		return "BEST VALUE"
 	var bonus: int = bonus_pct(def)
 	if bonus >= 10:
-		return "+%d%% MORE PER $" % bonus
+		return TranslationServer.translate("+%d%% MORE PER $") % bonus
 	var save: int = savings_pct(def)
 	if save >= 10:
-		return "SAVE %d%%" % save
+		return TranslationServer.translate("SAVE %d%%") % save
 	return ""

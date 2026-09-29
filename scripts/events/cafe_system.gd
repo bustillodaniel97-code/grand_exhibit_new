@@ -132,7 +132,7 @@ static func theme() -> Dictionary:
 	return themes.get(vid, themes.get("whispering_pines", {}))
 
 static func station_name(id: String) -> String:
-	return str((theme().get("stations", {}) as Dictionary).get(id, id.capitalize()))
+	return str(TranslationServer.translate(str((theme().get("stations", {}) as Dictionary).get(id, id.capitalize()))))
 
 static func coins() -> float:
 	return float(_raw().get("coins", 0.0))

@@ -39,6 +39,29 @@ var _id: String = ""
 
 ## Service number printed on the badge. Derived, not stored: it is set dressing,
 ## and a stored one would be one more field to keep in sync with the roster.
+## Player-facing names for a manager's rarity and specialty, translated.
+static func rarity_name(rarity: String) -> String:
+	match rarity:
+		"rare":
+			return str(TranslationServer.translate("rare"))
+		"epic":
+			return str(TranslationServer.translate("epic"))
+		"legendary":
+			return str(TranslationServer.translate("legendary"))
+	return str(TranslationServer.translate("common"))
+
+static func specialty_name(specialty: String) -> String:
+	match specialty:
+		"ticket":
+			return str(TranslationServer.translate("Ticketing"))
+		"gallery":
+			return str(TranslationServer.translate("Gallery"))
+		"promotions":
+			return str(TranslationServer.translate("Promotions"))
+		"archive":
+			return str(TranslationServer.translate("Archive"))
+	return specialty.capitalize()
+
 static func service_no(def: Dictionary) -> String:
 	return "GX-%d" % (absi(hash(str(def.get("id", "")))) % 9000 + 1000)
 
@@ -136,8 +159,8 @@ func setup(id: String, def: Dictionary, state: Dictionary, owned: bool, is_new: 
 	tags.add_theme_constant_override("separation", 7)
 	tags.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	details.add_child(tags)
-	tags.add_child(pill(rarity.to_upper(), tint))
-	tags.add_child(pill(specialty.to_upper(), dept))
+	tags.add_child(pill(rarity_name(rarity).to_upper(), tint))
+	tags.add_child(pill(specialty_name(specialty).to_upper(), dept))
 	var post_l := UI.make_label(str(def.get("post", "")), UI.TYPE_BODY if compact else UI.TYPE_LABEL)
 	post_l.add_theme_color_override("font_color", Chrome.DIM)
 	post_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -151,7 +174,7 @@ func setup(id: String, def: Dictionary, state: Dictionary, owned: bool, is_new: 
 	rank_row.add_theme_constant_override("separation", 8)
 	rank_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(rank_row)
-	rank_row.add_child(_field("NO. %s" % service_no(def)))
+	rank_row.add_child(_field(tr("NO. %s") % service_no(def)))
 	if owned:
 		rank_row.add_child(UI.make_display_label(
 			"LV %d" % maxi(int(state.get("level", 1)), 1), UI.TYPE_LABEL, Chrome.INK))
@@ -285,9 +308,9 @@ func _stats_strip(def: Dictionary, state: Dictionary, dept: Color, owned: bool) 
 	wrap.add_child(row)
 	var level: int = maxi(int(state.get("level", 1)), 1)
 	var mult: float = ManagerSystem.productivity_multiplier(def, state)
-	row.add_child(_stat_cell("PROD", "x%.2f" % mult if owned else "—", dept))
-	row.add_child(_stat_cell("CARDS", str(int(state.get("cards", 0))) if owned else "—", dept))
-	row.add_child(_stat_cell("AUDIT",
+	row.add_child(_stat_cell(tr("PROD"), "x%.2f" % mult if owned else "—", dept))
+	row.add_child(_stat_cell(tr("CARDS"), str(int(state.get("cards", 0))) if owned else "—", dept))
+	row.add_child(_stat_cell(tr("AUDIT"),
 		"%.0f" % ManagerSystem.audit_efficiency(def, state) if owned else "—", dept))
 	return wrap
 
@@ -323,7 +346,7 @@ func _pips(rank: int) -> Control:
 	var star := UI.make_icon("star", 16, Chrome.BRASS)
 	star.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	row.add_child(star)
-	var label := UI.make_label("Rank %d/%d" % [rank, ManagerSystem.MAX_RANK], UI.TYPE_BODY, Chrome.DIM)
+	var label := UI.make_label(tr("Rank %d/%d") % [rank, ManagerSystem.MAX_RANK], UI.TYPE_BODY, Chrome.DIM)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(label)
 	return row
@@ -336,7 +359,7 @@ func _traits_row(def: Dictionary, dept: Color, owned: bool) -> Control:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var traits: Array = def.get("traits", [])
 	if not owned:
-		row.add_child(_field("%d TRAITS ON FILE" % traits.size()))
+		row.add_child(_field(tr("%d TRAITS ON FILE") % traits.size()))
 		return row
 	for t in traits:
 		row.add_child(trait_chip(str(t), dept))

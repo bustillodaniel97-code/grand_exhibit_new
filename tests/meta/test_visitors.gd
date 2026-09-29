@@ -118,6 +118,7 @@ func run() -> void:
 	var btn: Button = floor.find_child("VipTip", true, false)
 	check(btn != null, "the floor has a Tip! bubble")
 	var cash_before: BigNumber = gs.cash
+	vip.set_meta("vrequest", false)  # a plain tip; wishes are tests/meta/test_vip_requests.gd
 	floor.call("_on_vip_tip")
 	await process_frame
 	check(gs.cash.gt(cash_before), "tapping the bubble banks the royal tip")

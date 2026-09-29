@@ -620,7 +620,7 @@ func _refresh_status() -> void:
 		return
 	_meter.value = 100.0 * _boss_hp / maxf(_boss_hp_max, 1.0)
 	_hp_label.text = "%d/%d" % [int(ceil(_boss_hp)), int(ceil(_boss_hp_max))]
-	_moves_label.text = "Moves %d" % maxi(_moves, 0)
+	_moves_label.text = tr("Moves %d") % maxi(_moves, 0)
 	_moves_label.add_theme_color_override("font_color",
 		UI.DANGER if _moves <= 3 else INK)
 	var charges: Array = _engine.get_charges()
@@ -655,9 +655,9 @@ func _refresh_focus() -> void:
 	_focus_label.add_theme_color_override("font_outline_color",
 		Color(1, 1, 1, 0.7) if chip_ink != Color.WHITE else Color(0, 0, 0, 0.5))
 	var streak: int = _engine.focus_streak()
-	_focus_label.text = "AUDIT: %s   x%.1f" % [DEPT_NAMES[f], _engine.focus_multiplier()]
+	_focus_label.text = tr("AUDIT: %s   x%.1f") % [DEPT_NAMES[f], _engine.focus_multiplier()]
 	if streak >= 2:
-		_focus_label.text += "  (chain %d)" % streak
+		_focus_label.text += tr("  (chain %d)") % streak
 	if _painted_focus == f:
 		return  # the collars are already on the right colour
 	_painted_focus = f

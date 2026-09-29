@@ -171,7 +171,7 @@ func refresh() -> void:
 		(("%s has completed its milestones and core operation. The collection is yours to perfect." if preview.is_empty() else
 		"%s has completed its milestones and core operation. Your next chapter is ready.") % str(venue.get("name", vid)))
 		if complete else
-		"Curator of %s — level %d of %d" % [str(venue.get("name", vid)),
+		tr("Curator of %s — level %d of %d") % [tr(str(venue.get("name", vid))),
 			int(venue.get("order", 1)), DataLoader.venue_order().size()],
 		15, SAGE if complete else DIM))
 
@@ -221,7 +221,7 @@ func _build_gate_card(vid: String) -> void:
 	bar.add_theme_stylebox_override("background", Chrome.channel(Chrome.BG))
 	bar.add_theme_stylebox_override("fill", Chrome.channel(SAGE if milestone_ready else BRASS))
 	cv.add_child(bar)
-	cv.add_child(_label("Milestones %d / %d" % [done, need], 13, DIM))
+	cv.add_child(_label(tr("Milestones %d / %d") % [done, need], 13, DIM))
 	var operations := ProgressBar.new()
 	operations.min_value = 0.0
 	operations.max_value = 1.0
@@ -232,7 +232,7 @@ func _build_gate_card(vid: String) -> void:
 	operations.add_theme_stylebox_override("fill",
 		Chrome.channel(SAGE if PrestigeSystem.operations_met(vid) else BRASS))
 	cv.add_child(operations)
-	cv.add_child(_label("Core operation %d%%" % int(round(operations.value * 100.0)), 13, DIM))
+	cv.add_child(_label(tr("Core operation %d%%") % int(round(operations.value * 100.0)), 13, DIM))
 	var furnishing := ProgressBar.new()
 	furnishing.max_value = 1.0
 	furnishing.value = PrestigeSystem.decor_progress(vid)
@@ -253,7 +253,7 @@ func _build_gate_card(vid: String) -> void:
 		cv.add_child(_label(PrestigeSystem.block_reason(), 13, DIM))
 	else:
 		var nxt: Dictionary = MilestoneSystem.next_milestone(vid)
-		cv.add_child(_label("Next: %s" % str(nxt.get("name", "—")), 13, DIM))
+		cv.add_child(_label(tr("Next: %s") % tr(str(nxt.get("name", "—"))), 13, DIM))
 	_list.add_child(card)
 
 func _build_next_card(preview: Dictionary) -> void:
@@ -270,15 +270,15 @@ func _build_next_card(preview: Dictionary) -> void:
 	# model is that difficulty scales, and a player who is surprised by it at the
 	# first upgrade will read the whole step as a punishment.
 	cv.add_child(_stat_row("cash", "Visitors pay",
-		"%s more per head" % PrestigeSystem.ratio_text(float(preview["value_ratio"])), SAGE))
+		tr("%s more per head") % PrestigeSystem.ratio_text(float(preview["value_ratio"])), SAGE))
 	cv.add_child(_stat_row("arrow_up", "Upgrades cost",
-		"%s more — a bigger hall is a harder job" % PrestigeSystem.ratio_text(float(preview["cost_ratio"])),
+		tr("%s more — a bigger hall is a harder job") % PrestigeSystem.ratio_text(float(preview["cost_ratio"])),
 		ACCENT))
 	var slots: int = int(preview["decor_slots"])
 	var delta: int = int(preview["decor_slots_delta"])
-	var slot_text: String = "%d empty slots" % slots
+	var slot_text: String = tr("%d empty slots") % slots
 	if delta > 0:
-		slot_text += " (%d more than here)" % delta
+		slot_text += tr(" (%d more than here)") % delta
 	cv.add_child(_stat_row("star", "Decor", slot_text, BRASS))
 	_list.add_child(card)
 
@@ -323,7 +323,7 @@ func _venue_preview(venue: Dictionary, compact: bool = false) -> Control:
 	if ResourceLoader.exists(path):
 		image.texture = load(path)
 	frame.add_child(image)
-	var caption := _label("%02d  %s" % [int(venue.get("order", 1)), str(venue.get("name", "Museum"))], 16 if compact else 21, INK)
+	var caption := _label("%02d  %s" % [int(venue.get("order", 1)), tr(str(venue.get("name", "Museum")))], 16 if compact else 21, INK)
 	frame.add_child(caption)
 	if not compact:
 		frame.add_child(_label("Venue preview · developed museum", 12, DIM))
@@ -420,13 +420,13 @@ func _build_milestone_chain(vid: String) -> void:
 			state_color = DIM
 			state_icon = "lock"
 		hb.add_child(UI.make_icon(state_icon, 20, state_color))
-		var name_l := _label("%d. %s" % [i + 1, str(ms.get("name", "?")).replace(" (PRESTIGE)", "")], 16,
+		var name_l := _label("%d. %s" % [i + 1, _without_tag(tr(str(ms.get("name", "?"))))], 16,
 			INK if i <= done.size() else DIM)
 		name_l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		hb.add_child(name_l)
 		var reward: Dictionary = ms.get("reward", {})
-		var reward_l := _label("+%d gems, %s" % [int(reward.get("gems", 0)),
-			str(DataLoader.get_lootbox(str(reward.get("box", ""))).get("name", reward.get("box", "")))], 13, SLATE)
+		var reward_l := _label(tr("+%d gems, %s") % [int(reward.get("gems", 0)),
+			tr(str(DataLoader.get_lootbox(str(reward.get("box", ""))).get("name", reward.get("box", ""))))], 13, SLATE)
 		reward_l.autowrap_mode = TextServer.AUTOWRAP_OFF  # squeezed by expand-fill name otherwise
 		hb.add_child(reward_l)
 		var state_l := _label(state, 14, state_color)
@@ -442,8 +442,8 @@ func _build_action_bar(preview: Dictionary) -> void:
 	var final_venue: bool = preview.is_empty()
 	var label: String = "FINAL MUSEUM"
 	if not final_venue:
-		label = "OPEN LEVEL %d — %s" % [
-			int(preview.get("order", 0)), str(preview.get("name", "")).to_upper()]
+		label = tr("OPEN LEVEL %d — %s") % [
+			int(preview.get("order", 0)), tr(str(preview.get("name", ""))).to_upper()]
 	var btn := UI.make_button(label, BRASS if ready else UI.DEAD)
 	btn.icon = UI.icon_texture("arrow_right" if ready else "lock", 22)
 	btn.custom_minimum_size = Vector2(0, 64)
@@ -456,8 +456,8 @@ func _build_action_bar(preview: Dictionary) -> void:
 	btn.pressed.connect(_on_action_pressed)
 	_action_bar.add_child(btn)
 	if ready:
-		_action_bar.add_child(_label("One way. There is no coming back to %s." %
-			str(DataLoader.get_venue(GameState.current_venue).get("name", "")), 13, DIM))
+		_action_bar.add_child(_label(tr("One way. There is no coming back to %s.") %
+			tr(str(DataLoader.get_venue(GameState.current_venue).get("name", ""))), 13, DIM))
 	else:
 		_action_bar.add_child(_label(reason, 13, ACCENT))
 
@@ -471,8 +471,7 @@ func _on_action_pressed() -> void:
 		return
 	var preview: Dictionary = PrestigeSystem.next_venue_preview()
 	var here: String = str(DataLoader.get_venue(GameState.current_venue).get("name", ""))
-	_confirm.dialog_text = ("Open %s?\n\nYou keep every coin, gem, manager and reputation "
-		+ "level you have earned. %s and everything installed in it stays shut behind you.") % [
+	_confirm.dialog_text = (tr("Open %s?\n\nYou keep every coin, gem, manager and reputation level you have earned. %s and everything installed in it stays shut behind you.")) % [
 		str(preview.get("name", "")), here]
 	var viewport_size := get_viewport_rect().size
 	_confirm.popup_centered(Vector2i(mini(600, int(viewport_size.x) - 48), 280))
@@ -480,7 +479,7 @@ func _on_action_pressed() -> void:
 func _on_move_confirmed() -> void:
 	if PrestigeSystem.graduate():
 		var nv: Dictionary = DataLoader.get_venue(GameState.current_venue)
-		EventBus.toast_requested.emit("Welcome to %s!" % str(nv.get("name", GameState.current_venue)))
+		EventBus.toast_requested.emit(tr("Welcome to %s!") % tr(str(nv.get("name", GameState.current_venue))))
 		UI.play_sfx(self, "buy")
 		# Keep this completed screen over the world for one render frame while
 		# VenueFloor replaces the old plan, props, cast and navigation. Closing it
@@ -490,3 +489,9 @@ func _on_move_confirmed() -> void:
 	else:
 		EventBus.toast_requested.emit(PrestigeSystem.block_reason())
 	refresh()
+
+## "River Eternal (PRESTIGE)" -> "River Eternal": the list shows the stage
+## itself, whatever the language puts in the brackets.
+func _without_tag(s: String) -> String:
+	var cut := s.rfind(" (")
+	return s.substr(0, cut) if cut > 0 and s.ends_with(")") else s

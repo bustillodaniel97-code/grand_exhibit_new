@@ -133,7 +133,7 @@ static func decor_met(venue_id: String) -> bool:
 	return decor_done(venue_id) >= decor_required(venue_id) and DecorSystem.venue_decor_points(venue_id) + .00001 >= decor_points_required(venue_id)
 
 static func decor_summary(venue_id: String) -> String:
-	return "%d / %d furnishings · %d / %d decor points" % [decor_done(venue_id), decor_required(venue_id), roundi(DecorSystem.venue_decor_points(venue_id)), roundi(decor_points_required(venue_id))]
+	return TranslationServer.translate("%d / %d furnishings · %d / %d decor points") % [decor_done(venue_id), decor_required(venue_id), roundi(DecorSystem.venue_decor_points(venue_id)), roundi(decor_points_required(venue_id))]
 
 static func readiness_progress(venue_id: String) -> float:
 	var partial := clampf(float(GameState.venue_state(venue_id).get("progress", 0.0)), 0, 1)
@@ -155,17 +155,17 @@ static func gate_met(venue_id: String) -> bool:
 static func block_reason() -> String:
 	var vid: String = GameState.current_venue
 	if not milestone_gate_met(vid):
-		return "%d of %d milestones done" % [milestones_done(vid), milestones_required(vid)]
+		return TranslationServer.translate("%d of %d milestones done") % [milestones_done(vid), milestones_required(vid)]
 	if not operations_met(vid):
 		var cap: int = int(DataLoader.get_venue(vid).get("track_level_cap", 100))
 		for track in core_tracks():
 			if GameState.dept_level(vid, str(track[0]), str(track[1])) < cap:
-				return "Operations %d%% — upgrade %s to Lv.%d" % [
+				return TranslationServer.translate("Operations %d%% — upgrade %s to Lv.%d") % [
 					int(round(operations_progress(vid) * 100.0)), str(track[2]), cap]
 	if not decor_met(vid):
-		return "Furnish this museum: " + decor_summary(vid)
+		return TranslationServer.translate("Furnish this museum: %s") % decor_summary(vid)
 	if not wings_met(vid):
-		return "Renovate %s (%d / %d wings open)" % [str(WingSystem.next_wing(vid).get("name", "")),
+		return TranslationServer.translate("Renovate %s (%d / %d wings open)") % [TranslationServer.translate(str(WingSystem.next_wing(vid).get("name", ""))),
 			WingSystem.open_count(vid), WingSystem.wings(vid).size()]
 	if next_venue_id() == "":
 		return "This is the final museum"
@@ -263,7 +263,7 @@ static func carry_over() -> Array:
 	var swept: BigNumber = pending_sweep(vid)
 	var cash_detail: String = GameState.cash.to_notation()
 	if not swept.is_zero():
-		cash_detail += " + %s still on the floor" % swept.to_notation()
+		cash_detail += TranslationServer.translate(" + %s still on the floor") % swept.to_notation()
 	var owned: int = 0
 	var cards: int = 0
 	for mid in GameState.managers_state.keys():
@@ -276,9 +276,9 @@ static func carry_over() -> Array:
 		{"icon": "gems", "label": "Gems", "detail": "%d" % GameState.gems},
 		{"icon": "insight", "label": "Insight", "detail": GameState.insight.to_notation()},
 		{"icon": "medal", "label": "Your managers", "detail":
-			"%d hired, %d cards — levels and posts intact" % [owned, cards]},
+			TranslationServer.translate("%d hired, %d cards — levels and posts intact") % [owned, cards]},
 		{"icon": "trophy", "label": "Reputation", "detail":
-			"Level %d, and everything it unlocked" % GameState.rep_level()},
+			TranslationServer.translate("Level %d, and everything it unlocked") % GameState.rep_level()},
 		{"icon": "star", "label": "Decor set bonuses", "detail":
 			"Pieces you bought keep counting, wherever they stand"},
 	]
@@ -291,7 +291,7 @@ static func left_behind() -> Array:
 	var total: int = DecorSystem.slots_total(vid)
 	return [
 		{"icon": "home", "label": "The decor you installed", "detail":
-			"%d of %d pieces stay bolted to %s" % [used, total, str(venue.get("name", vid))]},
+			TranslationServer.translate("%d of %d pieces stay bolted to %s") % [used, total, TranslationServer.translate(str(venue.get("name", vid)))]},
 		{"icon": "arrow_up", "label": "Department levels", "detail":
 			"New building, new staff — every track restarts at 1"},
 		{"icon": "star_outline", "label": "Your visitor rating", "detail":

@@ -22,6 +22,7 @@ const WINGS_PATH := "res://scenes/meta/wings_screen.tscn"
 const CAFE_PATH := "res://scenes/events/cafe_screen.tscn"
 const Juice := preload("res://scripts/ui/juice.gd")
 const VisitorSystem := preload("res://scripts/meta/visitor_system.gd")
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 
 const TAP_SLOP := 14.0     # px a press may travel and still count as a tap
 const CHIP := Vector2(52, 52)
@@ -50,6 +51,9 @@ var _floor_btns: Array[Button] = []   # top floor first, ground last
 var _ground_focus := Vector3.ZERO
 var _tier_set := false
 var _tip_btn: Button
+var _tip_for: Node3D = null          # the carrier the bubble is dressed for
+var _request_chip: Button            # the VIP request in play
+var _request_clock := 0.0
 var _bob := 0.0
 
 func _ready() -> void:
@@ -89,6 +93,19 @@ func _ready() -> void:
 	_tip_btn.tooltip_text = "A VIP wants to tip you"
 	_tip_btn.visible = false
 	_tip_btn.pressed.connect(_on_vip_tip)
+
+	# The VIP request in play: what the VIP wants and the time left. Tapping it
+	# opens that department.
+	_request_chip = Button.new()
+	_request_chip.name = "VipRequest"
+	_request_chip.icon = UI.icon_texture("star", 20)
+	_request_chip.add_theme_font_size_override("font_size", 16)
+	_request_chip.custom_minimum_size = Vector2(0, 44)
+	_request_chip.visible = false
+	Chrome.button(_request_chip, true)
+	_request_chip.pressed.connect(_on_request_chip)
+	add_child(_request_chip)
+	EventBus.department_upgraded.connect(_on_upgraded_for_request)
 
 	_floor_bar = VBoxContainer.new()
 	_floor_bar.name = "FloorSelector"
@@ -270,7 +287,7 @@ func _refresh_stations() -> void:
 		chip.pressed.connect(_on_station_cash.bind(index))
 		_chips.append(chip)
 		var up := _round_button("StationUpgrade%d" % index, Color("#3FAE6A"), Color("#1F5E3A"))
-		up.tooltip_text = "Upgrade station %d" % (index + 1)
+		up.tooltip_text = tr("Upgrade station %d") % (index + 1)
 		up.pressed.connect(func() -> void: item_selected.emit("ticket", index))
 		up.draw.connect(_draw_arrow.bind(up))
 		_ups.append(up)
@@ -285,15 +302,15 @@ func _refresh_stations() -> void:
 		if cooldown > 0:
 			chip.text = "%d:%02d" % [cooldown / 60, cooldown % 60]
 			chip.modulate = Color(1, 1, 1, 0.7)
-			chip.tooltip_text = "Station %d · Ready in %s" % [i + 1, chip.text]
+			chip.tooltip_text = tr("Station %d · Ready in %s") % [i + 1, chip.text]
 		elif not pending.is_zero():
 			chip.text = "$" + pending.to_notation()
 			chip.modulate = Color.WHITE
-			chip.tooltip_text = "Station %d · Level %d\nCollect $%s" % [i + 1, level, pending.to_notation()]
+			chip.tooltip_text = tr("Station %d · Level %d\nCollect $%s") % [i + 1, level, pending.to_notation()]
 		else:
 			chip.text = str(i + 1)
 			chip.modulate = Color(1, 1, 1, 0.85)
-			chip.tooltip_text = "Station %d · Level %d\nOpen station upgrades" % [i + 1, level]
+			chip.tooltip_text = tr("Station %d · Level %d\nOpen station upgrades") % [i + 1, level]
 		var maxed: bool = level >= Economy.item_max_level()
 		_ups[i].disabled = maxed
 		_ups[i].set_meta("maxed", maxed)
@@ -375,6 +392,10 @@ func _process(delta: float) -> void:
 	var cam: Camera3D = world.camera
 	var bounds := Rect2(Vector2.ZERO, size).grow(-8.0)
 	_place_tip(cam, bounds, delta)
+	_request_clock -= delta
+	if _request_clock <= 0.0:
+		_request_clock = 0.5
+		_refresh_request()
 	for i in _chips.size():
 		var anchor: Vector3 = world.station_anchor(i)
 		var p := cam.unproject_position(anchor)
@@ -389,7 +410,7 @@ func _process(delta: float) -> void:
 func _on_station_cash(index: int) -> void:
 	var cooldown: int = Economy.item_collect_remaining(venue_id, "ticket", index)
 	if cooldown > 0:
-		EventBus.toast_requested.emit("Cashier ready in %d:%02d" % [cooldown / 60, cooldown % 60])
+		EventBus.toast_requested.emit(tr("Cashier ready in %d:%02d") % [cooldown / 60, cooldown % 60])
 		return
 	var amount: BigNumber = Economy.collect_item(venue_id, "ticket", index)
 	if amount.is_zero():
@@ -406,16 +427,37 @@ func _place_tip(cam: Camera3D, bounds: Rect2, delta: float) -> void:
 		_tip_btn.visible = false
 		return
 	_bob += delta
+	if carrier != _tip_for:
+		_tip_for = carrier
+		_dress_bubble(bool(carrier.get_meta("vrequest", false)))
 	var anchor: Vector3 = world.head_anchor(carrier)
 	var p := cam.unproject_position(anchor)
 	_tip_btn.visible = not cam.is_position_behind(anchor) and bounds.has_point(p)
 	_tip_btn.position = p - Vector2(TIP.x * 0.5, TIP.y + 4.0 * sin(_bob * 4.0))
+
+## A tip bubble ("Tip!") or a wish bubble ("Wish!").
+func _dress_bubble(wish: bool) -> void:
+	_tip_btn.text = tr("Wish!") if wish else tr("Tip!")
+	_tip_btn.icon = UI.icon_texture("exclamation" if wish else "star", 22)
+	_tip_btn.tooltip_text = tr("A VIP has a wish") if wish else tr("A VIP wants to tip you")
 
 func _on_vip_tip() -> void:
 	var carrier: Node3D = world.tip_carrier
 	if carrier == null or not is_instance_valid(carrier):
 		return
 	var type_id := str(carrier.get_meta("vtype", ""))
+	if bool(carrier.get_meta("vrequest", false)):
+		var r: Dictionary = VisitorSystem.accept_request(type_id)
+		world.tip_carrier = null
+		_tip_btn.visible = false
+		if r.is_empty():
+			return
+		if carrier.has_method("play"):
+			carrier.call("play", "cheer")
+		UI.play_sfx(self, "buy")
+		EventBus.toast_requested.emit(VisitorSystem.request_text(r))
+		_refresh_request()
+		return
 	var amount: BigNumber = VisitorSystem.collect_tip(type_id)
 	world.tip_carrier = null
 	_tip_btn.visible = false
@@ -427,7 +469,44 @@ func _on_vip_tip() -> void:
 	Juice.coin_burst(_tip_btn.get_global_rect().get_center())
 	UI.play_sfx(self, "buy")
 	var who := str(VisitorSystem.type_def(type_id).get("one", "A VIP"))
-	EventBus.toast_requested.emit("%s tipped $%s!" % [who, amount.to_notation()])
+	EventBus.toast_requested.emit(tr("%s tipped $%s!") % [who, amount.to_notation()])
+
+# ------------------------------------------------------------ VIP requests
+
+func _refresh_request() -> void:
+	# A wish met some other way (a manager, an offline level) still pays.
+	var paid: Dictionary = VisitorSystem.check_request()
+	if not paid.is_empty():
+		_celebrate_request(paid)
+	var r: Dictionary = VisitorSystem.active_request()
+	if r.is_empty() or str(r.get("venue", "")) != venue_id:
+		_request_chip.visible = false
+		return
+	_request_chip.text = VisitorSystem.request_chip_text(r)
+	_request_chip.reset_size()
+	_request_chip.position = Vector2((size.x - _request_chip.size.x) * 0.5, 14.0)
+	_request_chip.visible = true
+
+func _on_request_chip() -> void:
+	var r: Dictionary = VisitorSystem.active_request()
+	if r.is_empty():
+		_refresh_request()
+		return
+	EventBus.toast_requested.emit(VisitorSystem.request_text(r))
+	dept_selected.emit(str(r.get("dept", "")))
+
+func _on_upgraded_for_request(_venue: String, _dept: String, _track: String, _level: int) -> void:
+	var got: Dictionary = VisitorSystem.check_request()
+	if not got.is_empty():
+		_celebrate_request(got)
+
+func _celebrate_request(got: Dictionary) -> void:
+	var who := tr(str(VisitorSystem.type_def(str(got["type"])).get("one", "A VIP")))
+	var cash: BigNumber = got["cash"]
+	EventBus.toast_requested.emit(tr("%s is delighted! +$%s, +%d gems") % [who, cash.to_notation(), int(got["gems"])])
+	Juice.coin_burst(_request_chip.get_global_rect().get_center())
+	UI.play_sfx(self, "buy")
+	_refresh_request()
 
 func _on_ticket_sold(_index: int, at: Vector3) -> void:
 	world.pop_text(at, "+$" + _value_text)

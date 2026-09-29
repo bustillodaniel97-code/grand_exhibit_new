@@ -14,6 +14,7 @@ const PopupLayerScene := preload("res://scenes/ui/popup_layer.tscn")
 const AdaptiveMusic := preload("res://scenes/audio/adaptive_music.gd")
 
 const Consent := preload("res://scripts/monetization/consent.gd")
+const Languages := preload("res://scripts/ui/languages.gd")
 const VisitorSystem := preload("res://scripts/meta/visitor_system.gd")
 const Interstitials := preload("res://scripts/monetization/interstitials.gd")
 
@@ -29,6 +30,7 @@ func _ready() -> void:
 	if not SaveSystem.load_game():
 		GameState.reset_to_new_game()
 	GameState.ready_flag = true
+	Languages.apply()
 	var offline: Dictionary = SaveSystem.compute_offline_and_apply()
 	# Privacy first: Analytics writes nothing to disk and ads stay non-personalized
 	# until the choice is resolved, so this has to run before the first event.
@@ -143,10 +145,10 @@ func show_toast(text: String) -> void:
 
 func _on_reputation_level_up(level: int, rewards: Dictionary) -> void:
 	var gems: int = int(rewards.get("gems", 0))
-	var text := "Reputation %d! +%d gems" % [level, gems]
+	var text := tr("Reputation %d! +%d gems") % [level, gems]
 	var names: Array = []
 	for t in VisitorSystem.unlocked_at(level):
-		names.append(str(t.get("name", "")))
+		names.append(tr(str(t.get("name", ""))))
 	if not names.is_empty():
-		text += "\nNew visitors: " + ", ".join(PackedStringArray(names))
+		text += tr("\nNew visitors: %s") % ", ".join(PackedStringArray(names))
 	show_toast(text)

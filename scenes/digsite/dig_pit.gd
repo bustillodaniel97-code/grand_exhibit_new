@@ -249,7 +249,7 @@ func apply_result(x: int, y: int, res: Dictionary) -> void:
 		tw2.parallel().tween_property(f, "rotation:y", TAU, 0.6)
 		tw2.tween_property(f, "scale", Vector3.ONE * 0.05, 0.25)
 		tw2.tween_callback(f.queue_free)
-		var label := {"coins": "+Cash!", "gems": "+%d Gems" % int(find.get("amount", 1)), "crystals": "+%d Energy" % int(find.get("amount", 3))}
+		var label := {"coins": "+Cash!", "gems": tr("+%d Gems") % int(find.get("amount", 1)), "crystals": tr("+%d Energy") % int(find.get("amount", 3))}
 		_pop(cell_center(x, y, 1.0), str(label.get(str(find["kind"]), "")), Color("#FFE680"))
 	if bool(res.get("complete", false)):
 		celebrate()

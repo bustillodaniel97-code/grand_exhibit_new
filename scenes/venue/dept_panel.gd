@@ -118,12 +118,12 @@ func _collect_amount() -> BigNumber:
 
 func _refresh_collect() -> void:
 	var amount:=_collect_amount()
-	_collect_summary.text="Available museum income\n$"+amount.to_notation()
+	_collect_summary.text=tr("Available museum income\n$%s")%amount.to_notation()
 	_collect_btn.tooltip_text="Collect available museum income, including the configured tip bonus"
 
 func _collect_income() -> void:
 	var amount:=Economy.manual_collect(venue_id)
-	EventBus.toast_requested.emit("Collected $"+amount.to_notation() if not amount.is_zero() else "No income waiting — keep the museum running")
+	EventBus.toast_requested.emit(tr("Collected $%s")%amount.to_notation() if not amount.is_zero() else tr("No income waiting — keep the museum running"))
 	_refresh_collect()
 
 func _show_tab(managers: bool) -> void:
@@ -157,14 +157,14 @@ func _refresh_managers() -> void:
 	for child in _manager_view.get_children():_manager_view.remove_child(child);child.queue_free()
 	var assigned:=ManagerSystem.assigned_ids(dept_id)
 	var slots:=ManagerSystem.assignment_slots(dept_id)
-	_manager_tab.text="Managers (%d)"%assigned.size()
-	var summary:=UI.make_label("%d of %d posts filled · x%.2f output"%[assigned.size(),slots,Economy.manager_multiplier_for(dept_id)],15)
+	_manager_tab.text=tr("Managers (%d)")%assigned.size()
+	var summary:=UI.make_label(tr("%d of %d posts filled · x%.2f output")%[assigned.size(),slots,Economy.manager_multiplier_for(dept_id)],15)
 	summary.add_theme_color_override("font_color",Chrome.DIM);summary.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;_manager_view.add_child(summary)
 	var purpose:=UI.make_label("Assigned managers multiply this department’s speed and value. Improve the slowest department to raise overall income. Your collection also powers audit teams.",14)
 	purpose.add_theme_color_override("font_color",Chrome.DIM);purpose.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;_manager_view.add_child(purpose)
 	if not GameState.feature_unlocked("managers"):
 		var req:=int(DataLoader.core.get("unlocks",{}).get("managers_rep",3))
-		_manager_view.add_child(UI.make_display_label("Managers unlock at Rep %d"%req,17,Chrome.INK))
+		_manager_view.add_child(UI.make_display_label(tr("Managers unlock at Rep %d")%req,17,Chrome.INK))
 	else:
 		for id in assigned:_manager_view.add_child(_manager_row(id))
 	_manager_browse=_button("Choose a manager",true);_manager_browse.pressed.connect(_open_department_managers);_manager_view.add_child(_manager_browse)
@@ -172,17 +172,17 @@ func _refresh_managers() -> void:
 func _manager_row(id: String) -> Control:
 	var row:=HBoxContainer.new();row.add_theme_constant_override("separation",8)
 	var def:=DataLoader.get_manager_def(id)
-	var text:=UI.make_label("%s · Lv %d · Rank %d"%[str(def.get("name",id)),ManagerSystem.level(id),ManagerSystem.rank(id)],15)
+	var text:=UI.make_label(tr("%s · Lv %d · Rank %d")%[tr(str(def.get("name",id))),ManagerSystem.level(id),ManagerSystem.rank(id)],15)
 	text.add_theme_color_override("font_color",Chrome.INK);text.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	text.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;text.vertical_alignment=VERTICAL_ALIGNMENT_CENTER;row.add_child(text)
 	var stand:=_button("Stand down");stand.pressed.connect(func() -> void:
 		ManagerSystem.unassign(id)
-		EventBus.toast_requested.emit("%s stood down from %s"%[str(def.get("name",id)),DataLoader.venue_dept_name(venue_id,dept_id)]))
+		EventBus.toast_requested.emit(tr("%s stood down from %s")%[tr(str(def.get("name",id))),tr(DataLoader.venue_dept_name(venue_id,dept_id))]))
 	row.add_child(stand);return row
 
 func _open_department_managers() -> void:
 	if not GameState.feature_unlocked("managers"):
-		EventBus.toast_requested.emit("Managers unlock at Rep %d"%int(DataLoader.core.get("unlocks",{}).get("managers_rep",3)));return
+		EventBus.toast_requested.emit(tr("Managers unlock at Rep %d")%int(DataLoader.core.get("unlocks",{}).get("managers_rep",3)));return
 	var assigned:=ManagerSystem.assigned_ids(dept_id)
 	var select:=assigned[0] if not assigned.is_empty() else ""
 	if select=="":
@@ -191,7 +191,7 @@ func _open_department_managers() -> void:
 	Popups.open(MANAGERS_PATH,{"specialty":dept_id,"select":select})
 
 func _on_manager_changed(_a: Variant=null,_b: Variant=null) -> void:
-	_manager_tab.text="Managers (%d)"%ManagerSystem.assigned_ids(dept_id).size()
+	_manager_tab.text=tr("Managers (%d)")%ManagerSystem.assigned_ids(dept_id).size()
 	if _manager_view!=null and _manager_view.visible:_refresh_managers()
 
 ## Cost for the next level of a track (mirrors Economy._cost; SPEC §4 upgrade_cost).
@@ -231,7 +231,7 @@ func refresh() -> void:
 			Chrome.button(btn,affordable)
 	_refresh_collect()
 	_refresh_item()
-	_manager_tab.text="Managers (%d)"%ManagerSystem.assigned_ids(dept_id).size()
+	_manager_tab.text=tr("Managers (%d)")%ManagerSystem.assigned_ids(dept_id).size()
 
 func select_item(index: int) -> void:
 	selected_item = index
@@ -254,14 +254,14 @@ func _refresh_item() -> void:
 	var next: float = Economy.item_mult(mini(level + 1, Economy.item_max_level()))
 	_item_name.text = "%s %d · Lv %d" % [
 		"Station" if dept_id == "ticket" else "Unit", selected_item + 1, level]
-	_item_effect.text = "%.2fx → %.2fx" % [current, next] if not maxed else "%.2fx · MAX" % current
+	_item_effect.text = "%.2fx → %.2fx" % [current, next] if not maxed else tr("%.2fx · MAX") % current
 	if maxed:
 		_item_btn.text = "MAX"
 		_item_btn.disabled = true
 		_item_btn.modulate = Color.WHITE
 		return
 	var cost: BigNumber = Economy.item_upgrade_cost(venue_id, dept_id, selected_item)
-	_item_btn.text = "Upgrade\n$"+cost.to_notation()
+	_item_btn.text = tr("Upgrade\n$%s") % cost.to_notation()
 	_item_btn.disabled = false
 	Chrome.button(_item_btn,GameState.cash.gte(cost))
 
@@ -270,7 +270,7 @@ func _on_buy_item() -> void:
 		return
 	var cost: BigNumber = Economy.item_upgrade_cost(venue_id, dept_id, selected_item)
 	if not GameState.cash.gte(cost):
-		EventBus.toast_requested.emit("Need $" + cost.sub(GameState.cash).to_notation() + " more")
+		EventBus.toast_requested.emit(tr("Need $%s more") % cost.sub(GameState.cash).to_notation())
 		return
 	if Economy.purchase_item_upgrade(venue_id, dept_id, selected_item):
 		UI.play_sfx(self, "buy")
@@ -287,8 +287,8 @@ func _on_item_collected(v_id: String, d_id: String, index: int, _amount: Variant
 func _effect_text(track: String, def: Dictionary, level: int) -> String:
 	if track == "staff":
 		if _is_maxed(track):
-			return "%d team members · maximum" % level
-		return "Team %d → %d" % [level, level + 1]
+			return tr("%d team members · maximum") % level
+		return tr("Team %d → %d") % [level, level + 1]
 	var t: Dictionary = def.get("tracks", {}).get(track, {})
 	var cur: float = Economy.dept_stat(venue_id, dept_id, track)
 	var nxt: float = (float(t.get("base_stat", 1.0)) + float(t.get("per_level", 0.0)) * float(level)) \
@@ -303,7 +303,7 @@ func _on_buy(track: String) -> void:
 	var cost: BigNumber = _cost_for(track)
 	if not GameState.cash.gte(cost):
 		var short: BigNumber = cost.sub(GameState.cash)
-		EventBus.toast_requested.emit("Need $" + short.to_notation() + " more")
+		EventBus.toast_requested.emit(tr("Need $%s more") % short.to_notation())
 		_flash_button(track, false)
 		return
 	if Economy.purchase_upgrade(venue_id, dept_id, track):

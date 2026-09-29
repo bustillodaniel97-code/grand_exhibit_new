@@ -104,7 +104,7 @@ func _build() -> void:
 	_scroll.add_child(root)
 
 	var title := Label.new()
-	title.text = "Expedition · Cycle %d" % (_cycle() + 1)
+	title.text = tr("Expedition · Cycle %d") % (_cycle() + 1)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	title.add_theme_font_size_override("font_size", 32)
 	title.add_theme_color_override("font_color", INK)
@@ -143,8 +143,7 @@ func _build_locked_preview() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	v.add_child(title)
 	var pitch := UI.make_label(
-		"Fund a five-stage dig, assemble your best three managers, and uncover "
-		+ "rare decor that cannot be bought in the shop.", UI.TYPE_BODY, DIM)
+		tr("Fund a five-stage dig, assemble your best three managers, and uncover rare decor that cannot be bought in the shop."), UI.TYPE_BODY, DIM)
 	pitch.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pitch.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(pitch)
@@ -176,7 +175,7 @@ func _build_locked_preview() -> void:
 	var lock := UI.make_display_label("UNLOCKS AT REP 7", 20, BRASS)
 	lock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(lock)
-	var current := UI.make_label("Currently Rep %d" % GameState.rep_level(),
+	var current := UI.make_label(tr("Currently Rep %d") % GameState.rep_level(),
 		UI.TYPE_LABEL, DIM)
 	current.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(current)
@@ -215,7 +214,7 @@ func _build_insight_panel(root: VBoxContainer) -> void:
 	_style_button(b1, SLATE)
 	b1.pressed.connect(func() -> void:
 		var got: BigNumber = Economy.collect_insight(1.0)
-		_toast("Collected %s insight" % got.to_notation() if not got.is_zero() else "Nothing stored yet")
+		_toast(tr("Collected %s insight") % got.to_notation() if not got.is_zero() else "Nothing stored yet")
 		_refresh_storage())
 	row.add_child(b1)
 	var b2 := Button.new()
@@ -224,7 +223,7 @@ func _build_insight_panel(root: VBoxContainer) -> void:
 	b2.pressed.connect(_on_ad_collect)
 	row.add_child(b2)
 	var b3 := Button.new()
-	b3.text = "%d Gems ×%d" % [int(_tuning.get("insight_rush_gem_cost", 10)),
+	b3.text = tr("%d Gems ×%d") % [int(_tuning.get("insight_rush_gem_cost", 10)),
 		int(float(_tuning.get("insight_rush_gem_mult", 3.0)))]
 	_style_button(b3, BRASS)
 	b3.pressed.connect(_on_gem_collect)
@@ -248,7 +247,7 @@ func _on_ad_result(placement_id: String, success: bool, context: Dictionary) -> 
 		var got: BigNumber = Economy.collect_insight(mult)
 		EventBus.rv_reward_granted.emit("insight_rush", {"mult": mult})
 		Analytics.rv_impression("insight_rush")
-		_toast("Collected %s insight (×%s)" % [got.to_notation(), str(mult)])
+		_toast(tr("Collected %s insight (×%s)") % [got.to_notation(), str(mult)])
 	else:
 		_toast("Ad unavailable")
 	_refresh_storage()
@@ -265,7 +264,7 @@ func _on_gem_collect() -> void:
 		return
 	var mult: float = float(_tuning.get("insight_rush_gem_mult", 3.0))
 	var got: BigNumber = Economy.collect_insight(mult)
-	_toast("Collected %s insight (×%s)" % [got.to_notation(), str(mult)])
+	_toast(tr("Collected %s insight (×%s)") % [got.to_notation(), str(mult)])
 	_refresh_storage()
 
 
@@ -287,7 +286,7 @@ func _refresh_storage() -> void:
 	var cap_f: float = maxf(cap.to_float_approx(), 1.0)
 	_storage_bar.max_value = cap_f
 	_storage_bar.value = stored.to_float_approx()
-	_storage_label.text = "Stored %s / %s insight" % [stored.to_notation(), cap.to_notation()]
+	_storage_label.text = tr("Stored %s / %s insight") % [stored.to_notation(), cap.to_notation()]
 
 
 ## --- Invest track -----------------------------------------------------------
@@ -313,14 +312,14 @@ func _build_invest_track(root: VBoxContainer) -> void:
 		btn.custom_minimum_size = Vector2(170, 56)
 		var cost: BigNumber = BigNumber.from_parts(
 			float(s.get("invest_cost_m", 1.0)), int(s.get("invest_cost_e", 0)))
-		btn.text = "Funded" if done else "Invest " + cost.to_notation()
+		btn.text = "Funded" if done else tr("Invest %s") % cost.to_notation()
 		_style_button(btn, SAGE if done else (ACCENT if i == stage else Chrome.PANEL))
 		# Only a funded step is inert. "Too expensive" and "not your turn" are
 		# explained by _on_invest's toasts, never by a dead tap.
 		btn.disabled = done
 		btn.pressed.connect(_on_invest.bind(i))
-		var info := UI.make_label("%s — +%s insight" % [
-			str(s.get("name", "Site")), str(s.get("insight_reward", 0))], UI.TYPE_BODY, INK)
+		var info := UI.make_label(tr("%s — +%s insight") % [
+			tr(str(s.get("name", "Site"))), str(s.get("insight_reward", 0))], UI.TYPE_BODY, INK)
 		info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(info)
@@ -338,13 +337,13 @@ func _on_invest(i: int) -> void:
 		elif i < stage:
 			_toast("That site is already funded.")
 		else:
-			_toast("Fund %s first." % str((stages[stage] as Dictionary).get("name", "the next site")))
+			_toast(tr("Fund %s first.") % tr(str((stages[stage] as Dictionary).get("name", "the next site"))))
 		return
 	var s: Dictionary = _event.get("stages", [])[i]
 	var cost: BigNumber = BigNumber.from_parts(
 		float(s.get("invest_cost_m", 1.0)), int(s.get("invest_cost_e", 0)))
 	if not GameState.spend_cash(cost):
-		_toast("Needs %s — keep the museum earning." % cost.to_notation())
+		_toast(tr("Needs %s — keep the museum earning.") % cost.to_notation())
 		return
 	var invested: BigNumber = BigNumber.from_save(es.get("invested", {}))
 	es["invested"] = invested.add(cost).to_save()
@@ -364,7 +363,7 @@ func _on_invest(i: int) -> void:
 func _build_boss_section(root: VBoxContainer) -> void:
 	var boss: Dictionary = _event.get("boss", {})
 	var head := Label.new()
-	head.text = "Boss: %s" % str(boss.get("name", "The Temple Guardian"))
+	head.text = tr("Boss: %s") % tr(str(boss.get("name", "The Temple Guardian")))
 	head.add_theme_font_size_override("font_size", 20)
 	head.add_theme_color_override("font_color", INK)
 	root.add_child(head)
@@ -376,7 +375,7 @@ func _build_boss_section(root: VBoxContainer) -> void:
 		return
 	# Team picker for the boss fight.
 	var team_head := Label.new()
-	team_head.text = "Your team: %d/3 selected" % _selected.size()
+	team_head.text = tr("Your team: %d/3 selected") % _selected.size()
 	team_head.add_theme_color_override("font_color", INK)
 	root.add_child(team_head)
 	var roster := ScrollContainer.new()
@@ -400,7 +399,7 @@ func _build_boss_section(root: VBoxContainer) -> void:
 	var power: float = _team_power_selected()
 	var hp: float = BattleMath.expedition_boss_hp(boss, power, _cycle())
 	var info := Label.new()
-	info.text = "HP ~%d · %d moves · team power %d\nRewards: %s" % [
+	info.text = tr("HP ~%d · %d moves · team power %d\nRewards: %s") % [
 		int(round(hp)), int(boss.get("moves", 24)), int(round(power)),
 		_rewards_preview(boss.get("rewards", {}))]
 	info.add_theme_color_override("font_color", DIM)
@@ -451,9 +450,9 @@ func _manager_card(pair: Dictionary) -> Control:
 		if not _selected.has(mid):
 			if _selected.size() >= 3:
 				var dropped: String = str(_selected.pop_front())
-				_toast("%s stepped aside for %s" % [
-					str(DataLoader.get_manager_def(dropped).get("name", dropped)),
-					str(def.get("name", mid))])
+				_toast(tr("%s stepped aside for %s") % [
+					tr(str(DataLoader.get_manager_def(dropped).get("name", dropped))),
+					tr(str(def.get("name", mid)))])
 			_selected.append(mid)
 		else:
 			_selected.erase(mid)
@@ -484,8 +483,7 @@ func _on_fight_boss(hp: float) -> void:
 func _on_boss_finished(result: String, hp: float) -> void:
 	Analytics.log_event("expedition_boss", {"cycle": _cycle(), "result": result})
 	if result != "win":
-		_queue_outcome("Expedition failed", "The Guardian holds the temple.\n"
-			+ "Chase the audit colour or bring stronger managers.", UI.DANGER, hp)
+		_queue_outcome("Expedition failed", tr("The Guardian holds the temple.\nChase the audit colour or bring stronger managers."), UI.DANGER, hp)
 		return
 	var es: Dictionary = _es()
 	# Idempotence lives here, not in whether a button happened to be disabled:
@@ -502,7 +500,7 @@ func _on_boss_finished(result: String, hp: float) -> void:
 	es["invested"] = BigNumber.zero().to_save()
 	es["boss_unlocked"] = false
 	es["cycle"] = _cycle() + 1
-	_queue_outcome("Guardian defeated", "%s\nA new expedition begins (cycle %d)." % [
+	_queue_outcome("Guardian defeated", tr("%s\nA new expedition begins (cycle %d).") % [
 		_applied_text(applied), _cycle() + 1], SAGE, hp)
 
 
@@ -618,9 +616,9 @@ func _rewards_preview(rewards: Dictionary) -> String:
 	if box_id != "":
 		parts.append(str(DataLoader.get_lootbox(box_id).get("name", box_id)))
 	if int(rewards.get("gems", 0)) > 0:
-		parts.append("%d gems" % int(rewards["gems"]))
+		parts.append(tr("%d gems") % int(rewards["gems"]))
 	if float(rewards.get("insight_m", 0.0)) > 0.0:
-		parts.append("%s insight" % str(rewards.get("insight_m")))
+		parts.append(tr("%s insight") % str(rewards.get("insight_m")))
 	return " · ".join(parts)
 
 
@@ -630,10 +628,10 @@ func _applied_text(applied: Dictionary) -> String:
 		parts.append("%dx %s" % [int(applied["cards"][mid]),
 			str(DataLoader.get_manager_def(mid).get("name", mid))])
 	if int(applied.get("gems", 0)) > 0:
-		parts.append("%d gems" % int(applied["gems"]))
+		parts.append(tr("%d gems") % int(applied["gems"]))
 	if float(applied.get("insight_m", 0.0)) > 0.0:
-		parts.append("%s insight" % str(applied["insight_m"]))
-	return "Rewards: " + (" · ".join(parts) if not parts.is_empty() else "none")
+		parts.append(tr("%s insight") % str(applied["insight_m"]))
+	return tr("Rewards: %s") % (" · ".join(parts) if not parts.is_empty() else tr("none"))
 
 
 func _toast(text: String) -> void:

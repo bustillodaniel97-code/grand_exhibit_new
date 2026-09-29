@@ -120,20 +120,20 @@ func refresh() -> void:
 	if RV.is_busy("income_x2"):
 		_boost_btn.text = "Loading ad…"
 	elif remaining > 0:
-		_boost_btn.text = "x2 active · %s\nWatch ad to extend" % _fmt(remaining)
+		_boost_btn.text = tr("x2 active · %s\nWatch ad to extend") % _fmt(remaining)
 	else:
 		_boost_btn.text = "Double income\nWatch ad · x2"
 
 
 	_cash_btn.text="Loading…" if RV.is_busy("instant_cash") else "Instant cash\nWatch ad"
-	_gems_btn.text="Loading…" if RV.is_busy("free_gems") else "Free gems\n%d left · Ad"%RV.remaining_free_gems()
+	_gems_btn.text="Loading…" if RV.is_busy("free_gems") else tr("Free gems\n%d left · Ad")%RV.remaining_free_gems()
 
 	var offers: Array = Offers.active_offers()
 	_offer_btn.visible = not offers.is_empty()
 	if not offers.is_empty():
 		var oid: String = str(offers[0]["id"])
 		Offers.mark_seen(oid)
-		_offer_btn.text = "Offer\n"+_fmt_compact(Offers.seconds_left(oid)) if Offers.expires(oid) else "Offer"
+		_offer_btn.text = tr("Offer\n%s") % _fmt_compact(Offers.seconds_left(oid)) if Offers.expires(oid) else "Offer"
 
 func _on_offer_pressed() -> void:
 	Analytics.store_open("world_offer_chip")

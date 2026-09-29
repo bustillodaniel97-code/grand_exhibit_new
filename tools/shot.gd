@@ -25,6 +25,8 @@ extends SceneTree
 ##                   renovations happen at capture time instead, to catch the
 ##                   renovation moment
 ##   floor=I         glide the 3D camera to floor I (0 = ground) before capture
+##   lang=CODE       play in a language (es, fr, de, pt_BR, it, en)
+##   wish=TYPE       accept a VIP request from TYPE (collector, celebrity, royal)
 
 const MAIN := "res://scenes/main.tscn"
 const DESIGN := Vector2i(720, 1280)
@@ -90,6 +92,8 @@ func _seed() -> void:
 	if gs == null:
 		return
 	var BigNumber: GDScript = load("res://scripts/core/big_number.gd")
+	if _args.has("lang"):
+		(load("res://scripts/ui/languages.gd") as GDScript).call("set_choice", String(_args["lang"]))
 	if _args.has("cash"):
 		gs.add_cash(BigNumber.from_float(float(_args["cash"])))
 	if _args.has("gems"):
@@ -100,6 +104,8 @@ func _seed() -> void:
 		var rl := clampi(int(_args["rep"]), 1, maxi(th.size(), 1))
 		if not th.is_empty():
 			gs.reputation_xp = BigNumber.from_float(float(th[rl - 1]))
+	if _args.has("wish"):
+		(load("res://scripts/meta/visitor_system.gd") as GDScript).call("accept_request", String(_args["wish"]))
 	# Backdate first launch so day-gated features (Inspection Frenzy) unlock.
 	if _args.has("days"):
 		gs.first_launch_unix -= int(_args["days"]) * 86400

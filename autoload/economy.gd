@@ -490,22 +490,22 @@ func flow_guidance(venue_id: String) -> Dictionary:
 		var done: int = GameState.venue_state(venue_id).get("milestones", []).size()
 		if not defs.is_empty() and done >= defs.size():
 			return {"dept": "", "actual_dept": actual, "actionable": false,
-				"title": "%s is at this venue's ceiling" % str(names.get(actual, actual.capitalize())),
+				"title": tr("%s is at this venue's ceiling") % tr(str(names.get(actual, actual.capitalize()))),
 				"detail": "The venue is complete. Move on to unlock the next capacity tier.",
 				"ready_to_move": true}
 		return {"dept": "", "actual_dept": actual, "actionable": false,
-			"title": "%s is fully upgraded here" % str(names.get(actual, actual.capitalize())),
+			"title": tr("%s is fully upgraded here") % tr(str(names.get(actual, actual.capitalize()))),
 			"detail": "Finish the remaining objectives to unlock the next venue.",
 			"ready_to_move": false}
 	var actions := {
 		"promotions": ("Add or improve café hosts to serve guests faster."
-			if DataLoader.venue_dept_name(venue_id, "promotions").to_lower().contains("cafe")
+			if DataLoader.venue_dept_name(venue_id, "promotions", false).to_lower().contains("cafe")
 			else "Hire or improve marketers to bring visitors in faster."),
 		"ticket": "Add or improve cashier stations to clear the queue faster.",
 		"archive": "Add or improve porters and carts to bank counter cash faster.",
 	}
 	return {"dept": actual, "actual_dept": actual, "actionable": true,
-		"title": "%s needs attention" % str(names.get(actual, actual.capitalize())),
+		"title": tr("%s needs attention") % tr(str(names.get(actual, actual.capitalize()))),
 		"detail": str(actions.get(actual, "Upgrade this department.")),
 		"ready_to_move": false}
 
@@ -633,11 +633,11 @@ func venue_satisfaction(venue_id: String, flows: Dictionary = {}) -> Dictionary:
 	var mult_min: float = float(cfg.get("income_mult_min", 0.5))
 	var mult_max: float = float(cfg.get("income_mult_max", 2.0))
 	var details := {
-		"decor": "%d of %d decor points" % [int(round(points)), int(round(decor_target))],
-		"speed": ("queue never clears" if wait_s >= float(scfg.get("wait_stall_s", 120.0))
-			else "%.0fs wait · %s of %s/s" % [wait_s,
+		"decor": tr("%d of %d decor points") % [int(round(points)), int(round(decor_target))],
+		"speed": (tr("queue never clears") if wait_s >= float(scfg.get("wait_stall_s", 120.0))
+			else tr("%.0fs wait · %s of %s/s") % [wait_s,
 				_sat_rate(throughput), _sat_rate(tp_target)]),
-		"rest": "%d of %d seats" % [seats, seats_needed],
+		"rest": tr("%d of %d seats") % [seats, seats_needed],
 	}
 	var inputs: Dictionary = {}
 	for key in SAT_INPUTS:
@@ -703,11 +703,11 @@ func _sat_reason(limiting: String, scores: Dictionary, details: Dictionary) -> S
 		return "The crowd loves this place."
 	match limiting:
 		"decor":
-			return "The halls look bare — %s." % str(details["decor"])
+			return tr("The halls look bare — %s.") % str(details["decor"])
 		"speed":
-			return "Queues are slow — %s." % str(details["speed"])
+			return tr("Queues are slow — %s.") % str(details["speed"])
 		_:
-			return "Nowhere to sit — %s." % str(details["rest"])
+			return tr("Nowhere to sit — %s.") % str(details["rest"])
 
 func purchase_upgrade(venue_id: String, dept_id: String, track: String) -> bool:
 	var def: Dictionary = DataLoader.dept_def(dept_id)

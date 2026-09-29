@@ -60,13 +60,13 @@ func _build() -> void:
 			state = "next"
 		_grid.add_child(_card(i, gifts[i], state))
 	if open:
-		_claim.text = "Claim Day %d gift" % (today + 1)
+		_claim.text = tr("Claim Day %d gift") % (today + 1)
 		Chrome.button(_claim, true, 16)
 		_note.text = ""
 	else:
 		_claim.text = "Come back tomorrow"
 		Chrome.button(_claim, false, 16)
-		_note.text = "Gifts claimed: %d" % DailyGifts.total()
+		_note.text = tr("Gifts claimed: %d") % DailyGifts.total()
 
 func _card(i: int, gift: Dictionary, state: String) -> Control:
 	var card := PanelContainer.new()
@@ -86,7 +86,7 @@ func _card(i: int, gift: Dictionary, state: String) -> Control:
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
 	col.add_theme_constant_override("separation", 4)
 	card.add_child(col)
-	var day := UI.make_display_label("Day %d" % (i + 1), 17, Chrome.BRASS if state != "done" else Chrome.DIM)
+	var day := UI.make_display_label(tr("Day %d") % (i + 1), 17, Chrome.BRASS if state != "done" else Chrome.DIM)
 	day.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(day)
 	var icon := TextureRect.new()
@@ -128,7 +128,7 @@ func _on_claim() -> void:
 		Juice.coin_burst(from, "gems", 7)
 	if got.has("cash"):
 		Juice.coin_burst(from, "cash", 9)
-	EventBus.toast_requested.emit("Day %d gift: %s" % [int(got.get("day", 1)), DailyGifts.describe(DailyGifts.days()[int(got.get("day", 1)) - 1])])
+	EventBus.toast_requested.emit(tr("Day %d gift: %s") % [int(got.get("day", 1)), DailyGifts.describe(DailyGifts.days()[int(got.get("day", 1)) - 1])])
 	UI.play_sfx(self, "buy")
 	_build()
 

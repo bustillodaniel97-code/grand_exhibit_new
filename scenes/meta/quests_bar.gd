@@ -334,9 +334,9 @@ func refresh() -> void:
 	if PrestigeSystem.gate_met(vid):
 		_pct_label.text = "READY"
 	elif chain_complete and not PrestigeSystem.operations_met(vid):
-		_pct_label.text = "BUILD %d%%" % int(floor(PrestigeSystem.operations_progress(vid) * 100.0))
+		_pct_label.text = tr("BUILD %d%%") % int(floor(PrestigeSystem.operations_progress(vid) * 100.0))
 	elif chain_complete and not PrestigeSystem.decor_met(vid):
-		_pct_label.text = "DECOR %d%%" % int(floor(PrestigeSystem.decor_progress(vid) * 100.0))
+		_pct_label.text = tr("DECOR %d%%") % int(floor(PrestigeSystem.decor_progress(vid) * 100.0))
 	else:
 		_pct_label.text = "%d%%" % mini(99, int(floor(progress * 100.0)))
 	_refresh_rating()
@@ -368,7 +368,7 @@ func _show_objective() -> void:
 	_shown_qid=str(_chips[_shown_index].quest_id)
 	for i in _chips.size():_chips[i].btn.visible=i==_shown_index
 	_cycle_btn.visible=count>1
-	_cycle_btn.text="Goals\n%d / %d  ›"%[_shown_index+1,count]
+	_cycle_btn.text=tr("Goals\n%d / %d  ›")%[_shown_index+1,count]
 
 func _refresh_rating() -> void:
 	if _rating_value == null:
@@ -384,7 +384,7 @@ func _refresh_rating() -> void:
 		_rating_stars[i].modulate = tint
 	_rating_value.text = "%.1f" % float(sat["stars"])
 	var mult: float = float(sat["income_mult"])
-	_rating_mult.text = "x%.2f income" % mult
+	_rating_mult.text = tr("x%.2f income") % mult
 	_rating_mult.add_theme_color_override("font_color", SAGE if roundf(mult*100.0)>=100.0 else Chrome.DANGER)
 
 func _paint_chip(chip: Dictionary, vid: String, qid: String) -> void:
@@ -449,7 +449,7 @@ func _on_rating_pressed() -> void:
 		Popups.open(PATH_DECOR)
 	else:
 		var req: int = int(DataLoader.core.get("unlocks", {}).get("decor_rep", 2))
-		EventBus.toast_requested.emit("Decor unlocks at Rep %d — it drives your rating" % req)
+		EventBus.toast_requested.emit(tr("Decor unlocks at Rep %d — it drives your rating") % req)
 
 ## An objective chip is a shortcut to the thing that advances it: the room's
 ## upgrade sheet, or the screen that owns the currency it wants. Where no screen
@@ -482,19 +482,21 @@ func _on_chip_pressed(index: int) -> void:
 			else:
 				EventBus.toast_requested.emit(_venue_quest_text(qdef))
 		_:
-			EventBus.toast_requested.emit("%s — keep the museum running" %
+			EventBus.toast_requested.emit(tr("%s — keep the museum running") %
 				_venue_quest_text(qdef))
 
 func _venue_quest_text(qdef: Dictionary) -> String:
-	var text := str(qdef.get("desc", ""))
+	# Translate the quest first, then swap the generic department name for
+	# this museum's own, both in the player's language.
+	var text := tr(str(qdef.get("desc", "")))
 	var dept := str(qdef.get("dept", ""))
 	if dept != "":
 		var authored := DataLoader.venue_dept_name(GameState.current_venue, dept)
-		var generic := str(DataLoader.dept_def(dept).get("name", dept.capitalize()))
+		var generic := tr(str(DataLoader.dept_def(dept).get("name", dept.capitalize())))
 		text = text.replace(generic, authored)
 		# Older quest copy used the shorter economic-role name.
 		if dept == "promotions":
-			text = text.replace("Promotions", authored)
+			text = text.replace(tr("Promotions"), authored)
 	return text
 
 ## Ask the floor to select the room, which is what a tap on that room does. The
@@ -509,11 +511,11 @@ func _open_dept(dept_id: String,track: String="") -> void:
 		var view: Node=get_tree().root.find_child("VenueView",true,false)
 		if view!=null and view.has_method("focus_upgrade_track"):view.focus_upgrade_track(dept_id,track)
 	else:
-		EventBus.toast_requested.emit("Tap %s on the floor to upgrade it" % dept_name)
+		EventBus.toast_requested.emit(tr("Tap %s on the floor to upgrade it") % tr(dept_name))
 
 func _open_item(dept_id: String, index: int) -> void:
 	var floor_node: Node = get_tree().root.find_child("VenueFloor", true, false)
 	if floor_node != null and floor_node.has_signal("item_selected"):
 		floor_node.item_selected.emit(dept_id, index)
 	else:
-		EventBus.toast_requested.emit("Tap station %d on the floor to upgrade it" % (index + 1))
+		EventBus.toast_requested.emit(tr("Tap station %d on the floor to upgrade it") % (index + 1))

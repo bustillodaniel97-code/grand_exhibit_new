@@ -199,7 +199,7 @@ func refresh() -> void:
 		_reposition()
 		if cafe_live and GameState.ready_flag:
 			var days := int(round(float(CafeSystem.config().get("duration_hours", 72)) / 24.0))
-			EventBus.toast_requested.emit("%s is open! A pop-up café for %d days" % [str(CafeSystem.theme().get("name", "The Pop-Up Café")), days])
+			EventBus.toast_requested.emit(tr("%s is open! A pop-up café for %d days") % [tr(str(CafeSystem.theme().get("name", "The Pop-Up Café"))), days])
 	if cafe_live:
 		(_cafe_item.get_child(0) as CanvasItem).modulate = Color(1.3, 1.15, 0.6) if CafeSystem.any_claimable() else Color.WHITE
 	if show_prestige and not bool(_celebrated.get(GameState.current_venue, false)) \
@@ -216,7 +216,7 @@ func _on_decor_pressed() -> void:
 		Popups.open(DECOR_PATH)
 	else:
 		var req: int = int(DataLoader.core.get("unlocks", {}).get("decor_rep", 2))
-		EventBus.toast_requested.emit("Decor unlocks at Rep %d" % req)
+		EventBus.toast_requested.emit(tr("Decor unlocks at Rep %d") % req)
 
 func _on_stats_pressed() -> void:
 	Popups.open(STATISTICS_PATH)

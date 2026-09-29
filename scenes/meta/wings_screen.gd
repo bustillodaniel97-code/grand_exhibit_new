@@ -146,7 +146,7 @@ func _wing_card(vid: String, w: Dictionary) -> Control:
 		WingSystem.STATUS_OPEN:
 			box.add_child(_label("Open", 17, Chrome.TEAL))
 		WingSystem.STATUS_LOCKED:
-			box.add_child(_label("Locked · " + WingSystem.requirement_text(vid, w), 16, Chrome.BRASS))
+			box.add_child(_label(tr("Locked · %s") % WingSystem.requirement_text(vid, w), 16, Chrome.BRASS))
 		_:
 			if not is_next:
 				box.add_child(_label("Opens after the floor below", 16, Chrome.BRASS))
@@ -154,7 +154,7 @@ func _wing_card(vid: String, w: Dictionary) -> Control:
 				var price := WingSystem.price(vid, id)
 				var btn := Button.new()
 				btn.name = "Renovate"
-				btn.text = "Renovate  $%s" % price.to_notation()
+				btn.text = tr("Renovate  $%s") % price.to_notation()
 				btn.custom_minimum_size.y = 56
 				btn.add_theme_font_override("font", UI.font())
 				btn.add_theme_font_size_override("font_size", 20)
@@ -171,13 +171,13 @@ func _wing_card(vid: String, w: Dictionary) -> Control:
 
 func _bonus_text(vid: String, w: Dictionary) -> String:
 	var bits: Array[String] = []
-	bits.append("x%s income" % str(snappedf(float(w.get("income_mult", 1.0)), 0.01)))
+	bits.append(tr("x%s income") % str(snappedf(float(w.get("income_mult", 1.0)), 0.01)))
 	for dept in (w.get("staff_bonus", {}) as Dictionary).keys():
-		bits.append("+%d %s slots" % [int(w["staff_bonus"][dept]), DataLoader.venue_dept_name(vid, str(dept))])
+		bits.append(tr("+%d %s slots") % [int(w["staff_bonus"][dept]), tr(DataLoader.venue_dept_name(vid, str(dept)))])
 	var base_cap := int(DataLoader.get_venue(vid).get("track_level_cap", 100))
 	var cap := int(w["cap_bonus"]) if w.has("cap_bonus") else int(round(base_cap * float(w.get("cap_bonus_frac", 0.0))))
 	if cap > 0:
-		bits.append("+%d upgrade levels" % cap)
+		bits.append(tr("+%d upgrade levels") % cap)
 	return " · ".join(bits)
 
 func _card(emphasized: bool = false) -> PanelContainer:

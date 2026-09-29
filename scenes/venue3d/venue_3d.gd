@@ -405,6 +405,8 @@ func _assign_tip(delta: float) -> void:
 	for v in _vips:
 		if bool((v as Node).get_meta("visiting", false)):
 			tip_carrier = v
+			# Now and then the bubble is a wish, not a tip (VisitorSystem requests).
+			(v as Node).set_meta("vrequest", VisitorSystem.wants_request(randf()))
 			return
 
 ## Where a visitor's tip bubble floats (above the head, hats included).
@@ -857,7 +859,7 @@ func _reveal(f: Dictionary) -> void:
 	var rect: Rect2 = f["rect"]
 	var centre := Vector3(rect.get_center().x, float(f["y"]) + 1.5, rect.get_center().y)
 	burst(centre, 90)
-	pop_text(centre + Vector3(0, 1.0, 0), "%s OPEN!" % str(f["name"]).to_upper(), Color("#FFE680"), true)
+	pop_text(centre + Vector3(0, 1.0, 0), tr("%s OPEN!") % str(f["name"]).to_upper(), Color("#FFE680"), true)
 	_after(1.6, func() -> void:
 		set_exhibit_tier(exhibit_tier)
 		wing_revealed.emit(str(f["id"])))
@@ -943,7 +945,7 @@ func _apply_grandeur(tier: int, celebrate: bool) -> void:
 		var title := str((names[tier - 1] as Dictionary).get("name", "")) if tier - 1 < names.size() else ""
 		var at := Vector3(W * 0.5, 4.0, H + 1.0)
 		burst(at, 120)
-		pop_text(at + Vector3(0, 1.4, 0), "GRANDEUR: %s!" % title.to_upper(), Color("#FFD34D"), true)
+		pop_text(at + Vector3(0, 1.4, 0), tr("GRANDEUR: %s!") % title.to_upper(), Color("#FFD34D"), true)
 	if tier >= 5:
 		_fireworks()
 
@@ -1091,12 +1093,12 @@ func _refresh_cafe_sign() -> void:
 	if _cafe_sign == null:
 		return
 	if not CafeSystem.unlocked():
-		_cafe_sign.text = "Pop-Up Café\nRep %d" % int(CafeSystem.config().get("unlock_rep", 3))
+		_cafe_sign.text = tr("Pop-Up Café\nRep %d") % int(CafeSystem.config().get("unlock_rep", 3))
 		_cafe_sign.modulate = Color("#E6DCC4")
 		return
 	var w := CafeSystem.tick()
 	if bool(w.get("live", false)):
-		_cafe_sign.text = "Café OPEN\n%s" % CafeSystem.fmt_left(int(w["ends_at"]) - ClockGuard.now())
+		_cafe_sign.text = tr("Café OPEN\n%s") % CafeSystem.fmt_left(int(w["ends_at"]) - ClockGuard.now())
 		_cafe_sign.modulate = Color("#FFF3B0")
 	else:
 		_cafe_sign.text = "Café closed"

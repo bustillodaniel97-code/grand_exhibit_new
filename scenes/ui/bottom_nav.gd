@@ -124,9 +124,9 @@ func _on_unlock_signal(_a: Variant = null, _b: Variant = null) -> void:
 
 func refresh_locks() -> void:
 	_set_lock("museum", true, "")
-	_set_lock("managers", GameState.feature_unlocked("managers"), "Rep %d" % _unlock_req("managers_rep", 3))
-	_set_lock("expedition", GameState.feature_unlocked("dig"), "Rep %d" % _unlock_req("dig_rep", 2))
-	_set_lock("event", GameState.feature_unlocked("inspection"), "Day %d" % (_unlock_req("inspection_day", 1) + 1))
+	_set_lock("managers", GameState.feature_unlocked("managers"), tr("Rep %d") % _unlock_req("managers_rep", 3))
+	_set_lock("expedition", GameState.feature_unlocked("dig"), tr("Rep %d") % _unlock_req("dig_rep", 2))
+	_set_lock("event", GameState.feature_unlocked("inspection"), tr("Day %d") % (_unlock_req("inspection_day", 1) + 1))
 	_set_lock("store", true, "")
 
 func _unlock_req(key: String, fallback: int) -> int:
@@ -152,8 +152,8 @@ func _set_lock(id: String, unlocked: bool, req_text: String) -> void:
 			b.add_theme_color_override("icon_hover_color", Chrome.INK)
 	else:
 		b.icon = UI.icon_texture("lock", ICON - 2)
-		b.tooltip_text = "Unlocks at %s" % req_text
-		req.text = "Unlock: %s" % req_text
+		b.tooltip_text = tr("Unlocks at %s") % req_text
+		req.text = tr("Unlock: %s") % req_text
 		Chrome.button(b, false, 10)
 		for state in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
 			b.add_theme_color_override(state, Chrome.DIM)
@@ -167,17 +167,17 @@ func _on_nav_pressed(id: String) -> void:
 			if GameState.feature_unlocked("managers"):
 				_open(id, PATH_MANAGERS)
 			else:
-				EventBus.toast_requested.emit("Unlocks at Rep %d" % _unlock_req("managers_rep", 3))
+				EventBus.toast_requested.emit(tr("Unlocks at Rep %d") % _unlock_req("managers_rep", 3))
 		"expedition":
 			if GameState.feature_unlocked("dig"):
 				_open(id, PATH_DIG)
 			else:
-				EventBus.toast_requested.emit("Unlocks at Rep %d" % _unlock_req("dig_rep", 2))
+				EventBus.toast_requested.emit(tr("Unlocks at Rep %d") % _unlock_req("dig_rep", 2))
 		"event":
 			if GameState.feature_unlocked("inspection"):
 				_open(id, PATH_INSPECTION)
 			else:
-				EventBus.toast_requested.emit("Unlocks on Day %d" % (_unlock_req("inspection_day", 1) + 1))
+				EventBus.toast_requested.emit(tr("Unlocks on Day %d") % (_unlock_req("inspection_day", 1) + 1))
 		"store":
 			_open(id, PATH_STORE)
 

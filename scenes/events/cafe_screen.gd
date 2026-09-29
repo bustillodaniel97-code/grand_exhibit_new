@@ -129,28 +129,28 @@ func refresh() -> void:
 	if not CafeSystem.unlocked():
 		_time.text = ""
 	elif live:
-		_time.text = "Ends in " + CafeSystem.fmt_left(int(w["ends_at"]) - now)
+		_time.text = tr("Ends in %s") % CafeSystem.fmt_left(int(w["ends_at"]) - now)
 	else:
 		_time.text = "Closed"
-	_coins.text = BigNumber.from_float(CafeSystem.coins()).to_notation() + " coins"
-	_rate.text = "+%s / sec" % BigNumber.from_float(CafeSystem.rate()).to_notation() if live else ""
+	_coins.text = tr("%s coins") % BigNumber.from_float(CafeSystem.coins()).to_notation()
+	_rate.text = tr("+%s / sec") % BigNumber.from_float(CafeSystem.rate()).to_notation() if live else ""
 	_stars.text = "★ %d" % CafeSystem.stars()
 	_closed.visible = not live
 	var notice: Label = _closed.get_child(0)
 	if not CafeSystem.unlocked():
-		notice.text = "The Pop-Up Café opens at reputation %d." % int(CafeSystem.config().get("unlock_rep", 3))
+		notice.text = tr("The Pop-Up Café opens at reputation %d.") % int(CafeSystem.config().get("unlock_rep", 3))
 	else:
-		notice.text = "The café is closed.\nThe next pop-up opens in %s." % CafeSystem.fmt_left(int(w.get("next_at", now)) - now)
+		notice.text = tr("The café is closed.\nThe next pop-up opens in %s.") % CafeSystem.fmt_left(int(w.get("next_at", now)) - now)
 	for id in _rows.keys():
 		var row: Dictionary = _rows[id]
 		var lvl := CafeSystem.level(id)
 		(row["name"] as Label).text = CafeSystem.station_name(id)
-		(row["info"] as Label).text = ("Lv %d · +%s/s" % [lvl, BigNumber.from_float(CafeSystem.income(id)).to_notation()]) if lvl > 0 else "Closed · earns +%s/s" % BigNumber.from_float(CafeSystem.income(id, 1)).to_notation()
+		(row["info"] as Label).text = ("Lv %d · +%s/s" % [lvl, BigNumber.from_float(CafeSystem.income(id)).to_notation()]) if lvl > 0 else tr("Closed · earns +%s/s") % BigNumber.from_float(CafeSystem.income(id, 1)).to_notation()
 		var b: Button = row["button"]
 		if lvl >= CafeSystem.max_level():
 			b.text = "Max"
 		else:
-			b.text = ("Open\n" if lvl <= 0 else "Upgrade\n") + BigNumber.from_float(CafeSystem.cost(id)).to_notation()
+			b.text = (tr("Open\n%s") if lvl <= 0 else tr("Upgrade\n%s")) % BigNumber.from_float(CafeSystem.cost(id)).to_notation()
 		Chrome.button(b, live and CafeSystem.can_buy(id), 14)
 	for i in _chips.size():
 		_style_chip(_chips[i], i)
@@ -190,11 +190,11 @@ func _on_buy(id: String) -> void:
 		EventBus.toast_requested.emit("The café is closed right now")
 		return
 	if CafeSystem.level(id) >= CafeSystem.max_level():
-		EventBus.toast_requested.emit("%s is at max level" % CafeSystem.station_name(id))
+		EventBus.toast_requested.emit(tr("%s is at max level") % CafeSystem.station_name(id))
 		return
 	if not CafeSystem.buy(id):
 		var short := CafeSystem.cost(id) - CafeSystem.coins()
-		EventBus.toast_requested.emit("Need %s more café coins" % BigNumber.from_float(short).to_notation())
+		EventBus.toast_requested.emit(tr("Need %s more café coins") % BigNumber.from_float(short).to_notation())
 		return
 	UI.play_sfx(self, "buy")
 	if world != null:
@@ -228,7 +228,7 @@ func _reward_chip(index: int) -> Control:
 func _reward_text(r: Dictionary) -> String:
 	if r.has("cards_box"):
 		return str(DataLoader.get_lootbox(str(r["cards_box"])).get("name", "Manager case"))
-	return "%d gems" % int(r.get("gems", 0))
+	return tr("%d gems") % int(r.get("gems", 0))
 
 func _style_chip(chip: PanelContainer, index: int) -> void:
 	var ready := CafeSystem.claimable(index)
@@ -249,18 +249,18 @@ func _on_claim(index: int) -> void:
 		return
 	if not CafeSystem.claimable(index):
 		var need := int((CafeSystem.rewards()[index] as Dictionary).get("stars", 0)) - CafeSystem.stars()
-		EventBus.toast_requested.emit("%d more stars to go" % need)
+		EventBus.toast_requested.emit(tr("%d more stars to go") % need)
 		return
 	var got := CafeSystem.claim(index)
 	var chip: Control = _chips[index]
 	if int(got.get("gems", 0)) > 0:
 		Juice.coin_burst(chip.get_global_rect().get_center(), "gems", 7)
-		EventBus.toast_requested.emit("+%d gems" % int(got["gems"]))
+		EventBus.toast_requested.emit(tr("+%d gems") % int(got["gems"]))
 	else:
 		var n := 0
 		for v in (got.get("cards", {}) as Dictionary).values():
 			n += int(v)
-		EventBus.toast_requested.emit("+%d manager cards" % n)
+		EventBus.toast_requested.emit(tr("+%d manager cards") % n)
 	UI.play_sfx(self, "buy")
 	refresh()
 

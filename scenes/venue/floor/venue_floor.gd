@@ -1586,7 +1586,7 @@ func _refresh_station_ui() -> void:
 		up.focus_mode = Control.FOCUS_NONE
 		up.add_theme_font_size_override("font_size", 20)
 		_style_station_button(up,true)
-		up.tooltip_text = "Upgrade station %d" % (index + 1)
+		up.tooltip_text = tr("Upgrade station %d") % (index + 1)
 		up.pressed.connect(_on_station_upgrade.bind(index))
 		up.mouse_entered.connect(func() -> void:_station_ui.queue_redraw())
 		up.mouse_exited.connect(func() -> void:_station_ui.queue_redraw())
@@ -1620,8 +1620,8 @@ func _refresh_station_ui() -> void:
 		else:
 			chip.text = ("$" + pending.to_notation()) if not pending.is_zero() else str(i+1)
 			chip.modulate = Color.WHITE
-		chip.tooltip_text = "Station %d · Level %d\n%s" % [i+1,level,("Collect $"+pending.to_notation()) if not pending.is_zero() else "Open station upgrades"]
-		if cooldown>0:chip.tooltip_text="Station %d · Ready in %d:%02d"%[i+1,cooldown/60,cooldown%60]
+		chip.tooltip_text = tr("Station %d · Level %d\n%s") % [i+1,level,("Collect $"+pending.to_notation()) if not pending.is_zero() else "Open station upgrades"]
+		if cooldown>0:chip.tooltip_text=tr("Station %d · Ready in %d:%02d")%[i+1,cooldown/60,cooldown%60]
 		var up: Button = _station_upgrade[i]
 		var maxed: bool = level >= Economy.item_max_level()
 		up.text = ""

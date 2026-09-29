@@ -61,17 +61,17 @@ func _ready() -> void:
 	_refresh_tip()
 
 func _refresh_tip() -> void:
-	var line := "Tips collected: %d" % VisitorSystem.tips_collected()
+	var line := tr("Tips collected: %d") % VisitorSystem.tips_collected()
 	var any_vip := false
 	for t in VisitorSystem.unlocked():
 		any_vip = any_vip or bool(t.get("vip", false))
 	if not any_vip:
-		line = "VIPs start visiting at reputation %d." % _first_vip_rep()
+		line = tr("VIPs start visiting at reputation %d.") % _first_vip_rep()
 	elif VisitorSystem.tip_ready():
-		line += " · Next VIP brings a tip"
+		line += tr(" · Next VIP brings a tip")
 	else:
 		var s := VisitorSystem.seconds_to_tip()
-		line += " · Next tip in %d:%02d" % [s / 60, s % 60]
+		line += tr(" · Next tip in %d:%02d") % [s / 60, s % 60]
 	_tip_label.text = line
 
 func _first_vip_rep() -> int:
@@ -108,16 +108,16 @@ func _card(t: Dictionary, index: int) -> Control:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	col.add_child(title)
 	if vip:
-		var badge := _label("VIP · tips %ds of income" % int(t.get("tip_seconds", 0)), 13, Chrome.BRASS)
+		var badge := _label(tr("VIP · tips %ds of income") % int(t.get("tip_seconds", 0)), 13, Chrome.BRASS)
 		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		col.add_child(badge)
 	if open:
 		col.add_child(_label(str(t.get("desc", "")), 13, Chrome.DIM))
-		var seen := _label("Welcomed: %d" % VisitorSystem.met_count(id), 14, Chrome.TEAL)
+		var seen := _label(tr("Welcomed: %d") % VisitorSystem.met_count(id), 14, Chrome.TEAL)
 		seen.name = "Seen"
 		col.add_child(seen)
 	else:
-		var lock := _label("Reach reputation %d" % int(t.get("rep", 1)), 14, Chrome.DANGER)
+		var lock := _label(tr("Reach reputation %d") % int(t.get("rep", 1)), 14, Chrome.DANGER)
 		lock.name = "Locked"
 		lock.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		col.add_child(lock)

@@ -94,12 +94,12 @@ func _ready() -> void:
 	_energy_bar.add_theme_stylebox_override("background", UI.make_bar_bg())
 	_energy_bar.add_theme_stylebox_override("fill", UI.make_bar_fill("green"))
 	ebox.add_child(_energy_bar)
-	_ad_btn = _button("Ad +%d" % DigSystem.ad_refill_amount(), false)
+	_ad_btn = _button(tr("Ad +%d") % DigSystem.ad_refill_amount(), false)
 	_ad_btn.name = "AdRefill"
 	_ad_btn.custom_minimum_size = Vector2(100, 48)
 	_ad_btn.pressed.connect(_on_ad_refill)
 	energy_row.add_child(_ad_btn)
-	_gem_btn = _button("%d gems: Full" % int((DigSystem.config().get("energy", {}) as Dictionary).get("gem_refill_cost", 20)), false)
+	_gem_btn = _button(tr("%d gems: Full") % int((DigSystem.config().get("energy", {}) as Dictionary).get("gem_refill_cost", 20)), false)
 	_gem_btn.name = "GemRefill"
 	_gem_btn.custom_minimum_size = Vector2(130, 48)
 	_gem_btn.pressed.connect(_on_gem_refill)
@@ -212,11 +212,11 @@ func _refresh() -> void:
 	var site: Dictionary = DigSystem.current_site(venue_id)
 	var art := DigSystem.artifact(venue_id, str(site["artifact"]))
 	var col: Dictionary = DigSystem.collection(venue_id)
-	_subtitle.text = "Collection %d / %d · each find raises %s's income" % [col.size(), DigSystem.artifacts(venue_id).size(),
-		str(DataLoader.get_venue(venue_id).get("name", "the museum"))]
+	_subtitle.text = tr("Collection %d / %d · each find raises %s's income") % [col.size(), DigSystem.artifacts(venue_id).size(),
+		tr(str(DataLoader.get_venue(venue_id).get("name", "the museum")))]
 	var stars := DigLogic.quality(site)
-	var hidden := str(art.get("name", "Artifact")) if bool(site.get("done", false)) else "Buried " + str(art.get("rarity", "common"))
-	_progress_label.text = "%s · %d%% uncovered · quality %s" % [hidden, int(DigLogic.progress(site) * 100.0),
+	var hidden := tr(str(art.get("name", "Artifact"))) if bool(site.get("done", false)) else tr("Buried %s") % _rarity_text(str(art.get("rarity", "common")))
+	_progress_label.text = tr("%s · %d%% uncovered · quality %s") % [hidden, int(DigLogic.progress(site) * 100.0),
 		"★★★".substr(0, stars) + "☆☆☆".substr(0, 3 - stars)]
 	for c in _collection_row.get_children():
 		c.queue_free()
@@ -242,7 +242,7 @@ func _refresh_energy() -> void:
 	_energy_bar.max_value = mx
 	_energy_bar.value = mini(e, mx)
 	var nxt: int = DigSystem.next_energy_in()
-	_energy_label.text = "Energy %d / %d%s" % [e, mx, ("  ·  +1 in %d:%02d" % [nxt / 60, nxt % 60]) if nxt > 0 else ""]
+	_energy_label.text = tr("Energy %d / %d%s") % [e, mx, ("  ·  +1 in %d:%02d" % [nxt / 60, nxt % 60]) if nxt > 0 else ""]
 	_gem_btn.disabled = e >= mx
 
 func _on_ad_refill() -> void:
@@ -254,7 +254,7 @@ func _on_ad_result(placement_id: String, success: bool, ctx: Dictionary) -> void
 	if not AdService.consume_reward_token(str(ctx.get("reward_token", "")), AD_PLACEMENT):
 		return
 	DigSystem.add_energy(DigSystem.ad_refill_amount())
-	EventBus.toast_requested.emit("+%d energy" % DigSystem.ad_refill_amount())
+	EventBus.toast_requested.emit(tr("+%d energy") % DigSystem.ad_refill_amount())
 	_refresh_energy()
 
 func _on_gem_refill() -> void:
@@ -280,11 +280,11 @@ func _show_result(res: Dictionary) -> void:
 	box.add_child(UI.make_display_label("ARTIFACT RECOVERED!", 14, Chrome.BRASS))
 	box.add_child(UI.make_display_label(str(art.get("name", "")), 28, Chrome.INK))
 	var q := int(res.get("quality", 3))
-	box.add_child(_label("Quality " + "★★★".substr(0, q) + "☆☆☆".substr(0, 3 - q), 20, Color("#FFD34D")))
+	box.add_child(_label(tr("Quality %s") % ("★★★".substr(0, q) + "☆☆☆".substr(0, 3 - q)), 20, Color("#FFD34D")))
 	var bonus := float((DigSystem.config().get("rewards", {}) as Dictionary).get("income_bonus", 0.04)) * float(q) / 3.0
-	box.add_child(_label("Now on display: +%d%% museum income" % int(round(bonus * 100.0)), 17, Chrome.TEAL))
+	box.add_child(_label(tr("Now on display: +%d%% museum income") % int(round(bonus * 100.0)), 17, Chrome.TEAL))
 	if int(res.get("bonus_gems", 0)) > 0:
-		box.add_child(_label("+%d gems for a first find" % int(res["bonus_gems"]), 16, Chrome.INK))
+		box.add_child(_label(tr("+%d gems for a first find") % int(res["bonus_gems"]), 16, Chrome.INK))
 	if DigSystem.set_complete(venue_id):
 		box.add_child(_label("Collection complete! Set bonus active.", 16, Color("#FFD34D")))
 	var nxt := _button("Next dig site", true)
@@ -312,3 +312,11 @@ func _label(text: String, size_px: int, color: Color) -> Label:
 	l.add_theme_color_override("font_color", color)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	return l
+
+func _rarity_text(rarity: String) -> String:
+	match rarity:
+		"rare":
+			return tr("rare")
+		"epic":
+			return tr("epic")
+	return tr("common")
