@@ -58,6 +58,7 @@ func run() -> void:
    gs.set_item_level(current,dept,0,ec.item_max_level())
    view._open_item_sheet(dept,0)
   gs.cash=BigNumber.from_parts(1.0,200)
+  furnish(gs,dl,gs.current_venue)
   check(load("res://scripts/meta/prestige_system.gd").graduate(), current+" graduates with cached panels alive")
   var next: String = gs.current_venue
   for dept in DEPARTMENTS:
@@ -95,3 +96,15 @@ func run_processes() -> void:
  else:OS.set_environment("GRAND_EXHIBIT_TEST_RUN",previous_test)
  print("graduation reopen campaign: %d failure(s)" % failures)
  quit(0 if failures==0 else 1)
+
+## The graduation gate also asks for a furnished museum; stand up the richest
+## pieces through the real shop path until it is met.
+func furnish(gs: Node, dl: Node, vid: String) -> void:
+ var ps: GDScript = load("res://scripts/meta/prestige_system.gd")
+ var ds: GDScript = load("res://scripts/meta/decor_system.gd")
+ gs.gems = 1 << 30
+ var ids: Array = dl.decor.keys()
+ ids.sort_custom(func(a, b) -> bool: return ds.piece_decor_points(a) > ds.piece_decor_points(b))
+ for id in ids:
+  if ps.decor_met(vid):break
+  ds.buy_decor(vid, id)

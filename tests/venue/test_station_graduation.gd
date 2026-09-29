@@ -36,6 +36,7 @@ func run() -> void:
   view._poll_rates() # Include transitions from a full bank to a smaller one.
   var old_chips: Array = view._floor._station_chips.duplicate()
   gs.cash=BigNumber.from_parts(1.0,200)
+  furnish(gs,dl,gs.current_venue)
   check(ps.graduate(),"graduation succeeds from "+old)
   var next: String = gs.current_venue
   for chip in old_chips:check(not chip.is_inside_tree(),next+" retires the previous station controls before laying out the new bank")
@@ -59,3 +60,15 @@ func run() -> void:
  await process_frame
  print("station graduation: %d failure(s)" % failures)
  quit(0 if failures==0 else 1)
+
+## The graduation gate also asks for a furnished museum; stand up the richest
+## pieces through the real shop path until it is met.
+func furnish(gs: Node, dl: Node, vid: String) -> void:
+ var ps: GDScript = load("res://scripts/meta/prestige_system.gd")
+ var ds: GDScript = load("res://scripts/meta/decor_system.gd")
+ gs.gems = 1 << 30
+ var ids: Array = dl.decor.keys()
+ ids.sort_custom(func(a, b) -> bool: return ds.piece_decor_points(a) > ds.piece_decor_points(b))
+ for id in ids:
+  if ps.decor_met(vid):break
+  ds.buy_decor(vid, id)
