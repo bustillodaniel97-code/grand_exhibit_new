@@ -29,6 +29,18 @@ WALL_T = 0.16
 H_BACK, H_SIDE, H_INNER, H_FRONT = 2.4, 1.5, 1.05, 0.34
 STOREY = 2.8  # height between theme levels (rooms with "level": 1, 2, 3)
 
+# Open plan (owner, 2026-09-30): each storey is one grand, open concourse, a
+# shopping mall retrofitted as a museum. Partition walls between rooms are not
+# built; a colonnade stands where they ran, the floor is one continuous stone
+# concourse with each department as an inset zone in its own finish, and every
+# open edge (the street front, a mezzanine's lip) is a glass balustrade. The
+# authored walls stay in data/venues.json: rooms, doors and the 2D floor still
+# read them.
+OPEN_PLAN = True
+COLUMN_EVERY = 3.5   # grid units between columns along a removed wall
+COLUMN_H = 2.2
+GLASS = "#CFE6EE"
+
 STYLES = {
     "whispering_pines": {
         "floors": {
@@ -122,6 +134,13 @@ def toyify(hexc, sat=1.9, val=1.12):
     vv = min(0.97, vv * val + 0.05)
     r, g, b = colorsys.hsv_to_rgb(hh, ss, vv)
     return "#%02X%02X%02X" % (round(r * 255), round(g * 255), round(b * 255))
+
+
+def mix(a, b, t):
+    """Blend two hex colours: t=0 is a, t=1 is b."""
+    pa = [int(a.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4)]
+    pb = [int(b.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4)]
+    return "#%02X%02X%02X" % tuple(round(x + (y - x) * t) for x, y in zip(pa, pb))
 
 
 def auto_style(venue, theme):
@@ -378,28 +397,83 @@ class Builder:
             self.add("building", box((3.0 - i * 0.4, 0.35, PLINTH_TOP - i * 0.05), g2b(dx, H + inset + 0.17 + (1 - i) * 0.3,
                                      (PLINTH_TOP - i * 0.05) / 2), mat(self.s["trim"], 0.45), bev=0.03))
 
-    def floors(self):
+    def concourse_tones(self):
+        """Polished stone for the whole concourse: two close tones of a warm
+        stone, nudged toward the museum's own exterior."""
+        base = mix("#E2D7C5", self.s["exterior"], 0.2)
+        return base, shade(base, 0.93)
+
+    def concourse(self):
+        """One continuous floor under every room of a storey, in 2x2 slabs on a
+        grid shared by all rooms so neighbouring rooms join without a seam."""
+        a, b = self.concourse_tones()
         for room in self.rooms:
             x, y, w, h = room["rect"]
             lv = int(room.get("level", 0))
             g = self.level_group(lv)
-            style, a, b = self.s["floors"].get(room["id"], ("checker", "#FFF1D6", "#E6D5B8"))
             z = self.base(lv) - 0.025
-            if style == "checker":
-                for gx in range(int(x), int(math.ceil(x + w))):
-                    for gy in range(int(y), int(math.ceil(y + h))):
-                        cw, ch = min(1.0, x + w - gx), min(1.0, y + h - gy)
-                        self.add(g, box((cw, ch, 0.05), g2b(gx + cw / 2, gy + ch / 2, z), mat(a if (gx + gy) % 2 else b, 0.25),
-                                        bev=0.015, seg=1))
-            elif style == "planks":
-                n = max(1, int(round(h / 0.5)))
-                ph = h / n
-                for i in range(n):
-                    self.add(g, box((w, ph, 0.05), g2b(x + w / 2, y + i * ph + ph / 2, z),
-                                    mat(a if i % 2 else b, 0.3), bev=0.012, seg=1))
-            else:  # carpet with a border
-                self.add(g, box((w, h, 0.05), g2b(x + w / 2, y + h / 2, z), mat(b, 0.7)))
-                self.add(g, box((max(0.2, w - 0.5), max(0.2, h - 0.5), 0.05), g2b(x + w / 2, y + h / 2, z + 0.01), mat(a, 0.8)))
+            gx = math.floor(x / 2) * 2
+            while gx < x + w - 1e-6:
+                gy = math.floor(y / 2) * 2
+                while gy < y + h - 1e-6:
+                    x0, x1 = max(x, gx), min(x + w, gx + 2)
+                    y0, y1 = max(y, gy), min(y + h, gy + 2)
+                    if x1 - x0 > 0.01 and y1 - y0 > 0.01:
+                        tone = a if (int(gx / 2) + int(gy / 2)) % 2 else b
+                        self.add(g, box((x1 - x0, y1 - y0, 0.05), g2b((x0 + x1) / 2, (y0 + y1) / 2, z),
+                                        mat(tone, 0.9), bev=0.006, seg=1))
+                    gy += 2
+                gx += 2
+
+    def zone_floor(self, room, inset=0.4):
+        """A department's own finish, inset into the concourse with a trim border:
+        a store front on the mall floor rather than a walled room."""
+        x, y, w, h = room["rect"]
+        lv = int(room.get("level", 0))
+        g = self.level_group(lv)
+        z = self.base(lv) - 0.025 + 0.012
+        x, y, w, h = x + inset, y + inset, w - 2 * inset, h - 2 * inset
+        if w < 0.6 or h < 0.6:
+            return
+        style, a, b = self.s["floors"].get(room["id"], ("checker", "#FFF1D6", "#E6D5B8"))
+        self.add(g, box((w + 0.16, h + 0.16, 0.05), g2b(x + w / 2, y + h / 2, z - 0.004), mat(shade(self.s["trim"], 0.8), 0.6)))
+        self.pattern(g, style, a, b, x, y, w, h, z + 0.004)
+
+    def pattern(self, g, style, a, b, x, y, w, h, z):
+        if style == "checker":
+            gx = x
+            i = 0
+            while gx < x + w - 1e-6:
+                cw = min(1.0, x + w - gx)
+                gy, j = y, 0
+                while gy < y + h - 1e-6:
+                    ch = min(1.0, y + h - gy)
+                    self.add(g, box((cw, ch, 0.05), g2b(gx + cw / 2, gy + ch / 2, z), mat(a if (i + j) % 2 else b, 0.25),
+                                    bev=0.015, seg=1))
+                    gy += 1.0
+                    j += 1
+                gx += 1.0
+                i += 1
+        elif style == "planks":
+            n = max(1, int(round(h / 0.5)))
+            ph = h / n
+            for i in range(n):
+                self.add(g, box((w, ph, 0.05), g2b(x + w / 2, y + i * ph + ph / 2, z), mat(a if i % 2 else b, 0.3), bev=0.012, seg=1))
+        else:  # carpet with a border
+            self.add(g, box((w, h, 0.05), g2b(x + w / 2, y + h / 2, z), mat(b, 0.7)))
+            self.add(g, box((max(0.2, w - 0.5), max(0.2, h - 0.5), 0.05), g2b(x + w / 2, y + h / 2, z + 0.01), mat(a, 0.8)))
+
+    def floors(self):
+        if OPEN_PLAN:
+            self.concourse()
+            for room in self.rooms:
+                if room.get("dept"):
+                    self.zone_floor(room)
+        for room in ([] if OPEN_PLAN else self.rooms):
+            x, y, w, h = room["rect"]
+            lv = int(room.get("level", 0))
+            style, a, b = self.s["floors"].get(room["id"], ("checker", "#FFF1D6", "#E6D5B8"))
+            self.pattern(self.level_group(lv), style, a, b, x, y, w, h, self.base(lv) - 0.025)
         dress = self.t.get("dressing", {})
         for rug in dress.get("floor", []) + dress.get("carpet", []):
             if "radius" in rug:  # round inlay (orbital rings on the floor)
@@ -439,12 +513,19 @@ class Builder:
 
     def walls(self):
         ext, trim = self.s["exterior"], self.s["trim"]
+        self.open_segs = []
         for seg in self.t.get("walls", []):
             (x, y), L = seg["at"], seg["len"]
             lv = int(seg.get("level", 0))
             g = self.level_group(lv)
             z0 = self.base(lv)
             kind, out = self.wall_kind(seg)
+            if OPEN_PLAN and kind == "inner":
+                self.open_segs.append(seg)
+                continue
+            if OPEN_PLAN and kind == "front":
+                self.glass_rail(g, seg["axis"] == "x", x, y, L, z0)
+                continue
             h = {"back": H_BACK, "side": H_SIDE, "inner": H_INNER, "front": H_FRONT}[kind]
             col = self.wall_colour(seg.get("col", "@shell"))
             along_x = seg["axis"] == "x"
@@ -464,6 +545,118 @@ class Builder:
             if kind != "front":
                 base = (size[0] + 0.03, size[1] + 0.03, 0.12)
                 self.add(g, box(base, g2b(cx, cy, z0 + 0.06), mat(shade(col, 0.7), 0.5), bev=0.02))
+
+    def glass_rail(self, g, along_x, x, y, L, z0, height=0.55):
+        """Glass balustrade: a stone curb, clear panels between slim posts and a
+        handrail, so an open edge reads as a mall's mezzanine lip."""
+        trim = self.s["trim"]
+        rail = shade(self.s["exterior"], 0.62)
+        cx, cy = (x + L / 2, y) if along_x else (x, y + L / 2)
+        def span(length, thick, zc, hh, m):
+            size = (length, thick, hh) if along_x else (thick, length, hh)
+            self.add(g, box(size, g2b(cx, cy, zc), m, bev=0.01))
+        span(L + 0.06, WALL_T * 0.9, z0 + 0.04, 0.08, mat(trim, 0.5))
+        span(L, 0.03, z0 + 0.08 + (height - 0.12) / 2, height - 0.12, mat(GLASS, 0.1, alpha=0.3))
+        span(L + 0.04, 0.07, z0 + height, 0.05, mat(rail, 0.5))
+        n = max(1, int(round(L / 1.2)))
+        for i in range(n + 1):
+            t = x + L * i / n if along_x else y + L * i / n
+            px, py = (t, y) if along_x else (x, t)
+            self.add(g, box((0.05, 0.05, height), g2b(px, py, z0 + height / 2), mat(rail, 0.5)))
+
+    def colonnade(self):
+        """Columns where the partitions ran: at every wall end (flanking what
+        were doorways) and every COLUMN_EVERY along it, never against the outer
+        shell and never twice in the same place."""
+        if not getattr(self, "open_segs", None):
+            return
+        ext, trim = self.s["exterior"], self.s["trim"]
+        shaft = mix(ext, "#FFFFFF", 0.35)
+        placed = []
+        for seg in self.open_segs:
+            (x, y), L = seg["at"], seg["len"]
+            lv = int(seg.get("level", 0))
+            lvq = lv if self.levels != [0] else None
+            along_x = seg["axis"] == "x"
+            n = max(1, int(math.ceil(L / COLUMN_EVERY)))
+            for i in range(n + 1):
+                t = L * i / n
+                px, py = (x + t, y) if along_x else (x, y + t)
+                if any(not self.inside(px + dx, py + dy, lvq) for dx in (-0.35, 0.35) for dy in (-0.35, 0.35)):
+                    continue  # on the outer shell: the wall is the support there
+                if any(abs(px - qx) < 1.1 and abs(py - qy) < 1.1 for qx, qy in placed):
+                    continue
+                if self.blocked(px, py):
+                    continue
+                placed.append((px, py))
+                g = self.level_group(lv)
+                z0 = self.base(lv)
+                self.add(g, box((0.44, 0.44, 0.16), g2b(px, py, z0 + 0.08), mat(trim, 0.5), bev=0.03))
+                self.add(g, cyl(0.16, COLUMN_H - 0.28, g2b(px, py, z0 + 0.16 + (COLUMN_H - 0.28) / 2), mat(shaft, 0.6),
+                                r2=0.14, bev=0.0, verts=20))
+                self.add(g, box((0.42, 0.42, 0.12), g2b(px, py, z0 + COLUMN_H - 0.06), mat(trim, 0.5), bev=0.03))
+
+    def blocked(self, px, py, pad=0.3):
+        """A column would stand in an exhibit, prop or station footprint."""
+        for spec in self.t.get("props", []) + self.t.get("exhibits", []):
+            at = spec.get("at")
+            if not at or spec.get("layer") == "wall":
+                continue
+            if "size" in spec:
+                sx, sy = spec["size"]
+            elif "len" in spec:
+                L = float(spec["len"])
+                sx, sy = (L, 0.3) if spec.get("axis", "x") == "x" else (0.3, L)
+            else:
+                sx, sy = 0.6, 0.6
+            p = 0.9 if spec.get("kind") == "vault_door" else pad
+            if at[0] - p <= px <= at[0] + sx + p and at[1] - p <= py <= at[1] + sy + p:
+                return True
+        return False
+
+    def feature_walls(self):
+        """A wall-hung exhibit whose wall is gone keeps a freestanding feature
+        wall of its own, like a gallery panel standing on the concourse; a vault
+        door keeps a portal (two piers and a lintel) to hang in."""
+        items = [s for s in self.t.get("exhibits", []) if s.get("layer") == "wall" or s.get("kind") in ("mural", "painting")]
+        items += [s for s in self.t.get("props", []) if s.get("kind") == "vault_door"]
+        for spec in items:
+            ax, ay = spec["at"]
+            L = float(spec.get("len", spec.get("size", [2.2, 0.1])[0]))
+            along_x = spec.get("axis", "x") == "x"
+            seg = self.open_seg_at(ax, ay, along_x)
+            if seg is None:
+                continue
+            lv = int(seg.get("level", 0))
+            g = self.level_group(lv)
+            z0 = self.base(lv)
+            col = mat(self.wall_colour(seg.get("col", "@shell")), 0.6)
+            trim = mat(self.s["trim"], 0.5)
+            (x, y) = seg["at"]
+            def piece(t0, t1, zb, zt, m):
+                c = (t0 + t1) / 2
+                size = (t1 - t0, WALL_T, zt - zb) if along_x else (WALL_T, t1 - t0, zt - zb)
+                loc = g2b(c, y, z0 + (zb + zt) / 2) if along_x else g2b(x, c, z0 + (zb + zt) / 2)
+                self.add(g, box(size, loc, m, bev=0.03))
+            t0 = ax if along_x else ay
+            if spec.get("kind") == "vault_door":
+                piece(t0 - 0.6, t0, 0.0, 1.7, col)
+                piece(t0 + L, t0 + L + 0.6, 0.0, 1.7, col)
+                piece(t0 - 0.63, t0 + L + 0.63, 1.45, 1.78, trim)
+            else:
+                piece(t0 - 0.25, t0 + L + 0.25, 0.0, 1.7, col)
+                piece(t0 - 0.28, t0 + L + 0.28, 1.7, 1.78, trim)
+
+    def open_seg_at(self, px, py, along_x):
+        for seg in getattr(self, "open_segs", []):
+            if (seg["axis"] == "x") != along_x:
+                continue
+            (x, y), sl = seg["at"], seg["len"]
+            if along_x and abs(py - y) < 0.3 and x - 0.3 <= px <= x + sl + 0.3:
+                return seg
+            if not along_x and abs(px - x) < 0.3 and y - 0.3 <= py <= y + sl + 0.3:
+                return seg
+        return None
 
     def wall_dressing(self):
         for d in self.t.get("dressing", {}).get("wall", []):
@@ -830,6 +1023,8 @@ class Builder:
         self.plinth()
         self.floors()
         self.walls()
+        self.colonnade()
+        self.feature_walls()
         self.wall_dressing()
         self.upper_floors()
         self.podiums()

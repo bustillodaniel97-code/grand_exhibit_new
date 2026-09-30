@@ -42,7 +42,7 @@ Sources on IBT: `docs/research/IBT_LEVEL_STRUCTURE.md`, `docs/research/IBT_FLOOR
 
 | IBT | Grand Exhibit | Status |
 |---|---|---|
-| Bright 3D-look buildings | Real-time 3D toy-diorama museums (Link's Awakening-style glossy toys), tilt-shift, saturated palettes per museum | ✅ |
+| Bright 3D-look buildings | Real-time 3D toy-diorama museums with a matte, softly lit look, tilt-shift, a palette per museum. Interiors are open plan like a mall converted into a museum: one stone concourse, department zones with shop-style signs, colonnades, glass mezzanine rails | ✅ |
 | Big showpiece items | Hero exhibits (T. rex, mammoth, blue whale, sarcophagus, reef tanks, orreries…) grow and gain light beams, gold rings and sparkles as the gallery levels | ✅ |
 | Light, clean UI | 2026 chrome: white cards, hairlines, soft shadows, pill buttons, Inter type, tab bar with notification dots, on every screen including the Store (IBT's chrome is chunkier; ours is more current) | ✅ |
 | Onboarding with a pointing hand | First-run walkthrough: collect → upgrade → open a hall → floors → Dig Site; replayable from Settings | ✅ |

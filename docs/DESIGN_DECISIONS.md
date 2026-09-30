@@ -165,3 +165,24 @@ glossy, and pointed at a matte, softly lit low-poly diorama as the target.
   saturation 0.78) and flattens every material to matte at load time. The
   Blender kit's default roughness is now 0.88 to match.
 
+## 2026-09-30: open-plan museums ("a mall retrofitted as a museum")
+
+The owner liked the new art but not the layout: every museum was a set of
+walled rooms. The brief: open yet grand, the vibe of an open mall converted
+into a museum.
+
+- **No partitions.** Each storey is one concourse of large warm-stone slabs.
+  Walls between rooms on the same level are not built; the outer shell stays.
+- **Departments are zones,** each an inset floor in its own finish with a
+  trim border, like a store front on the mall floor, and a sign in the
+  department's colour with its (translated) name, on the back wall or hung
+  over the zone.
+- **Grandeur from structure:** a colonnade stands where the walls ran
+  (columns at each old wall end, flanking what were doorways, and every
+  3.5 grid units), and every open edge, the street front and the lip of each
+  raised storey, is a glass balustrade, so multi-storey museums read as
+  mezzanines round a mall atrium, joined by the existing glass lifts.
+- Room data is unchanged: the rules (queues, stations, exhibit views, the
+  store room) still read the same rectangles, and navigation is baked from
+  the shell, so visitors simply walk the open floor.
+

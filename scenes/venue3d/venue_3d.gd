@@ -18,6 +18,8 @@ const WingSystem := preload("res://scripts/meta/wing_system.gd")
 const VisitorSystem := preload("res://scripts/meta/visitor_system.gd")
 const CafeSystem := preload("res://scripts/events/cafe_system.gd")
 const ToyLook := preload("res://scripts/render/toy_look.gd")
+const Chrome := preload("res://scripts/ui/museum_chrome.gd")
+const SIGN_FONT := preload("res://assets/fonts/Inter-SemiBold.ttf")
 
 ## A visitor paid at ticket window `index` (world position of the counter top).
 signal ticket_sold(index: int, at: Vector3)
@@ -131,6 +133,7 @@ func _ready() -> void:
 	_place_cafe_stand()
 	_read_floors()
 	_place_all()
+	_zone_signs()
 	_place_floors()
 	_staff()
 	_traffic()
@@ -254,6 +257,101 @@ func _place_all() -> void:
 			_windows.append({"spot": Vector3(spot.x, FLOOR_TOP, spot.y), "look": Vector3(at.x, 0.5, at.y),
 				"clerk": Vector3(at.x - f.x * 0.55, FLOOR_TOP, at.y - f.y * 0.55), "front": f,
 				"top": Vector3(at.x, FLOOR_TOP + 0.75, at.y), "nodes": [counter]})
+
+## Mall-style department signs. The open plan has no walls to say where one
+## department ends and the next begins; the inset zone floors and these signs
+## do. Each is a slim panel in the department's colour with its name, fixed
+## to the back wall when the zone meets it and otherwise hung over the back of
+## the zone. Upper-storey signs belong to their floor, so they stay grey and
+## pop in with it.
+const SIGN_PX := 0.0085
+const SIGN_FONT_SIZE := 44
+const SIGN_H := 0.56
+
+func _zone_signs() -> void:
+	var pal: Dictionary = theme.get("palette", {})
+	for room in rooms:
+		var dept := str(room.get("dept", ""))
+		if dept == "":
+			continue
+		var r: Array = room["rect"]
+		var lv := int(room.get("level", 0))
+		var cx := float(r[0]) + float(r[2]) * 0.5
+		var back := float(r[1])
+		var on_wall := not _inside_level(Vector2(cx, back - 0.3), lv)
+		var col_v: Variant = pal.get("room." + dept, "")
+		var col: Color = Color(str(col_v)) if str(col_v).begins_with("#") else UI_DEPT.get(dept, Color("#6A7F86"))
+		var sign := _dept_sign(str(room.get("name", dept)), col.darkened(0.22), float(r[2]) * 0.82, not on_wall)
+		sign.name = "DeptSign_%s" % dept
+		sign.position = Vector3(cx, _level_y(lv) + 1.95, back + (0.16 if on_wall else 0.45))
+		add_child(sign)
+		var fl := _floor_for_level(lv)
+		if not fl.is_empty():
+			(fl["pieces"] as Array).append(sign)
+
+const UI_DEPT := {"archive": Color("#4A8CC4"), "gallery": Color("#C9A04A"),
+	"ticket": Color("#D9784A"), "promotions": Color("#8C6BCB")}
+
+func _inside_level(p: Vector2, lv: int) -> bool:
+	for r in rooms:
+		if int(r.get("level", 0)) != lv:
+			continue
+		var rect: Array = r["rect"]
+		if Rect2(float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3])).has_point(p):
+			return true
+	return false
+
+## Panel plus lettering, sized for the longest translation of the name so a
+## live language switch never overflows it.
+func _dept_sign(text: String, fill: Color, max_w: float, hanging: bool) -> Node3D:
+	var root := Node3D.new()
+	var widest := SIGN_FONT.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, SIGN_FONT_SIZE).x
+	for loc in TranslationServer.get_loaded_locales():
+		var t := TranslationServer.get_translation_object(loc)
+		if t != null:
+			var msg := str(t.get_message(text))
+			if msg != "":
+				widest = maxf(widest, SIGN_FONT.get_string_size(msg, HORIZONTAL_ALIGNMENT_LEFT, -1, SIGN_FONT_SIZE).x)
+	var px := SIGN_PX
+	var w := widest * px + 0.44
+	if w > max_w:
+		px = maxf(0.0035, (max_w - 0.44) / widest)
+		w = max_w
+	var panel := MeshInstance3D.new()
+	var bm := BoxMesh.new()
+	bm.size = Vector3(w, SIGN_H, 0.06)
+	var m := StandardMaterial3D.new()
+	m.albedo_color = fill
+	bm.material = m
+	panel.mesh = bm
+	panel.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(panel)
+	var label := Label3D.new()
+	label.font = SIGN_FONT
+	label.font_size = SIGN_FONT_SIZE
+	label.pixel_size = px
+	label.outline_size = 0
+	label.modulate = Chrome.on_color(fill)
+	label.text = text
+	label.position = Vector3(0, 0, 0.034)
+	label.double_sided = false
+	root.add_child(label)
+	if hanging:
+		var rod_m := StandardMaterial3D.new()
+		rod_m.albedo_color = Color("#5B6468")
+		for sx in [-0.36, 0.36]:
+			var rod := MeshInstance3D.new()
+			var cm := CylinderMesh.new()
+			cm.top_radius = 0.012
+			cm.bottom_radius = 0.012
+			cm.height = 0.5
+			cm.material = rod_m
+			rod.mesh = cm
+			rod.position = Vector3(w * sx, SIGN_H * 0.5 + 0.25, 0)
+			root.add_child(rod)
+	# Tipped a little toward the camera so the lettering reads from above.
+	root.rotation.x = deg_to_rad(-18.0)
+	return root
 
 func _place(kind: String, spec: Dictionary, base := FLOOR_TOP, parent: Node = null) -> Node3D:
 	var node := _kit(kind)

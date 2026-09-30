@@ -5665,37 +5665,37 @@ msgstr "Verbessern"
 msgid "Limits museum income"
 msgstr "Begrenzt die Museumseinnahmen"
 
-#: scenes/venue3d/venue_3d.gd:1093
+#: scenes/venue3d/venue_3d.gd:1043
+#, c-format
+msgid "GRANDEUR: %s!"
+msgstr "PRACHT: %s!"
+
+#: scenes/venue3d/venue_3d.gd:1191
 #, c-format
 msgid "Pop-Up Café\nRep %d"
 msgstr "Pop-up-Café\nRuf %d"
 
-#: scenes/venue3d/venue_3d.gd:1098
+#: scenes/venue3d/venue_3d.gd:1196
 #, c-format
 msgid "Café OPEN\n%s"
 msgstr "Café OFFEN\n%s"
 
-#: scenes/venue3d/venue_3d.gd:1101
+#: scenes/venue3d/venue_3d.gd:1199
 msgid "Café closed"
 msgstr "Café geschlossen"
 
-#: scenes/venue3d/venue_3d.gd:1191
+#: scenes/venue3d/venue_3d.gd:1289
 msgid "EXHIBIT UPGRADED!"
 msgstr "EXPONAT VERBESSERT!"
 
-#: scenes/venue3d/venue_3d.gd:798
+#: scenes/venue3d/venue_3d.gd:896
 msgid "Tap to renovate!"
 msgstr "Tippen zum Renovieren!"
 
-#: scenes/venue3d/venue_3d.gd:863
+#: scenes/venue3d/venue_3d.gd:961
 #, c-format
 msgid "%s OPEN!"
 msgstr "%s GEÖFFNET!"
-
-#: scenes/venue3d/venue_3d.gd:945
-#, c-format
-msgid "GRANDEUR: %s!"
-msgstr "PRACHT: %s!"
 
 #: scenes/venue3d/venue_floor_3d.gd:295
 #, c-format
