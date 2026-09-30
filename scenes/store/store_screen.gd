@@ -43,11 +43,11 @@ const BG := Chrome.BG
 const INK := Chrome.INK
 const DIM := Chrome.DIM
 const PANEL := Chrome.PANEL
-const ACCENT := Color("f0772e")
-const BRASS := Color("e3a21a")
+const ACCENT := Chrome.ACTION   # the one purchase colour
+const BRASS := UI.BRASS
 const SAGE := Chrome.ACTION
-const SLATE := Color("2f8fd8")
-const PLUM := Color("9a5ad6")
+const SLATE := UI.SLATE
+const PLUM := UI.PLUM
 const CATEGORIES := {"offers":"Offers", "rewards":"Rewards", "gems":"Gems", "resources":"Resources", "passes":"Passes"}
 
 ## Design-pixel targets. Physical phone sizing still requires device validation.
@@ -183,7 +183,7 @@ func _build_shop_header() -> Control:
 	wallet.add_theme_constant_override("separation", 8)
 	header.add_child(wallet)
 	for currency in ["cash", "gems", "insight"]:
-		var chip := UI.make_dark_currency_chip(currency, "0", INK, 20)
+		var chip := UI.make_dark_currency_chip(currency, "0", UI.BRASS if currency == "insight" else Color.WHITE, 20)
 		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		chip.add_theme_stylebox_override("panel", _surface(Chrome.RAISED, Chrome.BORDER, 10))
 		wallet.add_child(chip)
@@ -852,7 +852,7 @@ func _grid(columns: int) -> GridContainer:
 	grid.add_theme_constant_override("v_separation", 10)
 	return grid
 
-## Card surface: a lifted cream tile with a saturated rim in the product's own
+## Card surface: a white tile with a hairline rim tinted by the product's own
 ## colour, so a shelf reads as a set of different things rather than one repeated
 ## thing.
 func _card(fill: Color, border: Color = Color(0, 0, 0, 0)) -> PanelContainer:
@@ -864,11 +864,12 @@ func _surface(fill: Color, border: Color, radius: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill
 	style.border_color = border
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(radius)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(Chrome.radius(radius))
+	style.corner_detail = 10
 	style.set_content_margin_all(14)
-	style.shadow_color = Color(0,0,0,.17)
-	style.shadow_size = 4
+	style.shadow_color = Chrome.SHADOW
+	style.shadow_size = 10
 	style.shadow_offset = Vector2(0,3)
 	return style
 
@@ -878,12 +879,21 @@ func _button(text: String, color: Color) -> Button:
 	return button
 
 func _skin_button(button: Button, color: Color) -> void:
+	var light := color.get_luminance() > 0.8
 	for state in ["normal", "hover", "pressed", "disabled"]:
-		var fill := color.darkened(.04) if state == "hover" else (color.darkened(.13) if state == "pressed" else color)
-		if state == "disabled": fill = PANEL
-		var style := _surface(fill, fill.lightened(.14), 10)
+		var fill := color.lightened(.06) if state == "hover" else (color.darkened(.1) if state == "pressed" else color)
+		if state == "hover" and light: fill = Chrome.RAISED
+		if state == "disabled": fill = UI.DEAD
+		# White pills keep a hairline; filled ones glow softly in their own colour.
+		var style := _surface(fill, Chrome.BORDER if light else Color(0, 0, 0, 0), 14)
 		style.content_margin_top = 8
 		style.content_margin_bottom = 8
+		if not light and state != "disabled":
+			style.set_border_width_all(0)
+			style.shadow_color = Color(color.darkened(.2), .26)
+			style.shadow_size = 8
+		if state in ["pressed", "disabled"]:
+			style.shadow_size = 0
 		button.add_theme_stylebox_override(state, style)
 	button.add_theme_constant_override("outline_size", 0)
 	var foreground := Art.foreground_for(color)
@@ -892,8 +902,9 @@ func _skin_button(button: Button, color: Color) -> void:
 	button.add_theme_color_override("font_pressed_color", foreground)
 	button.add_theme_color_override("font_disabled_color", DIM)
 	var focus := StyleBoxFlat.new()
-	focus.bg_color = Color.TRANSPARENT
-	focus.border_color = INK
+	focus.draw_center = false
+	focus.border_color = Color(Chrome.ACTION, .5)
 	focus.set_border_width_all(2)
-	focus.set_corner_radius_all(10)
+	focus.set_expand_margin_all(2)
+	focus.set_corner_radius_all(Chrome.radius(14) + 2)
 	button.add_theme_stylebox_override("focus", focus)

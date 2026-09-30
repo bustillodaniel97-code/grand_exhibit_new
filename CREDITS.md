@@ -30,9 +30,13 @@ License audit target: 100% CC0 / OFL / proprietary-original. No NC, no ND.
 at import time.)
 
 ## Fonts
+- **Inter** (SemiBold, Medium) — Copyright 2016 The Inter Project Authors
+  (github.com/rsms/inter), SIL Open Font License 1.1. Full licence text in
+  `assets/fonts/Inter-OFL.txt`. The interface face; the shipped files are
+  subsets of Inter 4.1 (Latin, Latin Extended, punctuation, arrows, symbols).
 - **Quicksand** (Bold, Medium) — Copyright 2011 The Quicksand Project Authors,
   SIL Open Font License 1.1. Full licence text in `assets/fonts/Quicksand-OFL.txt`.
-  Replaces Kenney Future, which was removed (its "X" glyph renders as "H").
+  Now used only for lettering inside the 3D dioramas (signs, pop-ups).
 
 ## Art
 All in-game art is procedural, drawn in GDScript, and is original work we dedicate

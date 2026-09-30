@@ -10,6 +10,7 @@ extends Node3D
 const CafeSystem := preload("res://scripts/events/cafe_system.gd")
 const Npc := preload("res://scenes/venue3d/toy_npc.gd")
 const Venue3D := preload("res://scenes/venue3d/venue_3d.gd")
+const ToyLook := preload("res://scripts/render/toy_look.gd")
 const POP_FONT := preload("res://assets/fonts/Quicksand-Bold.ttf")
 const DUST := "res://art3d/props/dust_sheet.glb"
 const FLOOR_Y := 0.36
@@ -252,30 +253,11 @@ func _sign(text: String, palette: Dictionary) -> void:
 	add_child(l)
 
 func _environment() -> void:
-	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color("#bfe3ff")
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("#cfe0ff")
-	env.ambient_light_energy = 0.3
-	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
-	env.glow_enabled = true
-	env.glow_intensity = 0.2
-	env.glow_hdr_threshold = 1.4
-	env.adjustment_enabled = true
-	env.adjustment_saturation = 1.2
-	env.adjustment_contrast = 1.08
+	ToyLook.watch(self)
 	var we := WorldEnvironment.new()
-	we.environment = env
+	we.environment = ToyLook.environment()
 	add_child(we)
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-55.0, -30.0, 0.0)
-	sun.light_energy = 0.65
-	sun.light_color = Color("#fff3df")
-	sun.shadow_enabled = true
-	sun.shadow_blur = 1.4
-	sun.directional_shadow_max_distance = 40.0
-	add_child(sun)
+	add_child(ToyLook.sun(Vector3(-55.0, -30.0, 0.0), 40.0))
 	# A lawn around the terrace so it doesn't float in the sky.
 	var lawn := MeshInstance3D.new()
 	var pm := PlaneMesh.new()

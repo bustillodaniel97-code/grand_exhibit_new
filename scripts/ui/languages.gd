@@ -11,8 +11,9 @@ extends RefCounted
 ## follows the device, anything else is one of LANGUAGES. A language is listed
 ## only when its catalog is complete (tests/core/test_i18n.gd checks).
 
-## [code, name in that language]. Quicksand covers Latin, Latin Extended and
-## Vietnamese; scripts beyond that need a fallback font before they're listed.
+## [code, name in that language]. The UI face (Inter, subset in assets/fonts)
+## covers Latin, Latin Extended and Vietnamese; scripts beyond that need a
+## fallback font before they're listed.
 const LANGUAGES: Array = [
 	["en", "English"],
 	["es", "Español"],

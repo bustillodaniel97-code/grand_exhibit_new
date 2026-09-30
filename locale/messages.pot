@@ -3271,21 +3271,21 @@ msgstr ""
 msgid "Watch the northern lights beside a jarl's armour and a runestone giant."
 msgstr ""
 
-#: scenes/digsite/dig_pit.gd:241
+#: scenes/digsite/dig_pit.gd:242
 msgid "CRACK!"
 msgstr ""
 
-#: scenes/digsite/dig_pit.gd:252
+#: scenes/digsite/dig_pit.gd:253
 #, c-format
 msgid "+%d Energy"
 msgstr ""
 
-#: scenes/digsite/dig_pit.gd:252
+#: scenes/digsite/dig_pit.gd:253
 #, c-format
 msgid "+%d Gems"
 msgstr ""
 
-#: scenes/digsite/dig_pit.gd:252
+#: scenes/digsite/dig_pit.gd:253
 msgid "+Cash!"
 msgstr ""
 
@@ -3307,7 +3307,7 @@ msgid "MUSEUM COLLECTION"
 msgstr ""
 
 #: scenes/digsite/dig_site_screen.gd:166
-#: scenes/ui/bottom_nav.gd:54
+#: scenes/ui/bottom_nav.gd:57
 msgid "Dig Site"
 msgstr ""
 
@@ -3466,91 +3466,91 @@ msgstr ""
 msgid "  (chain %d)"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:103
+#: scenes/events/cafe_screen.gd:107
 msgid "Reward track · every level you buy is a star"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:127
-#: scenes/events/cafe_world.gd:33
+#: scenes/events/cafe_screen.gd:131
+#: scenes/events/cafe_world.gd:34
 msgid "Pop-Up Cafe"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:133
+#: scenes/events/cafe_screen.gd:137
 #: scenes/store/store_screen.gd:249
 #: scenes/store/store_screen.gd:307
 #, c-format
 msgid "Ends in %s"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:133
+#: scenes/events/cafe_screen.gd:137
 #, c-format
 msgid "Seasonal · ends in %s"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:135
+#: scenes/events/cafe_screen.gd:139
 msgid "Closed"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:136
+#: scenes/events/cafe_screen.gd:140
 #, c-format
 msgid "%s coins"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:137
+#: scenes/events/cafe_screen.gd:141
 #: scenes/ui/hud.gd:121
 #, c-format
 msgid "+%s / sec"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:142
+#: scenes/events/cafe_screen.gd:146
 #, c-format
 msgid "The Pop-Up Café opens at reputation %d."
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:144
+#: scenes/events/cafe_screen.gd:148
 #, c-format
 msgid "The café is closed.\nThe next pop-up opens in %s."
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:149
+#: scenes/events/cafe_screen.gd:153
 #, c-format
 msgid "Closed · earns +%s/s"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:152
+#: scenes/events/cafe_screen.gd:156
 msgid "Max"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:154
+#: scenes/events/cafe_screen.gd:158
 #, c-format
 msgid "Open\n%s"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:154
+#: scenes/events/cafe_screen.gd:158
 #, c-format
 msgid "Upgrade\n%s"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:191
+#: scenes/events/cafe_screen.gd:195
 msgid "The café is closed right now"
-msgstr ""
-
-#: scenes/events/cafe_screen.gd:194
-#, c-format
-msgid "%s is at max level"
 msgstr ""
 
 #: scenes/events/cafe_screen.gd:198
 #, c-format
+msgid "%s is at max level"
+msgstr ""
+
+#: scenes/events/cafe_screen.gd:202
+#, c-format
 msgid "Need %s more café coins"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:231
+#: scenes/events/cafe_screen.gd:235
 #: scripts/meta/daily_gifts.gd:66
 msgid "Manager case"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:232
+#: scenes/events/cafe_screen.gd:236
 #: scenes/events/expedition_screen.gd:619
 #: scenes/events/expedition_screen.gd:631
 #: scenes/events/inspection_screen.gd:301
@@ -3558,43 +3558,43 @@ msgstr ""
 msgid "%d gems"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:245
+#: scenes/events/cafe_screen.gd:249
 msgid "Claim"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:245
+#: scenes/events/cafe_screen.gd:249
 msgid "Got it"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:245
+#: scenes/events/cafe_screen.gd:249
 msgid "Locked"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:253
+#: scenes/events/cafe_screen.gd:257
 #, c-format
 msgid "%d more stars to go"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:259
+#: scenes/events/cafe_screen.gd:263
 #, c-format
 msgid "+%d gems"
 msgstr ""
 
-#: scenes/events/cafe_screen.gd:264
+#: scenes/events/cafe_screen.gd:268
 #, c-format
 msgid "+%d manager cards"
 msgstr ""
 
-#: scenes/events/cafe_world.gd:107
+#: scenes/events/cafe_world.gd:108
 msgid "Level up!"
 msgstr ""
 
-#: scenes/events/cafe_world.gd:95
+#: scenes/events/cafe_world.gd:96
 #, c-format
 msgid "%s\nClosed"
 msgstr ""
 
-#: scenes/events/cafe_world.gd:95
+#: scenes/events/cafe_world.gd:96
 #, c-format
 msgid "%s\nLv %d"
 msgstr ""
@@ -3989,12 +3989,12 @@ msgstr ""
 msgid "The ad did not finish. Your attempt is still here."
 msgstr ""
 
-#: scenes/main.gd:148
+#: scenes/main.gd:157
 #, c-format
 msgid "Reputation %d! +%d gems"
 msgstr ""
 
-#: scenes/main.gd:153
+#: scenes/main.gd:162
 #, c-format
 msgid "\nNew visitors: %s"
 msgstr ""
@@ -4063,8 +4063,8 @@ msgid "%s — published drop rates"
 msgstr ""
 
 #: scenes/managers/lootbox_screen.gd:335
-#: scripts/ui/popup_manager.gd:143
-#: scripts/ui/ui_kit.gd:454
+#: scripts/ui/popup_manager.gd:136
+#: scripts/ui/ui_kit.gd:450
 msgid "Close"
 msgstr ""
 
@@ -4135,7 +4135,7 @@ msgstr ""
 
 #: scenes/managers/managers_screen.gd:184
 #: scenes/managers/managers_screen.gd:218
-#: scenes/ui/bottom_nav.gd:53
+#: scenes/ui/bottom_nav.gd:56
 #: scenes/venue/dept_panel.gd:60
 msgid "Managers"
 msgstr ""
@@ -4382,7 +4382,7 @@ msgid "Gifts claimed: %d"
 msgstr ""
 
 #: scenes/meta/daily_gifts_screen.gd:89
-#: scenes/ui/bottom_nav.gd:129
+#: scenes/ui/bottom_nav.gd:133
 #, c-format
 msgid "Day %d"
 msgstr ""
@@ -4646,7 +4646,7 @@ msgid " (%d more than here)"
 msgstr ""
 
 #: scenes/meta/prestige_screen.gd:326
-#: scenes/ui/bottom_nav.gd:52
+#: scenes/ui/bottom_nav.gd:55
 msgid "Museum"
 msgstr ""
 
@@ -5305,38 +5305,38 @@ msgstr ""
 msgid "%s left"
 msgstr ""
 
-#: scenes/ui/boost_dock.gd:121
+#: scenes/ui/boost_dock.gd:125
 msgid "Loading ad…"
 msgstr ""
 
-#: scenes/ui/boost_dock.gd:123
+#: scenes/ui/boost_dock.gd:127
 #, c-format
 msgid "x2 active · %s\nWatch ad to extend"
 msgstr ""
 
-#: scenes/ui/boost_dock.gd:125
+#: scenes/ui/boost_dock.gd:129
 msgid "Double income\nWatch ad · x2"
 msgstr ""
 
-#: scenes/ui/boost_dock.gd:128
+#: scenes/ui/boost_dock.gd:132
 msgid "Instant cash\nWatch ad"
 msgstr ""
 
-#: scenes/ui/boost_dock.gd:128
-#: scenes/ui/boost_dock.gd:129
+#: scenes/ui/boost_dock.gd:132
+#: scenes/ui/boost_dock.gd:133
 msgid "Loading…"
 msgstr ""
 
-#: scenes/ui/boost_dock.gd:129
+#: scenes/ui/boost_dock.gd:133
 #, c-format
 msgid "Free gems\n%d left · Ad"
 msgstr ""
 
-#: scenes/ui/boost_dock.gd:136
+#: scenes/ui/boost_dock.gd:140
 msgid "Offer"
 msgstr ""
 
-#: scenes/ui/boost_dock.gd:136
+#: scenes/ui/boost_dock.gd:140
 #, c-format
 msgid "Offer\n%s"
 msgstr ""
@@ -5357,39 +5357,39 @@ msgstr ""
 msgid "A limited-time offer is waiting"
 msgstr ""
 
-#: scenes/ui/bottom_nav.gd:127
-#: scenes/ui/bottom_nav.gd:128
+#: scenes/ui/bottom_nav.gd:131
+#: scenes/ui/bottom_nav.gd:132
 #: scenes/ui/hud.gd:125
 #, c-format
 msgid "Rep %d"
 msgstr ""
 
-#: scenes/ui/bottom_nav.gd:155
+#: scenes/ui/bottom_nav.gd:156
 #, c-format
 msgid "Unlocks at %s"
 msgstr ""
 
-#: scenes/ui/bottom_nav.gd:156
+#: scenes/ui/bottom_nav.gd:157
 #, c-format
 msgid "Unlock: %s"
 msgstr ""
 
-#: scenes/ui/bottom_nav.gd:170
-#: scenes/ui/bottom_nav.gd:175
+#: scenes/ui/bottom_nav.gd:194
+#: scenes/ui/bottom_nav.gd:199
 #, c-format
 msgid "Unlocks at Rep %d"
 msgstr ""
 
-#: scenes/ui/bottom_nav.gd:180
+#: scenes/ui/bottom_nav.gd:204
 #, c-format
 msgid "Unlocks on Day %d"
 msgstr ""
 
-#: scenes/ui/bottom_nav.gd:55
+#: scenes/ui/bottom_nav.gd:58
 msgid "Event"
 msgstr ""
 
-#: scenes/ui/bottom_nav.gd:56
+#: scenes/ui/bottom_nav.gd:59
 msgid "Store"
 msgstr ""
 
@@ -5410,17 +5410,17 @@ msgstr ""
 msgid "INSIGHT"
 msgstr ""
 
-#: scenes/ui/side_rail.gd:202
+#: scenes/ui/side_rail.gd:215
 #, c-format
 msgid "%s is open! A pop-up café for %d days"
 msgstr ""
 
-#: scenes/ui/side_rail.gd:202
+#: scenes/ui/side_rail.gd:215
 #: scripts/meta/reminders.gd:94
 msgid "The Pop-Up Café"
 msgstr ""
 
-#: scenes/ui/side_rail.gd:219
+#: scenes/ui/side_rail.gd:237
 #, c-format
 msgid "Decor unlocks at Rep %d"
 msgstr ""
@@ -5664,94 +5664,94 @@ msgstr ""
 msgid "Limits museum income"
 msgstr ""
 
-#: scenes/venue3d/venue_3d.gd:1096
+#: scenes/venue3d/venue_3d.gd:1093
 #, c-format
 msgid "Pop-Up Café\nRep %d"
 msgstr ""
 
-#: scenes/venue3d/venue_3d.gd:1101
+#: scenes/venue3d/venue_3d.gd:1098
 #, c-format
 msgid "Café OPEN\n%s"
 msgstr ""
 
-#: scenes/venue3d/venue_3d.gd:1104
+#: scenes/venue3d/venue_3d.gd:1101
 msgid "Café closed"
 msgstr ""
 
-#: scenes/venue3d/venue_3d.gd:1194
+#: scenes/venue3d/venue_3d.gd:1191
 msgid "EXHIBIT UPGRADED!"
 msgstr ""
 
-#: scenes/venue3d/venue_3d.gd:797
+#: scenes/venue3d/venue_3d.gd:798
 msgid "Tap to renovate!"
 msgstr ""
 
-#: scenes/venue3d/venue_3d.gd:862
+#: scenes/venue3d/venue_3d.gd:863
 #, c-format
 msgid "%s OPEN!"
 msgstr ""
 
-#: scenes/venue3d/venue_3d.gd:948
+#: scenes/venue3d/venue_3d.gd:945
 #, c-format
 msgid "GRANDEUR: %s!"
 msgstr ""
 
-#: scenes/venue3d/venue_floor_3d.gd:290
+#: scenes/venue3d/venue_floor_3d.gd:295
 #, c-format
 msgid "Upgrade station %d"
 msgstr ""
 
-#: scenes/venue3d/venue_floor_3d.gd:305
+#: scenes/venue3d/venue_floor_3d.gd:310
 #, c-format
 msgid "Station %d · Ready in %s"
 msgstr ""
 
-#: scenes/venue3d/venue_floor_3d.gd:309
+#: scenes/venue3d/venue_floor_3d.gd:314
 #, c-format
 msgid "Station %d · Level %d\nCollect $%s"
 msgstr ""
 
-#: scenes/venue3d/venue_floor_3d.gd:313
+#: scenes/venue3d/venue_floor_3d.gd:318
 #, c-format
 msgid "Station %d · Level %d\nOpen station upgrades"
 msgstr ""
 
-#: scenes/venue3d/venue_floor_3d.gd:413
+#: scenes/venue3d/venue_floor_3d.gd:425
 #, c-format
 msgid "Cashier ready in %d:%02d"
 msgstr ""
 
-#: scenes/venue3d/venue_floor_3d.gd:440
+#: scenes/venue3d/venue_floor_3d.gd:452
 msgid "Wish!"
 msgstr ""
 
-#: scenes/venue3d/venue_floor_3d.gd:442
+#: scenes/venue3d/venue_floor_3d.gd:454
 msgid "A VIP has a wish"
 msgstr ""
 
-#: scenes/venue3d/venue_floor_3d.gd:471
-#: scenes/venue3d/venue_floor_3d.gd:504
+#: scenes/venue3d/venue_floor_3d.gd:483
+#: scenes/venue3d/venue_floor_3d.gd:516
 #: scripts/meta/visitor_system.gd:254
 msgid "A VIP"
 msgstr ""
 
-#: scenes/venue3d/venue_floor_3d.gd:472
+#: scenes/venue3d/venue_floor_3d.gd:484
 #, c-format
 msgid "%s tipped $%s!"
 msgstr ""
 
-#: scenes/venue3d/venue_floor_3d.gd:506
+#: scenes/venue3d/venue_floor_3d.gd:518
 #, c-format
 msgid "%s is delighted! +$%s, +%d gems"
 msgstr ""
 
 #: scenes/venue3d/venue_floor_3d.gd:90
-#: scenes/venue3d/venue_floor_3d.gd:440
+#: scenes/venue3d/venue_floor_3d.gd:452
 msgid "Tip!"
 msgstr ""
 
 #: scenes/venue3d/venue_floor_3d.gd:93
-#: scenes/venue3d/venue_floor_3d.gd:442
+#: scenes/venue3d/venue_floor_3d.gd:454
 msgid "A VIP wants to tip you"
 msgstr ""
 
@@ -6079,20 +6079,16 @@ msgstr ""
 msgid "IN TEAM  ✓"
 msgstr ""
 
-#: scripts/ui/popup_manager.gd:130
-msgid "MUSEUM"
-msgstr ""
-
-#: scripts/ui/popup_manager.gd:143
+#: scripts/ui/popup_manager.gd:136
 msgid "Back"
 msgstr ""
 
-#: scripts/ui/popup_manager.gd:148
+#: scripts/ui/popup_manager.gd:144
 msgid "Close this screen"
 msgstr ""
 
-#: scripts/ui/popup_manager.gd:262
-#: scripts/ui/popup_manager.gd:263
+#: scripts/ui/popup_manager.gd:253
+#: scripts/ui/popup_manager.gd:254
 msgid "Grand Exhibit"
 msgstr ""
 

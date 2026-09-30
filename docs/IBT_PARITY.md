@@ -69,9 +69,9 @@ revenue and an AdMob policy strike. Replace before the first Play release; see
 
 | | IBT | Us | Status |
 |---|---|---|---|
-| Palette | vivid, high chroma, per-room hue | same, plus ambient-tinted shadows | **done** |
-| Typography | one rounded display family | Quicksand Bold/Medium | **done** |
-| Buttons | chunky, extruded, press-sinks | chunky, extruded, press-sinks | **done** |
+| Palette | vivid, high chroma, per-room hue | muted, matte (owner's 2026-09-30 direction): separated hues at lower chroma | **done** |
+| Typography | one rounded display family | Inter SemiBold/Medium (UI); Quicksand for 3D signs | **done** |
+| Buttons | chunky, extruded, press-sinks | flat pills with soft shadows, press-squish | **done** |
 | Bottom action row | round icon buttons over the world | FREE / CASH / x2 BOOST / Store | **done** |
 | Character art | hand-drawn, 3-tone, thick outline | procedural, baked 4x supersampled | **accepted gap** |
 | Edge antialiasing | smooth polygon edges | none | **blocked** |

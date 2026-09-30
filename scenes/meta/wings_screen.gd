@@ -105,7 +105,7 @@ func _grandeur_card(vid: String) -> Control:
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(title)
 	for i in names.size():
-		var star := UI.make_icon("star", 22, Color("#FFD34D") if i < tier else Color(1, 1, 1, 0.18))
+		var star := UI.make_icon("star", 22, UI.BRASS if i < tier else Chrome.BORDER)
 		star.name = "Star%d" % i
 		row.add_child(star)
 	box.add_child(row)
@@ -185,7 +185,7 @@ func _card(emphasized: bool = false) -> PanelContainer:
 	var surface := Chrome.panel(16, Chrome.RAISED if emphasized else Chrome.PANEL)
 	surface.set_content_margin_all(16)
 	if emphasized:
-		surface.border_color = Color("#FFD34D")
+		surface.border_color = Color(Chrome.ACTION, 0.55)
 		surface.set_border_width_all(2)
 	card.add_theme_stylebox_override("panel", surface)
 	return card

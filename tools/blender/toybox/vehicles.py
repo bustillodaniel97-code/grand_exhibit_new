@@ -21,7 +21,7 @@ def paint(hexc):
     m = bpy.data.materials.get("paint") or bpy.data.materials.new("paint")
     b = m.node_tree.nodes.get("Principled BSDF")
     b.inputs["Base Color"].default_value = toy.hexcol(hexc)
-    b.inputs["Roughness"].default_value = 0.2
+    b.inputs["Roughness"].default_value = 0.6
     return m
 
 

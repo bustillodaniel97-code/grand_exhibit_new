@@ -90,8 +90,8 @@ func _card(t: Dictionary, index: int) -> Control:
 	var sb := Chrome.panel(16, Chrome.RAISED if vip and open else Chrome.PANEL)
 	sb.set_content_margin_all(10)
 	if vip:
-		sb.border_color = Color("#E8B83A")
-		sb.set_border_width_all(3)
+		sb.border_color = Color(UI.BRASS, 0.7)
+		sb.set_border_width_all(2)
 	card.add_theme_stylebox_override("panel", sb)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 4)

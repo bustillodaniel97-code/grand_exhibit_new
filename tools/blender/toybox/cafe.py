@@ -31,7 +31,7 @@ LEAF_HI = "#6CCB5A"
 INK = "#2B2245"
 
 
-def role(name, hexc, rough=0.4, emit=0.0):
+def role(name, hexc, rough=0.88, emit=0.0):
     """A material whose NAME is the role the game recolours (cached by name)."""
     m = bpy.data.materials.get(name)
     if m is None:
@@ -60,7 +60,7 @@ def R():
     }
 
 
-def m(hexc, rough=0.35, **kw):
+def m(hexc, rough=0.88, **kw):
     return mat(hexc, rough, **kw)
 
 

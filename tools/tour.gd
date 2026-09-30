@@ -48,17 +48,17 @@ func _initialize() -> void:
 	root.add_child(layer)
 	var panel := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.1, 0.08, 0.2, 0.82)
-	sb.set_corner_radius_all(14)
-	sb.set_content_margin_all(12)
+	sb.bg_color = Color(0.106, 0.137, 0.153, 0.92)
+	sb.set_corner_radius_all(22)
+	sb.set_content_margin_all(14)
 	panel.add_theme_stylebox_override("panel", sb)
 	panel.position = Vector2(30, 1010)
 	panel.custom_minimum_size = Vector2(660, 0)
 	layer.add_child(panel)
 	_caption = Label.new()
-	_caption.add_theme_font_override("font", load("res://assets/fonts/Quicksand-Bold.ttf"))
-	_caption.add_theme_font_size_override("font_size", 24)
-	_caption.add_theme_color_override("font_color", Color("#FFF3B0"))
+	_caption.add_theme_font_override("font", load("res://assets/fonts/Inter-SemiBold.ttf"))
+	_caption.add_theme_font_size_override("font_size", 22)
+	_caption.add_theme_color_override("font_color", Color.WHITE)
 	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_caption.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED

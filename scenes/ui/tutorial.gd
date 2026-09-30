@@ -36,12 +36,14 @@ func _ready() -> void:
 	_bubble = PanelContainer.new()
 	_bubble.name = "Bubble"
 	_bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sb := Chrome.panel(18, Chrome.PANEL)
-	sb.set_content_margin_all(14)
-	sb.border_color = Color("#FFD34D")
-	sb.set_border_width_all(3)
+	var sb := Chrome.panel(18, Color(Chrome.INK, 0.94))
+	sb.set_content_margin_all(16)
+	sb.set_border_width_all(0)
+	sb.shadow_color = Color(0, 0, 0, 0.2)
+	sb.shadow_size = 16
+	sb.shadow_offset = Vector2(0, 6)
 	_bubble.add_theme_stylebox_override("panel", sb)
-	_label = UI.make_display_label("", 19, Chrome.INK)
+	_label = UI.make_display_label("", 18, Chrome.PANEL)
 	_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_label.custom_minimum_size = Vector2(430, 0)
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -148,11 +150,11 @@ func _draw() -> void:
 	if p == Vector2.INF:
 		return
 	var pulse := 0.5 + 0.5 * sin(_t * 5.0)
-	draw_arc(p, 30.0 + 8.0 * pulse, 0.0, TAU, 40, Color(1.0, 0.83, 0.3, 0.9 - 0.5 * pulse), 4.0, true)
-	# A chunky arrow bobbing above the target, pointing at it.
+	draw_arc(p, 30.0 + 8.0 * pulse, 0.0, TAU, 40, Color(Chrome.PANEL, 0.95 - 0.55 * pulse), 4.0, true)
+	# An arrow bobbing above the target, pointing at it.
 	var tip := p + Vector2(0, -40.0 - 10.0 * pulse)
-	var col := Color("#FFD34D")
-	var ink := Color("#3A2A10")
+	var col := Chrome.PANEL
+	var ink := Chrome.INK
 	var pts := PackedVector2Array([tip, tip + Vector2(-22, -26), tip + Vector2(-9, -26), tip + Vector2(-9, -58),
 		tip + Vector2(9, -58), tip + Vector2(9, -26), tip + Vector2(22, -26)])
 	draw_colored_polygon(pts, col)

@@ -8,28 +8,26 @@ const Chrome := preload("res://scripts/ui/museum_chrome.gd")
 ## are preserved so existing callers keep working unchanged.
 
 # --- Palette (single source of truth; SPEC §2) -------------------------------
-## Vivid, high-chroma scheme. The original "warm museum" palette was built from
-## desaturated earth tones (cream #F5EFE0, terracotta #C4703F, muted sage and
-## slate) which on a phone read as beige office software rather than a game.
-## Everything here is pushed up in saturation and separated in hue so the four
-## departments are instantly distinguishable, and each colour keeps enough
-## contrast against PANEL to carry white or INK text at small sizes.
-const BG := Color("#2A2150")        # deep indigo — makes every bright element pop
-const BG_DEEP := Color("#1B1538")   # gradient floor / behind-card wash
-const INK := Color("#2B2245")       # body text on light cards
-const PANEL := Color("#FFF9F0")     # card surface
+## Calm, separated hues (2026 pass). The earlier candy scheme (#FFC53D gold,
+## #B45CF0 violet, #3BA9F5 azure) fought the matte diorama and could not carry
+## text on white; these keep the four departments distinguishable at a glance
+## at a lower chroma, and each clears 3:1 on a white card.
+const BG := Color("#2A2150")        # legacy 2D-floor shell only
+const BG_DEEP := Color("#1B1538")   # legacy 2D-floor wash
+const INK := Chrome.INK             # body text on light cards
+const PANEL := Chrome.PANEL         # card surface
 const PANEL_SOFT := Color("#F3ECFF")# secondary surface, faint violet cast
 ## LEGACY light popup page. Superseded by PAGE below for every popup screen; it
 ## survives because the match-3 battle board's tile hues and rims were measured
 ## against this exact value and retuning that board is its own job. Do not point
 ## anything new at it.
 const SURFACE := Color("#F7F2FF")
-const ACCENT := Color("#FF7A3D")    # vivid orange — primary action
-const BRASS := Color("#FFC53D")     # bright gold — currency, rewards
-const SAGE := Color("#2ED573")      # vivid green — confirm, income
-const SLATE := Color("#3BA9F5")     # bright azure — info, archive
-const PLUM := Color("#B45CF0")      # vivid violet — promotions, premium
-const DANGER := Color("#FF4757")    # hot red — unaffordable / bottleneck
+const ACCENT := Color("#E2763E")    # warm coral — primary action
+const BRASS := Color("#D9A13A")     # gold — currency, rewards
+const SAGE := Color("#34A07A")      # green — confirm, income
+const SLATE := Color("#4A8CC4")     # blue — info, archive
+const PLUM := Color("#8C6BCB")      # violet — promotions, premium
+const DANGER := Chrome.DANGER       # unaffordable / bottleneck
 
 # --- Dark popup scheme (semantic; SPEC §2) -----------------------------------
 ## Every popup used to paint a cream page, which made each sheet a light island
@@ -46,37 +44,37 @@ const DANGER := Color("#FF4757")    # hot red — unaffordable / bottleneck
 ## Against CARD: 11.1:1, 5.9:1, 3.7:1. Accents clear 4.5:1 on PAGE except where
 ## noted at the call site.
 const PAGE := Chrome.BG
-const PAGE_DEEP := Color("#101c24")
+const PAGE_DEEP := Color("#e7ebe9")  # sunken wells, bar tracks
 const CARD := Chrome.PANEL
 const CARD_HI := Chrome.RAISED
 const TEXT := Chrome.INK
 const TEXT_DIM := Chrome.DIM
-const TEXT_MUTE := Color("#a3baba")
+const TEXT_MUTE := Color("#9aa3a7")
 ## The one disabled-control tone. Flat, hueless and quieter than any live card,
 ## so a dead button recedes on the dark page and still reads as spent on the one
 ## light surface that disables anything (the dept sheet's MAX).
-const DEAD := Color("#263b45")
+const DEAD := Color("#eceeed")
 ## Hairline rule / rim on dark. A light rule at low alpha reads on both PAGE and
 ## CARD; a dark one disappears into whichever of the two it lands on.
-const HAIRLINE := Color(1, 1, 1, 0.12)
+const HAIRLINE := Color(0, 0, 0, 0.07)
 
 const DEPT_COLORS := {
-	"promotions": Color("#B45CF0"),
-	"ticket": Color("#FF7A3D"),
-	"archive": Color("#3BA9F5"),
-	"gallery": Color("#FFC53D"),
+	"promotions": Color("#8C6BCB"),
+	"ticket": Color("#E2763E"),
+	"archive": Color("#4A8CC4"),
+	"gallery": Color("#D9A13A"),
 }
 
 ## Rarity tiers. Manager collection is a core hook in this genre, so the tiers
 ## have to be unmistakable at thumb size — these are separated by hue, not just
 ## by lightness, which is what the previous grey/slate/plum/brass set failed at.
 const RARITY_COLORS := {
-	"common": Color("#8FA3B8"),      # cool grey-blue
-	"rare": Color("#3BA9F5"),        # azure
-	"epic": Color("#B45CF0"),        # violet
-	"legendary": Color("#FFC53D"),   # gold
+	"common": Color("#8D9AA6"),      # cool grey
+	"rare": Color("#3F8FD0"),        # blue
+	"epic": Color("#8F62D6"),        # violet
+	"legendary": Color("#DFA33A"),   # gold
 }
-const LOCKED := Color("#5A4E86")     # undiscovered slot on the deep shell
+const LOCKED := Color("#b9c1be")     # undiscovered / locked slot
 
 # --- Type scale (design px at 720x1280; ~1.5x on a 1080p phone) --------------
 const TYPE_HERO := 40      # cash readout, welcome-back amount
@@ -91,7 +89,7 @@ const TYPE_CAPTION := 13   # counters, fine print
 ## Android's minimum comfortable touch target is 48dp; at this design width one
 ## design px ~= one dp on a 1080p phone, so 48 is the floor for anything tappable.
 const TOUCH_MIN := 48
-const RADIUS_CARD := 18
+const RADIUS_CARD := 22
 const RADIUS_BUTTON := 14
 const GUTTER := 16
 
@@ -125,12 +123,12 @@ const _BAR_FILLS := {
 	"red": "res://assets/ui/bars/bar_fill_red.png",
 }
 const _DIVIDER := "res://assets/ui/divider.png"
-## Quicksand (OFL-1.1) — rounded geometric sans. Two weights only: display for
-## headings/numbers/buttons, body for prose. Replaces Kenney Future, whose "X"
-## renders as "H" and "$" as "S" — the old kit dodged that with a per-string
-## fallback that left the UI mixing two typefaces at random.
-const _FONT_DISPLAY := "res://assets/fonts/Quicksand-Bold.ttf"
-const _FONT_BODY := "res://assets/fonts/Quicksand-Medium.ttf"
+## Inter (OFL-1.1) — the interface face. Two weights only: SemiBold for
+## headings/numbers/buttons, Medium for prose. Replaces Quicksand, whose thin
+## rounded strokes read as dated beside the new chrome; Quicksand now letters
+## only the signs inside the 3D dioramas.
+const _FONT_DISPLAY := "res://assets/fonts/Inter-SemiBold.ttf"
+const _FONT_BODY := "res://assets/fonts/Inter-Medium.ttf"
 const _SFX := {
 	"click": "res://assets/ui/sfx/click.ogg",
 	"tap": "res://assets/ui/sfx/tap.ogg",
@@ -183,7 +181,7 @@ static func font() -> Font:
 static func body_font() -> Font:
 	return _res(_FONT_BODY) as Font
 
-## Make Quicksand the engine-wide default so every Control that never asks for a
+## Make Inter the engine-wide default so every Control that never asks for a
 ## font still gets one — no more Open Sans leaking through next to the game face.
 ## Idempotent; call once at boot (main.gd) and from any standalone screen test.
 static func install_default_font() -> void:
@@ -276,8 +274,8 @@ static func make_panel(color: Color, radius: int = 12, border: int = 0) -> Style
 	if border > 0:
 		sb.set_border_width_all(border)
 		sb.border_color = color.darkened(0.35)
-	sb.shadow_color = Color(0.12, 0.09, 0.05, 0.22)
-	sb.shadow_size = 4
+	sb.shadow_color = Chrome.SHADOW
+	sb.shadow_size = 8
 	sb.shadow_offset = Vector2(0, 2)
 	return sb
 
@@ -313,15 +311,17 @@ static func make_card(color: Color = PANEL) -> StyleBoxFlat:
 	sb.bg_color = color
 	sb.set_corner_radius_all(RADIUS_CARD)
 	sb.set_content_margin_all(14)
-	sb.shadow_color = Color(0.06, 0.03, 0.16, 0.30)
-	sb.shadow_size = 6
+	sb.set_border_width_all(1)
+	sb.border_color = Chrome.BORDER
+	sb.shadow_color = Chrome.SHADOW
+	sb.shadow_size = 10
 	sb.shadow_offset = Vector2(0, 3)
 	return sb
 
 ## Framed panel: card plus a saturated rim — offers, lootboxes, rarity frames.
 static func make_frame(tint: Color = PANEL) -> StyleBoxFlat:
 	var sb := make_card(PANEL)
-	sb.set_border_width_all(3)
+	sb.set_border_width_all(2)
 	sb.border_color = tint if tint != PANEL else BRASS
 	return sb
 
@@ -331,8 +331,8 @@ static func make_inset(tint: Color = PANEL_SOFT) -> StyleBoxFlat:
 	sb.bg_color = tint.darkened(0.06)
 	sb.set_corner_radius_all(RADIUS_BUTTON)
 	sb.set_content_margin_all(10)
-	sb.set_border_width_all(2)
-	sb.border_color = tint.darkened(0.18)
+	sb.set_border_width_all(1)
+	sb.border_color = tint.darkened(0.12)
 	return sb
 
 ## Card on a dark PAGE. Not make_card with a dark fill: a drop shadow does not
@@ -358,8 +358,6 @@ static func make_dark_inset(fill: Color = PAGE_DEEP, radius: int = RADIUS_BUTTON
 	sb.bg_color = fill
 	sb.set_corner_radius_all(radius)
 	sb.set_content_margin_all(10)
-	sb.set_border_width_all(1)
-	sb.border_color = Chrome.BORDER.darkened(0.2)
 	return sb
 
 ## Dark panel (toasts, dramatic headers).
@@ -376,24 +374,24 @@ static func make_dark_panel() -> StyleBoxFlat:
 static func make_bar_bg() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = PAGE_DEEP
-	sb.set_corner_radius_all(4)
+	sb.set_corner_radius_all(6)
 	return sb
 
 const _BAR_COLORS := {
 	"green": Chrome.TEAL, "yellow": Chrome.BRASS,
-	"blue": Color("#96c8df"), "red": Chrome.DANGER,
+	"blue": SLATE, "red": Chrome.DANGER,
 }
 
 static func make_bar_fill(kind: String = "green") -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = _BAR_COLORS.get(kind, _BAR_COLORS["green"])
-	sb.set_corner_radius_all(4)
+	sb.set_corner_radius_all(6)
 	return sb
 
 # --- Floating chrome (HUD, nav and quest chips drawn over the world) ---------
 ## Base tone for chrome that floats instead of sitting on a panel. Deeper than BG
 ## so a pill still separates from the shell behind it.
-const GLASS := Chrome.BG
+const GLASS := Color(1, 1, 1)
 
 ## Translucent "glass" pill for floating chrome. The shell bars used to be opaque
 ## cream slabs: together they painted a fifth of the portrait canvas light, and
@@ -401,29 +399,27 @@ const GLASS := Chrome.BG
 ## only by their shadow). Floating chrome instead carries its own deep surface
 ## plus a light hairline, which holds up over a bright room as well as over the
 ## deep shell.
-static func make_glass(radius: int = RADIUS_BUTTON, alpha: float = 0.86,
-		rim: Color = Color(1, 1, 1, 0.18)) -> StyleBoxFlat:
+static func make_glass(radius: int = RADIUS_BUTTON, alpha: float = 0.92,
+		rim: Color = Chrome.BORDER) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color(GLASS.r, GLASS.g, GLASS.b, alpha)
-	sb.set_corner_radius_all(radius)
+	sb.set_corner_radius_all(Chrome.radius(radius))
 	sb.set_content_margin_all(8)
 	if rim.a > 0.0:
-		sb.set_border_width_all(2)
+		sb.set_border_width_all(1)
 		sb.border_color = rim
-	sb.shadow_color = Color(0, 0, 0, 0.38)
-	sb.shadow_size = 5
-	sb.shadow_offset = Vector2(0, 2)
+	sb.shadow_color = Chrome.SHADOW
+	sb.shadow_size = 10
+	sb.shadow_offset = Vector2(0, 3)
 	return sb
 
 ## Bar trough for a progress bar drawn ON dark chrome. make_bar_bg's track is
 ## tuned to sit in a light card and reads at 1.45:1 against the deep shell; this
 ## one is a lightened channel cut into the pill that hosts it.
-static func make_channel(tint: Color = Color(1, 1, 1, 0.16), radius: int = 10) -> StyleBoxFlat:
+static func make_channel(tint: Color = PAGE_DEEP, radius: int = 10) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = tint
 	sb.set_corner_radius_all(radius)
-	sb.set_border_width_all(1)
-	sb.border_color = Color(0, 0, 0, 0.35)
 	return sb
 
 ## Label styling for text that floats over unknown pixels: white with a dark rim.
@@ -457,9 +453,6 @@ static func skin_button(b: Button, bg: Color) -> Button:
 	else:
 		_apply_display_font(b)
 	b.add_theme_font_size_override("font_size", TYPE_HEADING)
-	b.add_theme_color_override("font_color", TEXT)
-	b.add_theme_color_override("font_hover_color", TEXT)
-	b.add_theme_color_override("font_pressed_color", TEXT)
 	b.add_theme_color_override("font_disabled_color", TEXT_MUTE)
 	b.add_theme_constant_override("outline_size", 0)
 	b.custom_minimum_size.y = maxf(b.custom_minimum_size.y, TOUCH_MIN)
@@ -481,36 +474,54 @@ static func retint_button(b: Button, bg: Color) -> Button:
 	b.add_theme_stylebox_override("normal", _button_box(fill, 0))
 	b.add_theme_stylebox_override("hover", _button_box(fill.lightened(0.08), 0))
 	b.add_theme_stylebox_override("pressed", _button_box(fill.darkened(0.12), 0))
+	# Lettering follows the fill: white on the action colours, ink on white.
+	var ink := Chrome.on_color(fill)
+	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color",
+			"font_hover_pressed_color", "icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
+		b.add_theme_color_override(state, ink)
 	# Disabled is ONE state, so it gets one tone and keeps none of the live hue.
 	# The old target was a 42%-grey mixed with the button's own colour, which on a
 	# dark page came out as the brightest slab on the screen — a dead control
 	# out-shouting every live one, and four different deads at that.
-	b.add_theme_stylebox_override("disabled", _button_box(DEAD, 4))
+	var dead := _button_box(DEAD, 4)
+	dead.set_border_width_all(0)
+	dead.shadow_size = 0
+	b.add_theme_stylebox_override("disabled", dead)
 	return b
 
+## Pill: white chips keep the hairline; filled pills drop it for a soft glow
+## in their own colour.
 static func _button_box(bg: Color, _lip: int, _top_pad_extra: int = 0) -> StyleBoxFlat:
 	var sb := Chrome.panel(RADIUS_BUTTON, bg)
 	sb.content_margin_left = 16
 	sb.content_margin_right = 16
 	sb.content_margin_top = 10
 	sb.content_margin_bottom = 10
+	if bg.get_luminance() < 0.8:
+		sb.set_border_width_all(0)
+		sb.shadow_color = Color(bg.darkened(0.2), 0.26)
+		sb.shadow_size = 8
+		sb.shadow_offset = Vector2(0, 3)
 	return sb
 
 ## Translate legacy action roles without changing department/board colours.
 static func _action_fill(tint: Color) -> Color:
 	if tint in [SAGE, ACCENT, UPGRADE_GREEN, Chrome.TEAL, Chrome.ACTION]:
 		return Chrome.ACTION
-	if tint in [BRASS, Chrome.BRASS]: return Color("#6a5534")
-	if tint == SLATE: return Color("#305e70")
-	if tint == PLUM: return Color("#58465c")
-	if tint in [DANGER, Chrome.DANGER]: return Color("#813f3b")
+	if tint in [BRASS, Chrome.BRASS]: return Color("#c98d25")
+	if tint == SLATE: return Color("#3b7db5")
+	if tint == PLUM: return Color("#7a5bbd")
+	if tint in [DANGER, Chrome.DANGER]: return Chrome.DANGER
 	if tint == Chrome.DIM or tint.get_luminance() > 0.6: return Chrome.PANEL
 	return tint
 
 static func _button_focus() -> StyleBoxFlat:
-	var sb := Chrome.panel(RADIUS_BUTTON, Color.TRANSPARENT)
-	sb.border_color = Chrome.BRASS
+	var sb := StyleBoxFlat.new()
+	sb.draw_center = false
+	sb.set_corner_radius_all(Chrome.radius(RADIUS_BUTTON) + 2)
+	sb.border_color = Color(Chrome.ACTION, 0.55)
 	sb.set_border_width_all(2)
+	sb.set_expand_margin_all(2)
 	return sb
 
 ## Shared portrait page gutter; the entire content remains scrollable.
@@ -657,12 +668,17 @@ static func set_chip_value(chip: Control, text: String) -> void:
 		l.text = text
 
 ## Thin horizontal divider line (subtle separators, HUD rows).
-static func make_divider(tint: Color = Color(0.45, 0.38, 0.28, 0.5)) -> TextureRect:
+## A 1px hairline rule (was the Kenney ornamental divider).
+static func make_divider(tint: Color = Chrome.BORDER) -> TextureRect:
 	var tr := TextureRect.new()
-	tr.texture = _res(_DIVIDER) as Texture2D
-	tr.custom_minimum_size = Vector2(0, 4)
+	if not _cache.has("hairline"):
+		var img := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+		img.fill(Color.WHITE)
+		_cache["hairline"] = ImageTexture.create_from_image(img)
+	tr.texture = _cache["hairline"] as Texture2D
+	tr.custom_minimum_size = Vector2(0, 1)
 	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	tr.stretch_mode = TextureRect.STRETCH_TILE
+	tr.stretch_mode = TextureRect.STRETCH_SCALE
 	tr.modulate = tint
 	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tr.size_flags_horizontal = Control.SIZE_EXPAND_FILL

@@ -44,7 +44,7 @@ Sources on IBT: `docs/research/IBT_LEVEL_STRUCTURE.md`, `docs/research/IBT_FLOOR
 |---|---|---|
 | Bright 3D-look buildings | Real-time 3D toy-diorama museums (Link's Awakening-style glossy toys), tilt-shift, saturated palettes per museum | ✅ |
 | Big showpiece items | Hero exhibits (T. rex, mammoth, blue whale, sarcophagus, reef tanks, orreries…) grow and gain light beams, gold rings and sparkles as the gallery levels | ✅ |
-| Light, chunky UI | Toy chrome: cream cards, chunky borders, green actions, on every screen including the Store | ✅ |
+| Light, clean UI | 2026 chrome: white cards, hairlines, soft shadows, pill buttons, Inter type, tab bar with notification dots, on every screen including the Store (IBT's chrome is chunkier; ours is more current) | ✅ |
 | Onboarding with a pointing hand | First-run walkthrough: collect → upgrade → open a hall → floors → Dig Site; replayable from Settings | ✅ |
 | Settings | Music, sound, graphics (Auto / High / Low), language, notifications, cloud save, fullscreen on PC, replay walkthrough | ✅ |
 | Many languages (IBT: about 15) | English, Spanish, French, German, Brazilian Portuguese and Italian: every string, data names included (1,410), switchable live, Automatic follows the device; pipeline in `docs/LOCALIZATION.md`. Non-Latin scripts need a fallback font first | 🟡 (6 of ~15) |

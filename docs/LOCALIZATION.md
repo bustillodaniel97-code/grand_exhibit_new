@@ -52,7 +52,7 @@ code, for CI.
 3. Add `["<code>", "<name in that language>"]` to `LANGUAGES` in
    `scripts/ui/languages.gd`. The test then requires the catalog to be
    complete.
-4. Fonts: Quicksand covers Latin, Latin Extended and Vietnamese. Cyrillic,
+4. Fonts: the UI face, Inter (subset in `assets/fonts/`), covers Latin, Latin Extended and Vietnamese. Cyrillic,
    Greek, CJK, Thai or Arabic need a fallback font (e.g. a Noto subset) added
    to `UI.install_default_font()` first. Watch the pack size budget.
 

@@ -147,3 +147,21 @@ layer put it behind main.gd's full-screen background, so the entire diorama
 vanished. A large positive z_index on the room-label layer painted plaques over
 the department bottom sheet. Layers now use small values relative to the cast
 (plaques 2, cash floats 1, sheet 8-9) rather than large absolute ones.
+
+## 2026-09-30: modern chrome, matte diorama
+
+The owner found the cream-and-brass "toy chrome" antique and the 3D too
+glossy, and pointed at a matte, softly lit low-poly diorama as the target.
+
+- **UI:** white cards on a soft neutral page, 1px hairlines and wide faint
+  shadows instead of thick brown rims; pill buttons, one calm green-teal
+  action colour (#2B8468) with white lettering; tinted badges instead of
+  solid ribbons; a plain tab bar with a pill behind the active icon;
+  notification dots instead of glowing tiles. Inter SemiBold/Medium replaces
+  Quicksand in the interface (Quicksand stays for signs inside the 3D world).
+  All in `scripts/ui/museum_chrome.gd` and `scripts/ui/ui_kit.gd`.
+- **3D:** `scripts/render/toy_look.gd` gives the museum, café and dig site
+  one light rig (warm-neutral ambient 0.4, sun 0.6, wide soft shadows,
+  saturation 0.78) and flattens every material to matte at load time. The
+  Blender kit's default roughness is now 0.88 to match.
+

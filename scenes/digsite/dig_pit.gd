@@ -14,6 +14,7 @@ extends Node3D
 
 const DigLogic := preload("res://scripts/digsite/dig_logic.gd")
 const POP_FONT := preload("res://assets/fonts/Quicksand-Bold.ttf")
+const ToyLook := preload("res://scripts/render/toy_look.gd")
 const LAYER_H := 0.3
 
 var site: Dictionary = {}
@@ -340,26 +341,11 @@ func _pop(at: Vector3, text: String, color: Color) -> void:
 
 # ------------------------------------------------------------------ scene
 func _environment() -> void:
-	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color("#bfe3ff")
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("#cfe0ff")
-	env.ambient_light_energy = 0.22
-	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
-	env.tonemap_exposure = 1.0
-	env.adjustment_enabled = true
-	env.adjustment_saturation = 1.15
+	ToyLook.watch(self)
 	var we := WorldEnvironment.new()
-	we.environment = env
+	we.environment = ToyLook.environment()
 	add_child(we)
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-58.0, -28.0, 0.0)
-	sun.light_energy = 0.55
-	sun.light_color = Color("#fff3df")
-	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = 40.0
-	add_child(sun)
+	add_child(ToyLook.sun(Vector3(-58.0, -28.0, 0.0), 40.0))
 
 func _camera() -> void:
 	camera = Camera3D.new()

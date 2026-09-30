@@ -37,7 +37,7 @@ BONES = {  # name: (head, tail, parent)
 }
 
 
-def role(name, hexc, rough=0.35):
+def role(name, hexc, rough=0.88):
     """A material whose NAME is the role the game recolours."""
     m = bpy.data.materials.get(name) or bpy.data.materials.new(name)
     b = m.node_tree.nodes.get("Principled BSDF")

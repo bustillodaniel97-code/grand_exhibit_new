@@ -35,7 +35,7 @@ TEAL = "#2FA6A0"
 INK = "#2B2245"
 
 
-def m(hexc, rough=0.35, **kw):
+def m(hexc, rough=0.88, **kw):
     return mat(hexc, rough, **kw)
 
 

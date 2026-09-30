@@ -58,27 +58,33 @@ static func foreground_for(background: Color) -> Color:
 ## Corner ribbon ("BEST VALUE", "+73% MORE PER $", "SAVE 56%"). Deliberately not
 ## rotated: rotated text at 13px on a phone is where legibility goes to die.
 static func make_ribbon(text: String, color: Color) -> PanelContainer:
+	# A soft tinted badge: the colour at low strength behind lettering in a deep
+	# shade of the same hue.
 	var p := PanelContainer.new()
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = color
-	sb.set_corner_radius_all(6)
-	sb.corner_radius_top_left = 2
+	sb.bg_color = Color(color, 0.16)
+	sb.set_corner_radius_all(10)
+	sb.corner_detail = 8
 	sb.content_margin_left = 9
 	sb.content_margin_right = 9
 	sb.content_margin_top = 3
 	sb.content_margin_bottom = 4
-	sb.shadow_color = Color(0.06, 0.03, 0.16, 0.25)
-	sb.shadow_size = 3
-	sb.shadow_offset = Vector2(0, 2)
 	p.add_theme_stylebox_override("panel", sb)
 	p.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var foreground := foreground_for(color)
-	var l := UI.make_display_label(text, UI.TYPE_CAPTION, foreground)
-	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.30))
+	var l := UI.make_display_label(text, UI.TYPE_CAPTION, badge_ink(color))
 	l.add_theme_constant_override("outline_size", 0)
 	p.add_child(l)
 	return p
+
+## Lettering for a tinted badge: the badge's hue, darkened until it reads.
+static func badge_ink(color: Color) -> Color:
+	var ink := color
+	for _i in 6:
+		if ink.srgb_to_linear().get_luminance() <= 0.12:
+			break
+		ink = ink.darkened(0.18)
+	return ink
 
 ## Anchor price with a rule through it. The basis for the anchor is always printed
 ## next to it by the caller ("bought separately") — a struck-out number with no

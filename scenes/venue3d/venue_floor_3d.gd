@@ -84,7 +84,7 @@ func _ready() -> void:
 	add_child(_chips_layer)
 
 	# A VIP's tip bubble: one at a time, floating over the carrier's head.
-	_tip_btn = _round_button("VipTip", Color("#FFD34D"), Color("#B0741A"))
+	_tip_btn = _round_button("VipTip", Color("#F4C862"))
 	_tip_btn.custom_minimum_size = TIP
 	_tip_btn.size = TIP
 	_tip_btn.text = "Tip!"
@@ -198,7 +198,7 @@ func _build_floor_bar() -> void:
 	_floor_bar.visible = not floors.is_empty()
 	for i in range(floors.size(), -1, -1):
 		var label := "G" if i == 0 else str((floors[i - 1] as Dictionary).get("label", "%dF" % (i + 1)))
-		var b := _round_button("Floor%d" % i, Color("#FFF4E0"), Color("#3A2A10"))
+		var b := _round_button("Floor%d" % i, Chrome.PANEL)
 		b.text = label
 		b.add_theme_font_size_override("font_size", 18)
 		b.custom_minimum_size = Vector2(52, 44)
@@ -235,8 +235,13 @@ func _style_floor_bar() -> void:
 		var index := n - 1 - k
 		var b := _floor_btns[k]
 		var open := index == 0 or bool((world.floors[index - 1] as Dictionary)["open"])
-		b.modulate = Color(1, 1, 1, 1.0 if index == here else 0.72)
-		b.add_theme_color_override("font_color", Color("#3A2A10") if open else Color("#9A8F80"))
+		var key := "%s|%s" % [index == here, open]
+		if str(b.get_meta("style_key", "")) == key:
+			continue
+		b.set_meta("style_key", key)
+		_skin_round(b, Chrome.ACTION if index == here else Chrome.PANEL)
+		if not open:
+			b.add_theme_color_override("font_color", Chrome.DIM)
 
 func _on_wing_renovated(vid: String, wing_id: String) -> void:
 	if vid != venue_id or world == null:
@@ -283,10 +288,10 @@ func _refresh_stations() -> void:
 	var count: int = mini(owned, world.window_count())
 	while _chips.size() < count:
 		var index := _chips.size()
-		var chip := _round_button("StationCash%d" % index, Color("#F2C14E"), Color("#8A5A12"))
+		var chip := _round_button("StationCash%d" % index, Color("#F4C862"))
 		chip.pressed.connect(_on_station_cash.bind(index))
 		_chips.append(chip)
-		var up := _round_button("StationUpgrade%d" % index, Color("#3FAE6A"), Color("#1F5E3A"))
+		var up := _round_button("StationUpgrade%d" % index, Chrome.ACTION)
 		up.tooltip_text = tr("Upgrade station %d") % (index + 1)
 		up.pressed.connect(func() -> void: item_selected.emit("ticket", index))
 		up.draw.connect(_draw_arrow.bind(up))
@@ -315,7 +320,9 @@ func _refresh_stations() -> void:
 		_ups[i].disabled = maxed
 		_ups[i].set_meta("maxed", maxed)
 
-func _round_button(node_name: String, fill: Color, rim: Color) -> Button:
+## A floating bubble over the world: a soft pill with a diffuse shadow, a
+## hairline only when the fill is white, and lettering that follows the fill.
+func _round_button(node_name: String, fill: Color) -> Button:
 	var b := Button.new()
 	b.name = node_name
 	b.custom_minimum_size = CHIP
@@ -325,25 +332,30 @@ func _round_button(node_name: String, fill: Color, rim: Color) -> Button:
 	b.add_theme_font_size_override("font_size", 13)
 	if _font:
 		b.add_theme_font_override("font", _font)
-	b.add_theme_color_override("font_color", Color("#3A2A10"))
-	b.add_theme_color_override("font_hover_color", Color("#3A2A10"))
-	b.add_theme_color_override("font_pressed_color", Color("#3A2A10"))
-	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = fill.lightened(0.12) if state == "hover" else (fill.darkened(0.1) if state == "pressed" else fill)
-		sb.set_corner_radius_all(26)
-		sb.set_border_width_all(3)
-		sb.border_color = rim
-		sb.shadow_color = Color(0, 0, 0, 0.28)
-		sb.shadow_size = 3
-		sb.shadow_offset = Vector2(0, 3)
-		if state == "focus":
-			sb.draw_center = false
-			sb.border_color = Color(0, 0, 0, 0)
-			sb.shadow_size = 0
-		b.add_theme_stylebox_override(state, sb)
+	_skin_round(b, fill)
 	_chips_layer.add_child(b)
 	return b
+
+func _skin_round(b: Button, fill: Color) -> void:
+	var ink := Chrome.on_color(fill)
+	for state in ["font_color", "font_hover_color", "font_pressed_color", "icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
+		b.add_theme_color_override(state, ink)
+	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = fill.lightened(0.08) if state == "hover" else (fill.darkened(0.08) if state == "pressed" else fill)
+		sb.set_corner_radius_all(26)
+		sb.corner_detail = 10
+		if fill.get_luminance() > 0.8:
+			sb.set_border_width_all(1)
+			sb.border_color = Chrome.BORDER
+		sb.shadow_color = Color(0.04, 0.07, 0.09, 0.2)
+		sb.shadow_size = 8
+		sb.shadow_offset = Vector2(0, 2)
+		if state == "focus":
+			sb.draw_center = false
+			sb.set_border_width_all(0)
+			sb.shadow_size = 0
+		b.add_theme_stylebox_override(state, sb)
 
 func _draw_arrow(b: Button) -> void:
 	var c := b.size * 0.5

@@ -17,6 +17,7 @@ const POP_FONT := preload("res://assets/fonts/Quicksand-Bold.ttf")
 const WingSystem := preload("res://scripts/meta/wing_system.gd")
 const VisitorSystem := preload("res://scripts/meta/visitor_system.gd")
 const CafeSystem := preload("res://scripts/events/cafe_system.gd")
+const ToyLook := preload("res://scripts/render/toy_look.gd")
 
 ## A visitor paid at ticket window `index` (world position of the counter top).
 signal ticket_sold(index: int, at: Vector3)
@@ -933,11 +934,7 @@ func _apply_grandeur(tier: int, celebrate: bool) -> void:
 	var dome := _shell.find_child("dome", true, false) as MeshInstance3D
 	if dome:
 		if tier >= 4:
-			var gold := StandardMaterial3D.new()
-			gold.albedo_color = GOLD
-			gold.metallic = 0.85
-			gold.roughness = 0.22
-			dome.material_override = gold
+			dome.material_override = ToyLook.gilt(GOLD)
 		else:
 			dome.material_override = null
 	if celebrate and tier > before and camera:
@@ -1234,11 +1231,7 @@ func _rim(at: Vector3, r: float, col: Color) -> Node3D:
 	t.outer_radius = r + 0.09
 	t.rings = 48
 	t.ring_segments = 8
-	var m := StandardMaterial3D.new()
-	m.albedo_color = col
-	m.metallic = 0.8
-	m.roughness = 0.25
-	t.material = m
+	t.material = ToyLook.gilt(col)
 	mi.mesh = t
 	add_child(mi)
 	mi.global_position = at
@@ -1385,32 +1378,14 @@ func _drive(delta: float) -> void:
 
 # ------------------------------------------------------------------ look
 func _environment() -> void:
-	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color("#bfe3ff")
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("#cfe0ff")
-	env.ambient_light_energy = 0.24
-	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR  # Filmic bleaches toy colours to white in Compatibility
-	env.tonemap_exposure = 1.0
-	env.glow_enabled = true
-	env.glow_intensity = 0.2
-	env.glow_hdr_threshold = 1.4
-	env.adjustment_enabled = true
-	env.adjustment_saturation = 1.2
-	env.adjustment_contrast = 1.1
+	ToyLook.watch(self)
+	var env := ToyLook.environment()
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
 	_env = env
-	var sun := DirectionalLight3D.new()
+	var sun := ToyLook.sun(Vector3(-52.0, -32.0, 0.0), 90.0)
 	_sun = sun
-	sun.rotation_degrees = Vector3(-52.0, -32.0, 0.0)
-	sun.light_energy = 0.62
-	sun.light_color = Color("#fff3df")
-	sun.shadow_enabled = true
-	sun.shadow_blur = 1.6
-	sun.directional_shadow_max_distance = 90.0
 	add_child(sun)
 
 func _camera() -> void:

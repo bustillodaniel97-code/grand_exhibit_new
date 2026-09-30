@@ -137,6 +137,20 @@ func _rail_item(text: String, icon_name: String, tint: Color, cb: Callable) -> C
 	UI.add_press_squish(b)
 	b.pressed.connect(cb)
 	item.add_child(b)
+	# Notification dot: something is ready behind this tile.
+	var dot := Panel.new()
+	dot.name = "Badge"
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Chrome.DANGER
+	sb.set_corner_radius_all(7)
+	sb.set_border_width_all(2)
+	sb.border_color = Chrome.PANEL
+	dot.add_theme_stylebox_override("panel", sb)
+	dot.size = Vector2(14, 14)
+	dot.position = Vector2(TILE - 16, 2)
+	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dot.visible = false
+	b.add_child(dot)
 
 	var cap := UI.make_display_label(text, UI.TYPE_CAPTION, Chrome.INK)
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -186,13 +200,12 @@ func refresh() -> void:
 	# The Floors tile glows while a wing is ready to renovate.
 	var nxt: Dictionary = WingSystem.next_wing(GameState.current_venue)
 	var ready: bool = not nxt.is_empty() and WingSystem.status(GameState.current_venue, str(nxt["id"])) == WingSystem.STATUS_READY
-	(_floors_item.get_child(0) as CanvasItem).modulate = Color(1.3, 1.15, 0.6) if ready else Color.WHITE
+	_badge(_floors_item, ready)
 	var gift_ready: bool = GameState.ready_flag and DailyGifts.available()
 	if _gifts_item.visible != gift_ready:
 		_gifts_item.visible = gift_ready
 		_reposition()
-	if gift_ready:
-		(_gifts_item.get_child(0) as CanvasItem).modulate = Color(1.3, 1.15, 0.6)
+	_badge(_gifts_item, gift_ready)
 	var cafe_live: bool = CafeSystem.is_live()
 	if _cafe_item.visible != cafe_live:
 		_cafe_item.visible = cafe_live
@@ -201,11 +214,16 @@ func refresh() -> void:
 			var days := int(round(float(CafeSystem.config().get("duration_hours", 72)) / 24.0))
 			EventBus.toast_requested.emit(tr("%s is open! A pop-up café for %d days") % [tr(str(CafeSystem.theme().get("name", "The Pop-Up Café"))), days])
 	if cafe_live:
-		(_cafe_item.get_child(0) as CanvasItem).modulate = Color(1.3, 1.15, 0.6) if CafeSystem.any_claimable() else Color.WHITE
+		_badge(_cafe_item, CafeSystem.any_claimable())
 	if show_prestige and not bool(_celebrated.get(GameState.current_venue, false)) \
 			and not Popups.is_open():
 		_celebrated[GameState.current_venue] = true
 		call_deferred("_open_completion")
+
+func _badge(item: Control, on: bool) -> void:
+	var dot := item.find_child("Badge", true, false) as Control
+	if dot != null:
+		dot.visible = on
 
 func _open_completion() -> void:
 	if PrestigeSystem.gate_met(GameState.current_venue) and not Popups.is_open():

@@ -31,7 +31,7 @@ const PANEL := Chrome.PANEL
 const ACCENT := Chrome.TEAL
 const BRASS := Chrome.BRASS
 const SAGE := Chrome.TEAL
-const SLATE := Color("96c8df")
+const SLATE := UI.SLATE
 const DANGER := Chrome.DANGER
 const DIM := Chrome.DIM
 

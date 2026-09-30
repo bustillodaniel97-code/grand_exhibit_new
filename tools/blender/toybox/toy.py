@@ -55,8 +55,11 @@ def shade(h, k):
 _MATS = {}
 
 
-def mat(hexc, rough=0.4, metal=0.0, emit=0.0, alpha=1.0, name=None):
-    """Cached Principled material. Only glTF-exportable inputs are used."""
+def mat(hexc, rough=0.88, metal=0.0, emit=0.0, alpha=1.0, name=None):
+    """Cached Principled material. Only glTF-exportable inputs are used.
+
+    Matte by default (clay, not plastic); the game also flattens gloss at load
+    time in scripts/render/toy_look.gd, so older exports match."""
     key = (hexc.upper(), round(rough, 3), round(metal, 3), round(emit, 3), round(alpha, 3))
     if key in _MATS:
         return _MATS[key]

@@ -9,11 +9,11 @@ uniform sampler2D screen_tex : hint_screen_texture, filter_linear;
 // "lit" rather than "coloured in" on flat art.
 uniform vec3 warm : source_color = vec3(1.04, 1.005, 0.95);
 uniform vec3 cool : source_color = vec3(0.95, 0.975, 1.06);
-uniform float split_strength : hint_range(0.0, 1.0) = 0.55;
+uniform float split_strength : hint_range(0.0, 1.0) = 0.3;
 
-uniform float vignette_strength : hint_range(0.0, 1.0) = 0.28;
-uniform float contrast : hint_range(0.5, 1.5) = 1.045;
-uniform float saturation : hint_range(0.5, 1.5) = 1.06;
+uniform float vignette_strength : hint_range(0.0, 1.0) = 0.08;
+uniform float contrast : hint_range(0.5, 1.5) = 1.0;
+uniform float saturation : hint_range(0.5, 1.5) = 1.0;
 
 void fragment() {
 	vec3 col = texture(screen_tex, SCREEN_UV).rgb;

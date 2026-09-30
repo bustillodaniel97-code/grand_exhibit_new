@@ -77,10 +77,10 @@ func _card(i: int, gift: Dictionary, state: String) -> Control:
 	sb.set_content_margin_all(8)
 	if state == "today":
 		sb.border_color = Chrome.ACTION
-		sb.set_border_width_all(4)
+		sb.set_border_width_all(2)
 	elif i == DailyGifts.days().size() - 1:
-		sb.border_color = Color("#E8B83A")
-		sb.set_border_width_all(3)
+		sb.border_color = Color(UI.BRASS, 0.7)
+		sb.set_border_width_all(2)
 	card.add_theme_stylebox_override("panel", sb)
 	var col := VBoxContainer.new()
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -94,7 +94,7 @@ func _card(i: int, gift: Dictionary, state: String) -> Control:
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_CENTERED
 	icon.custom_minimum_size = Vector2(0, 44)
 	# The glyph icons are white masks; tint them so they read on a light card.
-	var tints := {"trophy": Color("#E8A21A"), "arrow_up": Chrome.ACTION, "star": Chrome.BRASS}
+	var tints := {"trophy": UI.BRASS, "arrow_up": Chrome.ACTION, "star": Chrome.BRASS}
 	icon.modulate = Chrome.TEAL if state == "done" else tints.get(_icon_for(gift), Color.WHITE)
 	col.add_child(icon)
 	var what := _label(DailyGifts.describe(gift), 14, Chrome.INK if state != "done" else Chrome.DIM)

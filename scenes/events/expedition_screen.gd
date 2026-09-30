@@ -21,7 +21,7 @@ const PANEL := UI.CARD
 const ACCENT := Chrome.TEAL
 const BRASS := Chrome.BRASS
 const SAGE := Chrome.TEAL
-const SLATE := Color("#96c8df")
+const SLATE := UI.SLATE
 const SPEC_GLYPH := {"promotions": "P", "ticket": "T", "archive": "A", "gallery": "G"}
 const SPEC_COLOR := UI.DEPT_COLORS
 

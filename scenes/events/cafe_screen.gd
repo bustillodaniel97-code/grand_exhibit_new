@@ -90,9 +90,13 @@ func _ready() -> void:
 	sb.set_content_margin_all(14)
 	_closed.add_theme_stylebox_override("panel", sb)
 	_closed.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	# Grow from the centre both ways, so a longer line (or language) stays inside.
+	_closed.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_closed.grow_vertical = Control.GROW_DIRECTION_BOTH
 	_closed.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var cl := _label("", 18, Chrome.INK)
 	cl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	cl.custom_minimum_size = Vector2(380, 0)
 	_closed.add_child(cl)
 	view.add_child(_closed)
@@ -238,7 +242,7 @@ func _style_chip(chip: PanelContainer, index: int) -> void:
 	sb.set_content_margin_all(6)
 	if ready:
 		sb.border_color = Chrome.ACTION
-		sb.set_border_width_all(3)
+		sb.set_border_width_all(2)
 	chip.add_theme_stylebox_override("panel", sb)
 	chip.modulate = Color(1, 1, 1, 0.6) if got else Color.WHITE
 	var b: Button = chip.find_child("Claim", true, false)

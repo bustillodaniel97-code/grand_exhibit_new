@@ -71,7 +71,7 @@ func _open(path: String, payload: Dictionary) -> void:
 	add_child(holder)
 
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.55)
+	dim.color = Color(0.06, 0.09, 0.11, 0.42)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP  # swallow taps on the dim
 	holder.add_child(dim)
@@ -88,15 +88,13 @@ func _open(path: String, payload: Dictionary) -> void:
 	_apply_card_size(card, dim)
 	card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	# The shell is a quiet museum case: navy exterior, a restrained brass focus
-	# language, and no purple halo around screens that paint their own page.
-	var frame := Chrome.panel(16, Chrome.BG)
+	# A soft sheet: the page colour, a wide radius and one deep, diffuse shadow.
+	var frame := Chrome.panel(20, Chrome.BG)
 	frame.set_content_margin_all(0)
-	frame.set_border_width_all(1)
-	frame.border_color = Chrome.BORDER
-	frame.shadow_size = 12
-	frame.shadow_color = Color(0.0, 0.0, 0.0, 0.52)
-	frame.shadow_offset = Vector2(0, 4)
+	frame.set_border_width_all(0)
+	frame.shadow_size = 28
+	frame.shadow_color = Color(0.03, 0.06, 0.08, 0.22)
+	frame.shadow_offset = Vector2(0, 10)
 	card.add_theme_stylebox_override("panel", frame)
 	card.clip_contents = true
 	center.add_child(card)
@@ -111,25 +109,20 @@ func _open(path: String, payload: Dictionary) -> void:
 	# This is a real museum-context header, not an empty band with a red X. It
 	# remains outside content so existing screen headers never collide with it.
 	var bar := PanelContainer.new()
-	var bar_surface := Chrome.panel(0, Chrome.PANEL)
-	bar_surface.set_content_margin_all(0)
-	bar.add_theme_stylebox_override("panel", bar_surface)
+	bar.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	var top_row := HBoxContainer.new()
 	top_row.add_theme_constant_override("separation", 8)
 	var pad := MarginContainer.new()
-	pad.add_theme_constant_override("margin_left", 12)
-	pad.add_theme_constant_override("margin_right", 8)
-	pad.add_theme_constant_override("margin_top", 3)
-	pad.add_theme_constant_override("margin_bottom", 3)
+	pad.add_theme_constant_override("margin_left", 22)
+	pad.add_theme_constant_override("margin_right", 12)
+	pad.add_theme_constant_override("margin_top", 10)
+	pad.add_theme_constant_override("margin_bottom", 0)
 	pad.add_child(top_row)
 	bar.add_child(pad)
 	var heading := VBoxContainer.new()
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.alignment = BoxContainer.ALIGNMENT_CENTER
 	heading.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var eyebrow := UI.make_display_label("MUSEUM", 11, Chrome.BRASS)
-	eyebrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	heading.add_child(eyebrow)
 	var context := UI.make_label(_museum_name(), 14, Chrome.DIM)
 	# Wrapped, clipped labels can report a 1px minimum height in Godot 4.4.
 	# Reserve a readable line; long museum names elide within the available width.
@@ -141,19 +134,17 @@ func _open(path: String, payload: Dictionary) -> void:
 	top_row.add_child(heading)
 	var x_btn := Button.new()
 	x_btn.text = "Close" if _stack.is_empty() else "Back"
-	x_btn.icon = UI.icon_texture("cross", 18)
+	x_btn.icon = UI.icon_texture("cross", 14)
 	x_btn.expand_icon = false
-	x_btn.custom_minimum_size = Vector2(88, UI.TOUCH_MIN)
-	Chrome.button(x_btn, false, 10)
+	x_btn.custom_minimum_size = Vector2(88, UI.TOUCH_MIN - 4)
+	x_btn.add_theme_font_override("font", UI.font())
+	x_btn.add_theme_font_size_override("font_size", 15)
+	x_btn.add_theme_constant_override("h_separation", 6)
+	Chrome.button(x_btn, false, 16)
 	x_btn.tooltip_text = "Close this screen"
 	x_btn.pressed.connect(close_top)
 	top_row.add_child(x_btn)
 	vbox.add_child(bar)
-	var divider := Panel.new()
-	divider.custom_minimum_size = Vector2(0, 1)
-	divider.add_theme_stylebox_override("panel", Chrome.channel(Chrome.BORDER))
-	divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(divider)
 
 	var body := MarginContainer.new()
 	body.add_theme_constant_override("margin_left", 4)

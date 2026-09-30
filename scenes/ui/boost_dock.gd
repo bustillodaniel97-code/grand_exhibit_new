@@ -94,6 +94,10 @@ func _apply_safe_area() -> void:
 
 func _chip(icon_name: String, _color: Color, width: int) -> Button:
 	var b:=Button.new();Chrome.button(b)
+	for state in ["normal","hover","pressed","disabled"]:
+		var sb:=b.get_theme_stylebox(state) as StyleBoxFlat
+		if sb!=null:sb.content_margin_left=10;sb.content_margin_right=8
+	b.add_theme_constant_override("h_separation",6)
 	# Currency icons keep their own colours; only glyph icons take the ink tint.
 	for state in ["icon_normal_color","icon_hover_color","icon_pressed_color"]:b.add_theme_color_override(state,Color.WHITE)
 	b.custom_minimum_size=Vector2(width,CHIP_H)

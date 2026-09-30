@@ -21,6 +21,7 @@ const NAME_SIZE := 13
 const REQUIREMENT_SIZE := 10
 
 var _buttons := {}
+var _names := {}
 var _requirements := {}
 var _style_keys := {}
 var _opened_tab := "museum"
@@ -33,16 +34,18 @@ func _ready() -> void:
 	name = "BottomNav"
 	UI.install_default_font()
 	custom_minimum_size.y = TAB_HEIGHT
-	var nav_surface := Chrome.panel(0, Chrome.BG)
-	# The helper's default panel padding suits cards. The nav owns its own compact
-	# margins below, so avoid layering both and growing this shell past its budget.
+	# A plain white tab bar with a hairline along its top edge.
+	var nav_surface := StyleBoxFlat.new()
+	nav_surface.bg_color = Chrome.PANEL
+	nav_surface.border_color = Chrome.BORDER
+	nav_surface.border_width_top = 1
 	nav_surface.set_content_margin_all(0)
 	add_theme_stylebox_override("panel", nav_surface)
 
 	_margin = MarginContainer.new()
 	_margin.add_theme_constant_override("margin_left", 8)
 	_margin.add_theme_constant_override("margin_right", 8)
-	_margin.add_theme_constant_override("margin_top", 4)
+	_margin.add_theme_constant_override("margin_top", 6)
 	_margin.add_theme_constant_override("margin_bottom", 4)
 	add_child(_margin)
 
@@ -92,8 +95,8 @@ func _add_nav_button(row: HBoxContainer, id: String, label_text: String, icon_na
 	row.add_child(cell)
 
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(48, TOUCH_HEIGHT)
-	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.custom_minimum_size = Vector2(76, TOUCH_HEIGHT - 8)
+	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	b.add_theme_font_override("font", UI.font())
 	b.icon = UI.icon_texture(icon_name, ICON)
 	b.expand_icon = false
@@ -105,7 +108,7 @@ func _add_nav_button(row: HBoxContainer, id: String, label_text: String, icon_na
 	b.pressed.connect(_on_nav_pressed.bind(id))
 	cell.add_child(b)
 
-	var name_label := UI.make_display_label(label_text, NAME_SIZE, Chrome.INK)
+	var name_label := UI.make_display_label(label_text, NAME_SIZE, Chrome.DIM)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_label.clip_text = true
@@ -117,6 +120,7 @@ func _add_nav_button(row: HBoxContainer, id: String, label_text: String, icon_na
 	req.clip_text = true
 	cell.add_child(req)
 	_buttons[id] = b
+	_names[id] = name_label
 	_requirements[id] = req
 
 func _on_unlock_signal(_a: Variant = null, _b: Variant = null) -> void:
@@ -142,21 +146,41 @@ func _set_lock(id: String, unlocked: bool, req_text: String) -> void:
 	if _style_keys.get(id, "") == key:
 		return
 	_style_keys[id] = key
+	var name_label: Label = _names.get(id)
 	if unlocked:
 		b.icon = UI.icon_texture(str(b.get_meta("icon_name")), ICON)
 		b.tooltip_text = ""
 		req.text = ""
-		Chrome.button(b, active, 10)
-		if active:
-			b.add_theme_color_override("icon_normal_color", Chrome.TEAL)
-			b.add_theme_color_override("icon_hover_color", Chrome.INK)
 	else:
 		b.icon = UI.icon_texture("lock", ICON - 2)
 		b.tooltip_text = tr("Unlocks at %s") % req_text
 		req.text = tr("Unlock: %s") % req_text
-		Chrome.button(b, false, 10)
-		for state in ["icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
-			b.add_theme_color_override(state, Chrome.DIM)
+	_tab_style(b, active and unlocked, unlocked)
+	if name_label != null:
+		name_label.add_theme_color_override("font_color", Chrome.ACTION if active and unlocked else (Chrome.INK if unlocked else Chrome.DIM))
+
+## The active tab carries a soft tinted pill behind its icon; the rest are bare.
+func _tab_style(b: Button, active: bool, unlocked: bool) -> void:
+	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
+		var sb := StyleBoxFlat.new()
+		sb.set_corner_radius_all(20)
+		sb.corner_detail = 10
+		sb.set_content_margin_all(0)
+		match state:
+			"normal", "disabled":
+				sb.bg_color = Color(Chrome.ACTION, 0.14) if active else Color(0, 0, 0, 0)
+			"hover":
+				sb.bg_color = Color(Chrome.ACTION, 0.18) if active else Color(0, 0, 0, 0.04)
+			"pressed":
+				sb.bg_color = Color(Chrome.ACTION, 0.24) if active else Color(0, 0, 0, 0.08)
+			"focus":
+				sb.draw_center = false
+				sb.border_color = Color(Chrome.ACTION, 0.5)
+				sb.set_border_width_all(2)
+		b.add_theme_stylebox_override(state, sb)
+	var ink := Chrome.ACTION if active else (Chrome.INK.lightened(0.15) if unlocked else Chrome.DIM.lightened(0.2))
+	for state in ["icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_focus_color", "icon_hover_pressed_color"]:
+		b.add_theme_color_override(state, ink)
 
 func _on_nav_pressed(id: String) -> void:
 	match id:

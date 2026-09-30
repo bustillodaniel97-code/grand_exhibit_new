@@ -123,12 +123,21 @@ func _build_toast() -> void:
 	_toast_panel.offset_top -= 160.0
 	_toast_panel.offset_bottom -= 110.0
 	_toast_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_toast_panel.add_theme_stylebox_override("panel", UI.make_panel(UI.INK, 10, 0))
+	var toast_box := UI.make_panel(Color(UI.INK, 0.94), 26, 0)
+	toast_box.content_margin_left = 22
+	toast_box.content_margin_right = 22
+	toast_box.content_margin_top = 12
+	toast_box.content_margin_bottom = 12
+	toast_box.shadow_color = Color(0, 0, 0, 0.18)
+	toast_box.shadow_size = 16
+	toast_box.shadow_offset = Vector2(0, 6)
+	_toast_panel.add_theme_stylebox_override("panel", toast_box)
 	_toast_panel.modulate.a = 0.0
 	_toast_panel.visible = false
 	holder.add_child(_toast_panel)
 
-	_toast_lbl = UI.make_label("", 22)
+	_toast_lbl = UI.make_label("", 18)
+	_toast_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_toast_lbl.add_theme_color_override("font_color", Color.WHITE)
 	_toast_panel.add_child(_toast_lbl)
 

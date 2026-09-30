@@ -270,8 +270,8 @@ func _show_result(res: Dictionary) -> void:
 	var art := DigSystem.artifact(venue_id, str(res.get("artifact", "")))
 	var sb := Chrome.panel(18, Chrome.RAISED)
 	sb.set_content_margin_all(18)
-	sb.border_color = Color("#FFD34D")
-	sb.set_border_width_all(3)
+	sb.border_color = Color(UI.BRASS, 0.7)
+	sb.set_border_width_all(2)
 	_result.add_theme_stylebox_override("panel", sb)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
@@ -280,13 +280,13 @@ func _show_result(res: Dictionary) -> void:
 	box.add_child(UI.make_display_label("ARTIFACT RECOVERED!", 14, Chrome.BRASS))
 	box.add_child(UI.make_display_label(str(art.get("name", "")), 28, Chrome.INK))
 	var q := int(res.get("quality", 3))
-	box.add_child(_label(tr("Quality %s") % ("★★★".substr(0, q) + "☆☆☆".substr(0, 3 - q)), 20, Color("#FFD34D")))
+	box.add_child(_label(tr("Quality %s") % ("★★★".substr(0, q) + "☆☆☆".substr(0, 3 - q)), 20, Chrome.BRASS))
 	var bonus := float((DigSystem.config().get("rewards", {}) as Dictionary).get("income_bonus", 0.04)) * float(q) / 3.0
 	box.add_child(_label(tr("Now on display: +%d%% museum income") % int(round(bonus * 100.0)), 17, Chrome.TEAL))
 	if int(res.get("bonus_gems", 0)) > 0:
 		box.add_child(_label(tr("+%d gems for a first find") % int(res["bonus_gems"]), 16, Chrome.INK))
 	if DigSystem.set_complete(venue_id):
-		box.add_child(_label("Collection complete! Set bonus active.", 16, Color("#FFD34D")))
+		box.add_child(_label("Collection complete! Set bonus active.", 16, Chrome.BRASS))
 	var nxt := _button("Next dig site", true)
 	nxt.name = "NextSite"
 	nxt.pressed.connect(func() -> void:
